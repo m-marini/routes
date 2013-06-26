@@ -1,0 +1,1 @@
+Main-class: org.mmarini.routes.swing.MainFrame

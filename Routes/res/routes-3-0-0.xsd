@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id: routes-3-0-0.xsd,v 1.2 2009/05/29 20:47:24 marco Exp $ -->
+<schema targetNamespace="http://www.mmarini.org/routes-3-0-0" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:rts="http://www.mmarini.org/routes-3-0-0">
+	<element name="routes" type="rts:RoutesType"></element>
+	<complexType name="RoutesType">
+		<sequence>
+			<element name="default" type="rts:DefaultType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+			<element name="site" type="rts:SiteType" minOccurs="0"
+				maxOccurs="unbounded">
+			</element>
+            <element name="path" type="rts:PathType" maxOccurs="unbounded" minOccurs="0"></element>
+            <element name="node" type="rts:NodeType" minOccurs="0"
+				maxOccurs="unbounded">
+			</element>
+			<element name="edge" type="rts:EdgeType" minOccurs="0"
+				maxOccurs="unbounded">
+			</element>
+		</sequence>
+	</complexType>
+
+	<complexType name="NodeType">
+		<sequence>
+			<element name="x" type="float" minOccurs="1"
+				maxOccurs="1">
+			</element>
+			<element name="y" type="float" minOccurs="1"
+				maxOccurs="1">
+			</element>
+		</sequence>
+		<attribute name="id" type="ID" use="required"></attribute>
+	</complexType>
+
+	<complexType name="EdgeType">
+		<sequence>
+			<element name="start" type="IDREF" minOccurs="1"
+				maxOccurs="1">
+			</element>
+			<element name="end" type="IDREF" minOccurs="1"
+				maxOccurs="1">
+			</element>
+			<element name="speedLimit" type="rts:SpeedType"
+				minOccurs="0" maxOccurs="1">
+			</element>
+			<element name="priority" type="int" maxOccurs="1"
+				minOccurs="0">
+			</element>
+		</sequence>
+		<attribute name="id" type="ID"></attribute>
+	</complexType>
+
+	<complexType name="SiteType">
+		<complexContent>
+			<extension base="rts:NodeType">
+			</extension>
+		</complexContent>
+	</complexType>
+
+	<simpleType name="FrequenceType">
+		<restriction base="float">
+			<minInclusive value="0"></minInclusive>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="WeightType">
+		<restriction base="float">
+			<minInclusive value="0"></minInclusive>
+			<maxInclusive value="1"></maxInclusive>
+		</restriction>
+	</simpleType>
+
+
+	<simpleType name="SpeedType">
+		<restriction base="float">
+			<minInclusive value="0"></minInclusive>
+		</restriction>
+	</simpleType>
+
+	<complexType name="DefaultType">
+		<sequence>
+
+            <element name="frequence" type="rts:FrequenceType" maxOccurs="1" minOccurs="1"></element>
+            <element name="speedLimit" type="rts:SpeedType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+
+		</sequence>
+	</complexType>
+
+
+    <complexType name="PathType">
+				<sequence>
+					<element name="departure" type="IDREF"></element>
+            <element name="destination" type="IDREF"></element>
+            <element name="weight" type="rts:WeightType"
+						minOccurs="0" maxOccurs="1">
+					</element>
+
+				</sequence>
+    </complexType>
+
+
+</schema>

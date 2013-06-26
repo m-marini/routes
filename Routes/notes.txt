@@ -1,0 +1,77 @@
+
+$Id: notes.txt,v 1.10 2009/05/08 21:28:51 marco Exp $
+
+In pausa manca il refresh video quando si usa il cursore
+
+Dati del traffico per destinazione:
+
+# veicoli
+# di veicoli in ritardo (oltre il tempo previsto)
+media del ritardo (solo per i veicoli in ritardo) 
+
+
+Flusso_i = Fi (1 - Pi) +  Pi Sum(Fj)
+
+Fi = Frequenza di generazione del sito i-esimo
+
+Pi = Probabilità di destinazione del sito i-esimo
+
+Fi = (Flusso_i - Pi Sum(Fj)) / (1 - Pi)
+
+Float Add 
+	361,533 MIPS
+	359,583 MIPS
+	353,607 MIPS
+	357,526 MIPS
+	359,583 MIPS
+
+Float Subtract
+	359,583 MIPS
+	359,583 MIPS
+	359,583 MIPS
+	359,583 MIPS
+	359,583 MIPS
+	
+Float Multiply
+	357,654 MIPS
+	361,533 MIPS
+	357,526 MIPS
+	344,116 MIPS
+	357,526 MIPS
+	
+Float Divide
+	164,096 MIPS
+	163,265 MIPS
+	160 MIPS
+	164,123 MIPS
+	162,84 MIPS
+
+Double Add
+	390,168 MIPS
+	405,022 MIPS
+	397,456 MIPS
+	402,414 MIPS
+	395,101 MIPS
+
+Double Subtract
+	395,101 MIPS
+	405,022 MIPS
+	407,664 MIPS
+	405,022 MIPS
+	400 MIPS
+
+Double Multilply
+	397,456 MIPS
+	400 MIPS
+	400 MIPS
+	380,952 MIPS
+	390,32 MIPS
+
+Double Divide
+	254,972 MIPS
+	254,001 MIPS
+	250,941 MIPS
+	246,184 MIPS
+	253,936 MIPS
+
+	
