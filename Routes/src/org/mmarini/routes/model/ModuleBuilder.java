@@ -37,7 +37,6 @@ public class ModuleBuilder implements MapBuilder {
 	/**
 	 * 
 	 */
-	@Override
 	public void add(Path path) {
 	}
 
@@ -51,7 +50,6 @@ public class ModuleBuilder implements MapBuilder {
 	/**
 	 * 
 	 */
-	@Override
 	public void applyFrequence(double frequence) {
 	}
 

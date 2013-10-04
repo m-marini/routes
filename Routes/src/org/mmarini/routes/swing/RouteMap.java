@@ -188,7 +188,6 @@ public class RouteMap extends JComponent {
 	 */
 			private static final long serialVersionUID = 1L;
 
-			@Override
 			public void actionPerformed(ActionEvent e) {
 				delete();
 			}
@@ -203,8 +202,7 @@ public class RouteMap extends JComponent {
 			@Override
 			public void handleMousePressed(MouseEvent e) {
 				computeMapLocation(begin, e.getPoint());
-				mediator
-						.snapToNode(begin, (CURSOR_SELECTION_PRECISION / scale));
+				mediator.snapToNode(begin, (CURSOR_SELECTION_PRECISION / scale));
 				end.setLocation(begin);
 				setCurrentMode(endEdgeMode);
 				repaint();
@@ -303,9 +301,8 @@ public class RouteMap extends JComponent {
 				Point mousePosition = getMousePosition();
 				if (mousePosition != null) {
 					computeMapLocation(point, mousePosition);
-					paintModule(begin, point.getX() - begin.getX(), point
-							.getY()
-							- begin.getY());
+					paintModule(begin, point.getX() - begin.getX(),
+							point.getY() - begin.getY());
 				} else {
 					paintModule(begin, 0., 0.);
 				}
@@ -412,9 +409,7 @@ public class RouteMap extends JComponent {
 	 */
 	public void computeMapLocation(Point2D result, Point point) {
 		inverse.transform(point, result);
-		result
-				.setLocation(Math.round(result.getX()), Math.round(result
-						.getY()));
+		result.setLocation(Math.round(result.getX()), Math.round(result.getY()));
 	}
 
 	/**
@@ -742,9 +737,9 @@ public class RouteMap extends JComponent {
 	 */
 	public void scaleToFit(Dimension size) {
 		computeMapBound();
-		double scale = Math.min((size.width - MAP_BORDER * 2)
-				/ mapBound.getWidth(), (size.height - MAP_BORDER * 2)
-				/ mapBound.getHeight());
+		double scale = Math.min(
+				(size.width - MAP_BORDER * 2) / mapBound.getWidth(),
+				(size.height - MAP_BORDER * 2) / mapBound.getHeight());
 		scale = Math.max(scale, 1e-6);
 		setScale(scale);
 	}

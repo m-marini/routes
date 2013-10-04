@@ -34,6 +34,9 @@ import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.UIManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * This is the main frame of the simulation.
  * <p>
@@ -47,6 +50,8 @@ import javax.swing.UIManager;
  * 
  */
 public class MainFrame extends JFrame {
+	private static Logger log = LoggerFactory.getLogger(MainFrame.class);
+	
 	private static final String IMAGES_ROUTES = "/images/routes.gif";
 	private static final String DUMP_PROPERTY_NAME = "org.mmarini.routes.swing.MainFrame.dump";
 	private static final long serialVersionUID = 1L;
@@ -58,6 +63,7 @@ public class MainFrame extends JFrame {
 	 *            unused
 	 */
 	public static void main(String[] args) throws Throwable {
+		log.info("MainFrame started.");
 		try {
 			// UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
 			UIManager

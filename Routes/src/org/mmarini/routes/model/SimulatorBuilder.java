@@ -37,7 +37,6 @@ public class SimulatorBuilder implements MapBuilder {
 	/**
 	 * 
 	 */
-	@Override
 	public void add(Path path) {
 		getSimulator().add(path);
 	}
@@ -49,7 +48,6 @@ public class SimulatorBuilder implements MapBuilder {
 		getSimulator().add(site);
 	}
 
-	@Override
 	public void applyFrequence(double frequence) {
 		getSimulator().setFrequence(frequence);
 	}

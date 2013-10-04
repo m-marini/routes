@@ -27,7 +27,6 @@ public class RouteTableModel extends AbstractTableModel {
 	/**
 	 * @see javax.swing.table.TableModel#getColumnCount()
 	 */
-	@Override
 	public int getColumnCount() {
 		return COLUMN_NAMES.length;
 	}
@@ -35,7 +34,6 @@ public class RouteTableModel extends AbstractTableModel {
 	/**
 	 * @see javax.swing.table.TableModel#getRowCount()
 	 */
-	@Override
 	public int getRowCount() {
 		if (routes == null)
 			return 0;
@@ -45,7 +43,6 @@ public class RouteTableModel extends AbstractTableModel {
 	/**
 	 * @see javax.swing.table.TableModel#getValueAt(int, int)
 	 */
-	@Override
 	public Object getValueAt(int row, int col) {
 		Path p = routes.get(row);
 		switch (col) {

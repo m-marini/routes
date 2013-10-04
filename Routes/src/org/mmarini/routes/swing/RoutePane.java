@@ -53,7 +53,9 @@ public class RoutePane extends Box {
 			this.mediator = mediator;
 		}
 
-		@Override
+		/**
+		 * 
+		 */
 		public int compare(Path o1, Path o2) {
 			return mediator.createNodeName(o1.getDestination()).compareTo(
 					mediator.createNodeName(o2.getDestination()));
@@ -79,7 +81,6 @@ public class RoutePane extends Box {
 		departureList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		departureList.addListSelectionListener(new ListSelectionListener() {
 
-			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				if (!e.getValueIsAdjusting())
 					departureSelected();
