@@ -1,3 +1,2 @@
-#Sun Jan 18 20:24:30 CET 2009
 eclipse.preferences.version=1
-encoding//res/org/mmarini/routes/swing/messages.properties=8859_1
+encoding//src/main/resources/org/mmarini/routes/swing/messages.properties=8859_1
