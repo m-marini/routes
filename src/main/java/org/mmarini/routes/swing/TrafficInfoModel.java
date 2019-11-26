@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.mmarini.routes.swing;
 
@@ -23,7 +23,7 @@ public class TrafficInfoModel extends AbstractTableModel {
 	private RouteMediator mediator;
 
 	/**
-	     * 
+	     *
 	     */
 	public TrafficInfoModel() {
 	}
@@ -53,7 +53,7 @@ public class TrafficInfoModel extends AbstractTableModel {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param index
 	 * @return
 	 */

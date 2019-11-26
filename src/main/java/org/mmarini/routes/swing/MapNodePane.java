@@ -35,7 +35,7 @@ import org.mmarini.routes.model.MapNode;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: MapNodePane.java,v 1.9 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class MapNodePane extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -61,7 +61,7 @@ public class MapNodePane extends JPanel {
 	private final JLabel yLabel;
 
 	/**
-	     * 
+	     *
 	     */
 	public MapNodePane() {
 		nameField = new JTextField(10);
@@ -108,14 +108,14 @@ public class MapNodePane extends JPanel {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	protected void change() {
 		mediator.transformToSite(node);
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void createContent() {
 		setLayout(new BorderLayout());
@@ -124,7 +124,7 @@ public class MapNodePane extends JPanel {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private JComponent createInfoPane() {
@@ -235,7 +235,7 @@ public class MapNodePane extends JPanel {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private JComponent createToolBar() {
@@ -246,7 +246,7 @@ public class MapNodePane extends JPanel {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	protected void delete() {
 		mediator.remove(node);

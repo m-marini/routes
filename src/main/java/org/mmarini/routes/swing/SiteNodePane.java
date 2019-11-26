@@ -35,7 +35,7 @@ import org.mmarini.routes.model.SiteNode;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: SiteNodePane.java,v 1.11 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class SiteNodePane extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -61,7 +61,7 @@ public class SiteNodePane extends JPanel {
 	private final JTextField nameField;
 
 	/**
-	     * 
+	     *
 	     */
 	public SiteNodePane() {
 		xField = new JFormattedTextField(new NumberFormatter());
@@ -110,14 +110,14 @@ public class SiteNodePane extends JPanel {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	protected void change() {
 		mediator.transformToNode(node);
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void createContent() {
 		setLayout(new BorderLayout());
@@ -126,7 +126,7 @@ public class SiteNodePane extends JPanel {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private JComponent createInfoPane() {
@@ -237,7 +237,7 @@ public class SiteNodePane extends JPanel {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private JComponent createToolBar() {
@@ -248,7 +248,7 @@ public class SiteNodePane extends JPanel {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	protected void delete() {
 		mediator.remove(node);

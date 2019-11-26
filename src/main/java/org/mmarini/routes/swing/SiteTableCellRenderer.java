@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.mmarini.routes.swing;
 
@@ -15,20 +15,20 @@ import org.mmarini.routes.model.MapNode;
 
 /**
  * @author US00852
- * 
+ *
  */
 public class SiteTableCellRenderer extends DefaultTableCellRenderer {
 	private static final long serialVersionUID = 3743457808802444412L;
 	private RouteMediator mediator;
 
 	/**
-	 * 
+	 *
 	 */
 	public SiteTableCellRenderer() {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Override
 	public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,

@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.mmarini.routes.swing;
 
@@ -10,7 +10,7 @@ import org.mmarini.routes.model.SiteNode;
 
 /**
  * @author Marco
- * 
+ *
  */
 public class RouteInfoModel extends AbstractTableModel {
 	private static final long serialVersionUID = 1L;
@@ -22,13 +22,13 @@ public class RouteInfoModel extends AbstractTableModel {
 	private double minimumFlux;
 
 	/**
-	     * 
+	     *
 	     */
 	public RouteInfoModel() {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param row
 	 * @return
 	 */
@@ -42,8 +42,8 @@ public class RouteInfoModel extends AbstractTableModel {
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	private void computeMinMax() {
 		final int n = infos.getNodesCount();

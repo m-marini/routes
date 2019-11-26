@@ -13,14 +13,14 @@ package org.mmarini.routes.model;
  * @author marco.marini@mmarini.org
  * @version $Id: LinearSimulationFunctions.java,v 1.2 2009/01/05 17:04:20 marco
  *          Exp $
- * 
+ *
  */
 public class LinearSimulationFunctions extends AbstractSimulationFunctions {
 
 	private static final double MIN_SPEED_LIMIT = 5 / 3.6;
 
 	/**
-	     * 
+	     *
 	     */
 	protected LinearSimulationFunctions() {
 	}
@@ -50,7 +50,7 @@ public class LinearSimulationFunctions extends AbstractSimulationFunctions {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	@Override
 	public double computeSpeed(final double distance) {

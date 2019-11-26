@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.mmarini.routes.swing;
 
@@ -17,9 +17,9 @@ import org.mmarini.routes.model.MapProfile;
 
 /**
  * Pannello di selezione del profilo di generazione delle mappe casuali
- * 
+ *
  * @author Marco
- * 
+ *
  */
 public class MapProfilePane extends Box {
 	private static final double LARGE_SIZE = 15000.;
@@ -34,24 +34,25 @@ public class MapProfilePane extends Box {
 	private static final long serialVersionUID = 1L;
 
 	private final SpinnerNumberModel siteCount;
-	private final DefaultComboBoxModel mapSizeModel;
-	private final DefaultComboBoxModel difficultyModel;
+	private final DefaultComboBoxModel<String> mapSizeModel;
+	private final DefaultComboBoxModel<String> difficultyModel;
 	private final double[] mapSize;
 	private final double[] minWeight;
 	private final double[] frequence;
-	private JComboBox mapSizeField;
+	private JComboBox<String> mapSizeField;
 	private Component siteCountField;
 
 	/**
-	     * 
+	     *
 	     */
 	public MapProfilePane() {
 		super(BoxLayout.PAGE_AXIS);
-		mapSizeModel = new DefaultComboBoxModel(new Object[] { Messages.getString("MapProfilePane.mapSize.small.text"), //$NON-NLS-1$
-				Messages.getString("MapProfilePane.mapSize.medium.text"), //$NON-NLS-1$
-				Messages.getString("MapProfilePane.mapSize.large.text") }); //$NON-NLS-1$
-		difficultyModel = new DefaultComboBoxModel(
-				new Object[] { Messages.getString("MapProfilePane.difficulty.easy.text"), //$NON-NLS-1$
+		mapSizeModel = new DefaultComboBoxModel<>(
+				new String[] { Messages.getString("MapProfilePane.mapSize.small.text"), //$NON-NLS-1$
+						Messages.getString("MapProfilePane.mapSize.medium.text"), //$NON-NLS-1$
+						Messages.getString("MapProfilePane.mapSize.large.text") }); //$NON-NLS-1$
+		difficultyModel = new DefaultComboBoxModel<>(
+				new String[] { Messages.getString("MapProfilePane.difficulty.easy.text"), //$NON-NLS-1$
 						Messages.getString("MapProfilePane.difficulty.medium.text"), //$NON-NLS-1$
 						Messages.getString("MapProfilePane.difficulty.hard.text") }); //$NON-NLS-1$
 		siteCount = new SpinnerNumberModel(4, 2, 20, 1);
@@ -64,14 +65,14 @@ public class MapProfilePane extends Box {
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	private void createContent() {
 		Box box = createHorizontalBox();
 		box.add(new JLabel(Messages.getString("MapProfilePane.sizeLabel.text"))); //$NON-NLS-1$
 		box.add(createHorizontalGlue());
-		mapSizeField = new JComboBox(mapSizeModel);
+		mapSizeField = new JComboBox<>(mapSizeModel);
 		box.add(mapSizeField);
 		add(box);
 
@@ -89,12 +90,12 @@ public class MapProfilePane extends Box {
 		box = createHorizontalBox();
 		box.add(new JLabel(Messages.getString("MapProfilePane.difficultyLabel.text"))); //$NON-NLS-1$
 		box.add(createHorizontalGlue());
-		box.add(new JComboBox(difficultyModel));
+		box.add(new JComboBox<>(difficultyModel));
 		add(box);
 	}
 
 	/**
-	 * 
+	 *
 	 * @param profile
 	 */
 	public void retrieveProfile(final MapProfile profile) {
@@ -109,7 +110,7 @@ public class MapProfilePane extends Box {
 
 	/**
 	 * Set the panel just for difficulty level
-	 * 
+	 *
 	 * @param difficultOnly
 	 */
 	public void setDifficultyOnly(final boolean difficultOnly) {

@@ -18,10 +18,10 @@ import javax.swing.KeyStroke;
 
 /**
  * Variuous functionalities used in the user interface.
- * 
+ *
  * @author marco.marini@mmarini.org
  * @version $Id: SwingUtils.java,v 1.6 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class SwingUtils {
 	private static SwingUtils instance = new SwingUtils();
@@ -36,7 +36,7 @@ public class SwingUtils {
 
 	/**
 	 * Returns the singleton instance of the utilites
-	 * 
+	 *
 	 * @return the instance
 	 */
 	public static SwingUtils getInstance() {
@@ -53,8 +53,8 @@ public class SwingUtils {
 	 * Compute the iride color depending on a control value.<br>
 	 * The result color are between violet color to red color varying from zero
 	 * level to one level of the control value <br>
-	 * 
-	 * 
+	 *
+	 *
 	 * @param value      the control value
 	 * @param saturation the saturation of result color
 	 * @return the iride color
@@ -77,7 +77,7 @@ public class SwingUtils {
 	 * <li>smallIcon</li>
 	 * <li>largeIcon</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param action the action to be initialized
 	 * @param key    the key identifier in the message file
 	 */
@@ -119,7 +119,7 @@ public class SwingUtils {
 	/**
 	 * Interpolates linearly the result from two levels depending on a control
 	 * value.
-	 * 
+	 *
 	 * @param control   the control value
 	 * @param zeroLevel the start value (associated to the 0 level of control value)
 	 * @param oneLevel  the end value (associated to the 1 level of control value)

@@ -30,7 +30,7 @@ import org.mmarini.routes.model.SiteNode;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: ExplorerPane.java,v 1.9 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class ExplorerPane extends JTabbedPane {
 
@@ -40,13 +40,13 @@ public class ExplorerPane extends JTabbedPane {
 
 	private static final long serialVersionUID = 1L;
 
-	private final DefaultListModel edgeList;
+	private final DefaultListModel<MapEdgeEntry> edgeList;
 
 	private RouteMediator mediator;
 
-	private final JList nodeJList;
+	private final JList<MapNodeEntry> nodeJList;
 
-	private final JList edgeJList;
+	private final JList<MapEdgeEntry> edgeJList;
 
 	private List<MapElementListener> listeners;
 
@@ -61,12 +61,12 @@ public class ExplorerPane extends JTabbedPane {
 	private final MapElementVisitor eventFirer;
 
 	/**
-	     * 
+	     *
 	     */
 	public ExplorerPane() {
-		edgeList = new DefaultListModel();
-		nodeJList = new JList();
-		edgeJList = new JList(edgeList);
+		edgeList = new DefaultListModel<>();
+		nodeJList = new JList<>();
+		edgeJList = new JList<>(edgeList);
 		mapElementEvent = new MapElementEvent(this);
 		title = Messages.getString("ExplorerPane.title"); //$NON-NLS-1$
 		nodeTabTitle = Messages.getString("ExplorerPane.nodeTabe.title"); //$NON-NLS-1$
@@ -93,7 +93,7 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param l
 	 */
 	public synchronized void addMapElementListener(final MapElementListener l) {
@@ -110,7 +110,7 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void createContent() {
 		addTab(nodeTabTitle, new JScrollPane(nodeJList));
@@ -118,7 +118,7 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param edge
 	 */
 	private void fireMapEdgeSelected(final MapEdge edge) {
@@ -134,7 +134,7 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param node
 	 */
 	private void fireMapNodeSelected(final MapNode node) {
@@ -150,7 +150,7 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param site
 	 */
 	private void fireSiteSelected(final SiteNode site) {
@@ -166,11 +166,11 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public MapEdge getSelectedEdge() {
-		final MapEdgeEntry entry = (MapEdgeEntry) edgeJList.getSelectedValue();
+		final MapEdgeEntry entry = edgeJList.getSelectedValue();
 		if (entry != null) {
 			return entry.getEdge();
 		}
@@ -178,11 +178,11 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public MapNode getSelectedNode() {
-		final MapNodeEntry entry = (MapNodeEntry) nodeJList.getSelectedValue();
+		final MapNodeEntry entry = nodeJList.getSelectedValue();
 		if (entry != null) {
 			return entry.getNode();
 		}
@@ -190,14 +190,14 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	protected void handleEdgeSelection() {
 		fireMapEdgeSelected(getSelectedEdge());
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	protected void handleNodeSelection() {
 		final MapNode node = getSelectedNode();
@@ -209,7 +209,7 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void init() {
 		setBorder(BorderFactory.createTitledBorder(title));
@@ -238,7 +238,7 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param l
 	 */
 	public synchronized void removeMapElementListener(final MapElementListener l) {
@@ -251,10 +251,10 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param edgeList
 	 */
-	public void setEdgeList(final ListModel edgeList) {
+	public void setEdgeList(final ListModel<MapEdgeEntry> edgeList) {
 		edgeJList.setModel(edgeList);
 	}
 
@@ -266,16 +266,16 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param nodeList
 	 */
-	public void setNodeList(final ListModel nodeList) {
+	public void setNodeList(final ListModel<MapNodeEntry> nodeList) {
 		nodeJList.setModel(nodeList);
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	public void setSelectedElement(final MapEdge edge) {
 		final int idx = mediator.getEdgeListIndex(edge);
@@ -288,8 +288,8 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	public void setSelectedElement(final MapNode node) {
 		final int idx = mediator.getNodeListIndex(node);

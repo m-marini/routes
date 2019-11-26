@@ -22,7 +22,7 @@ import org.mmarini.routes.model.SiteNode;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: MapElementPane.java,v 1.6 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class MapElementPane extends JPanel {
 
@@ -45,7 +45,7 @@ public class MapElementPane extends JPanel {
 	private final EdgePane edgePane;
 
 	/**
-	     * 
+	     *
 	     */
 	public MapElementPane() {
 		cardLayout = new CardLayout();
@@ -56,7 +56,7 @@ public class MapElementPane extends JPanel {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void createContent() {
 		setLayout(cardLayout);

@@ -14,47 +14,33 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.text.MessageFormat;
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
-import org.mmarini.routes.xml.Dumper;
-import org.mmarini.routes.xml.Path;
-import org.mmarini.routes.xml.SaxMapParser;
-import org.mmarini.routes.xml.XmlMapBuilder;
 import org.xml.sax.SAXException;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: RouteHandler.java,v 1.16 2010/10/19 20:33:00 marco Exp $
- * 
+ *
  */
 public class RouteHandler {
 
 	private final Simulator simulator;
 
-	private final SaxMapParser parser;
-
-	private final XmlMapBuilder builder;
-
-	private final Dumper dumper;
-
-	private final ModuleBuilder moduleBuilder;
-
 	/**
-	     * 
+	     *
 	     */
 	public RouteHandler() {
 		simulator = new Simulator();
-		builder = new XmlMapBuilder();
-		parser = SaxMapParser.getInstance();
-		dumper = Dumper.getInstance();
-		moduleBuilder = new ModuleBuilder();
 	}
 
 	/**
@@ -120,7 +106,7 @@ public class RouteHandler {
 
 	/**
 	 * Computes the route informations
-	 * 
+	 *
 	 * @param infos the routes information
 	 */
 	public void computeRouteInfos(final RouteInfos infos) {
@@ -136,7 +122,7 @@ public class RouteHandler {
 
 	/**
 	 * Computes the traffic information map for the different destinations
-	 * 
+	 *
 	 * @param infos the result list of traffic information
 	 */
 	public void computeTrafficInfos(final List<TrafficInfo> infos) {
@@ -152,21 +138,10 @@ public class RouteHandler {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void createRandomMap(final MapProfile profile) {
 		simulator.createRandomMap(profile);
-	}
-
-	/**
-	 * @throws IOException
-	 * @throws SAXException
-	 * @throws ParserConfigurationException
-	 * @see org.mmarini.routes.model.RouteHandler#dump()
-	 */
-	public void dump() throws ParserConfigurationException, SAXException, IOException {
-		final String filename = MessageFormat.format("dump-{0,date,yyyyMMdd-hhmmss}.xml", new Object[] { new Date() });
-		dumper.dump(new File(filename), simulator);
 	}
 
 	/**
@@ -185,7 +160,7 @@ public class RouteHandler {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public double getFrequence() {
@@ -200,7 +175,7 @@ public class RouteHandler {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param node
 	 * @return
 	 */
@@ -216,7 +191,7 @@ public class RouteHandler {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public Iterable<Path> getPaths() {
@@ -241,9 +216,7 @@ public class RouteHandler {
 	 * @see org.mmarini.routes.model.RouteHandler#load(java.io.File)
 	 */
 	public void load(final File file) throws ParserConfigurationException, SAXException, IOException {
-		final SimulatorBuilder builder = new SimulatorBuilder();
-		builder.setSimulator(simulator);
-		parser.parse(file, builder);
+		SimulatorLoader.load(file, simulator);
 	}
 
 	/**
@@ -253,13 +226,11 @@ public class RouteHandler {
 	 * @see org.mmarini.routes.model.RouteHandler#load(java.net.URL)
 	 */
 	public void load(final URL url) throws ParserConfigurationException, SAXException, IOException {
-		final SimulatorBuilder builder = new SimulatorBuilder();
-		builder.setSimulator(simulator);
-		parser.parse(builder, url);
+		SimulatorLoader.load(url, simulator);
 	}
 
 	/**
-	 * 
+	 *
 	 * @param paths
 	 */
 	public void loadPaths(final List<Path> paths) {
@@ -287,7 +258,7 @@ public class RouteHandler {
 
 	/**
 	 * Randomize the traffic generator
-	 * 
+	 *
 	 * @param profile
 	 */
 	public void randomize(final MapProfile profile) {
@@ -309,32 +280,19 @@ public class RouteHandler {
 	}
 
 	/**
+	 * @throws JsonProcessingException
 	 * @throws IOException
-	 * @throws SAXException
-	 * @throws ParserConfigurationException
-	 * 
+	 *
 	 */
-	public void retrieveModule(final List<Module> modules)
-			throws ParserConfigurationException, SAXException, IOException {
+	public void retrieveModule(final List<Module> modules) throws JsonProcessingException, IOException {
 		final File path = new File("modules");
 		if (path.isDirectory()) {
-			final File[] listFiles = path.listFiles();
-			Arrays.sort(listFiles, new Comparator<File>() {
-
-				@Override
-				public int compare(final File o1, final File o2) {
-					return o1.getName().compareTo(o2.getName());
-				}
-
-			});
-			for (final File file : listFiles) {
-				if (file.isFile() && file.canRead()) {
-					final Module module = new Module();
-					moduleBuilder.setModule(module);
-					parser.parse(file, moduleBuilder);
-					modules.add(module);
-				}
-			}
+			final Map<String, Module> moduleMap = Arrays.stream(path.listFiles())
+					.filter(file -> file.isFile() && file.canRead() && file.getName().endsWith(".yml"))
+					.collect(Collectors.<File, String, Module>toMap(file -> file.getName(),
+							arg0 -> ModuleLoader.load(arg0)));
+			final TreeSet<String> names = new TreeSet<String>(moduleMap.keySet());
+			names.stream().map(name -> moduleMap.get(name)).forEach(modules::add);
 		}
 	}
 
@@ -342,11 +300,11 @@ public class RouteHandler {
 	 * @see org.mmarini.routes.model.RouteHandler#save(java.io.File)
 	 */
 	public void save(final File file) throws ParserConfigurationException, TransformerException, SAXException {
-		builder.build(file, simulator);
+		SimulatorWriter.write(file, simulator);
 	}
 
 	/**
-	 * 
+	 *
 	 * @param frequence
 	 */
 	public void setFrequence(final double frequence) {
@@ -354,14 +312,14 @@ public class RouteHandler {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void setTemplate(final MapEdge edge) {
 		simulator.setEdgeTemplate(edge);
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void setTemplate(final SiteNode node) {
 		simulator.setSiteTemplate(node);

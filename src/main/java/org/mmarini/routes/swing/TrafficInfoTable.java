@@ -23,7 +23,7 @@ import javax.swing.table.TableModel;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: TrafficInfoTable.java,v 1.3 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class TrafficInfoTable extends JTable {
 

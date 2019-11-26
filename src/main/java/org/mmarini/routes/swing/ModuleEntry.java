@@ -12,9 +12,9 @@ import org.mmarini.routes.model.MapEdge;
 import org.mmarini.routes.model.Module;
 
 /**
- * 
+ *
  * @author Marco
- * 
+ *
  */
 public class ModuleEntry {
 	private static final int ICON_HEIGHT = 16;
@@ -26,13 +26,13 @@ public class ModuleEntry {
 	private Icon icon;
 
 	/**
-	     * 
+	     *
 	     */
 	public ModuleEntry() {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param module
 	 * @return
 	 */

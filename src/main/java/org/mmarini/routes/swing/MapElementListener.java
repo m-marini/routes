@@ -14,7 +14,7 @@ import java.util.EventListener;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: MapElementListener.java,v 1.6 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public interface MapElementListener extends EventListener {
 

@@ -13,10 +13,6 @@ import java.awt.geom.Point2D;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import org.mmarini.routes.xml.Dumpable;
-import org.mmarini.routes.xml.Dumper;
-import org.w3c.dom.Element;
-
 /**
  * <p>
  * Si trova il punto di check (macchina sucessiva o nodo di stop) poi si calcola
@@ -29,31 +25,24 @@ import org.w3c.dom.Element;
  * Se nel percorso c'è un nodo di stop bisogna calcolare la velocità per
  * fermarsi alla nodo.
  * </p>
- * 
+ *
  * @author marco.marini@mmarini.org
  * @version $Id: Veicle.java,v 1.10 2010/10/19 20:33:00 marco Exp $
- * 
+ *
  */
-public class Veicle implements Constants, Dumpable {
-
+public class Veicle implements Constants {
 	private MapNode destination;
-
 	private final Queue<Itinerary> itinerary;
-
 	private MapEdge currentEdge;
-
 	private double distance;
-
 	private double transitTime;
-
 	private double travelingTime;
 	private double expectedTravelingTime;
 	private int priority;
-
 	private final AbstractSimulationFunctions functions;
 
 	/**
-	     * 
+	     *
 	     */
 	public Veicle() {
 		functions = AbstractSimulationFunctions.createInstance();
@@ -85,20 +74,6 @@ public class Veicle implements Constants, Dumpable {
 	}
 
 	/**
-	 * @see org.mmarini.routes.xml.Dumpable#dump(org.w3c.dom.Element)
-	 */
-	@Override
-	public void dump(final Element root) {
-		final Dumper dumper = Dumper.getInstance();
-		dumper.dumpReference(root, "currentEdge", currentEdge);
-		dumper.dumpReference(root, "destination", destination);
-		dumper.dumpValue(root, "distance", distance);
-		dumper.dumpValue(root, "priority", priority);
-		dumper.dumpValue(root, "transitTime", transitTime);
-		dumper.dumpReference(root, "itinerary", itinerary);
-	}
-
-	/**
 	 * @return
 	 */
 	private Veicle findNextVeicle() {
@@ -109,7 +84,7 @@ public class Veicle implements Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public double getDelay() {
@@ -176,7 +151,7 @@ public class Veicle implements Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isDeleyed() {
@@ -208,7 +183,7 @@ public class Veicle implements Constants, Dumpable {
 	 * La distanza percorsa sarà:<br>
 	 * d=(sqrt((Kr+t)^2-4 Ke (Vl - l))-Kr-t)/(2 Ke) t
 	 * </p>
-	 * 
+	 *
 	 * @param context
 	 */
 	public void move(final SimContext context) {
@@ -274,8 +249,8 @@ public class Veicle implements Constants, Dumpable {
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	public void removeFromEdge() {
 		if (currentEdge != null) {
@@ -294,7 +269,7 @@ public class Veicle implements Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param location
 	 */
 	public void retrieveLocation(final Point2D location) {

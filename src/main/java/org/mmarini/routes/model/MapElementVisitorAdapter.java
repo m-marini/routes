@@ -1,16 +1,16 @@
 /**
- * 
+ *
  */
 package org.mmarini.routes.model;
 
 /**
  * @author Marco
- * 
+ *
  */
 public class MapElementVisitorAdapter implements MapElementVisitor {
 
 	/**
-	     * 
+	     *
 	     */
 	public MapElementVisitorAdapter() {
 	}

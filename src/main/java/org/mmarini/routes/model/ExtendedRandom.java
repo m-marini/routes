@@ -14,16 +14,16 @@ import java.util.Random;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: ExtendedRandom.java,v 1.4 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class ExtendedRandom extends Random {
 	/**
-	     * 
+	     *
 	     */
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * 
+	 *
 	 * @param p
 	 * @param n
 	 * @return
@@ -70,7 +70,7 @@ public class ExtendedRandom extends Random {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param sigma
 	 * @return
 	 */
@@ -79,7 +79,7 @@ public class ExtendedRandom extends Random {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param min
 	 * @param max
 	 * @return

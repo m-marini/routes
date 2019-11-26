@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.mmarini.routes.swing;
 
@@ -18,9 +18,9 @@ import javax.swing.SwingConstants;
 
 /**
  * Pannello di selezione del profilo di generazione delle mappe casuali
- * 
+ *
  * @author Marco
- * 
+ *
  */
 public class FrequencePane extends Box {
 	private static final double[] FREQUENCES = { 0.4, 0.7, 1.5, 2.2, 10. / 3. };
@@ -29,7 +29,7 @@ public class FrequencePane extends Box {
 	private final BoundedRangeModel frequenceModel;
 
 	/**
-	     * 
+	     *
 	     */
 	public FrequencePane() {
 		super(BoxLayout.PAGE_AXIS);
@@ -38,8 +38,8 @@ public class FrequencePane extends Box {
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	private void createContent() {
 		final Box box = createHorizontalBox();
@@ -63,7 +63,7 @@ public class FrequencePane extends Box {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public double getFrequence() {
@@ -71,7 +71,7 @@ public class FrequencePane extends Box {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param frequence
 	 */
 	public void setFrequence(final double frequence) {
