@@ -1,6 +1,6 @@
 # Route
 
-**Routes** is a java application to  simulate the traffics of veicles.
+**Routes** is a java application to  simulate the traffics of vehicles.
 
 ![Routes application sample image](https://raw.github.com/m-marini/routes/master/images/routes-sample.png)
 
