@@ -1,16 +1,16 @@
 # Route
 
-**Routes** is a java application to  simulate the traffics of veicles.
+**Routes** is a java application to  simulate the traffics of vehicles.
 
 ![Routes application sample image](https://raw.github.com/m-marini/routes/master/images/routes-sample.png)
 
 ## Latest release
 
-Latest release [`3.7.1`](https://github.com/m-marini/routes/tree/routes-3.7.1)
+Latest release [`4.0.0`](https://github.com/m-marini/routes/tree/routes-4.0.0)
 
 ## Requirements
 
-To run **Routes** you need the Java 1.7 runtime environment installed.
+To run **Routes** you need the Java 1.8 runtime environment installed.
 
 ## Download
 
