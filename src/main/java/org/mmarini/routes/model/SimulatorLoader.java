@@ -48,12 +48,12 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 public class SimulatorLoader implements Constants {
 
 	/**
-	 * 
+	 *
 	 * @param file
 	 * @param builder2
 	 */
-	public static void load(final File file, final SimulatorBuilder builder) {
-		new SimulatorLoader(builder).load(file);
+	public static void load(final File file, final Simulator simulator) {
+		new SimulatorLoader(simulator).load(file);
 	}
 
 	/**
@@ -61,30 +61,29 @@ public class SimulatorLoader implements Constants {
 	 * @param url
 	 * @param builder
 	 */
-	public static void load(final URL url, final SimulatorBuilder builder) {
+	public static void load(final URL url, final Simulator builder) {
 		new SimulatorLoader(builder).load(url);
 	}
 
 	private final ObjectMapper mapper;
-	private final SimulatorBuilder builder;
+	private final Simulator simulator;
 	private double defaultSpeedLimit;
 	private int defaultPriority;
 	private Map<String, SiteNode> sites;
-
 	private Map<String, MapNode> nodes;
 
 	/**
 	 *
-	 * @param builder
+	 * @param simulator
 	 */
-	protected SimulatorLoader(final SimulatorBuilder builder) {
+	protected SimulatorLoader(final Simulator simulator) {
 		super();
-		this.builder = builder;
+		this.simulator = simulator;
 		this.mapper = new ObjectMapper(new YAMLFactory());
 	}
 
 	/**
-	 * 
+	 *
 	 * @param jsonNode
 	 * @param string
 	 * @return
@@ -112,7 +111,7 @@ public class SimulatorLoader implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param json
 	 * @return
 	 */
@@ -145,27 +144,27 @@ public class SimulatorLoader implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param tree
 	 * @return
 	 */
 	SimulatorLoader load(final JsonNode tree) {
-		builder.clear();
+		simulator.clear();
 		loadDefault(tree.get("default"));
 
 		sites = loadSites(tree.get("sites"));
-		sites.values().forEach(builder::add);
+		sites.values().forEach(simulator::add);
 
 		final List<Path> paths = loadPaths(tree.get("paths"));
-		paths.forEach(builder::add);
+		paths.forEach(simulator::add);
 
 		nodes = loadNodes(tree.get("nodes"));
-		nodes.values().forEach(builder::add);
+		nodes.values().forEach(simulator::add);
 
 		final List<MapEdge> edges = loadEdges(tree.get("edges"));
-		edges.forEach(builder::add);
+		edges.forEach(simulator::add);
 
-		builder.init();
+		simulator.init();
 		return this;
 	}
 
@@ -186,7 +185,7 @@ public class SimulatorLoader implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param def
 	 * @return
 	 */
@@ -194,17 +193,17 @@ public class SimulatorLoader implements Constants {
 		if (def == null || !def.isObject()) {
 			this.defaultSpeedLimit = DEFAULT_SPEED_LIMIT_KMH;
 			this.defaultPriority = DEFAULT_PRIORITY;
-			builder.applyFrequence(DEFAULT_FREQUENCE);
+			simulator.setFrequence(DEFAULT_FREQUENCE);
 		} else {
 			this.defaultSpeedLimit = YamlUtils.jsonDouble(def.get("speedLimit"), DEFAULT_SPEED_LIMIT_KMH);
 			this.defaultPriority = YamlUtils.jsonInt(def.get("defaultPriority"), DEFAULT_PRIORITY);
-			builder.applyFrequence(YamlUtils.jsonDouble(def.get("defaultFrequence"), DEFAULT_FREQUENCE));
+			simulator.setFrequence(YamlUtils.jsonDouble(def.get("defaultFrequence"), DEFAULT_FREQUENCE));
 		}
 		return this;
 	}
 
 	/**
-	 * 
+	 *
 	 * @param jsonNode
 	 * @return
 	 */
@@ -221,7 +220,7 @@ public class SimulatorLoader implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param jsonNode
 	 * @return
 	 */
@@ -238,7 +237,7 @@ public class SimulatorLoader implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param jsonNode
 	 * @return
 	 */
@@ -254,7 +253,7 @@ public class SimulatorLoader implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param sitesJson
 	 * @return
 	 */
@@ -275,7 +274,7 @@ public class SimulatorLoader implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param jsonNode
 	 * @return
 	 */
@@ -289,7 +288,7 @@ public class SimulatorLoader implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param jsonNode
 	 * @return
 	 */
@@ -302,7 +301,7 @@ public class SimulatorLoader implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param jsonNode
 	 * @return
 	 */
@@ -315,7 +314,7 @@ public class SimulatorLoader implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param jsonNode
 	 * @return
 	 */

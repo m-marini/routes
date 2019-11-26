@@ -49,11 +49,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
  * @author mmarini
  *
  */
-public class ModuleLoader {
-
-	private static final double MPS_TO_KMH = 3.6;
-	private static final int DEFAULT_PRIORITY = 0;
-	private static final double DEFAULT_SPEED_LIMIT = 25.0;
+public class ModuleLoader implements Constants {
 
 	/**
 	 *
@@ -93,18 +89,18 @@ public class ModuleLoader {
 	}
 
 	private final ObjectMapper mapper;
-	private final ModuleBuilder builder;
 	private int defaultPriority;
 	private double defaultSpeedLimit;
 	private Map<String, MapNode> nodes;
+	private final Module result;
 
 	/**
 	 *
 	 */
 	protected ModuleLoader() {
 		super();
-		this.builder = new ModuleBuilder();
 		this.mapper = new ObjectMapper(new YAMLFactory());
+		result = new Module();
 	}
 
 	/**
@@ -144,16 +140,13 @@ public class ModuleLoader {
 	 * @return
 	 */
 	Module loadModule(final JsonNode tree) {
-		final Module result = new Module();
-		builder.setModule(result);
-		builder.clear();
 		this.defaultPriority = jsonInt(tree.get("priority"), DEFAULT_PRIORITY);
-		this.defaultSpeedLimit = jsonDouble(tree.get("speedLimit"), DEFAULT_SPEED_LIMIT);
+		this.defaultSpeedLimit = jsonDouble(tree.get("speedLimit"), DEFAULT_SPEED_LIMIT_KMH);
 		nodes = loadNodes(tree.get("nodes"));
-		nodes.values().forEach(builder::add);
+		nodes.values().forEach(result::add);
 
 		final List<MapEdge> edges = loadEdges(tree.get("edges"));
-		edges.forEach(builder::add);
+		edges.forEach(result::add);
 
 		return result;
 	}
@@ -165,7 +158,7 @@ public class ModuleLoader {
 	MapEdge toMapEdge(final JsonNode edgeTree) {
 		final MapEdge result = new MapEdge();
 		result.setPriority(jsonInt(edgeTree.get("priority"), defaultPriority));
-		result.setSpeedLimit(jsonDouble(edgeTree.get("speedLimit"), defaultSpeedLimit) / MPS_TO_KMH);
+		result.setSpeedLimit(jsonDouble(edgeTree.get("speedLimit"), defaultSpeedLimit) * KMH_TO_MPS);
 
 		final JsonNode startJson = edgeTree.get("start");
 		if (startJson == null) {

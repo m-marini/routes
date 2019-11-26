@@ -513,7 +513,7 @@ public class RouteMediator {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	public void open() {
 		stopSimulation();

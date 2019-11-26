@@ -216,9 +216,7 @@ public class RouteHandler {
 	 * @see org.mmarini.routes.model.RouteHandler#load(java.io.File)
 	 */
 	public void load(final File file) throws ParserConfigurationException, SAXException, IOException {
-		final SimulatorBuilder builder = new SimulatorBuilder();
-		builder.setSimulator(simulator);
-		SimulatorLoader.load(file, builder);
+		SimulatorLoader.load(file, simulator);
 	}
 
 	/**
@@ -228,9 +226,7 @@ public class RouteHandler {
 	 * @see org.mmarini.routes.model.RouteHandler#load(java.net.URL)
 	 */
 	public void load(final URL url) throws ParserConfigurationException, SAXException, IOException {
-		final SimulatorBuilder builder = new SimulatorBuilder();
-		builder.setSimulator(simulator);
-		SimulatorLoader.load(url, builder);
+		SimulatorLoader.load(url, simulator);
 	}
 
 	/**

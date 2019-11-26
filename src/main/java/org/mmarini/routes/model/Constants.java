@@ -16,17 +16,17 @@ package org.mmarini.routes.model;
  */
 public interface Constants {
 	/**
-	 * 
+	 *
 	 */
 	public static final double MPS_TO_KMH = 3.6;
 
 	/**
-	 * 
+	 *
 	 */
 	public static final double KMH_TO_MPS = 1 / MPS_TO_KMH;
 
 	/**
-	 * 
+	 *
 	 */
 	public static final double VEICLE_LENGTH = 5;
 
@@ -46,17 +46,17 @@ public interface Constants {
 	public static final double DEFAULT_SPEED_LIMIT_KMH = 90;
 
 	/**
-	 * 
+	 *
 	 */
 	public static final double DEFAULT_WEIGHT = 1.0;
 
 	/**
-	 * 
+	 *
 	 */
 	public static final double DEFAULT_FREQUENCE = 1.0;
 
 	/**
-	 * 
+	 *
 	 */
 	public static final int DEFAULT_PRIORITY = 0;
 }

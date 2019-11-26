@@ -42,13 +42,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 /**
- * 
+ *
  * @author mmarini
  *
  */
 public class SimulatorWriter implements Constants {
 	/**
-	 * 
+	 *
 	 * @param file
 	 * @param simulator
 	 */
@@ -61,7 +61,7 @@ public class SimulatorWriter implements Constants {
 	private final Map<MapNode, String> nodeMap;
 
 	/**
-	 * 
+	 *
 	 * @param sim
 	 */
 	public SimulatorWriter(final Simulator sim) {
@@ -76,7 +76,7 @@ public class SimulatorWriter implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private JsonNode build() {
@@ -90,7 +90,7 @@ public class SimulatorWriter implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param edge
 	 * @return
 	 */
@@ -102,7 +102,7 @@ public class SimulatorWriter implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param node
 	 * @return
 	 */
@@ -113,7 +113,7 @@ public class SimulatorWriter implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param path
 	 * @return
 	 */
@@ -124,7 +124,7 @@ public class SimulatorWriter implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private JsonNode createDefaultNode() {
@@ -134,7 +134,7 @@ public class SimulatorWriter implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private JsonNode createEdgesNode() {
@@ -144,7 +144,7 @@ public class SimulatorWriter implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private JsonNode createNodesNode() {
@@ -154,7 +154,7 @@ public class SimulatorWriter implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private JsonNode createPathsNode() {
@@ -164,7 +164,7 @@ public class SimulatorWriter implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private JsonNode createSitesNode() {
@@ -174,7 +174,7 @@ public class SimulatorWriter implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param file
 	 */
 	private void write(final File file) {

@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Issue #1: move project folder to base path
 
+## Added
+
+- Issue #5: YAML format
+
+## Removed
+
+- XML file format
+
 ## [3.7.1] - 2013-10-14
 
 ### Added

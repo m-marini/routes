@@ -65,7 +65,7 @@ public class YamlUtils {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param <T>
 	 * @param iterator
 	 * @return
