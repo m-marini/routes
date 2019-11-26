@@ -14,12 +14,12 @@ import java.awt.geom.Point2D;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: SiteNode.java,v 1.10 2010/10/19 20:33:00 marco Exp $
- * 
+ *
  */
 public class SiteNode extends MapNode {
 
 	/**
-	     * 
+	     *
 	     */
 	public SiteNode() {
 	}
@@ -48,7 +48,7 @@ public class SiteNode extends MapNode {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public SiteNode createClone() {

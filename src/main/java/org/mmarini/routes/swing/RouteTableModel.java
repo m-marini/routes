@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.mmarini.routes.swing;
 
@@ -7,12 +7,12 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
+import org.mmarini.routes.model.Path;
 import org.mmarini.routes.model.SiteNode;
-import org.mmarini.routes.xml.Path;
 
 /**
  * @author US00852
- * 
+ *
  */
 public class RouteTableModel extends AbstractTableModel {
 	private static final long serialVersionUID = -2634066472823732066L;
@@ -20,7 +20,7 @@ public class RouteTableModel extends AbstractTableModel {
 	private List<Path> routes;
 
 	/**
-	 * 
+	 *
 	 */
 	public RouteTableModel() {
 	}
@@ -87,7 +87,7 @@ public class RouteTableModel extends AbstractTableModel {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param paths
 	 */
 	public void setPaths(final List<Path> paths) {

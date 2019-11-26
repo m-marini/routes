@@ -40,7 +40,7 @@ import org.mmarini.routes.model.Module;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: ScrollMap.java,v 1.15 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class ScrollMap extends JScrollPane {
 
@@ -67,7 +67,7 @@ public class ScrollMap extends JScrollPane {
 	private final String[] edgeLegendPattern;
 
 	/**
-	     * 
+	     *
 	     */
 	public ScrollMap() {
 		routeMap = new RouteMap();
@@ -116,7 +116,7 @@ public class ScrollMap extends JScrollPane {
 
 	/**
 	 * Add a MapElementListener
-	 * 
+	 *
 	 * @param listener the listener
 	 */
 	public void addMapElementListener(final MapElementListener listener) {
@@ -156,7 +156,7 @@ public class ScrollMap extends JScrollPane {
 
 	/**
 	 * Return the current view scale
-	 * 
+	 *
 	 * @return the current view scale (real px/virtual px)
 	 */
 	public double getScale() {
@@ -164,7 +164,7 @@ public class ScrollMap extends JScrollPane {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param e
 	 */
 	protected void handleMouseWheelMoved(final MouseWheelEvent e) {
@@ -326,7 +326,7 @@ public class ScrollMap extends JScrollPane {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param g
 	 * @param messages
 	 */
@@ -355,7 +355,7 @@ public class ScrollMap extends JScrollPane {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param ref
 	 * @param scale
 	 */
@@ -382,7 +382,7 @@ public class ScrollMap extends JScrollPane {
 
 	/**
 	 * Scroll the map view and center to an edge
-	 * 
+	 *
 	 * @param edge the edge element to center the view to
 	 */
 	public void scrollTo(final MapEdge edge) {
@@ -408,7 +408,7 @@ public class ScrollMap extends JScrollPane {
 	/**
 	 * Set the mediator.<br>
 	 * The mediator is used by RouteMap subcomponent of this component.
-	 * 
+	 *
 	 * @param mediator the mediator
 	 */
 	public void setMediator(final RouteMediator handler) {
@@ -417,7 +417,7 @@ public class ScrollMap extends JScrollPane {
 
 	/**
 	 * Sets the view scale
-	 * 
+	 *
 	 * @param scale the scale (real px/virtual px)
 	 */
 	public void setScale(final double scale) {
@@ -439,22 +439,22 @@ public class ScrollMap extends JScrollPane {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void startCenterMode() {
 		routeMap.startCenterMode();
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	public void startEdgeMode() {
 		routeMap.startEdgeMode();
 	}
 
 	/**
-	 * 
+	 *
 	 * @param module
 	 */
 	public void startModuleMode(final Module module) {
@@ -462,8 +462,8 @@ public class ScrollMap extends JScrollPane {
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	public void startSelectMode() {
 		routeMap.startSelectMode();
@@ -491,7 +491,7 @@ public class ScrollMap extends JScrollPane {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void zoomIn() {
 		final Rectangle rect = getViewport().getViewRect();
@@ -501,7 +501,7 @@ public class ScrollMap extends JScrollPane {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void zoomOut() {
 		final Rectangle rect = getViewport().getViewRect();

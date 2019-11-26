@@ -41,7 +41,7 @@ import org.mmarini.routes.model.Veicle;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: RouteMap.java,v 1.20 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class RouteMap extends JComponent {
 
@@ -164,7 +164,7 @@ public class RouteMap extends JComponent {
 	private final Mode centerMode;
 
 	/**
-	     * 
+	     *
 	     */
 	public RouteMap() {
 		painter = new Painter();
@@ -184,7 +184,7 @@ public class RouteMap extends JComponent {
 		getActionMap().put(DELETE_ACTION, new AbstractAction() {
 
 			/**
-			* 
+			*
 			*/
 			private static final long serialVersionUID = 1L;
 
@@ -369,7 +369,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param l
 	 */
 	public synchronized void addMapElementListener(final MapElementListener l) {
@@ -386,7 +386,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void computeGridSize() {
 		final double size = 10 / scale;
@@ -397,7 +397,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void computeMapBound() {
 		mediator.computeMapBound(mapBound);
@@ -405,7 +405,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param result
 	 * @param point
 	 */
@@ -415,7 +415,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void computePreferredSize() {
 		final int width = (int) Math.round(mapBound.getWidth() * scale) + MAP_BORDER * 2;
@@ -425,7 +425,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void computeTransform() {
 		transform.setToTranslation(MAP_BORDER, MAP_BORDER);
@@ -440,7 +440,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param result
 	 * @param point
 	 */
@@ -460,7 +460,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param edge
 	 */
 	private void fireMapEdgeSelected(final MapEdge edge) {
@@ -476,8 +476,8 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	private void fireMapNodeSelected(final MapNode node) {
 		mapElementEvent.setNode(node);
@@ -492,7 +492,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param site
 	 */
 	private void fireSiteSelected(final SiteNode site) {
@@ -529,7 +529,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param node
 	 * @return
 	 */
@@ -539,7 +539,7 @@ public class RouteMap extends JComponent {
 
 	/**
 	 * Return the current view scale
-	 * 
+	 *
 	 * @return the current view scale (real px/virtual px)
 	 */
 	public double getScale() {
@@ -572,7 +572,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void handleMouseEntered() {
 		setMouseInside(true);
@@ -580,7 +580,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void handleMouseExited() {
 		setMouseInside(false);
@@ -602,7 +602,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private boolean isShowingCursor() {
@@ -642,7 +642,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void paintCursor() {
 		final MapElement element = getSelectedElement();
@@ -652,7 +652,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void paintEdges() {
 		if (trafficView) {
@@ -674,7 +674,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param location
 	 * @param vecx
 	 * @param vecy
@@ -686,7 +686,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void paintSites() {
 		for (final SiteNode node : mediator.getSiteNodes()) {
@@ -700,7 +700,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void paintVeicles() {
 		for (final Veicle veicle : mediator.getVeicles()) {
@@ -713,7 +713,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param l
 	 */
 	public synchronized void removeMapElementListener(final MapElementListener l) {
@@ -726,7 +726,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void reset() {
 		computeMapBound();
@@ -805,7 +805,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void startCenterMode() {
 		setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
@@ -814,7 +814,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void startEdgeMode() {
 		setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
@@ -822,7 +822,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param module
 	 */
 	public void startModuleMode(final Module module) {
@@ -832,7 +832,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void startSelectMode() {
 		setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));

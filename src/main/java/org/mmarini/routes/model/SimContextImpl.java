@@ -9,34 +9,20 @@
  */
 package org.mmarini.routes.model;
 
-import org.mmarini.routes.xml.Dumpable;
-import org.mmarini.routes.xml.Dumper;
-import org.w3c.dom.Element;
-
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: SimContextImpl.java,v 1.6 2010/10/19 20:33:00 marco Exp $
- * 
+ *
  */
-public class SimContextImpl implements SimContext, Dumpable {
+public class SimContextImpl implements SimContext {
 	private double time;
 
 	private Simulator simulator;
 
 	/**
-	     * 
+	     *
 	     */
 	public SimContextImpl() {
-	}
-
-	/**
-	 * @param root
-	 */
-	@Override
-	public void dump(final Element root) {
-		final Dumper dumper = Dumper.getInstance();
-		dumper.dumpReference(root, "simulator", getSimulator());
-		dumper.dumpValue(root, "time", getTime());
 	}
 
 	/**

@@ -16,7 +16,6 @@ import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -30,32 +29,32 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.Timer;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.mmarini.routes.model.MapEdge;
 import org.mmarini.routes.model.MapElement;
 import org.mmarini.routes.model.MapNode;
 import org.mmarini.routes.model.MapProfile;
 import org.mmarini.routes.model.Module;
+import org.mmarini.routes.model.Path;
 import org.mmarini.routes.model.RouteHandler;
 import org.mmarini.routes.model.RouteInfos;
 import org.mmarini.routes.model.SiteNode;
 import org.mmarini.routes.model.TrafficInfo;
 import org.mmarini.routes.model.Veicle;
-import org.mmarini.routes.xml.Path;
-import org.xml.sax.SAXException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXParseException;
 
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: RouteMediator.java,v 1.16 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class RouteMediator {
-
+	private static final Logger logger = LoggerFactory.getLogger(RouteMediator.class);
 	private static final int TIME_INTERVAL = 1;
-
 	private static final double NODE_SATURATION = 1f;
+
 	private MainFrame mainFrame;
 	private MapViewPane mapViewPane;
 	private ExplorerPane explorerPane;
@@ -63,8 +62,8 @@ public class RouteMediator {
 	private final JFileChooser fileChooser;
 	private final RouteHandler handler;
 	private final Timer timer;
-	private final DefaultListModel nodeList;
-	private final DefaultListModel edgeList;
+	private final DefaultListModel<MapNodeEntry> nodeList;
+	private final DefaultListModel<MapEdgeEntry> edgeList;
 	private final String nodeNamePattern;
 	private final String defaultNodeName;
 	private final OptimizePane optimizePane;
@@ -81,7 +80,7 @@ public class RouteMediator {
 	private boolean paused;
 
 	/**
-	* 
+	*
 	*/
 	public RouteMediator() {
 		nodeNameMap = new HashMap<String, MapNode>();
@@ -90,8 +89,8 @@ public class RouteMediator {
 		routesPane = new RoutePane();
 		fileChooser = new JFileChooser();
 		handler = new RouteHandler();
-		nodeList = new DefaultListModel();
-		edgeList = new DefaultListModel();
+		nodeList = new DefaultListModel<>();
+		edgeList = new DefaultListModel<>();
 		nodeChooser = new NodeChooser();
 		nodeNamePattern = Messages.getString("RouteMediator.nodeNamePattern"); //$NON-NLS-1$
 		defaultNodeName = Messages.getString("RouteMediator.defaultNodeNamePattern"); //$NON-NLS-1$
@@ -107,7 +106,7 @@ public class RouteMediator {
 		optimizePane = new OptimizePane();
 
 		fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("RouteMediator.filetype.title"), //$NON-NLS-1$
-				"xml", "rml")); //$NON-NLS-1$ //$NON-NLS-2$
+				"yml", "rml")); //$NON-NLS-1$ //$NON-NLS-2$
 		routesPane.setMediator(this);
 	}
 
@@ -227,7 +226,7 @@ public class RouteMediator {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public String createNodeName(final MapNode node) {
@@ -236,20 +235,7 @@ public class RouteMediator {
 	}
 
 	/**
-	     * 
-	     */
-	public void dump() {
-		try {
-			handler.dump();
-			JOptionPane.showMessageDialog(mainFrame, Messages.getString("RouteMediator.dumpMessage.text")); //$NON-NLS-1$
-		} catch (final Exception e) {
-			e.printStackTrace();
-			showError(e);
-		}
-	}
-
-	/**
-	     * 
+	     *
 	     */
 	public void exit() {
 		System.exit(0);
@@ -265,7 +251,7 @@ public class RouteMediator {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param name
 	 * @return
 	 */
@@ -280,7 +266,7 @@ public class RouteMediator {
 	public int getEdgeListIndex(final MapElement selectedElement) {
 		final int n = edgeList.getSize();
 		for (int i = 0; i < n; ++i) {
-			final MapEdgeEntry entry = (MapEdgeEntry) edgeList.get(i);
+			final MapEdgeEntry entry = edgeList.get(i);
 			if (entry.getEdge().equals(selectedElement)) {
 				return i;
 			}
@@ -297,7 +283,7 @@ public class RouteMediator {
 
 	/**
 	 * Return the color of a node
-	 * 
+	 *
 	 * @param node the node
 	 * @return the color
 	 */
@@ -308,7 +294,7 @@ public class RouteMediator {
 	/**
 	 * @return the nodeList
 	 */
-	public DefaultListModel getNodeList() {
+	public DefaultListModel<MapNodeEntry> getNodeList() {
 		return nodeList;
 	}
 
@@ -319,7 +305,7 @@ public class RouteMediator {
 	public int getNodeListIndex(final MapElement selectedElement) {
 		final int n = nodeList.getSize();
 		for (int i = 0; i < n; ++i) {
-			final MapNodeEntry entry = (MapNodeEntry) nodeList.get(i);
+			final MapNodeEntry entry = nodeList.get(i);
 			if (entry.getNode().equals(selectedElement)) {
 				return i;
 			}
@@ -335,7 +321,7 @@ public class RouteMediator {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public Iterable<Path> getPaths() {
@@ -469,21 +455,21 @@ public class RouteMediator {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void loadDefault() {
-		final URL url = getClass().getResource("/test.xml"); //$NON-NLS-1$
+		final URL url = getClass().getResource("/test.yml"); //$NON-NLS-1$
 		if (url != null) {
 			try {
 				handler.load(url);
 			} catch (final Exception e) {
-				e.printStackTrace();
+				logger.error(e.getMessage(), e);
 			}
 		}
 	}
 
 	/**
-	 * 
+	 *
 	 * @param list
 	 */
 	public void loadPaths(final List<Path> list) {
@@ -491,7 +477,7 @@ public class RouteMediator {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void newMap() {
 		handler.clearMap();
@@ -504,8 +490,8 @@ public class RouteMediator {
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	public void newRandomMap() {
 		stopSimulation();
@@ -527,8 +513,8 @@ public class RouteMediator {
 	}
 
 	/**
-	     * 
-	     */
+	 * 
+	 */
 	public void open() {
 		stopSimulation();
 		final int choice = fileChooser.showOpenDialog(mainFrame);
@@ -541,18 +527,15 @@ public class RouteMediator {
 					handler.load(file);
 					mainFrame.setSaveActionEnabled(true);
 					mainFrame.setTitle(file.getName());
-				} catch (final ParserConfigurationException e) {
-					showError(e.getMessage());
-					e.printStackTrace();
 				} catch (final SAXParseException e) {
-					e.printStackTrace();
+					logger.error(e.getMessage(), e);
 					showError(Messages.getString("RouteMediator.parseError.message"), new Object[] { e.getMessage(), //$NON-NLS-1$
 							e.getLineNumber(), e.getColumnNumber() });
-				} catch (final SAXException e) {
-					e.printStackTrace();
-					showError(e);
-				} catch (final IOException e) {
-					e.printStackTrace();
+				} catch (final Exception e) {
+					logger.error(e.getMessage(), e);
+					showError(e.getMessage());
+				} catch (final Error e) {
+					logger.error(e.getMessage(), e);
 					showError(e);
 				}
 				refresh();
@@ -563,7 +546,7 @@ public class RouteMediator {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void optimize() {
 		stopSimulation();
@@ -581,7 +564,7 @@ public class RouteMediator {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void performTimeTick() {
 		final long now = System.currentTimeMillis();
@@ -616,8 +599,8 @@ public class RouteMediator {
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	private void refresh() {
 		initNodeColorMap();
@@ -673,7 +656,7 @@ public class RouteMediator {
 	public String retrieveEdgeName(final MapEdge edge) {
 		final int n = edgeList.getSize();
 		for (int i = 0; i < n; ++i) {
-			final MapEdgeEntry entry = (MapEdgeEntry) edgeList.get(i);
+			final MapEdgeEntry entry = edgeList.get(i);
 			if (entry.getEdge().equals(edge)) {
 				return entry.getName();
 			}
@@ -689,7 +672,7 @@ public class RouteMediator {
 	public String retrieveNodeName(final MapNode node) {
 		final int n = nodeList.getSize();
 		for (int i = 0; i < n; ++i) {
-			final MapNodeEntry entry = (MapNodeEntry) nodeList.get(i);
+			final MapNodeEntry entry = nodeList.get(i);
 			if (entry.getNode().equals(node)) {
 				return entry.getName();
 			}
@@ -699,7 +682,7 @@ public class RouteMediator {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void save() {
 		final File file = fileChooser.getSelectedFile();
@@ -711,14 +694,14 @@ public class RouteMediator {
 				mainFrame.setSaveActionEnabled(true);
 				mainFrame.setTitle(file.getPath());
 			} catch (final Exception e) {
-				e.printStackTrace();
+				logger.error(e.getMessage(), e);
 				showError(e);
 			}
 		}
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void saveAs() {
 		stopSimulation();
@@ -737,7 +720,7 @@ public class RouteMediator {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	public void setFrequence() {
 		stopSimulation();
@@ -777,7 +760,7 @@ public class RouteMediator {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	public void setRouteSetting() {
 		stopSimulation();
@@ -802,14 +785,6 @@ public class RouteMediator {
 	}
 
 	/**
-	 * @param e
-	 */
-	private void showError(final Exception e) {
-		showError("", new Object[] { e.getMessage(), //$NON-NLS-1$
-				e.getMessage() });
-	}
-
-	/**
 	 * @param message
 	 */
 	private void showError(final String message) {
@@ -826,8 +801,17 @@ public class RouteMediator {
 	}
 
 	/**
-	     * 
-	     * 
+	 * @param e
+	 */
+	private void showError(final Throwable e) {
+		logger.error(e.getMessage(), e);
+		showError("{0}", new Object[] { e.getMessage(), //$NON-NLS-1$
+				e.getMessage() });
+	}
+
+	/**
+	     *
+	     *
 	     */
 	public void showInfos() {
 		stopSimulation();
@@ -845,7 +829,7 @@ public class RouteMediator {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	public void showTrafficInfos() {
 		stopSimulation();
@@ -874,7 +858,7 @@ public class RouteMediator {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void start() {
 		mapViewPane.scaleToFit();
@@ -883,8 +867,8 @@ public class RouteMediator {
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	private void startSimulation() {
 		if (!paused && !timer.isRunning()) {
@@ -894,8 +878,8 @@ public class RouteMediator {
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	private void stopSimulation() {
 		if (timer.isRunning()) {
@@ -904,7 +888,7 @@ public class RouteMediator {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void toogleSimulation() {
 		paused = !paused;

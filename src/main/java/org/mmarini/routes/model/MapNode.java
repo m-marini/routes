@@ -13,22 +13,18 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.mmarini.routes.xml.Dumpable;
-import org.mmarini.routes.xml.Dumper;
-import org.w3c.dom.Element;
-
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: MapNode.java,v 1.9 2010/10/19 20:33:00 marco Exp $
- * 
+ *
  */
-public class MapNode implements MapElement, Dumpable, Cloneable {
+public class MapNode implements MapElement, Cloneable {
 	private final Point2D location;
 
 	private final List<MapEdge> incomes;
 
 	/**
-	     * 
+	     *
 	     */
 	public MapNode() {
 		location = new Point2D.Double();
@@ -79,16 +75,6 @@ public class MapNode implements MapElement, Dumpable, Cloneable {
 			}
 		}
 		return priority;
-	}
-
-	/**
-	 * @see org.mmarini.routes.xml.Dumpable#dump(org.w3c.dom.Element)
-	 */
-	@Override
-	public void dump(final Element root) {
-		final Dumper dumper = Dumper.getInstance();
-		dumper.dumpObject(root, "location", location);
-		dumper.dumpReference(root, "incomes", incomes);
 	}
 
 	/**

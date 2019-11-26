@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.mmarini.routes.swing;
 
@@ -15,14 +15,14 @@ import org.mmarini.routes.model.MapNode;
 
 /**
  * @author US00852
- * 
+ *
  */
 public class SiteListCellRenderer extends DefaultListCellRenderer {
 	private static final long serialVersionUID = 3743457808802444412L;
 	private RouteMediator mediator;
 
 	/**
-	 * 
+	 *
 	 */
 	public SiteListCellRenderer() {
 	}
@@ -32,7 +32,7 @@ public class SiteListCellRenderer extends DefaultListCellRenderer {
 	 *      java.lang.Object, int, boolean, boolean)
 	 */
 	@Override
-	public Component getListCellRendererComponent(final JList list, final Object value, final int index,
+	public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
 			final boolean isSelected, final boolean cellHasFocus) {
 		final String name = (String) value;
 		setText(name);

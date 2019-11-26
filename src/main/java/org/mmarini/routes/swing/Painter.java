@@ -25,7 +25,7 @@ import org.mmarini.routes.model.Module;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: Painter.java,v 1.6 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class Painter {
 
@@ -76,7 +76,7 @@ public class Painter {
 	private boolean reversed;
 
 	/**
-	     * 
+	     *
 	     */
 	public Painter() {
 		stroke = new BasicStroke((float) EDGE_WIDTH, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
@@ -99,7 +99,7 @@ public class Painter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param edge
 	 */
 	public void paintCursorEdgeEnds(final MapEdge edge) {
@@ -110,7 +110,7 @@ public class Painter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param edge
 	 */
 	public void paintEdge(final MapEdge edge) {
@@ -118,7 +118,7 @@ public class Painter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param edge
 	 * @param color
 	 */
@@ -127,7 +127,7 @@ public class Painter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param from
 	 * @param to
 	 * @param color
@@ -140,7 +140,7 @@ public class Painter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param bound
 	 * @param size
 	 */
@@ -194,7 +194,7 @@ public class Painter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param center
 	 */
 	public void paintNodeCursor(final Point2D center) {
@@ -202,7 +202,7 @@ public class Painter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param shape
 	 * @param location
 	 * @param color
@@ -221,7 +221,7 @@ public class Painter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param location
 	 * @param color
 	 */
@@ -230,7 +230,7 @@ public class Painter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param center
 	 */
 	public void paintSiteCursor(final Point2D center) {
@@ -238,7 +238,7 @@ public class Painter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param location
 	 * @param vec
 	 * @param color

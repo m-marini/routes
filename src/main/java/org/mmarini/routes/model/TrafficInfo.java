@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.mmarini.routes.model;
 
@@ -14,14 +14,14 @@ public class TrafficInfo {
 	private SiteNode destination;
 
 	/**
-	 * 
+	 *
 	 */
 	public TrafficInfo() {
 	}
 
 	/**
 	 * Get the average delay time.
-	 * 
+	 *
 	 * @return the average time
 	 */
 	public double getAverageDelayTime() {

@@ -1,11 +1,11 @@
 /**
- * 
+ *
  */
 package org.mmarini.routes.model;
 
 /**
  * @author Marco
- * 
+ *
  */
 public class MapProfile {
 	private int siteCount;
@@ -19,7 +19,7 @@ public class MapProfile {
 	private double frequence;
 
 	/**
-	     * 
+	     *
 	     */
 	public MapProfile() {
 	}

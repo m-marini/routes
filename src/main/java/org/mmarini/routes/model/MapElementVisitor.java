@@ -12,7 +12,7 @@ package org.mmarini.routes.model;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: MapElementVisitor.java,v 1.4 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public interface MapElementVisitor {
 

@@ -14,7 +14,7 @@ import org.mmarini.routes.model.MapNode;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: MapNodeEntry.java,v 1.4 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class MapNodeEntry {
 	private final MapNode node;

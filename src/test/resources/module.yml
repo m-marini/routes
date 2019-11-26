@@ -1,0 +1,21 @@
+---
+priority: 0
+frequence: 1
+speedLimit: 130
+nodes:
+    Node_0:
+        x: -9
+        y: -83
+    Node_1:
+        x: -24
+        y: -50
+    Node_2:
+        x: -12
+        y: -25
+edges:
+    -   start: Node_0
+        end: Node_1
+    -   start: Node_0
+        end: Node_2
+        priority: 1
+        speedLimit: 100

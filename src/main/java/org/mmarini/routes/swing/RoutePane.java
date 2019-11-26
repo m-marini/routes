@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.mmarini.routes.swing;
 
@@ -21,21 +21,21 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.mmarini.routes.model.Path;
 import org.mmarini.routes.model.SiteNode;
-import org.mmarini.routes.xml.Path;
 
 /**
  * Pannello di selezione del profilo di generazione delle mappe casuali
- * 
+ *
  * @author Marco
- * 
+ *
  */
 public class RoutePane extends Box {
 	class PathComparator implements Comparator<Path> {
 		private RouteMediator mediator;
 
 		/**
-		 * 
+		 *
 		 */
 		@Override
 		public int compare(final Path o1, final Path o2) {
@@ -52,10 +52,10 @@ public class RoutePane extends Box {
 	}
 
 	private static final long serialVersionUID = 1L;
-	private final DefaultListModel departureListModel;
+	private final DefaultListModel<String> departureListModel;
 	private final RouteTableModel routeTableModel;
 	private final Map<String, List<Path>> routeMap;
-	private final JList departureList;
+	private final JList<String> departureList;
 	private final JTable routeTable;
 	private RouteMediator mediator;
 	private final PathComparator pathComparator;
@@ -64,14 +64,14 @@ public class RoutePane extends Box {
 	private final SiteListCellRenderer cellRenderer;
 
 	/**
-	     * 
+	     *
 	     */
 	public RoutePane() {
 		super(BoxLayout.LINE_AXIS);
-		departureListModel = new DefaultListModel();
+		departureListModel = new DefaultListModel<>();
 		routeTableModel = new RouteTableModel();
 		routeMap = new HashMap<String, List<Path>>();
-		departureList = new JList(departureListModel);
+		departureList = new JList<>(departureListModel);
 		routeTable = new JTable(routeTableModel);
 		pathComparator = new PathComparator();
 		siteTableCellRenderer = new SiteTableCellRenderer();
@@ -94,7 +94,7 @@ public class RoutePane extends Box {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param path
 	 */
 	private void add(final Path path) {
@@ -108,7 +108,7 @@ public class RoutePane extends Box {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public void copyPathsTo() {
@@ -120,8 +120,8 @@ public class RoutePane extends Box {
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	private void createContent() {
 		final JScrollPane departureScrollPane = new JScrollPane(departureList);
@@ -135,16 +135,16 @@ public class RoutePane extends Box {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	private void departureSelected() {
-		final String name = (String) departureList.getSelectedValue();
+		final String name = departureList.getSelectedValue();
 		final List<Path> paths = routeMap.get(name);
 		routeTableModel.setPaths(paths);
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	public void loadPath() {
 		routeMap.clear();

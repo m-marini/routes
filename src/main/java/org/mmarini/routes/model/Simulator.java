@@ -19,19 +19,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.mmarini.routes.xml.Dumpable;
-import org.mmarini.routes.xml.Dumper;
-import org.mmarini.routes.xml.Path;
-import org.w3c.dom.Element;
-
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: Simulator.java,v 1.18 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
-public class Simulator implements Constants, Dumpable {
+public class Simulator implements Constants {
 
-	private static final double DEFAULT_FREQUENCE = 1.;
 	private static final double DEFAULT_MIN_WEIGHT = 1.;
 	private static final double NO_CONNECTION = Double.POSITIVE_INFINITY;
 	private static final double MAX_TIME = 1e10f;
@@ -59,7 +53,7 @@ public class Simulator implements Constants, Dumpable {
 	private double frequence;
 
 	/**
-	     * 
+	     *
 	     */
 	public Simulator() {
 		nodes = new ArrayList<MapNode>(0);
@@ -76,8 +70,8 @@ public class Simulator implements Constants, Dumpable {
 		edgeTemplate = new MapEdge();
 		frequence = DEFAULT_FREQUENCE;
 
-		edgeTemplate.setPriority(DEFAULT_EDGE_PRIORITY);
-		edgeTemplate.setSpeedLimit(DEFAULT_SPEED_LIMIT);
+		edgeTemplate.setPriority(DEFAULT_PRIORITY);
+		edgeTemplate.setSpeedLimit(DEFAULT_SPEED_LIMIT_KMH * MPS_TO_KMH);
 		context.setTime(TIME_INTERVAL);
 	}
 
@@ -128,7 +122,7 @@ public class Simulator implements Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param path
 	 */
 	public void add(final Path path) {
@@ -174,7 +168,7 @@ public class Simulator implements Constants, Dumpable {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void clear() {
 		edges.clear();
@@ -185,7 +179,7 @@ public class Simulator implements Constants, Dumpable {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void computeConnectionMatrix() {
 		final int n = nodes.size();
@@ -230,7 +224,7 @@ public class Simulator implements Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param bound
 	 */
 	public void computeMapBound(final Rectangle2D bound) {
@@ -249,7 +243,7 @@ public class Simulator implements Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param infos
 	 */
 	public void computeRouteInfos(final RouteInfos infos) {
@@ -265,7 +259,7 @@ public class Simulator implements Constants, Dumpable {
 
 	/**
 	 * Computes the traffic information map for the different destinations
-	 * 
+	 *
 	 * @param infos the result list of traffic information
 	 */
 	public void computeTrafficInfos(final List<TrafficInfo> infos) {
@@ -379,7 +373,7 @@ public class Simulator implements Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param departure
 	 * @param destination
 	 * @param minProfile
@@ -395,7 +389,7 @@ public class Simulator implements Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param site
 	 */
 	private void createPathForSite(final SiteNode site) {
@@ -408,7 +402,7 @@ public class Simulator implements Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param profile
 	 */
 	public void createRandomMap(final MapProfile profile) {
@@ -427,7 +421,7 @@ public class Simulator implements Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param departure
 	 * @param destination
 	 */
@@ -465,43 +459,7 @@ public class Simulator implements Constants, Dumpable {
 	}
 
 	/**
-	 * @param root
-	 */
-	@Override
-	public void dump(final Element root) {
-		final Dumper utl = Dumper.getInstance();
-		utl.dumpObject(root, "context", context);
-		utl.dumpObject(root, "nodes", nodes);
-		utl.dumpObject(root, "edges", edges);
-		utl.dumpObject(root, "veicleList", veicleList);
-		utl.dumpObject(root, "edgeTemplate", edgeTemplate);
-		utl.dumpObject(root, "siteTemplate", siteTemplate);
-		utl.dumpReference(root, "sites", sites);
-		Element el = utl.createElement(root, "edgeMap");
-		for (int i = 0; i < edgeMap.length; ++i) {
-			for (int j = 0; j < edgeMap[i].length; ++j) {
-				if (edgeMap[i][j] != null) {
-					utl.dumpReference(el, "edgeMap", i + "," + j, edgeMap[i][j]);
-				}
-			}
-		}
-		el = utl.createElement(root, "timeMatrix");
-		for (int i = 0; i < timeMatrix.length; ++i) {
-			for (int j = 0; j < timeMatrix[i].length; ++j) {
-				utl.dumpValue(el, "timeMatrix", i + "," + j, timeMatrix[i][j]);
-			}
-		}
-		el = utl.createElement(root, "previousMatrix");
-		for (int i = 0; i < previousMatrix.length; ++i) {
-			for (int j = 0; j < previousMatrix[i].length; ++j) {
-				utl.dumpValue(el, "previousMatrix", i + "," + j, previousMatrix[i][j]);
-			}
-		}
-		utl.dumpReference(root, "temporaryList", temporaryList);
-	}
-
-	/**
-	 * 
+	 *
 	 * @param begin
 	 * @param end
 	 * @return
@@ -574,7 +532,7 @@ public class Simulator implements Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param source
 	 * @param dest
 	 * @return
@@ -601,14 +559,14 @@ public class Simulator implements Constants, Dumpable {
 	/**
 	 * @see org.mmarini.routes.model.RouteHandler#getMapEdges()
 	 */
-	public Iterable<MapEdge> getMapEdges() {
+	public List<MapEdge> getMapEdges() {
 		return edges;
 	}
 
 	/**
 	 * @return
 	 */
-	public Iterable<MapNode> getMapNodes() {
+	public List<MapNode> getMapNodes() {
 		return nodes;
 	}
 
@@ -629,10 +587,10 @@ public class Simulator implements Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
-	public Iterable<Path> getPaths() {
+	public List<Path> getPaths() {
 		return path;
 	}
 
@@ -646,7 +604,7 @@ public class Simulator implements Constants, Dumpable {
 	/**
 	 * @see org.mmarini.routes.model.RouteHandler#getSiteNodes()
 	 */
-	public Iterable<SiteNode> getSiteNodes() {
+	public List<SiteNode> getSiteNodes() {
 		return sites;
 	}
 
@@ -658,7 +616,7 @@ public class Simulator implements Constants, Dumpable {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void init() {
 		final int n = nodes.size();
@@ -675,7 +633,7 @@ public class Simulator implements Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param paths
 	 */
 	public void loadPaths(final Collection<Path> paths) {
@@ -686,7 +644,7 @@ public class Simulator implements Constants, Dumpable {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	public void optimizeNodes() {
 		final List<MapNode> nodes = new ArrayList<MapNode>(0);
@@ -744,7 +702,7 @@ public class Simulator implements Constants, Dumpable {
 
 	/**
 	 * Randomize the path
-	 * 
+	 *
 	 * @param profile
 	 */
 	public void randomize(final MapProfile profile) {
@@ -803,7 +761,7 @@ public class Simulator implements Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param site
 	 */
 	private void removePathForSite(final SiteNode site) {

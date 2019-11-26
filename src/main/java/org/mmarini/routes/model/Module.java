@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: Module.java,v 1.4 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class Module {
 	private final List<MapNode> nodeList;
@@ -27,7 +27,7 @@ public class Module {
 	private final Rectangle2D bound;
 
 	/**
-	     * 
+	     *
 	     */
 	public Module() {
 		nodeList = new ArrayList<MapNode>(0);
@@ -55,7 +55,7 @@ public class Module {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public Rectangle2D getBound() {
@@ -70,7 +70,7 @@ public class Module {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public Iterable<MapEdge> getEdges() {

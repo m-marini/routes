@@ -39,10 +39,10 @@ import org.mmarini.routes.model.SiteNode;
  * The tools to change the map allow to select elements, insert edges, insert
  * modules or set the center of the map.
  * </p>
- * 
+ *
  * @author marco.marini@mmarini.org
  * @version $Id: MapViewPane.java,v 1.11 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class MapViewPane extends JPanel {
 
@@ -204,7 +204,7 @@ public class MapViewPane extends JPanel {
 
 	/**
 	 * Add a MapElementListener
-	 * 
+	 *
 	 * @param listener the listener
 	 */
 	public void addMapElementListener(final MapElementListener listener) {
@@ -222,7 +222,7 @@ public class MapViewPane extends JPanel {
 
 	/**
 	 * Create the tool bar
-	 * 
+	 *
 	 * @return the tool bar
 	 */
 	private JToolBar createToolbar() {
@@ -245,7 +245,7 @@ public class MapViewPane extends JPanel {
 
 	/**
 	 * Return the current view scale
-	 * 
+	 *
 	 * @return the current view scale (real px/virtual px)
 	 */
 	public double getScale() {
@@ -314,7 +314,7 @@ public class MapViewPane extends JPanel {
 
 	/**
 	 * Scroll the map view and center to an edge
-	 * 
+	 *
 	 * @param edge the edge element to center the view to
 	 */
 	public void scrollTo(final MapEdge edge) {
@@ -323,7 +323,7 @@ public class MapViewPane extends JPanel {
 
 	/**
 	 * Scroll the map view and center to a node
-	 * 
+	 *
 	 * @param node the node element to center the view to
 	 */
 	public void scrollTo(final MapNode node) {
@@ -341,7 +341,7 @@ public class MapViewPane extends JPanel {
 	/**
 	 * Set the mediator.<br>
 	 * The mediator is used by ScrollPane subcomponent of this component.
-	 * 
+	 *
 	 * @param mediator the mediator
 	 */
 	public void setMediator(final RouteMediator mediator) {
@@ -351,7 +351,7 @@ public class MapViewPane extends JPanel {
 	/**
 	 * Set the list of modules.<br>
 	 * It loads the module button list.
-	 * 
+	 *
 	 * @param modules te module list
 	 */
 	public void setModule(final List<Module> modules) {
@@ -363,7 +363,7 @@ public class MapViewPane extends JPanel {
 
 	/**
 	 * Sets the view scale
-	 * 
+	 *
 	 * @param scale the scale (real px/virtual px)
 	 */
 	public void setScale(final double scale) {
@@ -372,7 +372,7 @@ public class MapViewPane extends JPanel {
 
 	/**
 	 * Set an edge as selected map element
-	 * 
+	 *
 	 * @param edge the edge
 	 */
 	public void setSelectedElement(final MapEdge edge) {
@@ -381,7 +381,7 @@ public class MapViewPane extends JPanel {
 
 	/**
 	 * Set a node as selected map element
-	 * 
+	 *
 	 * @param node the node
 	 */
 	public void setSelectedElement(final MapNode node) {
@@ -390,7 +390,7 @@ public class MapViewPane extends JPanel {
 
 	/**
 	 * Set a site as selected map element
-	 * 
+	 *
 	 * @param site the site
 	 */
 	public void setSelectedElement(final SiteNode site) {

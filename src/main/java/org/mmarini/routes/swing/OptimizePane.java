@@ -22,7 +22,7 @@ import javax.swing.event.ChangeListener;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: OptimizePane.java,v 1.6 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class OptimizePane extends Box {
 
@@ -37,7 +37,7 @@ public class OptimizePane extends Box {
 	private final JLabel speedLabel;
 
 	/**
-	     * 
+	     *
 	     */
 	public OptimizePane() {
 		super(BoxLayout.PAGE_AXIS);
@@ -62,7 +62,7 @@ public class OptimizePane extends Box {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void createContext() {
 		Box box = Box.createHorizontalBox();
@@ -84,7 +84,7 @@ public class OptimizePane extends Box {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public double getSpeedLimit() {
@@ -92,8 +92,8 @@ public class OptimizePane extends Box {
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	private void handleOptimizeSpeedChange() {
 		final boolean selected = isOptimizeSpeed();
@@ -102,7 +102,7 @@ public class OptimizePane extends Box {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isOptimizeNodes() {
@@ -110,7 +110,7 @@ public class OptimizePane extends Box {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isOptimizeSpeed() {

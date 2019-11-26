@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.mmarini.routes.swing;
 
@@ -21,7 +21,7 @@ import org.mmarini.routes.model.Module;
 
 /**
  * @author Marco
- * 
+ *
  */
 public class ModuleSelector extends JButton {
 
@@ -42,7 +42,7 @@ public class ModuleSelector extends JButton {
 	private List<ListSelectionListener> listeners;
 
 	/**
-	     * 
+	     *
 	     */
 	public ModuleSelector() {
 		popupMenu = new JPopupMenu();
@@ -59,7 +59,7 @@ public class ModuleSelector extends JButton {
 		dropAction = new AbstractAction() {
 
 			/**
-			     * 
+			     *
 			     */
 			private static final long serialVersionUID = 1L;
 
@@ -74,7 +74,7 @@ public class ModuleSelector extends JButton {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param module
 	 */
 	public void add(final Module module) {
@@ -92,7 +92,7 @@ public class ModuleSelector extends JButton {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param l
 	 */
 	public synchronized void addListSelectionListener(final ListSelectionListener l) {
@@ -108,8 +108,8 @@ public class ModuleSelector extends JButton {
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	protected void dropDown() {
 		final Dimension size = getSize();
@@ -117,7 +117,7 @@ public class ModuleSelector extends JButton {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param index
 	 */
 	private void fireValueChanged() {
@@ -131,7 +131,7 @@ public class ModuleSelector extends JButton {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public ModuleEntry getSelectedEntry() {
@@ -139,7 +139,7 @@ public class ModuleSelector extends JButton {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param source
 	 */
 	protected void handleItemSelection(final Object source) {
@@ -148,7 +148,7 @@ public class ModuleSelector extends JButton {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param l
 	 */
 	public synchronized void removeListSelectionListener(final ListSelectionListener l) {

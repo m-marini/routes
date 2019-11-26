@@ -1,16 +1,14 @@
 /**
- * 
+ *
  */
 package org.mmarini.routes.model;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.mmarini.routes.xml.Path;
-
 /**
  * @author Marco
- * 
+ *
  */
 public class RouteInfos {
 	private final List<SiteNode> nodes;
@@ -18,22 +16,22 @@ public class RouteInfos {
 	private double[][] frequence;
 
 	/**
-	     * 
+	     *
 	     */
 	public RouteInfos() {
 		nodes = new ArrayList<SiteNode>(0);
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	public void clear() {
 		getNodes().clear();
 	}
 
 	/**
-	 * 
+	 *
 	 * @param simulator
 	 */
 	public void computeInfos(final Simulator simulator) {
@@ -63,7 +61,7 @@ public class RouteInfos {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param row
 	 * @param col
 	 * @return
@@ -73,7 +71,7 @@ public class RouteInfos {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param index
 	 * @return
 	 */
@@ -89,7 +87,7 @@ public class RouteInfos {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public int getNodesCount() {

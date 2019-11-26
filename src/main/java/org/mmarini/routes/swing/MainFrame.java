@@ -32,7 +32,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
-import javax.swing.UIManager;
+import javax.swing.WindowConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,38 +44,26 @@ import org.slf4j.LoggerFactory;
  * explorer panel. It comunicates with RouteMediator to manage the simualtion.
  * All the menu actions are redirected to the mediator to be resolved.
  * </p>
- * 
+ *
  * @author marco.marini@mmarini.org
  * @version $Id: MainFrame.java,v 1.14 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class MainFrame extends JFrame {
 	private static Logger log = LoggerFactory.getLogger(MainFrame.class);
 
 	private static final String IMAGES_ROUTES = "/images/routes.gif";
-	private static final String DUMP_PROPERTY_NAME = "org.mmarini.routes.swing.MainFrame.dump";
 	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Application entry point
-	 * 
+	 *
 	 * @param args unused
 	 */
 	public static void main(final String[] args) throws Throwable {
 		log.info("MainFrame started.");
-		try {
-			// UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
-			UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
-			// UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
-			// UIManager
-			// .setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-			// UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel");
-			// UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
 		final MainFrame frame = new MainFrame();
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 	}
 
@@ -97,12 +85,10 @@ public class MainFrame extends JFrame {
 	private final AbstractAction speedx2Action;
 	private final AbstractAction speedx5Action;
 	private final AbstractAction speedx10Action;
-	private final AbstractAction dumpAction;
 	private final MapElementPane mapElementPane;
 	private final JSplitPane splitPane;
 	private final JSplitPane rightSplitPane;
 	private final ExplorerPane explorerPane;
-
 	private final RouteMediator mediator;
 
 	/**
@@ -130,14 +116,6 @@ public class MainFrame extends JFrame {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				mediator.showTrafficInfos();
-			}
-		};
-		dumpAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.dump();
 			}
 		};
 		stopAction = new AbstractAction() {
@@ -282,7 +260,7 @@ public class MainFrame extends JFrame {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void createContent() {
 		final Container pane = getContentPane();
@@ -292,7 +270,7 @@ public class MainFrame extends JFrame {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void createMenuBar() {
 		final JMenuBar bar = new JMenuBar();
@@ -354,13 +332,6 @@ public class MainFrame extends JFrame {
 		menu.add(item1);
 		group.add(item1);
 		bar.add(menu);
-
-		if (System.getProperty(DUMP_PROPERTY_NAME) != null) {
-			menu.add(new JSeparator());
-
-			item = new JMenuItem(dumpAction);
-			menu.add(item);
-		}
 		setJMenuBar(bar);
 	}
 
@@ -396,7 +367,6 @@ public class MainFrame extends JFrame {
 		utils.initAction(speedx2Action, "MainFrame.speedx2Action"); //$NON-NLS-1$
 		utils.initAction(speedx5Action, "MainFrame.speedx5Action"); //$NON-NLS-1$
 		utils.initAction(speedx10Action, "MainFrame.speedx10Action"); //$NON-NLS-1$
-		utils.initAction(dumpAction, "MainFrame.dumpAction"); //$NON-NLS-1$
 		utils.initAction(infosAction, "MainFrame.infosAction"); //$NON-NLS-1$
 		utils.initAction(veicleInfosAction, "MainFrame.veicleInfosAction"); //$NON-NLS-1$
 
@@ -428,7 +398,7 @@ public class MainFrame extends JFrame {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void resetTitle() {
 		setTitle(Messages.getString("MainFrame.title")); //$NON-NLS-1$

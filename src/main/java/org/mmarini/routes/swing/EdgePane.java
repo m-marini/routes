@@ -37,7 +37,7 @@ import org.mmarini.routes.model.MapEdge;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: EdgePane.java,v 1.11 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class EdgePane extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -67,7 +67,7 @@ public class EdgePane extends JPanel {
 	private final Action browseEndNodeAction;
 
 	/**
-	     * 
+	     *
 	     */
 	public EdgePane() {
 		priorityField = new JFormattedTextField(new NumberFormatter(NumberFormat.getIntegerInstance()));
@@ -110,7 +110,7 @@ public class EdgePane extends JPanel {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void createContent() {
 		setLayout(new BorderLayout());
@@ -338,28 +338,28 @@ public class EdgePane extends JPanel {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	protected void delete() {
 		mediator.remove(edge);
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	protected void handleBrowseBegin() {
 		mediator.changeBeginNode(edge);
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	protected void handleBrowseEnd() {
 		mediator.changeEndNode(edge);
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void init() {
 		setBorder(BorderFactory.createTitledBorder(Messages.getString("EdgePane.title"))); //$NON-NLS-1$

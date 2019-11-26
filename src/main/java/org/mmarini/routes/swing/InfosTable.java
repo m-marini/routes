@@ -26,7 +26,7 @@ import org.mmarini.routes.model.SiteNode;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: InfosTable.java,v 1.5 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class InfosTable extends JTable {
 

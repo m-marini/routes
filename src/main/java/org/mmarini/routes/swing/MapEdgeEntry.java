@@ -14,7 +14,7 @@ import org.mmarini.routes.model.MapEdge;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: MapEdgeEntry.java,v 1.3 2009/05/08 21:28:50 marco Exp $
- * 
+ *
  */
 public class MapEdgeEntry {
 	private final MapEdge edge;

@@ -14,10 +14,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import org.mmarini.routes.xml.Dumpable;
-import org.mmarini.routes.xml.Dumper;
-import org.w3c.dom.Element;
-
 /**
  * Al tratto di strada associamo la velocità corrente dei veicoli. La velocità
  * corrente è determinanata dal primo veicolo entrato nel tratto di strada. Se
@@ -35,38 +31,27 @@ import org.w3c.dom.Element;
  * n = Sl / Vl<br>
  * dove Vl = 5 è la lunghezza del veicolo.<br>
  * </p>
- * 
+ *
  * @author marco.marini@mmarini.org
  * @version $Id: MapEdge.java,v 1.14 2010/10/19 20:33:00 marco Exp $
- * 
+ *
  */
-public class MapEdge implements MapElement, Constants, Dumpable {
+public class MapEdge implements MapElement, Constants {
 	private MapNode begin;
-
 	private MapNode end;
-
 	private double speedLimit;
-
 	private double distance;
-
 	private double security;
-
 	private int priority;
-
 	private List<Veicle> veicleList;
-
 	private AbstractSimulationFunctions functions;
-
 	private Point2D vector;
-
 	private double transitTime;
-
 	private Veicle nextVeicle;
-
 	private Comparator<Veicle> priorityComparator;
 
 	/**
-	     * 
+	     *
 	     */
 	public MapEdge() {
 		veicleList = new ArrayList<Veicle>(0);
@@ -87,7 +72,7 @@ public class MapEdge implements MapElement, Constants, Dumpable {
 
 	/**
 	 * @param veicle
-	 * 
+	 *
 	 */
 	private void add(final Veicle veicle) {
 		if (veicleList.isEmpty()) {
@@ -105,7 +90,7 @@ public class MapEdge implements MapElement, Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private double computeCurrentSpeed() {
@@ -138,7 +123,7 @@ public class MapEdge implements MapElement, Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public double computeExpectedSpeed() {
@@ -198,7 +183,7 @@ public class MapEdge implements MapElement, Constants, Dumpable {
 	 * <p>
 	 * The best transtit time is the distance / speedLimit
 	 * </p>
-	 * 
+	 *
 	 * @return the transit time
 	 */
 	public double computeTransitTime() {
@@ -206,7 +191,7 @@ public class MapEdge implements MapElement, Constants, Dumpable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public MapEdge createClone() {
@@ -218,7 +203,7 @@ public class MapEdge implements MapElement, Constants, Dumpable {
 
 	/**
 	 * @param context
-	 * 
+	 *
 	 */
 	public void dequeue(final SimContext context) {
 		final Veicle veicle = nextVeicle;
@@ -230,24 +215,6 @@ public class MapEdge implements MapElement, Constants, Dumpable {
 			}
 		}
 		nextVeicle = null;
-	}
-
-	/**
-	 * @see org.mmarini.routes.xml.Dumpable#dump(org.w3c.dom.Element)
-	 */
-	@Override
-	public void dump(final Element root) {
-		final Dumper dumper = Dumper.getInstance();
-		dumper.dumpReference(root, "begin", begin);
-		dumper.dumpReference(root, "end", end);
-		dumper.dumpValue(root, "priority", priority);
-		dumper.dumpValue(root, "speedLimit", speedLimit);
-		dumper.dumpObject(root, "edgeVector", vector);
-		dumper.dumpValue(root, "distance", distance);
-		dumper.dumpValue(root, "security", security);
-		dumper.dumpValue(root, "transitTime", transitTime);
-		dumper.dumpReference(root, "veicleList", veicleList);
-		dumper.dumpReference(root, "nextVeicle", nextVeicle);
 	}
 
 	/**
@@ -382,7 +349,7 @@ public class MapEdge implements MapElement, Constants, Dumpable {
 	 * A 0 level means the edge has no trafic and the veicles can run at speed limit
 	 * of the edge. <br>
 	 * A 1 level means the veicle is strucked in the traffic and they cannot run.
-	 * 
+	 *
 	 * @return the traffic level
 	 */
 	public double getTrafficLevel() {
@@ -430,7 +397,7 @@ public class MapEdge implements MapElement, Constants, Dumpable {
 
 	/**
 	 * @param veicle
-	 * 
+	 *
 	 */
 	public void remove(final Veicle veicle) {
 		double tt = transitTime;
@@ -456,7 +423,7 @@ public class MapEdge implements MapElement, Constants, Dumpable {
 
 	/**
 	 * @param context
-	 * 
+	 *
 	 */
 	public void reset(final SimContext context) {
 		for (final Veicle veicle : veicleList) {
@@ -533,7 +500,7 @@ public class MapEdge implements MapElement, Constants, Dumpable {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	private void updateInfo() {
 		if (begin != null && end != null) {
@@ -556,8 +523,8 @@ public class MapEdge implements MapElement, Constants, Dumpable {
 	}
 
 	/**
-	     * 
-	     * 
+	     *
+	     *
 	     */
 	private void validateSpeedLimits() {
 		if (begin != null && end != null) {

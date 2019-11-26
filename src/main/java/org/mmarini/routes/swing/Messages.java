@@ -15,7 +15,7 @@ import java.util.ResourceBundle;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: Messages.java,v 1.5 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class Messages {
 	private static final String BUNDLE_NAME = "org.mmarini.routes.swing.messages"; //$NON-NLS-1$

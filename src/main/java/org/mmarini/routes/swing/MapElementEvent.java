@@ -18,7 +18,7 @@ import org.mmarini.routes.model.SiteNode;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: MapElementEvent.java,v 1.6 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class MapElementEvent extends EventObject {
 	private static final long serialVersionUID = 1L;

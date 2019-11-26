@@ -13,7 +13,7 @@ package org.mmarini.routes.model;
  * @author marco.marini@mmarini.org
  * @version $Id: AbstractSimulationFunctions.java,v 1.2 2009/01/05 17:04:20
  *          marco Exp $
- * 
+ *
  */
 public abstract class AbstractSimulationFunctions implements Constants {
 	private static AbstractSimulationFunctions instance = new LinearSimulationFunctions();
@@ -26,7 +26,7 @@ public abstract class AbstractSimulationFunctions implements Constants {
 	}
 
 	/**
-	     * 
+	     *
 	     */
 	protected AbstractSimulationFunctions() {
 	}
@@ -38,7 +38,7 @@ public abstract class AbstractSimulationFunctions implements Constants {
 	public abstract double computeDistanceBySpeed(double speed);
 
 	/**
-	 * 
+	 *
 	 * @param distance
 	 * @return
 	 */

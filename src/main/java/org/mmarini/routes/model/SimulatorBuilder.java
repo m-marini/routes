@@ -9,19 +9,16 @@
  */
 package org.mmarini.routes.model;
 
-import org.mmarini.routes.xml.MapBuilder;
-import org.mmarini.routes.xml.Path;
-
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: SimulatorBuilder.java,v 1.5 2010/10/19 20:32:59 marco Exp $
- * 
+ *
  */
 public class SimulatorBuilder implements MapBuilder {
 	private Simulator simulator;
 
 	/**
-	 * @see org.mmarini.routes.xml.MapBuilder#add(org.mmarini.routes.model.MapEdge)
+	 * @see org.mmarini.routes.model.MapBuilder#add(org.mmarini.routes.model.MapEdge)
 	 */
 	@Override
 	public void add(final MapEdge edge) {
@@ -29,7 +26,7 @@ public class SimulatorBuilder implements MapBuilder {
 	}
 
 	/**
-	 * @see org.mmarini.routes.xml.MapBuilder#add(org.mmarini.routes.model.MapNode)
+	 * @see org.mmarini.routes.model.MapBuilder#add(org.mmarini.routes.model.MapNode)
 	 */
 	@Override
 	public void add(final MapNode node) {
@@ -37,7 +34,7 @@ public class SimulatorBuilder implements MapBuilder {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Override
 	public void add(final Path path) {
@@ -45,7 +42,7 @@ public class SimulatorBuilder implements MapBuilder {
 	}
 
 	/**
-	 * @see org.mmarini.routes.xml.MapBuilder#add(org.mmarini.routes.model.SiteNode)
+	 * @see org.mmarini.routes.model.MapBuilder#add(org.mmarini.routes.model.SiteNode)
 	 */
 	@Override
 	public void add(final SiteNode site) {
@@ -58,7 +55,7 @@ public class SimulatorBuilder implements MapBuilder {
 	}
 
 	/**
-	 * @see org.mmarini.routes.xml.MapBuilder#clear()
+	 * @see org.mmarini.routes.model.MapBuilder#clear()
 	 */
 	@Override
 	public void clear() {
@@ -73,7 +70,7 @@ public class SimulatorBuilder implements MapBuilder {
 	}
 
 	/**
-	 * @see org.mmarini.routes.xml.MapBuilder#init()
+	 * @see org.mmarini.routes.model.MapBuilder#init()
 	 */
 	@Override
 	public void init() {
