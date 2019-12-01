@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [4.1.0] - 2019-12-01
+
 ## Fixed
 
 - Issue #8: Missing alert pane when save to access denied file
