@@ -125,10 +125,11 @@ public class RoutePane extends Box {
 	     */
 	private void createContent() {
 		final JScrollPane departureScrollPane = new JScrollPane(departureList);
-		departureScrollPane.setBorder(BorderFactory.createTitledBorder("Departure title"));
+		departureScrollPane
+				.setBorder(BorderFactory.createTitledBorder(Messages.getString("RoutePane.departure.title"))); //$NON-NLS-1$
 
 		final JScrollPane routeScrollPane = new JScrollPane(routeTable);
-		routeScrollPane.setBorder(BorderFactory.createTitledBorder("Route title"));
+		routeScrollPane.setBorder(BorderFactory.createTitledBorder(Messages.getString("RoutePane.route.title"))); //$NON-NLS-1$
 
 		add(departureScrollPane);
 		add(routeScrollPane);
