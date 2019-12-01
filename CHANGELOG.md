@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## Fixed
+
+- Issue #8: Missing alert pane when save to access denied file
+- Issue #9: wrong xml file suffix in file chooser
+
 ## [4.0.0] - 2019-11-26
 
 ## Changed

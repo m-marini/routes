@@ -534,7 +534,7 @@ public class RouteMediator {
 				} catch (final Exception e) {
 					logger.error(e.getMessage(), e);
 					showError(e.getMessage());
-				} catch (final Error e) {
+				} catch (final Throwable e) {
 					logger.error(e.getMessage(), e);
 					showError(e);
 				}
@@ -693,7 +693,7 @@ public class RouteMediator {
 				handler.save(file);
 				mainFrame.setSaveActionEnabled(true);
 				mainFrame.setTitle(file.getPath());
-			} catch (final Exception e) {
+			} catch (final Throwable e) {
 				logger.error(e.getMessage(), e);
 				showError(e);
 			}
