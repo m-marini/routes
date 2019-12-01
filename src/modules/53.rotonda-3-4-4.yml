@@ -1,146 +1,112 @@
 ---
-speedLimit: 130.0
+speedLimit: 130
 nodes:
-    Node_0:
-        x: -24.0
-        y: -50.0
-    Node_1:
-        x: -50.0
-        y: -24.0
-    Node_2:
-        x: -50.0
-        y: 25.0
-    Node_3:
-        x: -24.0
-        y: 51.0
-    Node_4:
-        x: 25.0
-        y: 51.0
-    Node_5:
-        x: 51.0
-        y: 25.0
-    Node_6:
-        x: 51.0
-        y: -24.0
-    Node_7:
-        x: 25.0
-        y: -50.0
-    Node_8:
-        x: 9.0
-        y: -83.0
-    Node_9:
-        x: -83.0
-        y: 9.0
-    Node_10:
-        x: -83.0
-        y: -9.0
-    Node_11:
-        x: 84.0
-        y: 9.0
-    Node_12:
-        x: 84.0
-        y: -9.0
-    Node_13:
-        x: 84.0
-        y: -3.0
-    Node_14:
-        x: -83.0
-        y: 3.0
-    Node_15:
-        x: 121.0
-        y: 9.0
-    Node_16:
-        x: 121.0
-        y: 3.0
-    Node_17:
-        x: 121.0
-        y: -3.0
-    Node_18:
-        x: 121.0
-        y: -9.0
-    Node_19:
-        x: -3.0
-        y: -83.0
-    Node_20:
-        x: -9.0
-        y: -83.0
-    Node_21:
-        x: -120.0
-        y: -9.0
-    Node_22:
-        x: -120.0
-        y: -3.0
-    Node_23:
-        x: -120.0
-        y: 3.0
-    Node_24:
-        x: -120.0
-        y: 9.0
-    Node_25:
-        x: 3.0
-        y: -83.0
+  Node_4:
+    x: 3.0
+    y: -83.0
+  Node_5:
+    x: -83.0
+    y: -9.0
+  Node_6:
+    x: 84.0
+    y: 9.0
+  Node_7:
+    x: 84.0
+    y: -9.0
+  Node_8:
+    x: 84.0
+    y: -3.0
+  Node_9:
+    x: -83.0
+    y: 3.0
+  Node_10:
+    x: 84.0
+    y: 3.0
+  Node_11:
+    x: -3.0
+    y: -83.0
+  Node_12:
+    x: -50.0
+    y: 25.0
+  Node_13:
+    x: -50.0
+    y: -24.0
+  Node_14:
+    x: 25.0
+    y: 51.0
+  Node_15:
+    x: -24.0
+    y: 51.0
+  Node_16:
+    x: -24.0
+    y: -50.0
+  Node_17:
+    x: -83.0
+    y: 9.0
+  Node_18:
+    x: -9.0
+    y: -83.0
+  Node_19:
+    x: 51.0
+    y: -24.0
+  Node_20:
+    x: 51.0
+    y: 25.0
+  Node_21:
+    x: -83.0
+    y: -3.0
+  Node_22:
+    x: 9.0
+    y: -83.0
+  Node_23:
+    x: 25.0
+    y: -50.0
 edges:
-    -   start: Node_0
-        end: Node_1
-    -   start: Node_1
-        end: Node_2
-    -   start: Node_2
-        end: Node_3
-    -   start: Node_3
-        end: Node_4
-    -   start: Node_4
-        end: Node_5
-    -   start: Node_5
-        end: Node_6
-    -   start: Node_6
-        end: Node_7
-    -   start: Node_7
-        end: Node_0
-    -   start: Node_7
-        end: Node_8
-    -   start: Node_9
-        end: Node_2
-    -   start: Node_1
-        end: Node_10
-    -   start: Node_5
-        end: Node_11
-    -   start: Node_12
-        end: Node_6
-    -   start: Node_9
-        end: Node_11
-    -   start: Node_12
-        end: Node_10
-    -   start: Node_13
-        end: Node_22
-    -   start: Node_14
-        end: Node_16
-    -   start: Node_11
-        end: Node_15
-    -   start: Node_11
-        end: Node_16
-    -   start: Node_17
-        end: Node_13
-    -   start: Node_18
-        end: Node_12
-    -   start: Node_17
-        end: Node_12
-    -   start: Node_18
-        end: Node_13
-    -   start: Node_20
-        end: Node_0
-    -   start: Node_19
-        end: Node_0
-    -   start: Node_10
-        end: Node_21
-    -   start: Node_23
-        end: Node_14
-    -   start: Node_24
-        end: Node_9
-    -   start: Node_10
-        end: Node_22
-    -   start: Node_24
-        end: Node_14
-    -   start: Node_7
-        end: Node_25
-    -   start: Node_23
-        end: Node_9
+- start: "Node_16"
+  end: "Node_13"
+- start: "Node_13"
+  end: "Node_12"
+- start: "Node_12"
+  end: "Node_15"
+- start: "Node_15"
+  end: "Node_14"
+- start: "Node_14"
+  end: "Node_20"
+- start: "Node_20"
+  end: "Node_19"
+- start: "Node_19"
+  end: "Node_23"
+- start: "Node_23"
+  end: "Node_16"
+- start: "Node_23"
+  end: "Node_22"
+- start: "Node_17"
+  end: "Node_12"
+- start: "Node_13"
+  end: "Node_5"
+- start: "Node_20"
+  end: "Node_6"
+- start: "Node_7"
+  end: "Node_19"
+- start: "Node_17"
+  end: "Node_6"
+- start: "Node_7"
+  end: "Node_5"
+- start: "Node_8"
+  end: "Node_21"
+- start: "Node_9"
+  end: "Node_10"
+- start: "Node_18"
+  end: "Node_16"
+- start: "Node_11"
+  end: "Node_16"
+- start: "Node_23"
+  end: "Node_4"
+- start: "Node_13"
+  end: "Node_21"
+- start: "Node_9"
+  end: "Node_12"
+- start: "Node_20"
+  end: "Node_10"
+- start: "Node_8"
+  end: "Node_19"

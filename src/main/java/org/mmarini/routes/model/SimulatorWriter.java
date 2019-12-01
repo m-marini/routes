@@ -149,7 +149,8 @@ public class SimulatorWriter implements Constants {
 	 */
 	private JsonNode createNodesNode() {
 		final ObjectNode result = mapper.createObjectNode();
-		sim.getMapNodes().forEach(node -> result.set(nodeMap.get(node), buildNode(node)));
+		sim.getMapNodes().stream().filter(node -> !(node instanceof SiteNode))
+				.forEach(node -> result.set(nodeMap.get(node), buildNode(node)));
 		return result;
 	}
 

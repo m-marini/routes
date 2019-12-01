@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Issue #8: Missing alert pane when save to access denied file
 - Issue #9: wrong xml file suffix in file chooser
+- Issue #12: Site defined twice both in sites and nodes during saving
+
+## Changed
+
+- Issue #10: Optimize modules
 
 ## [4.0.0] - 2019-11-26
 
