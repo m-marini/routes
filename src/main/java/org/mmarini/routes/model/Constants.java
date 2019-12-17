@@ -28,7 +28,7 @@ public interface Constants {
 	/**
 	 *
 	 */
-	public static final double VEICLE_LENGTH = 5;
+	public static final double VEHICLE_LENGTH = 5;
 
 	/**
 	 *

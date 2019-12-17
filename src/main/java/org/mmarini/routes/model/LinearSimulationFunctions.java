@@ -35,7 +35,7 @@ public class LinearSimulationFunctions extends AbstractSimulationFunctions {
 		if (veicleCount < 1) {
 			return speedLimit;
 		}
-		final double maxSpeed = (distance / veicleCount - VEICLE_LENGTH) / REACTION_TIME;
+		final double maxSpeed = (distance / veicleCount - VEHICLE_LENGTH) / REACTION_TIME;
 		return Math.min(maxSpeed, speedLimit);
 	}
 
@@ -44,7 +44,7 @@ public class LinearSimulationFunctions extends AbstractSimulationFunctions {
 	 */
 	@Override
 	public double computeDistanceBySpeed(final double speed) {
-		return REACTION_TIME * speed + VEICLE_LENGTH;
+		return REACTION_TIME * speed + VEHICLE_LENGTH;
 		// return ENERGY * speed * speed + REACTION
 		// * speed + VEICLE_LENGTH;
 	}
@@ -63,7 +63,7 @@ public class LinearSimulationFunctions extends AbstractSimulationFunctions {
 	 */
 	@Override
 	public double computeSpeedByVeicles(final double distance, final int veicleCount) {
-		return Math.max((distance - VEICLE_LENGTH) / REACTION_TIME, 0f);
+		return Math.max((distance - VEHICLE_LENGTH) / REACTION_TIME, 0f);
 	}
 
 	/**
@@ -103,6 +103,6 @@ public class LinearSimulationFunctions extends AbstractSimulationFunctions {
 		// double ke = ENERGY;
 		// double det = Math.pow(kr + t, 2) - 4 * kr * (vl - l);
 		// return (double) ((Math.sqrt(det) - kr - t) / (2f * ke) * t);
-		return (length - VEICLE_LENGTH) / (1 + REACTION_TIME / time);
+		return (length - VEHICLE_LENGTH) / (1 + REACTION_TIME / time);
 	}
 }
