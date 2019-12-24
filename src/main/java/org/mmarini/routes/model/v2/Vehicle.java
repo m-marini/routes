@@ -26,53 +26,54 @@
 
 package org.mmarini.routes.model.v2;
 
-import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.UUID;
 
 import org.mmarini.routes.model.Constants;
 
 /**
- *
- * @author us00852
- *
+ * A vehicle in the simulation model
  */
 public class Vehicle implements Constants {
 
 	/**
-	 *
-	 * @param departure
-	 * @param destination
+	 * Creates a vehicle
+	 * 
+	 * @param departure   the departure node site
+	 * @param destination the destination node site
 	 * @return
 	 */
-	public static Vehicle create(final MapNode departure, final MapNode destination) {
+	public static Vehicle create(final SiteNode departure, final SiteNode destination) {
 		final UUID id = UUID.randomUUID();
-		return new Vehicle(id, departure, destination, Optional.empty(), 0, 0);
+		return new Vehicle(id, departure, destination, 0, 0, false);
 	}
 
 	private final UUID id;
-	private final MapNode destination;
-	private final MapNode departure;
-	private final Optional<MapEdge> edge;
-	private final double edgeLocation;
+	private final SiteNode destination;
+	private final SiteNode departure;
+	private final double location;
 	private final double edgeEntryTime;
+	private final boolean returning;
 
 	/**
-	 *
-	 * @param id
-	 * @param destination
-	 * @param departure
-	 * @param edge
-	 * @param edgeLocation
+	 * Creates a vehicle
+	 * 
+	 * @param id            the unique identifier
+	 * @param departure     the departure site node
+	 * @param destination   the destination site node
+	 * @param location      the location in the current edge
+	 * @param edgeEntryTime the edge entry time
+	 * @param returning     true if vehicle is returning to the departure
 	 */
-	protected Vehicle(final UUID id, final MapNode departure, final MapNode destination, final Optional<MapEdge> edge,
-			final double edgeLocation, final double edgeEntryTime) {
+	protected Vehicle(final UUID id, final SiteNode departure, final SiteNode destination, final double location,
+			final double edgeEntryTime, final boolean returning) {
 		super();
 		this.id = id;
-		this.edge = edge;
 		this.destination = destination;
 		this.departure = departure;
-		this.edgeLocation = edgeLocation;
+		this.location = location;
 		this.edgeEntryTime = edgeEntryTime;
+		this.returning = returning;
 	}
 
 	@Override
@@ -98,51 +99,59 @@ public class Vehicle implements Constants {
 	}
 
 	/**
-	 *
-	 * @return
+	 * Returns the departure site node
+	 * 
+	 * @return the departure site node
 	 */
-	public MapNode getDeparture() {
+	public SiteNode getDeparture() {
 		return departure;
 	}
 
 	/**
-	 *
-	 * @return
+	 * Returns the destination site node
+	 * 
+	 * @return the destination site node
 	 */
-	public MapNode getDestination() {
+	public SiteNode getDestination() {
 		return destination;
 	}
 
 	/**
-	 *
-	 * @return
-	 */
-	public Optional<MapEdge> getEdge() {
-		return edge;
-	}
-
-	/**
-	 *
-	 * @return
+	 * Returns the edge entry time
+	 * 
+	 * @return the edge entry time
 	 */
 	public double getEdgeEntryTime() {
 		return edgeEntryTime;
 	}
 
 	/**
-	 *
-	 * @return
-	 */
-	public double getEdgeLocation() {
-		return edgeLocation;
-	}
-
-	/**
-	 *
-	 * @return
+	 * Returns the unique identifier
+	 * 
+	 * @return the unique identifier
 	 */
 	public UUID getId() {
 		return id;
+	}
+
+	/**
+	 * Returns the location in the current edge
+	 * 
+	 * @return the location in the current edge
+	 */
+	public double getLocation() {
+		return location;
+	}
+
+	/**
+	 * Returns the target site
+	 * <p>
+	 * Returns the destination if vehicle is not returning or else the departure
+	 * 
+	 * @return the target site
+	 */
+	public SiteNode getTarget() {
+		return returning ? departure : destination;
 	}
 
 	@Override
@@ -154,65 +163,83 @@ public class Vehicle implements Constants {
 	}
 
 	/**
-	 *
-	 * @param interval
-	 * @param nextVehicle
-	 * @return
+	 * Returns true if the vehicle is returning to the departure
+	 * 
+	 * @return true if the vehicle is returning to the departure
 	 */
-	public Tuple2<Vehicle, Double> move(final double interval, final Optional<Double> nextVehicleLocation) {
-		final Tuple2<Vehicle, Double> result = edge.map(edg -> {
-			final double sx = edg.getDistance();
-			final double v = edg.getSpeedLimit();
-			final double s1 = edgeLocation + v * interval;
-			if (nextVehicleLocation.isEmpty()) {
-				if (s1 > sx) {
-					final double realInterval = (sx - edgeLocation) / v;
-					final Vehicle newVeichle = setEdgeLocation(sx);
-					return new Tuple2<>(newVeichle, realInterval);
-				} else {
-					final Vehicle newVeichle = setEdgeLocation(s1);
-					return new Tuple2<>(newVeichle, interval);
-				}
+	public boolean isReturning() {
+		return returning;
+	}
+
+	/**
+	 * Returns the new vehicle moved for an maximum interval time and the real
+	 * movement interval
+	 * 
+	 * @param edge                the edge on which the vehicle move
+	 * @param interval            the maximum interval
+	 * @param nextVehicleLocation the location of the vehicle ahead in the edge
+	 * @return the new vehicle moved for an maximum interval time and the real
+	 *         movement interval
+	 */
+	public Tuple2<Vehicle, Double> move(final MapEdge edge, final double interval,
+			final OptionalDouble nextVehicleLocation) {
+		final double length = edge.getDistance();
+		final double speed = edge.getSpeedLimit();
+		final double maxLocation = location + speed * interval;
+		if (!nextVehicleLocation.isPresent()) {
+			if (maxLocation > length) {
+				final double realInterval = Math.max((length - location) / speed, 0);
+				final Vehicle newVeichle = setLocation(length);
+				return new Tuple2<>(newVeichle, realInterval);
 			} else {
-				final double next = nextVehicleLocation.get();
-				final double security = v * REACTION_TIME;
-				if (s1 + security + VEHICLE_LENGTH > next) {
-					final double ds = (next - VEHICLE_LENGTH) * interval / (interval + REACTION_TIME);
-					final Vehicle newVeichle = setEdgeLocation(edgeLocation + ds);
-					return new Tuple2<>(newVeichle, interval);
-				} else {
-					final Vehicle newVeichle = setEdgeLocation(s1);
-					return new Tuple2<>(newVeichle, interval);
-				}
+				final Vehicle newVeichle = setLocation(maxLocation);
+				return new Tuple2<>(newVeichle, interval);
 			}
-		}).orElseGet(() -> new Tuple2<>(this, interval));
-		return result;
+		} else {
+			final double nextLocation = nextVehicleLocation.getAsDouble();
+			final double stopLocation = nextLocation - VEHICLE_LENGTH;
+			final double securityDistance = speed * REACTION_TIME;
+			if (maxLocation + securityDistance + VEHICLE_LENGTH > nextLocation) {
+				final double dLocation = (nextLocation - VEHICLE_LENGTH - location) * interval
+						/ (interval + REACTION_TIME);
+				final double safetyLocation = location + dLocation;
+				final double finalLocation = Math.min(stopLocation, safetyLocation);
+				final Vehicle newVeichle = setLocation(finalLocation);
+				return new Tuple2<>(newVeichle, interval);
+			} else {
+				final Vehicle newVeichle = setLocation(maxLocation);
+				return new Tuple2<>(newVeichle, interval);
+			}
+		}
 	}
 
 	/**
-	 *
-	 * @param edge
-	 * @return
-	 */
-	public Vehicle setEdge(final Optional<MapEdge> edge) {
-		return new Vehicle(id, departure, destination, edge, edgeLocation, edgeEntryTime);
-	}
-
-	/**
-	 *
-	 * @param edgeEntryTime
-	 * @return
+	 * Returns the vehicle with changed edge entry time
+	 * 
+	 * @param edgeEntryTime the edge entry time
+	 * @return the vehicle with changed edge entry time
 	 */
 	public Vehicle setEdgeEntryTime(final double edgeEntryTime) {
-		return new Vehicle(id, departure, destination, edge, edgeLocation, edgeEntryTime);
+		return new Vehicle(id, departure, destination, location, edgeEntryTime, returning);
 	}
 
 	/**
-	 *
-	 * @param edge
-	 * @return
+	 * Returns the vehicle with the changed location
+	 * 
+	 * @param location the location
+	 * @return the vehicle with the changed location
 	 */
-	public Vehicle setEdgeLocation(final double edgeLocation) {
-		return new Vehicle(id, departure, destination, edge, edgeLocation, edgeEntryTime);
+	public Vehicle setLocation(final double location) {
+		return new Vehicle(id, departure, destination, location, edgeEntryTime, returning);
+	}
+
+	/**
+	 * Returns the vehicle with the changed returning
+	 * 
+	 * @param returning true if vehicle is returning
+	 * @return the vehicle with the changed returning
+	 */
+	public Vehicle setReturning(final boolean returning) {
+		return new Vehicle(id, departure, destination, location, edgeEntryTime, returning);
 	}
 }

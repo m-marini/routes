@@ -48,7 +48,7 @@ public class TrafficStats {
 		return new TrafficStats(Collections.emptySet());
 	}
 
-	private final Set<EdgeStats> edgeStats;
+	private final Set<EdgeTraffic> edgeTraffics;
 	private final List<MapNode> nodes;
 	private final int[][] connectionMatrix;
 
@@ -58,8 +58,8 @@ public class TrafficStats {
 	 *
 	 * @param edgeStats
 	 */
-	public TrafficStats(final Set<EdgeStats> edgeStats) {
-		this.edgeStats = edgeStats;
+	public TrafficStats(final Set<EdgeTraffic> edgeStats) {
+		this.edgeTraffics = edgeStats;
 		this.nodes = createNodes();
 		final int n = nodes.size();
 		this.connectionMatrix = new int[n][n];
@@ -82,7 +82,7 @@ public class TrafficStats {
 			connectionMatrix[i][i] = i;
 		}
 
-		for (final EdgeStats s : edgeStats) {
+		for (final EdgeTraffic s : edgeTraffics) {
 			final int i = nodes.indexOf(s.getEdge().getBegin());
 			final int j = nodes.indexOf(s.getEdge().getEnd());
 			timeMatrix[i][j] = s.getTravelTime();
@@ -112,9 +112,10 @@ public class TrafficStats {
 	 * @return
 	 */
 	List<MapNode> createNodes() {
-		final Set<MapNode> begins = edgeStats.parallelStream().map(s -> s.getEdge().getBegin())
+		final Set<MapNode> begins = edgeTraffics.parallelStream().map(s -> s.getEdge().getBegin())
 				.collect(Collectors.toSet());
-		final Set<MapNode> ends = edgeStats.parallelStream().map(s -> s.getEdge().getEnd()).collect(Collectors.toSet());
+		final Set<MapNode> ends = edgeTraffics.parallelStream().map(s -> s.getEdge().getEnd())
+				.collect(Collectors.toSet());
 		begins.addAll(ends);
 		final List<MapNode> result = new ArrayList<>(begins);
 		return result;
@@ -132,8 +133,8 @@ public class TrafficStats {
 	 *
 	 * @return
 	 */
-	public Set<EdgeStats> getEdgeStats() {
-		return edgeStats;
+	public Set<EdgeTraffic> getEdgeTraffics() {
+		return edgeTraffics;
 	}
 
 	/**
@@ -171,7 +172,7 @@ public class TrafficStats {
 	 * @param edgeStats
 	 * @return
 	 */
-	public TrafficStats setEdgeStats(final Set<EdgeStats> edgeStats) {
+	public TrafficStats setEdgeStats(final Set<EdgeTraffic> edgeStats) {
 		return new TrafficStats(edgeStats);
 	}
 }

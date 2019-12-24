@@ -27,7 +27,7 @@ public class TrafficStatsTest implements Constants {
 	public void test() {
 		final TrafficStats s = TrafficStats.create();
 		assertThat(s, notNullValue());
-		assertThat(s.getEdgeStats(), empty());
+		assertThat(s.getEdgeTraffics(), empty());
 	}
 
 	/**
@@ -54,12 +54,12 @@ public class TrafficStatsTest implements Constants {
 		final MapEdge edge43 = MapEdge.create(node4, node3);
 		final Set<MapEdge> edges = new HashSet<>(Arrays.asList(edge12, edge21, edge24, edge34, edge42, edge43));
 
-		final Set<EdgeStats> stats = edges.stream().map(EdgeStats::create).collect(Collectors.toSet());
+		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
 
 		final TrafficStats s = new TrafficStats(stats);
 
 		assertThat(s, notNullValue());
-		assertThat(s.getEdgeStats(), equalTo(stats));
+		assertThat(s.getEdgeTraffics(), equalTo(stats));
 		final List<MapNode> nods = s.getNodes();
 		final int n1 = nods.indexOf(node1);
 		final int n2 = nods.indexOf(node2);
@@ -112,12 +112,12 @@ public class TrafficStatsTest implements Constants {
 		final MapEdge edge43 = MapEdge.create(node4, node3);
 		final Set<MapEdge> edges = new HashSet<>(Arrays.asList(edge12, edge21, edge24, edge34, edge42, edge43));
 
-		final Set<EdgeStats> stats = edges.stream().map(EdgeStats::create).collect(Collectors.toSet());
+		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
 
 		final TrafficStats s = new TrafficStats(stats);
 
 		assertThat(s, notNullValue());
-		assertThat(s.getEdgeStats(), equalTo(stats));
+		assertThat(s.getEdgeTraffics(), equalTo(stats));
 		final List<MapNode> nods = s.getNodes();
 		final int n1 = nods.indexOf(node1);
 		final int n2 = nods.indexOf(node2);
@@ -161,12 +161,12 @@ public class TrafficStatsTest implements Constants {
 		final MapEdge edge42 = MapEdge.create(node4, node2);
 		final Set<MapEdge> edges = new HashSet<>(Arrays.asList(edge12, edge13, edge21, edge24, edge31, edge42));
 
-		final Set<EdgeStats> stats = edges.stream().map(EdgeStats::create).collect(Collectors.toSet());
+		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
 
 		final TrafficStats s = new TrafficStats(stats);
 
 		assertThat(s, notNullValue());
-		assertThat(s.getEdgeStats(), equalTo(stats));
+		assertThat(s.getEdgeTraffics(), equalTo(stats));
 		assertThat(s.getNodes(), containsInAnyOrder(nodes.toArray()));
 	}
 
@@ -194,7 +194,7 @@ public class TrafficStatsTest implements Constants {
 		final MapEdge edge43 = MapEdge.create(node4, node3);
 		final Set<MapEdge> edges = new HashSet<>(Arrays.asList(edge12, edge21, edge24, edge34, edge42, edge43));
 
-		final Set<EdgeStats> stats = edges.stream().map(EdgeStats::create).collect(Collectors.toSet());
+		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
 
 		final TrafficStats s = new TrafficStats(stats);
 
@@ -208,9 +208,9 @@ public class TrafficStatsTest implements Constants {
 
 	@Test
 	public void testSetEdgeStats() {
-		final Set<EdgeStats> edgeStats = new HashSet<>();
+		final Set<EdgeTraffic> edgeStats = new HashSet<>();
 		final TrafficStats s = TrafficStats.create().setEdgeStats(edgeStats);
 		assertThat(s, notNullValue());
-		assertThat(s.getEdgeStats(), equalTo(edgeStats));
+		assertThat(s.getEdgeTraffics(), equalTo(edgeStats));
 	}
 }

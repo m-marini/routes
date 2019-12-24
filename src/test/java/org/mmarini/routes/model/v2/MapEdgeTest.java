@@ -1,6 +1,8 @@
 package org.mmarini.routes.model.v2;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
@@ -21,6 +23,54 @@ public class MapEdgeTest implements Constants {
 		assertThat(edge.getPriority(), equalTo(DEFAULT_PRIORITY));
 		assertThat(edge.getSpeedLimit(), equalTo(DEFAULT_SPEED_LIMIT_KMH * KMH_TO_MPS));
 		assertThat(edge.getId().toString(), equalTo("590864a2-f026-3db9-9edc-cfc9b60fe90b"));
+	}
+
+	/**
+	 * <pre>
+	 *  -- e1 ->O
+	 *          ^
+	 *          |
+	 *          e2
+	 *          |
+	 * </pre>
+	 */
+	@Test
+	public void testCross() {
+		final MapNode n1 = MapNode.create(0, 0);
+		final MapNode n2 = MapNode.create(10, 0);
+		final MapNode n3 = MapNode.create(10, 10);
+		final MapEdge e1 = MapEdge.create(n1, n2);
+		final MapEdge e2 = MapEdge.create(n3, n2);
+
+		final int resulte1e2 = e1.cross(e2);
+		assertThat(resulte1e2, lessThan(0));
+
+		final int resulte2e1 = e2.cross(e1);
+		assertThat(resulte2e1, greaterThan(0));
+	}
+
+	/**
+	 * <pre>
+	 *  -- e1 ->O
+	 *          ^
+	 *          |
+	 *          e2
+	 *          |
+	 * </pre>
+	 */
+	@Test
+	public void testCrossFront() {
+		final MapNode n1 = MapNode.create(0, 0);
+		final MapNode n2 = MapNode.create(10, 0);
+		final MapNode n3 = MapNode.create(20, 0);
+		final MapEdge e1 = MapEdge.create(n1, n2);
+		final MapEdge e2 = MapEdge.create(n3, n2);
+
+		final int resulte1e2 = e1.cross(e2);
+		assertThat(resulte1e2, equalTo(0));
+
+		final int resulte2e1 = e2.cross(e1);
+		assertThat(resulte2e1, equalTo(0));
 	}
 
 	@Test

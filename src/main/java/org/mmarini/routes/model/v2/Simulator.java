@@ -26,10 +26,40 @@
 
 package org.mmarini.routes.model.v2;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.mmarini.routes.model.Constants;
+
 /**
  *
  */
-public class Simulator {
+public class Simulator implements Constants {
+	/**
+	 * Select the edge with priority.
+	 *
+	 * @param edgesInfo the list of edge sorted by simulation time
+	 * @return
+	 */
+	static EdgeTraffic selectByPriority(final List<EdgeTraffic> edgesInfo) {
+		// Compute the time limit
+		final double timeLimit = edgesInfo.get(0).getTime() + REACTION_TIME;
+		// Filter the conflicting edges
+		final List<EdgeTraffic> filtered = edgesInfo.stream().filter(ei -> ei.getTime() <= timeLimit)
+				.collect(Collectors.toList());
+		// Compute the max edge priority
+		final int priority = filtered.stream().mapToInt(f -> f.getEdge().getPriority()).max().getAsInt();
+		// Filter the max priority edges
+		final List<EdgeTraffic> maxPriority = filtered.stream().filter(f -> f.getEdge().getPriority() == priority)
+				.collect(Collectors.toList());
+		// Select for edge coming from right direction
+		final Optional<EdgeTraffic> selected = maxPriority.stream().filter(edge -> maxPriority.stream()
+				.filter(f -> f != edge).allMatch(other -> edge.getEdge().cross(other.getEdge()) > 0)).findFirst();
+		final EdgeTraffic result = selected.orElseGet(() -> maxPriority.get(0));
+		return result;
+	}
+
 	private final SimulationStatus status;
 	private final double interval;
 

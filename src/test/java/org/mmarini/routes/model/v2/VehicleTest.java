@@ -4,7 +4,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-import java.util.Optional;
+import java.util.OptionalDouble;
 
 import org.junit.Test;
 import org.mmarini.routes.model.Constants;
@@ -19,129 +19,120 @@ public class VehicleTest implements Constants {
 	private static final double DISTANCE_80 = 80.0;
 	private static final double DISTANCE_100 = 100.0;
 	private static final double DISTANCE_SAFE = DISTANCE_10
-			+ (DISTANCE_10 - VEHICLE_LENGTH) * INTERVAL_2 / (INTERVAL_2 + REACTION_TIME);
+			+ (25.0 - VEHICLE_LENGTH - DISTANCE_10) * INTERVAL_2 / (INTERVAL_2 + REACTION_TIME);
 	private static final double SPEED_10 = 10.0;
 
 	@Test
 	public void test() {
-		final MapNode departure = MapNode.create(0, 0);
-		final MapNode destination = MapNode.create(10, 10);
+		final SiteNode departure = SiteNode.create(0, 0);
+		final SiteNode destination = SiteNode.create(10, 10);
 		final Vehicle v = Vehicle.create(departure, destination);
 		assertThat(v, notNullValue());
 		assertThat(v.getDeparture(), equalTo(departure));
 		assertThat(v.getDestination(), equalTo(destination));
-		assertThat(v.getEdge().isPresent(), equalTo(false));
-		assertThat(v.getEdgeLocation(), equalTo(0.0));
+		assertThat(v.getLocation(), equalTo(0.0));
 		assertThat(v.getEdgeEntryTime(), equalTo(0.0));
 	}
 
 	@Test
 	public void testMoveFarNext() {
-		final MapNode departure = MapNode.create(0, 0);
-		final MapNode destination = MapNode.create(DISTANCE_100, 0);
+		final SiteNode departure = SiteNode.create(0, 0);
+		final SiteNode destination = SiteNode.create(DISTANCE_100, 0);
 		final MapEdge edge = MapEdge.create(departure, destination).setSpeedLimit(SPEED_10);
-		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setEdge(Optional.of(edge))
-				.setEdgeLocation(DISTANCE_10).move(INTERVAL_2, Optional.of(DISTANCE_80));
-		assertThat(m, notNullValue());
-		assertThat(m.getElem1(), notNullValue());
-		assertThat(m.getElem2().doubleValue(), equalTo(INTERVAL_2));
-		assertThat(m.getElem1().getEdgeLocation(), equalTo(DISTANCE_30));
+		final Tuple2<Vehicle, Double> result = Vehicle.create(departure, destination).setLocation(DISTANCE_10)
+				.move(edge, INTERVAL_2, OptionalDouble.of(DISTANCE_80));
+		assertThat(result, notNullValue());
+		assertThat(result.getElem1(), notNullValue());
+		assertThat(result.getElem2().doubleValue(), equalTo(INTERVAL_2));
+		assertThat(result.getElem1().getLocation(), equalTo(DISTANCE_30));
 	}
 
 	@Test
 	public void testMoveFirstAfterEnd() {
-		final MapNode departure = MapNode.create(0, 0);
-		final MapNode destination = MapNode.create(DISTANCE_100, 0);
+		final SiteNode departure = SiteNode.create(0, 0);
+		final SiteNode destination = SiteNode.create(DISTANCE_100, 0);
 		final MapEdge edge = MapEdge.create(departure, destination).setSpeedLimit(SPEED_10);
-		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setEdge(Optional.of(edge))
-				.setEdgeLocation(DISTANCE_90).move(INTERVAL_2, Optional.empty());
+		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setLocation(DISTANCE_90).move(edge,
+				INTERVAL_2, OptionalDouble.empty());
 		assertThat(m, notNullValue());
 		assertThat(m.getElem1(), notNullValue());
 		assertThat(m.getElem2().doubleValue(), equalTo(INTERVAL_1));
-		assertThat(m.getElem1().getEdgeLocation(), equalTo(DISTANCE_100));
+		assertThat(m.getElem1().getLocation(), equalTo(DISTANCE_100));
 	}
 
 	@Test
 	public void testMoveFirstBeforeEnd() {
-		final MapNode departure = MapNode.create(0, 0);
-		final MapNode destination = MapNode.create(DISTANCE_100, 0);
+		final SiteNode departure = SiteNode.create(0, 0);
+		final SiteNode destination = SiteNode.create(DISTANCE_100, 0);
 		final MapEdge edge = MapEdge.create(departure, destination).setSpeedLimit(SPEED_10);
-		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setEdge(Optional.of(edge))
-				.setEdgeLocation(DISTANCE_10).move(INTERVAL_2, Optional.empty());
+		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setLocation(DISTANCE_10).move(edge,
+				INTERVAL_2, OptionalDouble.empty());
 		assertThat(m, notNullValue());
 		assertThat(m.getElem1(), notNullValue());
 		assertThat(m.getElem2().doubleValue(), equalTo(INTERVAL_2));
-		assertThat(m.getElem1().getEdgeLocation(), equalTo(DISTANCE_30));
+		assertThat(m.getElem1().getLocation(), equalTo(DISTANCE_30));
 	}
 
 	@Test
 	public void testMoveFirstToEnd() {
-		final MapNode departure = MapNode.create(0, 0);
-		final MapNode destination = MapNode.create(DISTANCE_100, 0);
+		final SiteNode departure = SiteNode.create(0, 0);
+		final SiteNode destination = SiteNode.create(DISTANCE_100, 0);
 		final MapEdge edge = MapEdge.create(departure, destination).setSpeedLimit(SPEED_10);
-		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setEdge(Optional.of(edge))
-				.setEdgeLocation(DISTANCE_80).move(INTERVAL_2, Optional.empty());
+		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setLocation(DISTANCE_80).move(edge,
+				INTERVAL_2, OptionalDouble.empty());
 		assertThat(m, notNullValue());
 		assertThat(m.getElem1(), notNullValue());
 		assertThat(m.getElem2().doubleValue(), equalTo(INTERVAL_2));
-		assertThat(m.getElem1().getEdgeLocation(), equalTo(DISTANCE_100));
+		assertThat(m.getElem1().getLocation(), equalTo(DISTANCE_100));
 	}
 
 	@Test
 	public void testMoveNearNext() {
-		final MapNode departure = MapNode.create(0, 0);
-		final MapNode destination = MapNode.create(DISTANCE_100, 0);
+		final SiteNode departure = SiteNode.create(0, 0);
+		final SiteNode destination = SiteNode.create(DISTANCE_100, 0);
 		final MapEdge edge = MapEdge.create(departure, destination).setSpeedLimit(SPEED_10);
-		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setEdge(Optional.of(edge))
-				.setEdgeLocation(DISTANCE_10).move(INTERVAL_2, Optional.of(DISTANCE_10));
+		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setLocation(DISTANCE_10).move(edge,
+				INTERVAL_2, OptionalDouble.of(DISTANCE_10 + VEHICLE_LENGTH + DISTANCE_10));
 		assertThat(m, notNullValue());
 		assertThat(m.getElem1(), notNullValue());
 		assertThat(m.getElem2().doubleValue(), equalTo(INTERVAL_2));
-		assertThat(m.getElem1().getEdgeLocation(), equalTo(DISTANCE_SAFE));
+		assertThat(m.getElem1().getLocation(), equalTo(DISTANCE_SAFE));
 	}
 
 	@Test
-	public void testSetEdge() {
-		final MapNode departure = MapNode.create(0, 0);
-		final MapNode destination = MapNode.create(10, 10);
-		final MapEdge edge = MapEdge.create(departure, destination);
-		final Vehicle v = Vehicle.create(departure, destination).setEdge(Optional.of(edge));
-		assertThat(v, notNullValue());
-		assertThat(v.getDeparture(), equalTo(departure));
-		assertThat(v.getDestination(), equalTo(destination));
-		assertThat(v.getEdge().isPresent(), equalTo(true));
-		assertThat(v.getEdge().get(), equalTo(edge));
-		assertThat(v.getEdgeLocation(), equalTo(0.0));
-		assertThat(v.getEdgeEntryTime(), equalTo(0.0));
+	public void testMoveOver() {
+		final SiteNode departure = SiteNode.create(0, 0);
+		final SiteNode destination = SiteNode.create(DISTANCE_100, 0);
+		final MapEdge edge = MapEdge.create(departure, destination).setSpeedLimit(SPEED_10);
+		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setLocation(85).move(edge, 1,
+				OptionalDouble.of(100.0));
+		assertThat(m, notNullValue());
+		assertThat(m.getElem1(), notNullValue());
+		assertThat(m.getElem2().doubleValue(), equalTo(1.0));
+		assertThat(m.getElem1().getLocation(), equalTo(95.0));
 	}
 
 	@Test
 	public void testSetEdgeEntryTime() {
-		final MapNode departure = MapNode.create(0, 0);
-		final MapNode destination = MapNode.create(10, 10);
-		final MapEdge edge = MapEdge.create(departure, destination);
-		final Vehicle v = Vehicle.create(departure, destination).setEdge(Optional.of(edge)).setEdgeEntryTime(10.0);
+		final SiteNode departure = SiteNode.create(0, 0);
+		final SiteNode destination = SiteNode.create(10, 10);
+		final Vehicle v = Vehicle.create(departure, destination).setEdgeEntryTime(10.0);
 		assertThat(v, notNullValue());
 		assertThat(v.getDeparture(), equalTo(departure));
 		assertThat(v.getDestination(), equalTo(destination));
-		assertThat(v.getEdge().isPresent(), equalTo(true));
-		assertThat(v.getEdge().get(), equalTo(edge));
-		assertThat(v.getEdgeLocation(), equalTo(0.0));
+		assertThat(v.getLocation(), equalTo(0.0));
 		assertThat(v.getEdgeEntryTime(), equalTo(10.0));
 	}
 
 	@Test
-	public void testSetEdgeLocation() {
-		final MapNode departure = MapNode.create(0, 0);
-		final MapNode destination = MapNode.create(10, 10);
-		final MapEdge edge = MapEdge.create(departure, destination);
-		final Vehicle v = Vehicle.create(departure, destination).setEdge(Optional.of(edge)).setEdgeLocation(10);
+	public void testSetLocation() {
+		final SiteNode departure = SiteNode.create(0, 0);
+		final SiteNode destination = SiteNode.create(10, 10);
+		final Vehicle v = Vehicle.create(departure, destination).setLocation(10);
 		assertThat(v, notNullValue());
 		assertThat(v.getDeparture(), equalTo(departure));
 		assertThat(v.getDestination(), equalTo(destination));
-		assertThat(v.getEdge().isPresent(), equalTo(true));
-		assertThat(v.getEdge().get(), equalTo(edge));
-		assertThat(v.getEdgeLocation(), equalTo(10.0));
+		assertThat(v.getLocation(), equalTo(10.0));
 		assertThat(v.getEdgeEntryTime(), equalTo(0.0));
 	}
 }

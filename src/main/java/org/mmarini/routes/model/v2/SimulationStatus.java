@@ -40,14 +40,15 @@ import org.mmarini.routes.model.Constants;
  */
 public class SimulationStatus implements Constants {
 	private static final SimulationStatus EMPTY = new SimulationStatus(GeoMap.create(), Collections.emptySet(),
-			Collections.emptyMap(), DEFAULT_FREQUENCE);
+			Collections.emptyMap(), DEFAULT_FREQUENCE, new TrafficInfo());
 
 	public static SimulationStatus create() {
 		return EMPTY;
 	}
 
 	private final GeoMap map;
-	private final Set<Vehicle> vehicles;
+	private final Set<EdgeTraffic> vehicles;
+	private final TrafficInfo traffic;
 	private final Map<SiteNode, Map<SiteNode, Double>> weights;
 	private final double frequence;
 
@@ -57,14 +58,16 @@ public class SimulationStatus implements Constants {
 	 * @param vehicles
 	 * @param weights
 	 * @param frequence
+	 * @param trafficInf
 	 */
-	protected SimulationStatus(final GeoMap map, final Set<Vehicle> vehicles,
-			final Map<SiteNode, Map<SiteNode, Double>> weights, final double frequence) {
+	protected SimulationStatus(final GeoMap map, final Set<EdgeTraffic> vehicles,
+			final Map<SiteNode, Map<SiteNode, Double>> weights, final double frequence, final TrafficInfo trafficInfo) {
 		super();
 		this.map = map;
 		this.vehicles = vehicles;
 		this.weights = weights;
 		this.frequence = frequence;
+		this.traffic = trafficInfo;
 	}
 
 	/**
@@ -102,7 +105,7 @@ public class SimulationStatus implements Constants {
 	 *
 	 * @return
 	 */
-	public Set<Vehicle> getVehicles() {
+	public Set<EdgeTraffic> getVehicles() {
 		return vehicles;
 	}
 
@@ -124,7 +127,7 @@ public class SimulationStatus implements Constants {
 	 * @return
 	 */
 	public SimulationStatus setFrequence(final double frequence) {
-		return new SimulationStatus(map, vehicles, weights, frequence);
+		return new SimulationStatus(map, vehicles, weights, frequence, traffic);
 	}
 
 	/**
@@ -133,7 +136,7 @@ public class SimulationStatus implements Constants {
 	 * @return
 	 */
 	public SimulationStatus setGeoMap(final GeoMap map) {
-		return new SimulationStatus(map, vehicles, weights, frequence);
+		return new SimulationStatus(map, vehicles, weights, frequence, traffic);
 	}
 
 	/**
@@ -141,8 +144,8 @@ public class SimulationStatus implements Constants {
 	 * @param vehicles
 	 * @return
 	 */
-	public SimulationStatus setVehicles(final Set<Vehicle> vehicles) {
-		return new SimulationStatus(map, vehicles, weights, frequence);
+	public SimulationStatus setVehicles(final Set<EdgeTraffic> vehicles) {
+		return new SimulationStatus(map, vehicles, weights, frequence, traffic);
 	}
 
 	/**
@@ -151,7 +154,7 @@ public class SimulationStatus implements Constants {
 	 * @return
 	 */
 	public SimulationStatus setWeights(final Map<SiteNode, Map<SiteNode, Double>> weights) {
-		return new SimulationStatus(map, vehicles, weights, frequence);
+		return new SimulationStatus(map, vehicles, weights, frequence, traffic);
 	}
 
 }

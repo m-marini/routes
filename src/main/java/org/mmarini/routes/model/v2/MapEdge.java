@@ -84,6 +84,22 @@ public class MapEdge implements Constants {
 		this.priority = priority;
 	}
 
+	/**
+	 *
+	 * @param edge
+	 * @return
+	 */
+	public int cross(final MapEdge edge) {
+		final double dx = getEndLocation().getX() - getBeginLocation().getX();
+		final double dy = getEndLocation().getY() - getBeginLocation().getY();
+
+		final double dx1 = edge.getEndLocation().getX() - edge.getBeginLocation().getX();
+		final double dy1 = edge.getEndLocation().getY() - edge.getBeginLocation().getY();
+
+		final double cross = dx * dy1 - dy * dx1;
+		return cross > 0.0 ? 1 : cross < -0.0 ? -1 : 0;
+	}
+
 	@Override
 	public boolean equals(final Object obj) {
 		if (this == obj) {

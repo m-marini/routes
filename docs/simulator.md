@@ -1,5 +1,7 @@
 # Simulator
 
+[TOC]
+
 ## Vehicle movement
 
 Lo spostamento di un veicolo in una tratta è semplificato vincolando la velocità del veicolo al massimo consentito nel tratto, il limite di tempo simulato, la distanza di sicurezza con l'eventuale veicolo sucessivo e il limite di spazio della tratta. Si assume un'accelerazione istantanea illimitata.
@@ -65,7 +67,7 @@ Tutti i veicoli precedenti si muoveranno mantenendo la distanza di sicurezza e i
 ```math
     v = \frac{\Delta s}{\Delta t}\\
     \Delta s + s = s_{i+1}-s_i \\
-    \Delta s + v t_r + lv = s_{i+1}-s_i \\
+    \Delta s + v t_r + l_v = s_{i+1}-s_i \\
     \Delta s + \frac{\Delta s}{\Delta t} t_r+l_v = s_{i+1}-s_i \\
     \Delta s = \frac{s_{i+1}-s_i - l_v}{1+\frac{t_r}{\Delta t}} \\
     \Delta s = (s_{i+1}-s_i - l_v) \frac{\Delta t}{\Delta t + t_r}
@@ -73,12 +75,48 @@ Tutti i veicoli precedenti si muoveranno mantenendo la distanza di sicurezza e i
 
 ## Simulation process
 
-la fase di simulazione consiste nel muovere tutti i veicoli in una tratta partendo da quello davanti a tutti.
-Si calcola lo spazio percorso nell'intervallo di tempo determinato.
+La fase di simulazione consiste di 
 
-Se il veicolo non esce dalla tratta si procede con il calcolo della posizione dei rimanenti veicoli in ordine di posizione.
+### Spostamento dei veicoli nelle tratte
 
-Se il veicolo esce dalla tratta si deve calcolare il tempo necessario ad arrivare alla fine della tratta, posizionare il veicolo alla fine della tratta e calcolare la posizione dei
-rimanenti veicoli in base all'intervallo di tempo.
+- Spostamento di tutti i veicoli in una tratta partendo da quello davanti a tutti.
+- Si calcola lo spazio percorso nell'intervallo di tempo determinato.
+- Se il veicolo non esce dalla tratta si procede con il calcolo della posizione dei rimanenti veicoli in ordine di posizione.
+- Se il veicolo esce dalla tratta si deve calcolare il tempo necessario ad arrivare alla fine della tratta
+- posizionare il veicolo alla fine della tratta
+- calcolare la posizione dei rimanenti veicoli in base all'intervallo di tempo intercorso per arrivare alla fine della tratta.
 
-Poi si passa alla fase di spostamento del veicolo su una nuova tratta.
+### Filtro tratte non ancora complete
+
+Una volta processate tutte le tratte
+
+- si filtrano le tratte con tempo di simulazione inferiore all'intervallo di simulazione.
+
+### Selezione degli incroci
+
+Abbiamo ora un'insieme di tratte il cui tempo di simulazione è diverso e dobbiamo decidere quali veicoli possono spostarsi di tratta.
+
+La regola è che tra i veicoli che si intersecano sullo stesso nodo nell'intervallo del tempo di reazione hanno la precedenza quelli sulle tratte a priorità e in caso di stessa priorità la precedenza è ai veicoli provenienti da destra.
+
+- Si raggruppano le tratte per nodo di arrivo
+- Si ordinano per tempo di simulazione,
+- Partendo dal primo
+
+### Selezione precedenze
+
+- Si esaminano le tratte con tempo di simulazione successivo entro il tempo di reazione
+
+- Tra queste si selezionano quelle a priorità maggiore
+- Tra queste si prende quella più a destra,
+- Se non c'è ne nessuna più a destra (incrocio a pari priorità) si seleziona quella con tempo di simulazione minore (il primo arrivato all'incrocio).
+
+### Spostamento veicolo a fine tratta
+
+- Si calcola la tratta successiva per il veicolo della tratta selezionata o si elimina se ritornato alla partenza.
+- il veicolo della viene spostato alla tratta sucessiva se è libera
+- Si calcolando la posizione per il tempo dato dalla differenza tra il tempo di simulazione della tratta successiva e la tratta in uscita
+- Tutti le tratte con tempo minore vengono fermate per il tempo della tratta selezionata.
+- Se la tratta è occupata tutte le tratte con tempo minore o uguale vengono fermate per il tempo della tratta in uscita.
+- Si ripete di nuovo il processo fino a quando tutte le tratte hanno completato il tempo di simulazione.
+
+La fase di spostamento genera una nuova configurazione di veicoli nel tempo e una nuova mappa di tempi di transito.
