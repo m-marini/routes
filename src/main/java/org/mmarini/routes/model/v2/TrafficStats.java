@@ -26,7 +26,6 @@
 
 package org.mmarini.routes.model.v2;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -117,7 +116,7 @@ public class TrafficStats {
 		final Set<MapNode> ends = edgeTraffics.parallelStream().map(s -> s.getEdge().getEnd())
 				.collect(Collectors.toSet());
 		begins.addAll(ends);
-		final List<MapNode> result = new ArrayList<>(begins);
+		final List<MapNode> result = List.copyOf(begins);
 		return result;
 	}
 
@@ -154,12 +153,41 @@ public class TrafficStats {
 	}
 
 	/**
+	 * Returns the next edge from a node to a given node
+	 *
+	 * @param from from node
+	 * @param to   to node
+	 */
+	public Optional<EdgeTraffic> nextEdge(final MapNode from, final MapNode to) {
+		MapNode end = to;
+		Optional<MapNode> prev = Optional.empty();
+		for (;;) {
+			prev = prevNode(from, end);
+			if (prev.isEmpty()) {
+				// No path
+				return Optional.empty();
+			}
+			final MapNode pe = prev.get();
+			if (pe.equals(from)) {
+				break;
+			}
+			end = pe;
+		}
+		// Found from -> end
+		final MapNode finalEnd = end;
+		final Optional<EdgeTraffic> result = edgeTraffics.stream()
+				.filter(et -> et.getEdge().getBegin().equals(from) && et.getEdge().getEnd().equals(finalEnd))
+				.findFirst();
+		return result;
+	}
+
+	/**
 	 *
 	 * @param node2
 	 * @param node4
 	 * @return
 	 */
-	public Optional<MapNode> nextNode(final MapNode from, final MapNode to) {
+	public Optional<MapNode> prevNode(final MapNode from, final MapNode to) {
 		final int i = nodes.indexOf(from);
 		final int j = nodes.indexOf(to);
 		final int k = connectionMatrix[i][j];

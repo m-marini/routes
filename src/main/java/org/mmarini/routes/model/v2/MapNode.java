@@ -93,14 +93,6 @@ public class MapNode {
 	}
 
 	/**
-	 * @param point
-	 * @return
-	 */
-	public double getDistanceSq(final Point2D point) {
-		return location.distanceSq(point);
-	}
-
-	/**
 	 *
 	 * @return
 	 */
@@ -139,37 +131,10 @@ public class MapNode {
 		return result;
 	}
 
-	/**
-	 * @param x
-	 * @param y
-	 * @return
-	 */
-	public MapNode setLocation(final double x, final double y) {
-		return setLocation(new Point2D.Double(x, y));
-	}
-
-	/**
-	 * @param location
-	 */
-	public MapNode setLocation(final Point2D location) {
-		if (location.equals(this.location)) {
-			return this;
-		} else {
-			return create(location);
-		}
-	}
-
-	/**
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		final StringBuilder builder = new StringBuilder();
-		builder.append("Node(");
-		builder.append(location.getX());
-		builder.append(",");
-		builder.append(location.getY());
-		builder.append(")");
+		builder.append("MapNode [").append(id).append(", ").append(getX()).append(", ").append(getY()).append("]");
 		return builder.toString();
 	}
 }

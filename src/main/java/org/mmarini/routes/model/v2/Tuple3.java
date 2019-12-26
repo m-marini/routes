@@ -90,11 +90,10 @@ public class Tuple3<T1, T2, T3> {
 		return result;
 	}
 
-	/**
-	 *
-	 */
 	@Override
 	public String toString() {
-		return "Tuple3 [" + elem1 + ", " + elem2 + ", " + elem3 + "]";
+		final StringBuilder builder = new StringBuilder();
+		builder.append("(").append(elem1).append(", ").append(elem2).append(", ").append(elem3).append(")");
+		return builder.toString();
 	}
 }

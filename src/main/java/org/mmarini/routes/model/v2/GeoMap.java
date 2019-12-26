@@ -73,7 +73,7 @@ public class GeoMap implements Constants {
 		if (edges.contains(edge)) {
 			return this;
 		} else {
-			final HashSet<MapEdge> newEdges = new HashSet<>(edges);
+			final Set<MapEdge> newEdges = new HashSet<>(edges);
 			newEdges.add(edge);
 			return setEdges(newEdges);
 		}
@@ -88,7 +88,7 @@ public class GeoMap implements Constants {
 		if (nodes.contains(node)) {
 			return this;
 		} else {
-			final HashSet<MapNode> newNodes = new HashSet<>(nodes);
+			final Set<MapNode> newNodes = new HashSet<>(nodes);
 			newNodes.add(node);
 			return setNodes(newNodes);
 		}
@@ -103,7 +103,7 @@ public class GeoMap implements Constants {
 		if (sites.contains(node)) {
 			return this;
 		} else {
-			final HashSet<SiteNode> newSites = new HashSet<>(sites);
+			final Set<SiteNode> newSites = new HashSet<>(sites);
 			newSites.add(node);
 			return setSites(newSites);
 		}
@@ -140,7 +140,7 @@ public class GeoMap implements Constants {
 	 */
 	public GeoMap remove(final MapEdge edge) {
 		if (edges.contains(edge)) {
-			final HashSet<MapEdge> newEdges = new HashSet<>(edges);
+			final Set<MapEdge> newEdges = new HashSet<>(edges);
 			newEdges.remove(edge);
 			return setEdges(newEdges);
 		} else {
@@ -155,7 +155,7 @@ public class GeoMap implements Constants {
 	 */
 	public GeoMap remove(final MapNode node) {
 		if (nodes.contains(node)) {
-			final HashSet<MapNode> newNodes = new HashSet<>(nodes);
+			final Set<MapNode> newNodes = new HashSet<>(nodes);
 			newNodes.remove(node);
 			return setNodes(newNodes);
 		} else {
@@ -170,7 +170,7 @@ public class GeoMap implements Constants {
 	 */
 	public GeoMap remove(final SiteNode node) {
 		if (sites.contains(node)) {
-			final HashSet<SiteNode> newSites = new HashSet<>(sites);
+			final Set<SiteNode> newSites = new HashSet<>(sites);
 			newSites.remove(node);
 			return setSites(newSites);
 		} else {

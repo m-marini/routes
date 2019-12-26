@@ -217,14 +217,10 @@ public class MapEdge implements Constants {
 		return new MapEdge(id, begin, end, speedLimit, priority);
 	}
 
-	/**
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		final StringBuilder builder = new StringBuilder();
-		builder.append(begin).append("->").append(end).append(",p=").append(priority).append(",l=")
-				.append(getDistance());
+		builder.append("MapEdge [").append(id).append("]");
 		return builder.toString();
 	}
 }

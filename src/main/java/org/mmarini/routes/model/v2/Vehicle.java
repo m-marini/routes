@@ -38,7 +38,7 @@ public class Vehicle implements Constants {
 
 	/**
 	 * Creates a vehicle
-	 * 
+	 *
 	 * @param departure   the departure node site
 	 * @param destination the destination node site
 	 * @return
@@ -57,7 +57,7 @@ public class Vehicle implements Constants {
 
 	/**
 	 * Creates a vehicle
-	 * 
+	 *
 	 * @param id            the unique identifier
 	 * @param departure     the departure site node
 	 * @param destination   the destination site node
@@ -100,7 +100,7 @@ public class Vehicle implements Constants {
 
 	/**
 	 * Returns the departure site node
-	 * 
+	 *
 	 * @return the departure site node
 	 */
 	public SiteNode getDeparture() {
@@ -109,7 +109,7 @@ public class Vehicle implements Constants {
 
 	/**
 	 * Returns the destination site node
-	 * 
+	 *
 	 * @return the destination site node
 	 */
 	public SiteNode getDestination() {
@@ -118,7 +118,7 @@ public class Vehicle implements Constants {
 
 	/**
 	 * Returns the edge entry time
-	 * 
+	 *
 	 * @return the edge entry time
 	 */
 	public double getEdgeEntryTime() {
@@ -127,7 +127,7 @@ public class Vehicle implements Constants {
 
 	/**
 	 * Returns the unique identifier
-	 * 
+	 *
 	 * @return the unique identifier
 	 */
 	public UUID getId() {
@@ -136,7 +136,7 @@ public class Vehicle implements Constants {
 
 	/**
 	 * Returns the location in the current edge
-	 * 
+	 *
 	 * @return the location in the current edge
 	 */
 	public double getLocation() {
@@ -147,7 +147,7 @@ public class Vehicle implements Constants {
 	 * Returns the target site
 	 * <p>
 	 * Returns the destination if vehicle is not returning or else the departure
-	 * 
+	 *
 	 * @return the target site
 	 */
 	public SiteNode getTarget() {
@@ -164,7 +164,7 @@ public class Vehicle implements Constants {
 
 	/**
 	 * Returns true if the vehicle is returning to the departure
-	 * 
+	 *
 	 * @return true if the vehicle is returning to the departure
 	 */
 	public boolean isReturning() {
@@ -174,7 +174,7 @@ public class Vehicle implements Constants {
 	/**
 	 * Returns the new vehicle moved for an maximum interval time and the real
 	 * movement interval
-	 * 
+	 *
 	 * @param edge                the edge on which the vehicle move
 	 * @param interval            the maximum interval
 	 * @param nextVehicleLocation the location of the vehicle ahead in the edge
@@ -215,7 +215,7 @@ public class Vehicle implements Constants {
 
 	/**
 	 * Returns the vehicle with changed edge entry time
-	 * 
+	 *
 	 * @param edgeEntryTime the edge entry time
 	 * @return the vehicle with changed edge entry time
 	 */
@@ -225,7 +225,7 @@ public class Vehicle implements Constants {
 
 	/**
 	 * Returns the vehicle with the changed location
-	 * 
+	 *
 	 * @param location the location
 	 * @return the vehicle with the changed location
 	 */
@@ -235,11 +235,18 @@ public class Vehicle implements Constants {
 
 	/**
 	 * Returns the vehicle with the changed returning
-	 * 
+	 *
 	 * @param returning true if vehicle is returning
 	 * @return the vehicle with the changed returning
 	 */
 	public Vehicle setReturning(final boolean returning) {
 		return new Vehicle(id, departure, destination, location, edgeEntryTime, returning);
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder builder = new StringBuilder();
+		builder.append("Vehicle [").append(id).append("]");
+		return builder.toString();
 	}
 }

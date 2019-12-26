@@ -1,13 +1,15 @@
 package org.mmarini.routes.model.v2;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mmarini.routes.model.Constants;
 
 public class SimulationStatusTest implements Constants {
@@ -16,7 +18,7 @@ public class SimulationStatusTest implements Constants {
 	public void test() {
 		final SimulationStatus s = SimulationStatus.create();
 		assertThat(s, notNullValue());
-		assertThat(s.getVehicles(), empty());
+		assertThat(s.getTraffic(), empty());
 		assertThat(s.getMap(), notNullValue());
 		assertThat(s.getFrequence(), equalTo(DEFAULT_FREQUENCE));
 	}
@@ -40,16 +42,20 @@ public class SimulationStatusTest implements Constants {
 		final GeoMap map = GeoMap.create().add(SiteNode.create(0, 0));
 		final SimulationStatus s = SimulationStatus.create().setGeoMap(map);
 		assertThat(s, notNullValue());
-		assertThat(s.getVehicles(), empty());
+		assertThat(s.getTraffic(), empty());
 		assertThat(s.getMap(), equalTo(map));
 	}
-//
-//	@Test
-//	public void testSetVeichle() {
-//		final Set<EdgeVehicles> vehicles = new HashSet<>();
-//		vehicles.add(Vehicle.create(SiteNode.create(0, 0), SiteNode.create(10, 10)));
-//		final SimulationStatus s = SimulationStatus.create().setVehicles(vehicles);
-//		assertThat(s, notNullValue());
-//		assertThat(s.getVehicles(), equalTo(vehicles));
-//	}
+
+	@Test
+	public void testSetTraffics() {
+		final SiteNode begin = SiteNode.create(0, 0);
+		final SiteNode end = SiteNode.create(10, 10);
+		final MapEdge edge = MapEdge.create(begin, end);
+		final GeoMap map = GeoMap.create().setSites(Set.of(begin, end)).add(edge);
+		final Set<EdgeTraffic> vehicles = Set
+				.of(EdgeTraffic.create(edge).setVehicles(List.of(Vehicle.create(begin, end))));
+		final SimulationStatus s = SimulationStatus.create().setTraffics(vehicles);
+		assertThat(s, notNullValue());
+		assertThat(s.getTraffic(), equalTo(vehicles));
+	}
 }

@@ -26,9 +26,6 @@
 
 package org.mmarini.routes.model.v2;
 
-import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.Map.Entry;
-
 /**
  *
  */
@@ -99,16 +96,10 @@ public class Tuple2<T1, T2> {
 		return result;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
-	public Entry<T1, T2> toEntry() {
-		return new SimpleImmutableEntry<T1, T2>(elem1, elem2);
-	}
-
 	@Override
 	public String toString() {
-		return "Tuple2 [" + elem1 + ", " + elem2 + "]";
+		final StringBuilder builder = new StringBuilder();
+		builder.append("(").append(elem1).append(", ").append(elem2).append(")");
+		return builder.toString();
 	}
 }

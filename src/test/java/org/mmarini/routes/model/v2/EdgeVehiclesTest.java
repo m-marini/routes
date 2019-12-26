@@ -1,21 +1,21 @@
 package org.mmarini.routes.model.v2;
 
 import static java.lang.Math.sqrt;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.OptionalDouble;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mmarini.routes.model.Constants;
 
 public class EdgeVehiclesTest implements Constants {
@@ -82,10 +82,11 @@ public class EdgeVehiclesTest implements Constants {
 		final Vehicle v2 = Vehicle.create(begin, end).setLocation(10.0);
 		final List<Vehicle> list = Arrays.asList(v2, v1);
 
-		final EdgeTraffic result = EdgeTraffic.create(edge).setVehicles(list).moveVehicles(2.0);
+		final EdgeTraffic edgeTraffic = EdgeTraffic.create(edge).setVehicles(list).setTime(1);
+		final EdgeTraffic result = edgeTraffic.moveVehicles(3.0);
 
 		assertThat(result, notNullValue());
-		assertThat(result.getTime(), equalTo(2.0));
+		assertThat(result.getTime(), equalTo(3.0));
 
 		final List<Vehicle> vehicles = result.getVehicles();
 		assertThat(vehicles, hasSize(2));
@@ -132,10 +133,11 @@ public class EdgeVehiclesTest implements Constants {
 		final Vehicle v2 = Vehicle.create(begin, end).setLocation(105);
 		final List<Vehicle> list = Arrays.asList(v2, v1);
 
-		final EdgeTraffic result = EdgeTraffic.create(edge).setVehicles(list).moveVehicles(2.0);
+		final EdgeTraffic edgeTraffic = EdgeTraffic.create(edge).setVehicles(list).setTime(1);
+		final EdgeTraffic result = edgeTraffic.moveVehicles(3.0);
 
 		assertThat(result, notNullValue());
-		assertThat(result.getTime(), equalTo(0.0));
+		assertThat(result.getTime(), equalTo(1.0));
 
 		final List<Vehicle> vehicles = result.getVehicles();
 		assertThat(vehicles, hasSize(2));

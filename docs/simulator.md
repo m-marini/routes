@@ -75,7 +75,7 @@ Tutti i veicoli precedenti si muoveranno mantenendo la distanza di sicurezza e i
 
 ## Simulation process
 
-La fase di simulazione consiste di 
+La fase di simulazione consiste di:
 
 ### Spostamento dei veicoli nelle tratte
 
@@ -86,21 +86,14 @@ La fase di simulazione consiste di
 - posizionare il veicolo alla fine della tratta
 - calcolare la posizione dei rimanenti veicoli in base all'intervallo di tempo intercorso per arrivare alla fine della tratta.
 
-### Filtro tratte non ancora complete
-
-Una volta processate tutte le tratte
-
-- si filtrano le tratte con tempo di simulazione inferiore all'intervallo di simulazione.
-
 ### Selezione degli incroci
 
 Abbiamo ora un'insieme di tratte il cui tempo di simulazione è diverso e dobbiamo decidere quali veicoli possono spostarsi di tratta.
 
 La regola è che tra i veicoli che si intersecano sullo stesso nodo nell'intervallo del tempo di reazione hanno la precedenza quelli sulle tratte a priorità e in caso di stessa priorità la precedenza è ai veicoli provenienti da destra.
 
-- Si raggruppano le tratte per nodo di arrivo
-- Si ordinano per tempo di simulazione,
-- Partendo dal primo
+- Si prende la tratta con tempo di simulazione minimo
+- Se la tratta ha tempo di simulazione uguale al limite imposto la simulazione è completata
 
 ### Selezione precedenze
 

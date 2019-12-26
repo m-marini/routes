@@ -27,7 +27,6 @@ package org.mmarini.routes.model.v2;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -182,7 +181,7 @@ public class SimulationStatusDeserializer implements Constants {
 		final Stream<Tuple3<SiteNode, SiteNode, Double>> paths = YamlUtils.toStream(jsonNode.elements())
 				.map(json -> parsePath(json, sites));
 		final Map<SiteNode, List<Tuple3<SiteNode, SiteNode, Double>>> listMap = paths
-				.collect(Collectors.toMap(Tuple3::getElem1, Arrays::asList, (a, b) -> {
+				.collect(Collectors.toMap(Tuple3::getElem1, List::of, (a, b) -> {
 					a.addAll(b);
 					return a;
 				}));

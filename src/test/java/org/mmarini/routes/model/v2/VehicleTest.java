@@ -1,12 +1,16 @@
 package org.mmarini.routes.model.v2;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasToString;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.OptionalDouble;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mmarini.routes.model.Constants;
 
 public class VehicleTest implements Constants {
@@ -32,6 +36,59 @@ public class VehicleTest implements Constants {
 		assertThat(v.getDestination(), equalTo(destination));
 		assertThat(v.getLocation(), equalTo(0.0));
 		assertThat(v.getEdgeEntryTime(), equalTo(0.0));
+		assertThat(v.getId(), hasToString(matchesPattern(".{8}-.{4}-.{4}-.{4}-.{12}")));
+	}
+
+	@Test
+	public void testEquals() {
+		final SiteNode departure = SiteNode.create(0, 0);
+		final SiteNode destination = SiteNode.create(10, 10);
+		final Vehicle v1 = Vehicle.create(departure, destination);
+		final Vehicle v11 = v1.setLocation(10);
+		final Vehicle v12 = v1.setEdgeEntryTime(10);
+		final Vehicle v13 = v1.setReturning(true);
+
+		final Vehicle v2 = Vehicle.create(departure, destination);
+
+		assertThat(v1, notNullValue());
+		assertThat(v2, notNullValue());
+
+		assertFalse(v1.equals(null));
+		assertFalse(v1.equals(new Object()));
+		assertFalse(v2.equals(v1));
+		assertFalse(v1.equals(v2));
+		assertTrue(v1.equals(v1));
+		assertTrue(v1.equals(v11));
+		assertTrue(v1.equals(v12));
+		assertTrue(v1.equals(v13));
+		assertTrue(v11.equals(v1));
+		assertTrue(v11.equals(v11));
+		assertTrue(v11.equals(v12));
+		assertTrue(v11.equals(v13));
+		assertTrue(v12.equals(v1));
+		assertTrue(v12.equals(v11));
+		assertTrue(v12.equals(v12));
+		assertTrue(v12.equals(v13));
+		assertTrue(v13.equals(v1));
+		assertTrue(v13.equals(v11));
+		assertTrue(v13.equals(v12));
+		assertTrue(v13.equals(v13));
+	}
+
+	@Test
+	public void testHashcode() {
+		final SiteNode departure = SiteNode.create(0, 0);
+		final SiteNode destination = SiteNode.create(10, 10);
+		final Vehicle v1 = Vehicle.create(departure, destination);
+		final Vehicle v11 = v1.setLocation(10);
+		final Vehicle v12 = v1.setEdgeEntryTime(10);
+		final Vehicle v13 = v1.setReturning(true);
+
+		assertThat(v1, notNullValue());
+
+		assertThat(v1.hashCode(), equalTo(v11.hashCode()));
+		assertThat(v1.hashCode(), equalTo(v12.hashCode()));
+		assertThat(v1.hashCode(), equalTo(v13.hashCode()));
 	}
 
 	@Test
@@ -99,17 +156,26 @@ public class VehicleTest implements Constants {
 		assertThat(m.getElem1().getLocation(), equalTo(DISTANCE_SAFE));
 	}
 
+	/**
+	 * Given a vehicle at 85 m<br>
+	 * And a edge of 100 m<br>
+	 * And speed of 10 m/sbr> When move the vehicle for 1 second in the edge with a
+	 * next vehicle at 100 m<br>
+	 * Than the vehicle should move for 1 sec<br>
+	 * And at 90 m
+	 *
+	 */
 	@Test
 	public void testMoveOver() {
 		final SiteNode departure = SiteNode.create(0, 0);
 		final SiteNode destination = SiteNode.create(DISTANCE_100, 0);
 		final MapEdge edge = MapEdge.create(departure, destination).setSpeedLimit(SPEED_10);
-		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setLocation(85).move(edge, 1,
-				OptionalDouble.of(100.0));
-		assertThat(m, notNullValue());
-		assertThat(m.getElem1(), notNullValue());
-		assertThat(m.getElem2().doubleValue(), equalTo(1.0));
-		assertThat(m.getElem1().getLocation(), equalTo(95.0));
+		final Vehicle vehicle = Vehicle.create(departure, destination).setLocation(85);
+		final Tuple2<Vehicle, Double> result = vehicle.move(edge, 1, OptionalDouble.of(100.0));
+		assertThat(result, notNullValue());
+		assertThat(result.getElem1(), notNullValue());
+		assertThat(result.getElem2().doubleValue(), equalTo(1.0));
+		assertThat(result.getElem1().getLocation(), equalTo(90.0));
 	}
 
 	@Test
@@ -134,5 +200,14 @@ public class VehicleTest implements Constants {
 		assertThat(v.getDestination(), equalTo(destination));
 		assertThat(v.getLocation(), equalTo(10.0));
 		assertThat(v.getEdgeEntryTime(), equalTo(0.0));
+	}
+
+	@Test
+	public void testToString() {
+		final SiteNode departure = SiteNode.create(0, 0);
+		final SiteNode destination = SiteNode.create(10, 10);
+		final Vehicle v = Vehicle.create(departure, destination);
+		assertThat(v, notNullValue());
+		assertThat(v, hasToString(matchesPattern("Vehicle \\[.{8}-.{4}-.{4}-.{4}-.{12}\\]")));
 	}
 }

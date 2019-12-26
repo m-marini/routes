@@ -86,25 +86,11 @@ public class SiteNode extends MapNode {
 		return super.hashCode();
 	}
 
-	/**
-	 * @param x
-	 * @param y
-	 * @return
-	 */
 	@Override
-	public SiteNode setLocation(final double x, final double y) {
-		return setLocation(new Point2D.Double(x, y));
-	}
-
-	/**
-	 * @param location
-	 */
-	@Override
-	public SiteNode setLocation(final Point2D location) {
-		if (location.equals(this.getLocation())) {
-			return this;
-		} else {
-			return create(location);
-		}
+	public String toString() {
+		final StringBuilder builder = new StringBuilder();
+		builder.append("SiteNode [").append(getId()).append(", ").append(getX()).append(", ").append(getY())
+				.append("]");
+		return builder.toString();
 	}
 }
