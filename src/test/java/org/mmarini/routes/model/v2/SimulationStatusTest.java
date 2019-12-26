@@ -51,7 +51,6 @@ public class SimulationStatusTest implements Constants {
 		final SiteNode begin = SiteNode.create(0, 0);
 		final SiteNode end = SiteNode.create(10, 10);
 		final MapEdge edge = MapEdge.create(begin, end);
-		final GeoMap map = GeoMap.create().setSites(Set.of(begin, end)).add(edge);
 		final Set<EdgeTraffic> vehicles = Set
 				.of(EdgeTraffic.create(edge).setVehicles(List.of(Vehicle.create(begin, end))));
 		final SimulationStatus s = SimulationStatus.create().setTraffics(vehicles);

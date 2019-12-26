@@ -7,10 +7,17 @@ import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mmarini.routes.model.v2.TestUtils.genArguments;
+import static org.mmarini.routes.model.v2.TestUtils.genDouble;
 
 import java.util.OptionalDouble;
+import java.util.stream.DoubleStream;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mmarini.routes.model.Constants;
 
 public class VehicleTest implements Constants {
@@ -25,6 +32,18 @@ public class VehicleTest implements Constants {
 	private static final double DISTANCE_SAFE = DISTANCE_10
 			+ (25.0 - VEHICLE_LENGTH - DISTANCE_10) * INTERVAL_2 / (INTERVAL_2 + REACTION_TIME);
 	private static final double SPEED_10 = 10.0;
+
+	static Stream<Arguments> location() {
+		return genArguments().mapToObj(i -> {
+			final double location = genDouble(i, 0, 100);
+			final double time = genDouble(i, 0, 60);
+			return Arguments.of(location, time);
+		});
+	}
+
+	static DoubleStream valueRange_0_10() {
+		return genArguments().mapToDouble(i -> genDouble(i, 0, 10));
+	}
 
 	@Test
 	public void test() {
@@ -130,17 +149,22 @@ public class VehicleTest implements Constants {
 		assertThat(m.getElem1().getLocation(), equalTo(DISTANCE_30));
 	}
 
-	@Test
-	public void testMoveFirstToEnd() {
+	@ParameterizedTest(name = "{index} ==> location=''{0}''")
+	@MethodSource("location")
+	public void testMoveLastToEnd(final double location) {
 		final SiteNode departure = SiteNode.create(0, 0);
 		final SiteNode destination = SiteNode.create(DISTANCE_100, 0);
 		final MapEdge edge = MapEdge.create(departure, destination).setSpeedLimit(SPEED_10);
-		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setLocation(DISTANCE_80).move(edge,
-				INTERVAL_2, OptionalDouble.empty());
+		final Vehicle vehicle = Vehicle.create(departure, destination).setLocation(location);
+
+		final double time = (DISTANCE_100 - location) / SPEED_10;
+		final Tuple2<Vehicle, Double> m = vehicle.move(edge, time, OptionalDouble.empty());
+
 		assertThat(m, notNullValue());
-		assertThat(m.getElem1(), notNullValue());
-		assertThat(m.getElem2().doubleValue(), equalTo(INTERVAL_2));
-		assertThat(m.getElem1().getLocation(), equalTo(DISTANCE_100));
+		final Vehicle elem1 = m.getElem1();
+		assertThat(elem1, notNullValue());
+		assertThat(elem1.getLocation(), equalTo(DISTANCE_100));
+		assertThat(m.getElem2().doubleValue(), equalTo(time));
 	}
 
 	@Test
@@ -178,27 +202,29 @@ public class VehicleTest implements Constants {
 		assertThat(result.getElem1().getLocation(), equalTo(90.0));
 	}
 
-	@Test
-	public void testSetEdgeEntryTime() {
+	@ParameterizedTest(name = "{index} ==> edgeEntryTime=''{0}''")
+	@MethodSource("valueRange_0_10")
+	public void testSetEdgeEntryTime(final double edgeEntryTime) {
 		final SiteNode departure = SiteNode.create(0, 0);
 		final SiteNode destination = SiteNode.create(10, 10);
-		final Vehicle v = Vehicle.create(departure, destination).setEdgeEntryTime(10.0);
+		final Vehicle v = Vehicle.create(departure, destination).setEdgeEntryTime(edgeEntryTime);
 		assertThat(v, notNullValue());
 		assertThat(v.getDeparture(), equalTo(departure));
 		assertThat(v.getDestination(), equalTo(destination));
 		assertThat(v.getLocation(), equalTo(0.0));
-		assertThat(v.getEdgeEntryTime(), equalTo(10.0));
+		assertThat(v.getEdgeEntryTime(), equalTo(edgeEntryTime));
 	}
 
-	@Test
-	public void testSetLocation() {
+	@ParameterizedTest(name = "{index} ==> location=''{0}''")
+	@MethodSource("valueRange_0_10")
+	public void testSetLocation(final double location) {
 		final SiteNode departure = SiteNode.create(0, 0);
-		final SiteNode destination = SiteNode.create(10, 10);
-		final Vehicle v = Vehicle.create(departure, destination).setLocation(10);
+		final SiteNode destination = SiteNode.create(10, 0);
+		final Vehicle v = Vehicle.create(departure, destination).setLocation(location);
 		assertThat(v, notNullValue());
 		assertThat(v.getDeparture(), equalTo(departure));
 		assertThat(v.getDestination(), equalTo(destination));
-		assertThat(v.getLocation(), equalTo(10.0));
+		assertThat(v.getLocation(), equalTo(location));
 		assertThat(v.getEdgeEntryTime(), equalTo(0.0));
 	}
 

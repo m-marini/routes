@@ -1,4 +1,5 @@
 //
+
 // Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
 //
 // Permission is hereby granted, free of charge, to any person
@@ -142,16 +143,6 @@ public class StatusBuilder implements Constants {
 	}
 
 	/**
-	 * Returns the status builder with a vehicle added to a site queue
-	 *
-	 * @param vehicle the vehicle
-	 * @param site    the site
-	 */
-	StatusBuilder addVehicleToSite(final Vehicle vehicle, final SiteNode site) {
-		throw new Error("Not implemented");
-	}
-
-	/**
 	 * Returns the status at the instant of builder
 	 */
 	public SimulationStatus build() {
@@ -216,43 +207,45 @@ public class StatusBuilder implements Constants {
 	 * @param crossingEdges the sorted by time incoming edges at the crossing node
 	 */
 	StatusBuilder moveVehicleAtCross(final Collection<EdgeTraffic> crossingEdges) {
-		final EdgeTraffic priorityEdge = selectByPriority(crossingEdges);
+		final EdgeTraffic outboundEdge = selectByPriority(crossingEdges);
 		final List<EdgeTraffic> idleEdges = crossingEdges.stream()
-				.filter(e -> !e.equals(priorityEdge) && Double.compare(e.getTime(), priorityEdge.getTime()) < 0)
+				.filter(e -> !e.equals(outboundEdge) && Double.compare(e.getTime(), outboundEdge.getTime()) < 0)
 				.collect(Collectors.toList());
-		final Vehicle vehicle = priorityEdge.getLast();
-		if (vehicle.getTarget().equals(priorityEdge.getEdge().getEnd())) {
+		final Vehicle vehicle = outboundEdge.getLast();
+		if (vehicle.getTarget().equals(outboundEdge.getEdge().getEnd())) {
 			// Vehicle reached the destination
 			if (vehicle.isReturning()) {
 				// Remove the vehicle
-				final EdgeTraffic newegde = priorityEdge.removeLast();
-				final StatusBuilder result = addTraffics(newegde).stopEdges(idleEdges, priorityEdge.getTime());
+				final EdgeTraffic newegde = outboundEdge.removeLast();
+				final StatusBuilder result = addTraffics(newegde).stopEdges(idleEdges, outboundEdge.getTime());
 				return result;
 			} else {
 				// Invert vehicle
-				final EdgeTraffic newegde = priorityEdge.removeLast();
-				// Remove the vehicle
-				final StatusBuilder result = addVehicleToSite(vehicle.setReturning(true), vehicle.getDestination())
-						.addTraffics(newegde).stopEdges(idleEdges, priorityEdge.getTime());
+				final EdgeTraffic retOutboundEdge = outboundEdge.setLast(vehicle.setReturning(true));
+				final StatusBuilder result = addTraffics(retOutboundEdge);
 				return result;
 			}
 		} else {
 			final TrafficStats ts = buildTrafficStats();
-			final Optional<EdgeTraffic> next = ts.nextEdge(priorityEdge.getEdge().getEnd(), vehicle.getTarget());
-			if (next.isEmpty()) {
+			final Optional<EdgeTraffic> next = ts.nextEdge(outboundEdge.getEdge().getEnd(), vehicle.getTarget());
+			final StatusBuilder result1 = next.stream().map(edge -> {
+				if (edge.isBusy()) {
+					final double nextTime = edge.getTime();
+					final StatusBuilder result = stopEdges(idleEdges, nextTime).stopEdges(List.of(outboundEdge),
+							nextTime);
+					return result;
+				} else {
+					final StatusBuilder result = moveVehicle(outboundEdge, edge).stopEdges(idleEdges,
+							outboundEdge.getTime());
+					return result;
+				}
+			}).findAny().orElseGet(() -> {
 				// Remove the vehicle
-				final EdgeTraffic newegde = priorityEdge.removeLast();
-				final StatusBuilder result = addTraffics(newegde).stopEdges(idleEdges, priorityEdge.getTime());
+				final EdgeTraffic newegde = outboundEdge.removeLast();
+				final StatusBuilder result = addTraffics(newegde).stopEdges(idleEdges, outboundEdge.getTime());
 				return result;
-			} else if (next.get().isBusy()) {
-				final double nextTime = next.get().getTime();
-				final StatusBuilder result = stopEdges(idleEdges, nextTime).stopEdges(List.of(priorityEdge), nextTime);
-				return result;
-			} else {
-				final StatusBuilder result = moveVehicle(priorityEdge, next.get()).stopEdges(idleEdges,
-						priorityEdge.getTime());
-				return result;
-			}
+			});
+			return result1;
 		}
 	}
 

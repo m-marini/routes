@@ -36,6 +36,8 @@ import org.mmarini.routes.model.Constants;
  */
 public class Vehicle implements Constants {
 
+	private static final double EPSILON = 1e-3;
+
 	/**
 	 * Creates a vehicle
 	 *
@@ -191,8 +193,11 @@ public class Vehicle implements Constants {
 				final double realInterval = Math.max((length - location) / speed, 0);
 				final Vehicle newVeichle = setLocation(length);
 				return new Tuple2<>(newVeichle, realInterval);
-			} else {
+			} else if (maxLocation + EPSILON < length) {
 				final Vehicle newVeichle = setLocation(maxLocation);
+				return new Tuple2<>(newVeichle, interval);
+			} else {
+				final Vehicle newVeichle = setLocation(length);
 				return new Tuple2<>(newVeichle, interval);
 			}
 		} else {

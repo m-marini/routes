@@ -248,6 +248,17 @@ public class EdgeTraffic implements Constants {
 	}
 
 	/**
+	 * Returns the edge traffic with the given last vehicle
+	 *
+	 * @param vehicle the vehicle
+	 */
+	public EdgeTraffic setLast(final Vehicle vehicle) {
+		final List<Vehicle> newVehicles = new ArrayList<>(vehicles);
+		newVehicles.set(newVehicles.size() - 1, vehicle);
+		return setVehicles(newVehicles);
+	}
+
+	/**
 	 * Returns the traffic information with the given last travel time
 	 *
 	 * @param lastTravelTime last travel time

@@ -38,7 +38,6 @@ public class StatusBuilderTest5 {
 	private EdgeTraffic t24;
 	private Set<EdgeTraffic> traffics;
 	private StatusBuilder builder;
-	private Vehicle v3;
 
 	/**
 	 * <pre>

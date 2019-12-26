@@ -7,90 +7,115 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mmarini.routes.model.v2.TestUtils.genArguments;
+import static org.mmarini.routes.model.v2.TestUtils.genDouble;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.DoubleStream;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Test build status at cross proximity
  */
-public class StatusBuilderTest6 {
+public class StatusBuilderTest6 extends AbstractStatusBuilderTest {
 
-	private static final double TIME = 50.2;
-	private SiteNode n1;
-	private SiteNode n2;
-	private SiteNode n3;
-	private MapNode n4;
-	private MapEdge e14;
-	private MapEdge e34;
-	private MapEdge e42;
-	private Vehicle v1;
-	private Vehicle v2;
-	private EdgeTraffic t14;
-	private EdgeTraffic t34;
-	private EdgeTraffic t42;
-	private Set<EdgeTraffic> traffics;
-	private StatusBuilder builder;
-
-	/**
-	 * <pre>
-	 * n1 --v1-> n4 --> n2
-	 *           ^
-	 *           |
-	 *           v2
-	 *           |
-	 *           |
-	 *           n3
-	 * </pre>
-	 */
-	@BeforeEach
-	public void createCase() {
-		n1 = SiteNode.create(0, 0);
-		n2 = SiteNode.create(1000, 0);
-		n3 = SiteNode.create(500, 500);
-		n4 = MapNode.create(500, 0);
-		e14 = MapEdge.create(n1, n4).setSpeedLimit(10);
-		e34 = MapEdge.create(n3, n4).setSpeedLimit(10);
-		e42 = MapEdge.create(n4, n2).setSpeedLimit(10);
-		v1 = Vehicle.create(n1, n2).setLocation(498);
-		v2 = Vehicle.create(n3, n2).setLocation(498);
-		final List<Vehicle> v14 = List.of(v1);
-		final List<Vehicle> v34 = List.of(v2);
-		t14 = EdgeTraffic.create(e14).setTime(49.8).setVehicles(v14);
-		t34 = EdgeTraffic.create(e34).setTime(49.8).setVehicles(v34);
-		t42 = EdgeTraffic.create(e42).setTime(49.8);
-		traffics = Set.of(t14, t34, t42);
-		final GeoMap map = GeoMap.create().setSites(Set.of(n1, n2, n3)).setNodes(Set.of(n1))
-				.setEdges(Set.of(e14, e34, e42));
-		final SimulationStatus status = SimulationStatus.create().setGeoMap(map).setTraffics(traffics);
-		builder = StatusBuilder.create(status, TIME);
+	static DoubleStream timeRange() {
+		return genArguments().mapToDouble(i -> genDouble(i, 0, 60));
 	}
 
-	@Test
-	public void testBuild() {
+	@ParameterizedTest
+	@MethodSource("timeRange")
+
+	public void build6(final double time) {
+		final double limitTime = time + 0.4;
+		final StatusBuilder builder = createBuilder(time, limitTime, this::createVehicles6, this::createTraffic6);
+
 		final SimulationStatus result = builder.build();
+
 		assertNotNull(result);
 		final Set<EdgeTraffic> tr = result.getTraffic();
 		assertNotNull(tr);
 
-		final EdgeTraffic nt14 = tr.stream().filter(et -> et.equals(t14)).findFirst().get();
-		assertThat(nt14.getTime(), equalTo(TIME));
-		assertThat(nt14.getVehicles(), hasSize(1));
-		assertThat(nt14.getVehicles(), hasItem(v1));
-		assertThat(nt14.getLast().getLocation(), equalTo(500.0));
+		final EdgeTraffic nt0 = findEdge(tr, 0).get();
 
-		final EdgeTraffic nt34 = tr.stream().filter(et -> et.equals(t34)).findFirst().get();
-		assertThat(nt34.getTime(), equalTo(TIME));
-		assertThat(nt34.getVehicles(), empty());
+		assertThat(nt0.getTime(), equalTo(limitTime));
+		assertThat(nt0.getVehicles(), hasSize(1));
+		assertThat(nt0.getVehicles(), hasItem(vehicles.get(0)));
+		assertThat(nt0.getLast().getLocation(), equalTo(500.0));
 
-		final EdgeTraffic nt42 = tr.stream().filter(et -> et.equals(t42)).findFirst().get();
-		assertThat(nt42.getTime(), equalTo(TIME));
-		assertThat(nt42.getVehicles(), hasSize(1));
-		assertThat(nt42.getVehicles(), hasItem(v2));
-		assertThat(nt42.getLast().getLocation(), closeTo(2.0, 1e-3));
+		final EdgeTraffic nt2 = findEdge(tr, 2).get();
+		assertThat(nt2.getTime(), equalTo(limitTime));
+		assertThat(nt2.getVehicles(), empty());
 
+		final EdgeTraffic nt4 = findEdge(tr, 4).get();
+		assertThat(nt4.getTime(), equalTo(limitTime));
+		assertThat(nt4.getVehicles(), hasSize(1));
+		assertThat(nt4.getVehicles(), hasItem(vehicles.get(1)));
+		assertThat(nt4.getLast().getLocation(), closeTo(2.0, 1e-3));
+
+	}
+
+	@ParameterizedTest
+	@MethodSource("timeRange")
+	public void build7(final double time) {
+		final double limitTime = time + 1;
+
+		final StatusBuilder builder = createBuilder(time, limitTime, this::createVehicles7, this::createTraffic7);
+
+		final SimulationStatus result = builder.build();
+
+		assertNotNull(result);
+		final Set<EdgeTraffic> tr = result.getTraffic();
+		assertNotNull(tr);
+
+		final EdgeTraffic nt0 = findEdge(tr, 0).get();
+		assertThat(nt0.getTime(), equalTo(limitTime));
+
+		final EdgeTraffic nt1 = findEdge(tr, 1).get();
+		assertThat(nt1.getTime(), equalTo(limitTime));
+
+		final EdgeTraffic nt2 = findEdge(tr, 2).get();
+		assertThat(nt2.getTime(), equalTo(limitTime));
+
+		final EdgeTraffic nt3 = findEdge(tr, 3).get();
+		assertThat(nt3.getTime(), equalTo(limitTime));
+
+		final EdgeTraffic nt4 = findEdge(tr, 4).get();
+		assertThat(nt4.getTime(), equalTo(limitTime));
+
+		final EdgeTraffic nt5 = findEdge(tr, 5).get();
+		assertThat(nt5.getTime(), equalTo(limitTime));
+	}
+
+	EdgeTraffic createTraffic6(final EdgeTraffic edgeTraffic) {
+		switch (edges.indexOf(edgeTraffic.getEdge())) {
+		case 0:
+			return edgeTraffic.setVehicles(List.of(vehicles.get(0)));
+		case 2:
+			return edgeTraffic.setVehicles(List.of(vehicles.get(1)));
+		default:
+			return edgeTraffic;
+		}
+	}
+
+	EdgeTraffic createTraffic7(final EdgeTraffic edgeTraffic) {
+		if (edgeTraffic.getEdge().equals(edges.get(4))) {
+			return edgeTraffic.setVehicles(vehicles);
+		} else {
+			return edgeTraffic;
+		}
+	}
+
+	List<Vehicle> createVehicles6() {
+		final Vehicle v0 = Vehicle.create(sites.get(0), sites.get(1)).setLocation(498);
+		final Vehicle v2 = Vehicle.create(sites.get(2), sites.get(1)).setLocation(498);
+		return List.of(v0, v2);
+	}
+
+	List<Vehicle> createVehicles7() {
+		return List.of(Vehicle.create(sites.get(0), sites.get(1)).setLocation(495));
 	}
 }
