@@ -10,7 +10,7 @@ Latest release [`4.2.0`](https://github.com/m-marini/routes/tree/routes-4.2.0)
 
 ## Requirements
 
-To run **Routes** you need the Java 1.8 runtime environment installed.
+To run **Routes** you need the Java 1.11 runtime environment installed.
 
 ## Download
 

@@ -371,7 +371,7 @@ public class MapEdge implements MapElement, Constants {
 		if (last == null) {
 			return false;
 		}
-		return last.getDistance() <= VEICLE_LENGTH;
+		return last.getDistance() <= VEHICLE_LENGTH;
 	}
 
 	/**
