@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -81,7 +82,7 @@ public class StatusBuilder implements Constants {
 	 */
 	static EdgeTraffic selectByPriority(final Collection<EdgeTraffic> edgesInfo) {
 		// Compute the time limit
-		final double timeLimit = edgesInfo.parallelStream().min(StatusBuilder::compareTrafficsForTime).get().getTime()
+		final double timeLimit = edgesInfo.stream().min(StatusBuilder::compareTrafficsForTime).get().getTime()
 				+ REACTION_TIME;
 		// Filter the conflicting edges
 		final List<EdgeTraffic> filtered = edgesInfo.stream().filter(ei -> ei.getTime() <= timeLimit)
@@ -99,9 +100,7 @@ public class StatusBuilder implements Constants {
 	}
 
 	private final Set<EdgeTraffic> traffics;
-
 	private final double time;
-
 	private final SimulationStatus initialStatus;
 
 	/**
@@ -135,6 +134,10 @@ public class StatusBuilder implements Constants {
 		}
 	}
 
+	/**
+	 *
+	 * @param egde
+	 */
 	private StatusBuilder addTraffics(final EdgeTraffic egde) {
 		final Set<EdgeTraffic> newTraffics = new HashSet<>(this.traffics);
 		newTraffics.remove(egde);
@@ -143,9 +146,90 @@ public class StatusBuilder implements Constants {
 	}
 
 	/**
-	 * Returns the status at the instant of builder
+	 * Returns the simulation status at the given instant
 	 */
 	public SimulationStatus build() {
+		final StatusBuilder st = simulate();
+		return st.initialStatus.setTraffics(st.getTraffics());
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	TrafficStats buildTrafficStats() {
+		final TrafficStats result = TrafficStats.create().setEdgeStats(traffics);
+		return result;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public StatusBuilder createVehicles() {
+		final double frequence = initialStatus.getFrequence();
+		final double t0 = initialStatus.getTraffic().stream().findAny().map(x -> x.getTime()).get();
+		final double dt = time - t0;
+		final int noSites = getInitialStatus().getMap().getSites().size();
+		final double lambda0 = frequence * dt / (noSites - 1) / 2;
+		final TrafficStats ts = buildTrafficStats();
+		StatusBuilder result = this;
+		for (final Entry<Tuple2<SiteNode, SiteNode>, Double> entry : initialStatus.getWeights().entrySet()) {
+			final SiteNode from = entry.getKey().getElem1();
+			final SiteNode to = entry.getKey().getElem2();
+			if (!from.equals(to)) {
+				final Optional<EdgeTraffic> edge = ts.nextEdge(from, to);
+				final double weight = entry.getValue();
+				final int n = initialStatus.nextPoison(lambda0 * weight);
+				final StatusBuilder builder = result;
+				result = edge.map(ed -> builder.createVehicles(n, from, to, ed, t0)).orElseGet(() -> this);
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Returns the status builder with n new vehicles
+	 *
+	 * @param n    number of vehicles
+	 * @param from departure
+	 * @param to   destination
+	 * @param ed   the edge
+	 * @param t0   the insertion time
+	 */
+	StatusBuilder createVehicles(final int n, final SiteNode from, final SiteNode to, final EdgeTraffic ed,
+			final double t0) {
+		if (n <= 0) {
+			return this;
+		} else {
+			EdgeTraffic newEdge = ed;
+			for (int i = 0; i < n && !newEdge.isBusy(); i++) {
+				final Vehicle v = Vehicle.create(from, to);
+				newEdge = newEdge.addVehicle(v, t0);
+			}
+			return addTraffics(newEdge);
+		}
+	}
+
+	/**
+	 * Returns the initial status
+	 */
+	SimulationStatus getInitialStatus() {
+		return initialStatus;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	Set<EdgeTraffic> getTraffics() {
+		return traffics;
+	}
+
+	/**
+	 * Returns the status builder after moving all vehicles
+	 */
+	StatusBuilder moveAllVehicles() {
 		StatusBuilder st = this;
 		for (;;) {
 			final StatusBuilder st1 = st;
@@ -164,25 +248,7 @@ public class StatusBuilder implements Constants {
 					.collect(Collectors.toSet());
 			st = st.moveVehicleAtCross(crossingEdges);
 		}
-		final SimulationStatus result = st.initialStatus.setTraffics(st.getTraffics());
-		return result;
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	TrafficStats buildTrafficStats() {
-		final TrafficStats result = TrafficStats.create().setEdgeStats(traffics);
-		return result;
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	Set<EdgeTraffic> getTraffics() {
-		return traffics;
+		return st;
 	}
 
 	/**
@@ -207,46 +273,58 @@ public class StatusBuilder implements Constants {
 	 * @param crossingEdges the sorted by time incoming edges at the crossing node
 	 */
 	StatusBuilder moveVehicleAtCross(final Collection<EdgeTraffic> crossingEdges) {
-		final EdgeTraffic outboundEdge = selectByPriority(crossingEdges);
+		// Select the priority inbound edge in the cross
+		final EdgeTraffic priorityEdge = selectByPriority(crossingEdges);
+		// Select all other inbound edges in the cross
 		final List<EdgeTraffic> idleEdges = crossingEdges.stream()
-				.filter(e -> !e.equals(outboundEdge) && Double.compare(e.getTime(), outboundEdge.getTime()) < 0)
+				.filter(e -> !e.equals(priorityEdge) && Double.compare(e.getTime(), priorityEdge.getTime()) < 0)
 				.collect(Collectors.toList());
-		final Vehicle vehicle = outboundEdge.getLast();
-		if (vehicle.getTarget().equals(outboundEdge.getEdge().getEnd())) {
+		// Get the exiting vehicle
+		final Vehicle vehicle = priorityEdge.getLast();
+		if (vehicle.getTarget().equals(priorityEdge.getEdge().getEnd())) {
 			// Vehicle reached the destination
 			if (vehicle.isReturning()) {
 				// Remove the vehicle
-				final EdgeTraffic newegde = outboundEdge.removeLast();
-				final StatusBuilder result = addTraffics(newegde).stopEdges(idleEdges, outboundEdge.getTime());
+				final EdgeTraffic newegde = priorityEdge.removeLast();
+				final StatusBuilder result = addTraffics(newegde).stopEdges(idleEdges, priorityEdge.getTime());
 				return result;
 			} else {
 				// Invert vehicle
-				final EdgeTraffic retOutboundEdge = outboundEdge.setLast(vehicle.setReturning(true));
+				final EdgeTraffic retOutboundEdge = priorityEdge.setLast(vehicle.setReturning(true));
 				final StatusBuilder result = addTraffics(retOutboundEdge);
 				return result;
 			}
 		} else {
 			final TrafficStats ts = buildTrafficStats();
-			final Optional<EdgeTraffic> next = ts.nextEdge(outboundEdge.getEdge().getEnd(), vehicle.getTarget());
+			final Optional<EdgeTraffic> next = ts.nextEdge(priorityEdge.getEdge().getEnd(), vehicle.getTarget());
 			final StatusBuilder result1 = next.stream().map(edge -> {
 				if (edge.isBusy()) {
 					final double nextTime = edge.getTime();
-					final StatusBuilder result = stopEdges(idleEdges, nextTime).stopEdges(List.of(outboundEdge),
+					final StatusBuilder result = stopEdges(idleEdges, nextTime).stopEdges(List.of(priorityEdge),
 							nextTime);
 					return result;
 				} else {
-					final StatusBuilder result = moveVehicle(outboundEdge, edge).stopEdges(idleEdges,
-							outboundEdge.getTime());
+					final StatusBuilder result = moveVehicle(priorityEdge, edge).stopEdges(idleEdges,
+							priorityEdge.getTime());
 					return result;
 				}
 			}).findAny().orElseGet(() -> {
 				// Remove the vehicle
-				final EdgeTraffic newegde = outboundEdge.removeLast();
-				final StatusBuilder result = addTraffics(newegde).stopEdges(idleEdges, outboundEdge.getTime());
+				final EdgeTraffic newegde = priorityEdge.removeLast();
+				final StatusBuilder result = addTraffics(newegde).stopEdges(idleEdges, priorityEdge.getTime());
 				return result;
 			});
 			return result1;
 		}
+	}
+
+	/**
+	 * Returns the status builder for an initial status
+	 *
+	 * @param initialStatus the initial status
+	 */
+	public StatusBuilder setInitialStatus(final SimulationStatus initialStatus) {
+		return new StatusBuilder(initialStatus, traffics, time);
 	}
 
 	/**
@@ -256,6 +334,13 @@ public class StatusBuilder implements Constants {
 	 */
 	public StatusBuilder setTraffics(final Set<EdgeTraffic> traffics) {
 		return new StatusBuilder(initialStatus, traffics, time);
+	}
+
+	/**
+	 * Returns the status builder after simulation to the given instant
+	 */
+	StatusBuilder simulate() {
+		return moveAllVehicles().createVehicles();
 	}
 
 	/**

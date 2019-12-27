@@ -48,21 +48,20 @@ public class SimulationStatusSerializerTest implements Constants {
 
 		final JsonNode paths = json.path("paths");
 		assertTrue(paths.isArray());
-		assertThat(paths.size(), equalTo(2));
+		assertThat(paths.size(), equalTo(4));
 
 		status.getMap().getSites().forEach(from -> {
 			status.getMap().getSites().forEach(to -> {
-				status.getWeight(from, to).ifPresent(w -> {
-					assertTrue(YamlUtils.toStream(paths.elements()).anyMatch(path -> {
-						return path.path("departure").asText().equals(from.getId().toString())
-								&& path.path("destination").asText().equals(to.getId().toString())
-								&& path.path("weight").asDouble() == w.doubleValue();
-					}));
-				});
+				assertTrue(YamlUtils.toStream(paths.elements()).anyMatch(path -> {
+					return path.path("departure").asText().equals(from.getId().toString())
+							&& path.path("destination").asText().equals(to.getId().toString())
+							&& path.path("weight").asDouble() == status.getWeight(from, to);
+				}));
 			});
 		});
 
 		final JsonNode nodes = json.path("nodes");
+
 		assertTrue(nodes.isObject());
 		assertThat(nodes.size(), equalTo(1));
 

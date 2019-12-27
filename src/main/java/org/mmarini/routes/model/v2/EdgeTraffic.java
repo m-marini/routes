@@ -211,25 +211,26 @@ public class EdgeTraffic implements Constants {
 		if (vehicles.isEmpty()) {
 			return setTime(time);
 		}
+		// The moving order is from the last to the first vehicle in the edge
 		final List<Vehicle> reversed = new ArrayList<>(vehicles);
 		Collections.reverse(reversed);
-		final Tuple2<Vehicle, Double> initial = reversed.get(0).move(edge, time - this.time, OptionalDouble.empty());
-		final Vehicle v0 = initial.getElem1();
-		final double dt = initial.getElem2();
-		if (reversed.size() == 1) {
-			return setVehicles(List.of(v0)).setTime(this.time + dt);
-		}
-		double prevLoc = v0.getLocation();
+
 		final List<Vehicle> newVehicles = new ArrayList<>();
-		newVehicles.add(v0);
-		for (int i = 1; i < reversed.size(); i++) {
-			final Vehicle v = reversed.get(i);
-			final Vehicle nv = v.move(edge, dt, OptionalDouble.of(prevLoc)).getElem1();
-			prevLoc = nv.getLocation();
-			newVehicles.add(0, nv);
+		final double dtMax = time - this.time;
+
+		OptionalDouble nextLocation = OptionalDouble.empty();
+		OptionalDouble dt = OptionalDouble.empty();
+
+		for (final Vehicle v : reversed) {
+			final double dt1 = dt.orElse(dtMax);
+			final Tuple2<Vehicle, Double> tuple = v.move(edge, dt1, nextLocation);
+			final Vehicle movedVehicle = tuple.getElem1();
+			nextLocation = OptionalDouble.of(movedVehicle.getLocation());
+			dt = dt.isEmpty() ? OptionalDouble.of(tuple.getElem2()) : dt;
+			newVehicles.add(0, movedVehicle);
 		}
 
-		final EdgeTraffic result = setVehicles(newVehicles).setTime(this.time + dt);
+		final EdgeTraffic result = setVehicles(newVehicles).setTime(this.time + dt.getAsDouble());
 		return result;
 	}
 

@@ -119,12 +119,11 @@ public class SimulationStatusSerializer implements Constants {
 	 */
 	private JsonNode buildPathsNode() {
 		final ArrayNode result = mapper.createArrayNode();
-		status.getMap().getSites().forEach(
-				from -> status.getMap().getSites().forEach(to -> status.getWeight(from, to).ifPresent(weight -> {
-					final ObjectNode path = mapper.createObjectNode().put("departure", from.getId().toString())
-							.put("destination", to.getId().toString()).put("weight", weight);
-					result.add(path);
-				})));
+		status.getMap().getSites().forEach(from -> status.getMap().getSites().forEach(to -> {
+			final ObjectNode path = mapper.createObjectNode().put("departure", from.getId().toString())
+					.put("destination", to.getId().toString()).put("weight", status.getWeight(from, to));
+			result.add(path);
+		}));
 		return result;
 	}
 

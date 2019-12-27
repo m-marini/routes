@@ -8,16 +8,40 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.awt.geom.Point2D;
 import java.io.IOException;
-import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.mmarini.routes.model.Constants;
 
 public class SimulationStatusDeserializerTest implements Constants {
+
+	@Test
+	public void missingEndNodeException() throws IOException {
+		final Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+			new SimulationStatusDeserializer().parse(getClass().getResource("/test-deserializer-no-end.yaml"));
+		});
+		assertThat(exception.getMessage(), equalTo("Missing end node"));
+	}
+
+	@Test
+	public void missingStartNodeException() throws IOException {
+		final Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+			new SimulationStatusDeserializer().parse(getClass().getResource("/test-deserializer-no-start.yaml"));
+		});
+		assertThat(exception.getMessage(), equalTo("Missing start node"));
+	}
+
+	@Test
+	public void mustBeMore1SiteException() throws IOException {
+		final Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+			new SimulationStatusDeserializer().parse(getClass().getResource("/test-deserializer-1-site.yaml"));
+		});
+		assertThat(exception.getMessage(), equalTo("There must be at least two sites"));
+	}
 
 	@Test
 	public void test() throws IOException {
@@ -49,8 +73,8 @@ public class SimulationStatusDeserializerTest implements Constants {
 		final SiteNode s2 = sites.stream()
 				.filter(site -> site.getId().toString().equals("bdd6f09a-6468-3e63-ba85-40e2c6057a30")).findFirst()
 				.get();
-		assertThat(s.getWeight(s1, s2), equalTo(Optional.<Double>of(0.8)));
-		assertThat(s.getWeight(s2, s1), equalTo(Optional.<Double>of(0.5)));
+		assertThat(s.getWeight(s1, s2), equalTo(0.8));
+		assertThat(s.getWeight(s2, s1), equalTo(0.5));
 	}
 
 }

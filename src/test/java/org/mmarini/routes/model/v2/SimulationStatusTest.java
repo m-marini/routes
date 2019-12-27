@@ -1,18 +1,31 @@
 package org.mmarini.routes.model.v2;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.mmarini.routes.model.Constants;
 
 public class SimulationStatusTest implements Constants {
+
+	@Test
+	public void nextPoisson() {
+		final SimulationStatus s = SimulationStatus.create().setRandom(new Random(1234));
+		int tot = 0;
+		final int n = 100000;
+		final double lambda = 10;
+		for (int i = 0; i < n; i++) {
+			tot += s.nextPoison(lambda);
+		}
+		assertThat((double) tot / n, closeTo(lambda, lambda * 0.01));
+	}
 
 	@Test
 	public void test() {
@@ -28,7 +41,7 @@ public class SimulationStatusTest implements Constants {
 		final SiteNode s1 = SiteNode.create(0, 0);
 		final SiteNode s2 = SiteNode.create(0, 10);
 		final SimulationStatus map = SimulationStatus.create().addWeight(s1, s2, 1);
-		assertThat(map.getWeight(s1, s2), equalTo(Optional.<Double>of(1.0)));
+		assertThat(map.getWeight(s1, s2), equalTo(1.0));
 	}
 
 	@Test

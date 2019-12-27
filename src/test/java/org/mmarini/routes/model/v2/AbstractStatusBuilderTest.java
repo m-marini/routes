@@ -3,6 +3,7 @@ package org.mmarini.routes.model.v2;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -23,6 +24,7 @@ public abstract class AbstractStatusBuilderTest {
 	List<EdgeTraffic> traffics;
 	GeoMap map;
 	List<Vehicle> vehicles;
+	private Map<Tuple2<SiteNode, SiteNode>, Double> weights;
 
 	StatusBuilder createBuilder(final double time, final double limitTime,
 			final Supplier<List<Vehicle>> vehiclesBuilder,
@@ -30,7 +32,8 @@ public abstract class AbstractStatusBuilderTest {
 		vehicles = vehiclesBuilder.get();
 		traffics = edges.stream().map(e -> EdgeTraffic.create(e).setTime(time)).map(trafficTransformer)
 				.collect(Collectors.toList());
-		final SimulationStatus status = SimulationStatus.create().setGeoMap(map).setTraffics(Set.copyOf(traffics));
+		final SimulationStatus status = SimulationStatus.create().setGeoMap(map).setTraffics(Set.copyOf(traffics))
+				.setWeights(weights);
 		return StatusBuilder.create(status, limitTime);
 	}
 
@@ -60,6 +63,8 @@ public abstract class AbstractStatusBuilderTest {
 				MapEdge.create(nodes.get(0), sites.get(2)).setSpeedLimit(10));
 		nodesByIndex = new ArrayList<>(sites);
 		nodesByIndex.addAll(nodes);
+		weights = sites.parallelStream().flatMap(from -> sites.parallelStream().map(to -> new Tuple2<>(from, to)))
+				.collect(Collectors.toMap(Function.identity(), x -> 1.0));
 		map = GeoMap.create().setSites(Set.copyOf(sites)).setNodes(Set.copyOf(nodes)).setEdges(Set.copyOf(edges));
 	}
 

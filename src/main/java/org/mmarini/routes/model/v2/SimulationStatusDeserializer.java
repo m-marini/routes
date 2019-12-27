@@ -64,7 +64,7 @@ public class SimulationStatusDeserializer implements Constants {
 	private SimulationStatus parse(final JsonNode tree) {
 		final double frequence = tree.path("default").path("frequence").asDouble();
 		final GeoMap map = parseMap(tree);
-		final Map<SiteNode, Map<SiteNode, Double>> weights = parsePaths(tree.path("paths"), map.getSites());
+		final Map<Tuple2<SiteNode, SiteNode>, Double> weights = parsePaths(tree.path("paths"), map.getSites());
 		final SimulationStatus result = SimulationStatus.create().setGeoMap(map).setFrequence(frequence)
 				.setWeights(weights);
 		return result;
@@ -161,13 +161,14 @@ public class SimulationStatusDeserializer implements Constants {
 	 * @param sites
 	 * @return
 	 */
-	private Tuple3<SiteNode, SiteNode, Double> parsePath(final JsonNode jsonNode, final Set<SiteNode> sites) {
+	private Tuple2<Tuple2<SiteNode, SiteNode>, Double> parsePath(final JsonNode jsonNode, final Set<SiteNode> sites) {
 		final String depId = jsonNode.path("departure").asText();
 		final SiteNode departure = sites.stream().filter(s -> s.getId().toString().equals(depId)).findFirst().get();
 		final String destId = jsonNode.path("destination").asText();
 		final SiteNode destination = sites.stream().filter(s -> s.getId().toString().equals(destId)).findFirst().get();
 		final double weight = YamlUtils.jsonDouble(jsonNode.path("weight"), DEFAULT_WEIGHT);
-		final Tuple3<SiteNode, SiteNode, Double> result = new Tuple3<>(departure, destination, weight);
+		final Tuple2<Tuple2<SiteNode, SiteNode>, Double> result = new Tuple2<>(new Tuple2<>(departure, destination),
+				weight);
 		return result;
 	}
 
@@ -177,21 +178,11 @@ public class SimulationStatusDeserializer implements Constants {
 	 * @param sites
 	 * @return
 	 */
-	private Map<SiteNode, Map<SiteNode, Double>> parsePaths(final JsonNode jsonNode, final Set<SiteNode> sites) {
-		final Stream<Tuple3<SiteNode, SiteNode, Double>> paths = YamlUtils.toStream(jsonNode.elements())
+	private Map<Tuple2<SiteNode, SiteNode>, Double> parsePaths(final JsonNode jsonNode, final Set<SiteNode> sites) {
+		final Stream<Tuple2<Tuple2<SiteNode, SiteNode>, Double>> paths = YamlUtils.toStream(jsonNode.elements())
 				.map(json -> parsePath(json, sites));
-		final Map<SiteNode, List<Tuple3<SiteNode, SiteNode, Double>>> listMap = paths
-				.collect(Collectors.toMap(Tuple3::getElem1, List::of, (a, b) -> {
-					a.addAll(b);
-					return a;
-				}));
-		final Map<SiteNode, Map<SiteNode, Double>> result = listMap.entrySet().stream().map(entry -> {
-			final Map<SiteNode, Double> map = entry.getValue().stream()
-					.collect(Collectors.toMap(Tuple3::getElem2, Tuple3::getElem3));
-			final Tuple2<SiteNode, Map<SiteNode, Double>> result1 = new Tuple2<>(entry.getKey(), map);
-			return result1;
-		}).collect(Collectors.toMap(Tuple2::getElem1, Tuple2::getElem2));
-
+		final Map<Tuple2<SiteNode, SiteNode>, Double> result = paths
+				.collect(Collectors.toMap(path -> path.getElem1(), path -> path.getElem2()));
 		return result;
 	}
 
