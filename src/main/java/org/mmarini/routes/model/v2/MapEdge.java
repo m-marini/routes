@@ -137,6 +137,15 @@ public class MapEdge implements Constants {
 	}
 
 	/**
+	 * Returns the direction of the edge
+	 */
+	public Point2D getDirection() {
+		final double dx = getEnd().getX() - getBegin().getX();
+		final double dy = getEnd().getY() - getBegin().getY();
+		return new Point2D.Double(dx, dy);
+	}
+
+	/**
 	 * @return the distance
 	 */
 	public double getDistance() {
@@ -163,6 +172,20 @@ public class MapEdge implements Constants {
 	 */
 	public UUID getId() {
 		return id;
+	}
+
+	/**
+	 * Returns the location in the edge from a give distance of origin
+	 *
+	 * @param distance the distance
+	 */
+	public Point2D getLocation(final double distance) {
+		final Point2D dir = getDirection();
+		final double lambda = distance / getDistance();
+		final double x = dir.getX() * lambda + getBeginLocation().getX();
+		final double y = dir.getY() * lambda + getBeginLocation().getY();
+		final Point2D result = new Point2D.Double(x, y);
+		return result;
 	}
 
 	/**

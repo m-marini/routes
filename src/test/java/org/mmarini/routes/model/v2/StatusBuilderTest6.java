@@ -246,4 +246,34 @@ public class StatusBuilderTest6 extends AbstractStatusBuilderTest {
 		final EdgeTraffic nt5 = findEdge(tr, 5).get();
 		assertThat(nt5.getTime(), equalTo(limitTime));
 	}
+
+	/**
+	 * <pre>
+	 * Given an initial status at time t
+	 * And a vehicle from 0 to 1 in edge 4 at 495 m
+	 * And a builder to time t + 1 s
+	 * When moveAllVehicles
+	 * Than the vehicle should be at edge 1 at 5.0 m
+	 * And all the other edges should be at t+1 time
+	 * </pre>
+	 */
+	@ParameterizedTest
+	@MethodSource("timeRange")
+	public void moveAllVehicles8(final double time) {
+		final double limitTime = time + 1;
+		final StatusBuilder builder = createBuilder(time, limitTime, () -> List.of(), Function.identity());
+
+		final StatusBuilder result = builder.moveAllVehicles();
+
+		assertNotNull(result);
+
+		final Set<EdgeTraffic> traffics = result.getTraffics();
+		assertThat(traffics, hasSize(6));
+		assertThat(findEdge(traffics, 0).get().getTime(), equalTo(limitTime));
+		assertThat(findEdge(traffics, 1).get().getTime(), equalTo(limitTime));
+		assertThat(findEdge(traffics, 2).get().getTime(), equalTo(limitTime));
+		assertThat(findEdge(traffics, 3).get().getTime(), equalTo(limitTime));
+		assertThat(findEdge(traffics, 4).get().getTime(), equalTo(limitTime));
+		assertThat(findEdge(traffics, 5).get().getTime(), equalTo(limitTime));
+	}
 }

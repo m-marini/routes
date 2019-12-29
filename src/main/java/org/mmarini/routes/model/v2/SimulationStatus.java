@@ -102,6 +102,13 @@ public class SimulationStatus implements Constants {
 	}
 
 	/**
+	 * Returns the instant
+	 */
+	public double getTime() {
+		return traffics.stream().findAny().map(t -> t.getTime()).orElse(0.0);
+	}
+
+	/**
 	 *
 	 * @return
 	 */
