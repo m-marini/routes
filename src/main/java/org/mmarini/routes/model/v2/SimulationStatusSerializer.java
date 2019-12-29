@@ -156,12 +156,15 @@ public class SimulationStatusSerializer implements Constants {
 	 *
 	 * @param file
 	 * @param status
+	 * @return
 	 * @throws IOException
 	 * @throws JsonMappingException
 	 * @throws JsonGenerationException
 	 */
-	void writeFile(final File file) throws JsonGenerationException, JsonMappingException, IOException {
+	public SimulationStatusSerializer writeFile(final File file)
+			throws JsonGenerationException, JsonMappingException, IOException {
 		mapper.writeValue(file, toJson());
+		return this;
 	}
 
 }

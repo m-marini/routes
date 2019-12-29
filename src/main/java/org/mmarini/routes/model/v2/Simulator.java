@@ -54,6 +54,9 @@ public class Simulator {
 			prevTime = time;
 			simulationStatus = status;
 			if (running) {
+//				Single.timer(100, TimeUnit.MILLISECONDS).map(x -> next(status, dt * 1e-9)).subscribe(next -> {
+//					output.onNext(next);
+//				});
 				Single.fromSupplier(() -> next(status, dt * 1e-9)).subscribeOn(Schedulers.computation())
 						.subscribe(next -> {
 							output.onNext(next);
