@@ -25,9 +25,11 @@
 //   END OF TERMS AND CONDITIONS
 package org.mmarini.routes.model.v2;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +40,7 @@ import java.util.stream.Stream;
 import org.mmarini.routes.model.Constants;
 import org.mmarini.routes.model.YamlUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -49,11 +52,52 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
  */
 public class SimulationStatusDeserializer implements Constants {
 
-	private final ObjectMapper mapper;
+	/**
+	 * Returns a new simulation status deserializer
+	 */
+	public static SimulationStatusDeserializer create() {
+		return new SimulationStatusDeserializer(new ObjectMapper(new YAMLFactory()), Collections.emptyMap(),
+				Collections.emptyMap());
+	}
 
-	public SimulationStatusDeserializer() {
+	private final ObjectMapper mapper;
+	private final Map<String, SiteNode> sites;
+	private final Map<String, MapNode> nodes;
+
+	/**
+	 * @param mapper
+	 * @param sites
+	 * @param nodes
+	 */
+	public SimulationStatusDeserializer(final ObjectMapper mapper, final Map<String, SiteNode> sites,
+			final Map<String, MapNode> nodes) {
 		super();
-		this.mapper = new ObjectMapper(new YAMLFactory());
+		this.mapper = mapper;
+		this.sites = sites;
+		this.nodes = nodes;
+	}
+
+	/**
+	 *
+	 * @param tree
+	 * @return
+	 */
+	private SimulationStatusDeserializer loadNodes(final JsonNode tree) {
+		final Map<String, SiteNode> sites = parseSites(tree.path("sites"));
+		final Map<String, MapNode> nodes = parseNodes(tree.path("nodes"));
+		return new SimulationStatusDeserializer(mapper, sites, nodes);
+	}
+
+	/**
+	 *
+	 * @param file
+	 * @return
+	 * @throws IOException
+	 * @throws JsonProcessingException
+	 */
+	public SimulationStatus parse(final File file) throws JsonProcessingException, IOException {
+		final JsonNode tree = mapper.readTree(file);
+		return loadNodes(tree).parse(tree);
 	}
 
 	/**
@@ -65,8 +109,10 @@ public class SimulationStatusDeserializer implements Constants {
 		final double frequence = tree.path("default").path("frequence").asDouble();
 		final GeoMap map = parseMap(tree);
 		final Map<Tuple2<SiteNode, SiteNode>, Double> weights = parsePaths(tree.path("paths"), map.getSites());
+		final Set<EdgeTraffic> traffics = map.getEdges().parallelStream().map(EdgeTraffic::create)
+				.collect(Collectors.toSet());
 		final SimulationStatus result = SimulationStatus.create().setGeoMap(map).setFrequence(frequence)
-				.setWeights(weights);
+				.setWeights(weights).setTraffics(traffics);
 		return result;
 	}
 
@@ -78,7 +124,7 @@ public class SimulationStatusDeserializer implements Constants {
 	 */
 	public SimulationStatus parse(final URL resource) throws IOException {
 		final JsonNode tree = mapper.readTree(resource);
-		return parse(tree);
+		return loadNodes(tree).parse(tree);
 	}
 
 	/**
@@ -120,14 +166,11 @@ public class SimulationStatusDeserializer implements Constants {
 	 * @return
 	 */
 	private GeoMap parseMap(final JsonNode tree) {
-		final Set<SiteNode> sites = parseSites(tree.path("sites"));
-		final Set<MapNode> nodes = parseNodes(tree.path("nodes"));
-		final Set<MapNode> all = new HashSet<>(nodes);
-		all.addAll(sites);
-		final Map<String, MapNode> nodeMap = all.stream()
-				.collect(Collectors.toMap(n -> n.getId().toString(), Function.identity()));
-		final Set<MapEdge> edges = parseEdges(tree.path("edges"), nodeMap);
-		final GeoMap g = GeoMap.create().setSites(sites).setNodes(nodes).setEdges(edges);
+		final Map<String, MapNode> all = new HashMap<>(nodes);
+		all.putAll(sites);
+		final Set<MapEdge> edges = parseEdges(tree.path("edges"), all);
+		final GeoMap g = GeoMap.create().setSites(Set.copyOf(sites.values())).setNodes(Set.copyOf(nodes.values()))
+				.setEdges(edges);
 		return g;
 	}
 
@@ -144,15 +187,14 @@ public class SimulationStatusDeserializer implements Constants {
 	}
 
 	/**
+	 * Returns the map between names and nodes
 	 *
-	 * @param path
-	 * @return
+	 * @param path the json node with nodes
 	 */
-	private Set<MapNode> parseNodes(final JsonNode nodesJson) {
-		final List<String> names = YamlUtils.toList(nodesJson.fieldNames());
-		final Set<MapNode> sites = names.stream().map(name -> parseMapNode(nodesJson.path(name)))
-				.collect(Collectors.toSet());
-		return sites;
+	private Map<String, MapNode> parseNodes(final JsonNode nodesJson) {
+		final Map<String, MapNode> nodes = YamlUtils.toStream(nodesJson.fieldNames())
+				.collect(Collectors.toMap(Function.identity(), name -> parseMapNode(nodesJson.path(name))));
+		return nodes;
 	}
 
 	/**
@@ -161,11 +203,18 @@ public class SimulationStatusDeserializer implements Constants {
 	 * @param sites
 	 * @return
 	 */
-	private Tuple2<Tuple2<SiteNode, SiteNode>, Double> parsePath(final JsonNode jsonNode, final Set<SiteNode> sites) {
+	private Tuple2<Tuple2<SiteNode, SiteNode>, Double> parsePath(final JsonNode jsonNode) {
 		final String depId = jsonNode.path("departure").asText();
-		final SiteNode departure = sites.stream().filter(s -> s.getId().toString().equals(depId)).findFirst().get();
+		final SiteNode departure = sites.get(depId);
+		if (departure == null) {
+			throw new IllegalArgumentException(String.format("Departure site \"%s\" not found", depId));
+		}
+
 		final String destId = jsonNode.path("destination").asText();
-		final SiteNode destination = sites.stream().filter(s -> s.getId().toString().equals(destId)).findFirst().get();
+		final SiteNode destination = sites.get(destId);
+		if (destination == null) {
+			throw new IllegalArgumentException(String.format("Destination site \"%s\" not found", destId));
+		}
 		final double weight = YamlUtils.jsonDouble(jsonNode.path("weight"), DEFAULT_WEIGHT);
 		final Tuple2<Tuple2<SiteNode, SiteNode>, Double> result = new Tuple2<>(new Tuple2<>(departure, destination),
 				weight);
@@ -180,7 +229,7 @@ public class SimulationStatusDeserializer implements Constants {
 	 */
 	private Map<Tuple2<SiteNode, SiteNode>, Double> parsePaths(final JsonNode jsonNode, final Set<SiteNode> sites) {
 		final Stream<Tuple2<Tuple2<SiteNode, SiteNode>, Double>> paths = YamlUtils.toStream(jsonNode.elements())
-				.map(json -> parsePath(json, sites));
+				.map(json -> parsePath(json));
 		final Map<Tuple2<SiteNode, SiteNode>, Double> result = paths
 				.collect(Collectors.toMap(path -> path.getElem1(), path -> path.getElem2()));
 		return result;
@@ -203,13 +252,13 @@ public class SimulationStatusDeserializer implements Constants {
 	 * @param path
 	 * @return
 	 */
-	private Set<SiteNode> parseSites(final JsonNode sitesJson) {
+	private Map<String, SiteNode> parseSites(final JsonNode sitesJson) {
 		final List<String> names = YamlUtils.toList(sitesJson.fieldNames());
 		if (names.size() < 2) {
 			throw new IllegalArgumentException("There must be at least two sites");
 		}
-		final Set<SiteNode> sites = names.stream().map(name -> parseSiteNode(sitesJson.path(name)))
-				.collect(Collectors.toSet());
+		final Map<String, SiteNode> sites = names.stream()
+				.collect(Collectors.toMap(Function.identity(), name -> parseSiteNode(sitesJson.path(name))));
 		return sites;
 	}
 }

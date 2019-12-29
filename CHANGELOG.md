@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- Issue #17: Load immutable model
+- Issue #22: Create reactive simulation
+
+### Changed
+
+- Issue #17: Change model rendering
+- Issue #21: Create main frame
+
 ## [4.2.0] - 2019-12-08
 
 ### Changed

@@ -28,6 +28,7 @@ package org.mmarini.routes.swing.v2;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.Set;
@@ -42,6 +43,7 @@ import org.mmarini.routes.model.v2.GeoMap;
 import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapProfile;
 import org.mmarini.routes.model.v2.SimulationStatus;
+import org.mmarini.routes.model.v2.SimulationStatusDeserializer;
 import org.mmarini.routes.model.v2.Simulator;
 import org.mmarini.routes.model.v2.SiteNode;
 import org.mmarini.routes.model.v2.Tuple2;
@@ -100,17 +102,9 @@ public class Controller {
 		mainFrame.getNewMapObs().subscribe(this::handleNewMap);
 		simulator.getOutput().compose(SwingObservable.observeOnEdt()).subscribe(routeMap::setStatus);
 
-		final SiteNode s0 = SiteNode.create(15, 15);
-		final SiteNode s1 = SiteNode.create(1000, 1000);
-		final Set<SiteNode> sites = Set.of(s0, s1);
-		final Set<MapEdge> edges = Set.of(MapEdge.create(s0, s1), MapEdge.create(s1, s0));
-		final GeoMap map = GeoMap.create().setSites(sites).setEdges(edges);
-		final Set<EdgeTraffic> traffics = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
-		final Map<Tuple2<SiteNode, SiteNode>, Double> weights = Map.of(new Tuple2<>(s0, s1), Double.valueOf(1),
-				new Tuple2<>(s1, s0), Double.valueOf(1));
-		final SimulationStatus status = SimulationStatus.create().setGeoMap(map).setTraffics(traffics)
-				.setWeights(weights);
-		;
+//		final SimulationStatus status = testMap();
+		final SimulationStatus status = loadDefault();
+
 		simulator.setSimulationStatus(status).start();
 
 		return this;
@@ -187,7 +181,7 @@ public class Controller {
 	 */
 	private Controller handleOpenMap(final ActionEvent ev) {
 		logger.info(String.valueOf(ev));
-		// stopSimulation();
+		simulator.stop();
 		final int choice = fileChooser.showOpenDialog(mainFrame);
 		if (choice == JFileChooser.APPROVE_OPTION) {
 			final File file = fileChooser.getSelectedFile();
@@ -196,13 +190,10 @@ public class Controller {
 			} else {
 				try {
 					logger.info("Opening {} ...", file);
-//					handler.load(file);
+					final SimulationStatus status = SimulationStatusDeserializer.create().parse(file);
+					simulator.setSimulationStatus(status);
 					mainFrame.setSaveActionEnabled(true);
 					mainFrame.setTitle(file.getName());
-//				} catch (final SAXParseException e) {
-//					logger.error(e.getMessage(), e);
-//					showError(Messages.getString("RouteMediator.parseError.message"), new Object[] { e.getMessage(), //$NON-NLS-1$
-//							e.getLineNumber(), e.getColumnNumber() });
 				} catch (final Exception e) {
 					logger.error(e.getMessage(), e);
 					showError(e.getMessage());
@@ -210,11 +201,10 @@ public class Controller {
 					logger.error(e.getMessage(), e);
 					showError(e);
 				}
-//				refresh();
 //				mapViewPane.reset();
 			}
 		}
-//		startSimulation();
+		simulator.start();
 		return this;
 	}
 
@@ -225,12 +215,12 @@ public class Controller {
 	 */
 	private Controller handleSaveAsMap(final ActionEvent ev) {
 		logger.info(String.valueOf(ev));
-//			stopSimulation();
+		simulator.stop();
 		final int choice = fileChooser.showSaveDialog(mainFrame);
 		if (choice == JFileChooser.APPROVE_OPTION) {
 			handleSaveMap(ev);
 		}
-		// startSimulation();
+		simulator.start();
 		return this;
 	}
 
@@ -246,9 +236,9 @@ public class Controller {
 			showError(Messages.getString("Controller.writeError.message"), new Object[] { file }); //$NON-NLS-1$
 		} else {
 			try {
-//				handler.save(file);
-				mainFrame.setSaveActionEnabled(true);
 				logger.info("Saving {} ...", file);
+//				new SimulationStatusSerializer(null).writeFile(file);
+				mainFrame.setSaveActionEnabled(true);
 				mainFrame.setTitle(file.getPath());
 			} catch (final Throwable e) {
 				logger.error(e.getMessage(), e);
@@ -256,6 +246,18 @@ public class Controller {
 			}
 		}
 		return this;
+	}
+
+	private SimulationStatus loadDefault() {
+		final URL url = getClass().getResource("/test.yml"); //$NON-NLS-1$
+		if (url != null) {
+			try {
+				return SimulationStatusDeserializer.create().parse(url);
+			} catch (final Exception e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+		return testMap();
 	}
 
 	/**
@@ -288,5 +290,22 @@ public class Controller {
 		logger.error(e.getMessage(), e);
 		return showError("{0}", new Object[] { e.getMessage(), //$NON-NLS-1$
 				e.getMessage() });
+	}
+
+	/**
+	 * @return
+	 */
+	SimulationStatus testMap() {
+		final SiteNode s0 = SiteNode.create(15, 15);
+		final SiteNode s1 = SiteNode.create(1000, 1000);
+		final Set<SiteNode> sites = Set.of(s0, s1);
+		final Set<MapEdge> edges = Set.of(MapEdge.create(s0, s1), MapEdge.create(s1, s0));
+		final GeoMap map = GeoMap.create().setSites(sites).setEdges(edges);
+		final Set<EdgeTraffic> traffics = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
+		final Map<Tuple2<SiteNode, SiteNode>, Double> weights = Map.of(new Tuple2<>(s0, s1), Double.valueOf(1),
+				new Tuple2<>(s1, s0), Double.valueOf(1));
+		final SimulationStatus status = SimulationStatus.create().setGeoMap(map).setTraffics(traffics)
+				.setWeights(weights);
+		return status;
 	}
 }
