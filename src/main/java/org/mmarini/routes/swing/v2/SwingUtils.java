@@ -18,6 +18,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 
 /**
@@ -79,6 +80,15 @@ public class SwingUtils {
 	 */
 	public static JRadioButtonMenuItem createJRadioButtonMenuItem(final String key) {
 		return setMenuProperties(new JRadioButtonMenuItem(), key);
+	}
+
+	/**
+	 * Returns a new JToggleButton initialized with key properties
+	 *
+	 * @param key the key properties
+	 */
+	public static JToggleButton createJToggleButton(final String key) {
+		return setButtonProperties(new JToggleButton(), key);
 	}
 
 	/**

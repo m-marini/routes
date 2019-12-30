@@ -38,7 +38,6 @@ import java.awt.Dimension;
 import java.awt.HeadlessException;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.WindowEvent;
 import java.net.URL;
 
 import javax.swing.ButtonGroup;
@@ -53,7 +52,6 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
-import javax.swing.WindowConstants;
 
 import org.mmarini.routes.swing.Messages;
 import org.slf4j.Logger;
@@ -84,19 +82,14 @@ public class MainFrame extends JFrame {
 	 */
 	public static void main(final String[] args) throws Throwable {
 		logger.info("MainFrame started.");
-		final MainFrame frame = new MainFrame();
-		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		frame.setVisible(true);
+		new Controller();
 	}
 
 	private final JSplitPane splitPane;
 	private final JSplitPane rightSplitPane;
-	private final JMenuItem exitMenuItem;
-	private final JMenuItem newMenuItem;
-	private final JMenuItem newRandomMenuItem;
-	private final JMenuItem openMenuItem;
 	private final JMenuItem saveMenuItem;
-	private final JMenuItem saveAsMenuItem;
+	private final JButton saveButton;
+
 	private final JMenuItem optimizeMenuItem;
 	private final JMenuItem randomizeMenuItem;
 	private final JMenuItem frequenceMenuItem;
@@ -108,28 +101,32 @@ public class MainFrame extends JFrame {
 	private final JRadioButtonMenuItem speedx10MenuItem;
 	private final JMenuItem infosMenuItem;
 	private final JMenuItem veicleInfosMenuItem;
-	private final JButton newButton;
-	private final JButton openButton;
-	private final JButton saveButton;
-	private final Controller controller;
 	private final Observable<ActionEvent> newRandomObs;
 	private final Observable<ActionEvent> saveMapAsObs;
 	private final Observable<ActionEvent> openMapObs;
 	private final Observable<ActionEvent> saveMapObs;
 	private final Observable<ActionEvent> newMapObs;
+	private final Observable<ActionEvent> exitObs;
+	private final JMenuItem newMenuItem;
+	private final JMenuItem exitMenuItem;
+	private final JMenuItem newRandomMenuItem;
+	private final JMenuItem openMenuItem;
+	private final JMenuItem saveAsMenuItem;
+	private final JButton newButton;
+	private final JButton openButton;
 
 	/**
+	 *
+	 * @param left
+	 * @param top
+	 * @param buttom
 	 * @throws HeadlessException
 	 */
-	public MainFrame() throws HeadlessException {
+	public MainFrame(final Component left, final Component top, final Component buttom) throws HeadlessException {
 		splitPane = new JSplitPane();
 		rightSplitPane = new JSplitPane();
-		newMenuItem = createJMenuItem("MainFrame.newAction"); //$NON-NLS-1$
-		exitMenuItem = createJMenuItem("MainFrame.exitAction"); //$NON-NLS-1$
-		newRandomMenuItem = createJMenuItem("MainFrame.newRandomAction"); //$NON-NLS-1$
-		openMenuItem = createJMenuItem("MainFrame.openAction"); //$NON-NLS-1$
 		saveMenuItem = createJMenuItem("MainFrame.saveAction"); //$NON-NLS-1$
-		saveAsMenuItem = createJMenuItem("MainFrame.saveAsAction"); //$NON-NLS-1$
+
 		optimizeMenuItem = createJMenuItem("MainFrame.optimizeAction"); //$NON-NLS-1$
 		randomizeMenuItem = createJMenuItem("MainFrame.randomizeAction"); //$NON-NLS-1$
 		frequenceMenuItem = createJMenuItem("MainFrame.frequenceAction"); //$NON-NLS-1$
@@ -142,18 +139,25 @@ public class MainFrame extends JFrame {
 		infosMenuItem = createJMenuItem("MainFrame.infosAction"); //$NON-NLS-1$
 		veicleInfosMenuItem = createJMenuItem("MainFrame.veicleInfosAction"); //$NON-NLS-1$
 
-		newButton = createJButton("MainFrame.newAction");
-		openButton = createJButton("MainFrame.openAction");
 		saveButton = createJButton("MainFrame.saveAction");
 
-		newMapObs = SwingObservable.actions(newButton).mergeWith(SwingObservable.actions(newMenuItem));
+		newMenuItem = createJMenuItem("MainFrame.newAction"); //$NON-NLS-1$
+		exitMenuItem = createJMenuItem("MainFrame.exitAction"); //$NON-NLS-1$
+		newRandomMenuItem = createJMenuItem("MainFrame.newRandomAction"); //$NON-NLS-1$
+		openMenuItem = createJMenuItem("MainFrame.openAction"); //$NON-NLS-1$
+		saveAsMenuItem = createJMenuItem("MainFrame.saveAsAction"); //$NON-NLS-1$
+		newButton = createJButton("MainFrame.newAction");
+		openButton = createJButton("MainFrame.openAction");
+
 		newRandomObs = SwingObservable.actions(newRandomMenuItem);
 		saveMapAsObs = SwingObservable.actions(saveAsMenuItem);
+		exitObs = SwingObservable.actions(exitMenuItem);
+
+		newMapObs = SwingObservable.actions(newButton).mergeWith(SwingObservable.actions(newMenuItem));
 		openMapObs = SwingObservable.actions(openButton).mergeWith(SwingObservable.actions(openMenuItem));
 		saveMapObs = SwingObservable.actions(saveButton).mergeWith(SwingObservable.actions(saveMenuItem));
 
-		controller = new Controller(this);
-		init().createSubscriptions();
+		init(left, top, buttom);
 	}
 
 	/**
@@ -222,18 +226,6 @@ public class MainFrame extends JFrame {
 	}
 
 	/**
-	 * Returns the main frame with subscriptions
-	 *
-	 * @return
-	 */
-	private MainFrame createSubscriptions() {
-		SwingObservable.actions(exitMenuItem).subscribe(ev -> {
-			dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
-		});
-		return this;
-	}
-
-	/**
 	 * Returns the tool bar
 	 */
 	private Component createToolBar() {
@@ -242,6 +234,13 @@ public class MainFrame extends JFrame {
 		toolBar.add(openButton);
 		toolBar.add(saveButton);
 		return toolBar;
+	}
+
+	/**
+	 * @return the exitObs
+	 */
+	public Observable<ActionEvent> getExitObs() {
+		return exitObs;
 	}
 
 	/**
@@ -281,8 +280,12 @@ public class MainFrame extends JFrame {
 
 	/**
 	 * Returns the initialized main frame
+	 *
+	 * @param left
+	 * @param top
+	 * @param buttom
 	 */
-	private MainFrame init() {
+	private MainFrame init(final Component left, final Component top, final Component buttom) {
 		resetTitle();
 
 		final URL url = getClass().getResource(IMAGES_ROUTES);
@@ -296,14 +299,14 @@ public class MainFrame extends JFrame {
 
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setResizeWeight(1);
-		splitPane.setLeftComponent(controller.getRouteMap());
+		splitPane.setLeftComponent(left);
 		splitPane.setRightComponent(rightSplitPane);
 
 		rightSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
 		rightSplitPane.setOneTouchExpandable(true);
 		rightSplitPane.setResizeWeight(1);
-		rightSplitPane.setTopComponent(controller.getExplorerPane());
-		rightSplitPane.setBottomComponent(controller.getMapElementPane());
+		rightSplitPane.setTopComponent(top);
+		rightSplitPane.setBottomComponent(buttom);
 
 		createMenuBar();
 		createContent();
