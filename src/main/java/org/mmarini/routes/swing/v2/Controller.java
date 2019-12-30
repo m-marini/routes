@@ -26,16 +26,25 @@
 
 package org.mmarini.routes.swing.v2;
 
+import java.awt.Point;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.mmarini.routes.model.v2.EdgeTraffic;
@@ -56,9 +65,47 @@ import hu.akarnokd.rxjava3.swing.SwingObservable;
  *
  */
 public class Controller {
-	public static final String INITIAL_MAP = "/test.yml"; // $NON-NLS-1$
+	private static final String INITIAL_MAP = "/test.yml"; // $NON-NLS-1$
+	private static final int MAP_BORDER = 60;
+	private static final int DEFAULT_SCALE = 1;
+
 	private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
+	/**
+	 * Returns the default status
+	 */
+	private static SimulationStatus loadDefault() {
+		final URL url = Controller.class.getResource(INITIAL_MAP);
+		if (url != null) {
+			try {
+				return SimulationStatusDeserializer.create().parse(url);
+			} catch (final Exception e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+		return SimulationStatus.create();
+	}
+
+	/**
+	 * Returns the list of patterns by key.n
+	 *
+	 * @param key the key
+	 */
+	private static List<String> loadPatterns(final String key) {
+		final List<String> list = new ArrayList<String>(0);
+		int i = 0;
+		for (;;) {
+			final String text = Messages.getString(key + "." + i);
+			if (text.startsWith("!")) {
+				break;
+			}
+			list.add(text);
+			++i;
+		}
+		return list;
+	}
+
+	private final double scale;
 	private final JFileChooser fileChooser;
 	private final MapProfilePane mapProfilePane;
 	private final RouteMap routeMap;
@@ -66,48 +113,92 @@ public class Controller {
 	private final MapElementPane mapElementPane;
 	private final MainFrame mainFrame;
 	private final Simulator simulator;
+	private final ScrollMap scrollMap;
+	private final MapViewPane mapViewPane;
+	private final List<String> gridLegendPattern;
+	private final List<String> pointLegendPattern;
+	private final List<String> edgeLegendPattern;
 
 	/**
 	 *
 	 */
-	public Controller(final MainFrame mainFrame) {
-		this.mainFrame = mainFrame;
-		mapProfilePane = new MapProfilePane();
-		fileChooser = new JFileChooser();
-		routeMap = new RouteMap();
-		explorerPane = new ExplorerPane();
-		mapElementPane = new MapElementPane();
-		simulator = new Simulator();
+	public Controller() {
+		this.scale = DEFAULT_SCALE;
+		this.simulator = new Simulator();
+		this.routeMap = new RouteMap();
+		this.mapProfilePane = new MapProfilePane();
+		this.fileChooser = new JFileChooser();
+		this.explorerPane = new ExplorerPane();
+		this.mapElementPane = new MapElementPane();
+		this.scrollMap = new ScrollMap(routeMap);
+		this.mapViewPane = new MapViewPane(scrollMap);
+		this.mainFrame = new MainFrame(mapViewPane, explorerPane, mapElementPane);
+		this.gridLegendPattern = loadPatterns("ScrollMap.gridLegendPattern");
+		this.pointLegendPattern = loadPatterns("ScrollMap.pointLegendPattern");
+		this.edgeLegendPattern = loadPatterns("ScrollMap.edgeLegendPattern");
 
-		fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("Controller.filetype.title"), //$NON-NLS-1$
-				"yml", "rml")); //$NON-NLS-1$ //$NON-NLS-2$
-		bindAll();
+		init();
+
 	}
 
 	/**
 	 *
 	 */
 	private Controller bindAll() {
-		return bindMainframe();
-	}
-
-	/**
-	 * Returns the controller with bound main frame
-	 */
-	private Controller bindMainframe() {
 		mainFrame.getNewRandomObs().subscribe(this::handleNewRandomMap);
 		mainFrame.getSaveMapAsObs().subscribe(this::handleSaveAsMap);
 		mainFrame.getOpenMapObs().subscribe(this::handleOpenMap);
 		mainFrame.getSaveMapObs().subscribe(this::handleSaveMap);
 		mainFrame.getNewMapObs().subscribe(this::handleNewMap);
-		simulator.getOutput().compose(SwingObservable.observeOnEdt()).subscribe(routeMap::setStatus);
+		mainFrame.getExitObs().subscribe(ev -> {
+			mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
+		});
 
-//		final SimulationStatus status = testMap();
-		final SimulationStatus status = loadDefault();
+		routeMap.getMouseObs().subscribe(ev -> {
+			Optional.ofNullable(ev.getPoint()).ifPresent(pt -> {
+				final Point2D mapPt = computeMapLocation(pt);
+				scrollMap.setHud(computeHud(pointLegendPattern, mapPt));
+			});
+		});
 
-		simulator.setSimulationStatus(status).start();
+		simulator.getOutput().compose(SwingObservable.observeOnEdt()).subscribe(status -> {
+			routeMap.setTransform(getTransform()).setStatus(status);
+			scrollMap.setHud(computeHud(pointLegendPattern, new Point2D.Double()));
+			mainFrame.repaint();
+		});
 
 		return this;
+	}
+
+	/**
+	 * Returns the head up display text
+	 *
+	 * @param patterns the text pattern
+	 * @param point
+	 */
+	private List<String> computeHud(final List<String> patterns, final Point2D point) {
+		final Object[] parms = new Object[] { routeMap.getGridSize(), point.getX(), point.getY(), 0 };
+		/*
+		 * Compute the pattern
+		 */
+		final List<String> texts = patterns.stream().map(pattern -> MessageFormat.format(pattern, parms))
+				.collect(Collectors.toList());
+		return texts;
+	}
+
+	/**
+	 * Returns the location in the map of a route map screen point
+	 *
+	 * @param pt the screen point
+	 */
+	private Point2D computeMapLocation(final Point pt) {
+		try {
+			final Point2D result = getTransform().createInverse().transform(pt, new Point2D.Double());
+			return result;
+		} catch (final NoninvertibleTransformException e) {
+			logger.error(e.getMessage(), e);
+			return new Point2D.Double();
+		}
 	}
 
 	/**
@@ -115,6 +206,18 @@ public class Controller {
 	 */
 	public ExplorerPane getExplorerPane() {
 		return explorerPane;
+	}
+
+	/**
+	 * Returns the grid size
+	 */
+	public double getGridSize() {
+		final double size = 10 / scale;
+		double gridSize = 1;
+		while (size > gridSize) {
+			gridSize *= 10;
+		}
+		return gridSize;
 	}
 
 	/**
@@ -129,6 +232,16 @@ public class Controller {
 	 */
 	public RouteMap getRouteMap() {
 		return routeMap;
+	}
+
+	/**
+	 * Returns the transformation
+	 */
+	private AffineTransform getTransform() {
+		final AffineTransform scaleTr = AffineTransform.getScaleInstance(scale, scale);
+		final AffineTransform offsetTr = AffineTransform.getTranslateInstance(MAP_BORDER, MAP_BORDER);
+		scaleTr.concatenate(offsetTr);
+		return scaleTr;
 	}
 
 	/**
@@ -248,16 +361,21 @@ public class Controller {
 		return this;
 	}
 
-	private SimulationStatus loadDefault() {
-		final URL url = getClass().getResource("/test.yml"); //$NON-NLS-1$
-		if (url != null) {
-			try {
-				return SimulationStatusDeserializer.create().parse(url);
-			} catch (final Exception e) {
-				logger.error(e.getMessage(), e);
-			}
-		}
-		return testMap();
+	/**
+	 * @return
+	 *
+	 */
+	private Controller init() {
+		this.fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("Controller.filetype.title"), //$NON-NLS-1$
+				"yml", "rml")); //$NON-NLS-1$ //$NON-NLS-2$
+		bindAll();
+
+		final SimulationStatus status = loadDefault();
+		simulator.setSimulationStatus(status);
+
+		mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		mainFrame.setVisible(true);
+		return this;
 	}
 
 	/**

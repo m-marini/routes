@@ -100,6 +100,9 @@ public class Simulator {
 	 */
 	public Simulator setSimulationStatus(final SimulationStatus status) {
 		simulationStatus = status;
+		if (!running) {
+			output.onNext(simulationStatus);
+		}
 		return this;
 	}
 

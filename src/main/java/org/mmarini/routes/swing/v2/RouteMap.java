@@ -30,9 +30,9 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Optional;
 
@@ -42,50 +42,69 @@ import org.mmarini.routes.model.v2.SimulationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import hu.akarnokd.rxjava3.swing.SwingObservable;
+import io.reactivex.rxjava3.core.Observable;
+
 /**
  */
 public class RouteMap extends JComponent {
 	private static final long serialVersionUID = 1L;
+
 	private static final Logger logger = LoggerFactory.getLogger(RouteMap.class);
 
+	private final Observable<MouseEvent> mouseObs;
 	private boolean trafficView;
 	private Optional<SimulationStatus> status;
-	private final double scale;
-	private final Point2D offset;
+	private AffineTransform transform;
+	private double gridSize;
 
 	/**
 	 *
 	 */
 	public RouteMap() {
 		super();
+		transform = new AffineTransform();
+		gridSize = 10;
+		mouseObs = SwingObservable.mouse(this);
 		status = Optional.empty();
-		offset = new Point2D.Double();
-		scale = 3;
 		setBackground(Color.WHITE);
 		setDoubleBuffered(true);
 		logger.debug("RouteMap created");
 	}
 
 	/**
-	 * Returns the grid size
+	 * @return the gridSize
 	 */
-	private double getGridSize() {
-		final double size = 10 / scale;
-		double gridSize = 1;
-		while (size > gridSize) {
-			gridSize *= 10;
-		}
+	public double getGridSize() {
 		return gridSize;
 	}
 
 	/**
-	 * Returns the transformation
+	 * @return the mouseObs
 	 */
-	private AffineTransform getTransform() {
-		final AffineTransform scaleTr = AffineTransform.getScaleInstance(scale, scale);
-		final AffineTransform offsetTr = AffineTransform.getTranslateInstance(-offset.getX(), -offset.getY());
-		scaleTr.concatenate(offsetTr);
-		return scaleTr;
+	public Observable<MouseEvent> getMouseObs() {
+		return mouseObs;
+	}
+
+	/**
+	 * @return the status
+	 */
+	public Optional<SimulationStatus> getStatus() {
+		return status;
+	}
+
+	/**
+	 * @return the transform
+	 */
+	public AffineTransform getTransform() {
+		return transform;
+	}
+
+	/**
+	 * @return the trafficView
+	 */
+	public boolean isTrafficView() {
+		return trafficView;
 	}
 
 	/**
@@ -102,15 +121,33 @@ public class RouteMap extends JComponent {
 		}
 		g.setColor(bg);
 		g.fillRect(0, 0, size.width, size.height);
-		final AffineTransform tr = getTransform();
+		final AffineTransform tr = transform;
 		try {
 			final Rectangle2D bound = new Rectangle2D.Double(0, 0, size.width, size.height);
 			final Rectangle2D realBound = tr.createInverse().createTransformedShape(bound).getBounds2D();
 			Painter.create((Graphics2D) g.create()).setBound(realBound).setStatus(status).setTransform(tr)
-					.setGridSize(getGridSize()).paint();
+					.setGridSize(gridSize).paint();
 		} catch (final NoninvertibleTransformException e) {
 			logger.error(e.getMessage(), e);
 		}
+	}
+
+	/**
+	 * @param gridSize the gridSize to set
+	 * @return
+	 */
+	public RouteMap setGridSize(final double gridSize) {
+		this.gridSize = gridSize;
+		return this;
+	}
+
+	/**
+	 * @param status the status to set
+	 * @return
+	 */
+	public RouteMap setStatus(final Optional<SimulationStatus> status) {
+		this.status = status;
+		return this;
 	}
 
 	/**
@@ -122,4 +159,19 @@ public class RouteMap extends JComponent {
 		return this;
 	}
 
+	/**
+	 * @param trafficView the trafficView to set
+	 */
+	public void setTrafficView(final boolean trafficView) {
+		this.trafficView = trafficView;
+	}
+
+	/**
+	 * @param transform the transform to set
+	 * @return
+	 */
+	public RouteMap setTransform(final AffineTransform transform) {
+		this.transform = transform;
+		return this;
+	}
 }
