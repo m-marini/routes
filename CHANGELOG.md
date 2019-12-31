@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #17: Load immutable model
 - Issue #22: Create reactive simulation
 - Issue #29: Head up display
+- Issue #32: Scroll panel
 
 ### Changed
 

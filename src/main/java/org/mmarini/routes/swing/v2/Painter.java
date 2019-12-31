@@ -265,6 +265,16 @@ public class Painter {
 	}
 
 	/**
+	 * Returns the painter with set border painted
+	 * 
+	 * @param borderPainted true if border painted
+	 */
+	public Painter setBorderPainted(final boolean borderPainted) {
+		this.borderPainted = borderPainted;
+		return this;
+	}
+
+	/**
 	 * Returns the painter for a given bound
 	 *
 	 * @param bound the bound

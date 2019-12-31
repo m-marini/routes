@@ -26,19 +26,23 @@
 
 package org.mmarini.routes.swing.v2;
 
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,6 +54,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.mmarini.routes.model.v2.EdgeTraffic;
 import org.mmarini.routes.model.v2.GeoMap;
 import org.mmarini.routes.model.v2.MapEdge;
+import org.mmarini.routes.model.v2.MapNode;
 import org.mmarini.routes.model.v2.MapProfile;
 import org.mmarini.routes.model.v2.SimulationStatus;
 import org.mmarini.routes.model.v2.SimulationStatusDeserializer;
@@ -59,15 +64,15 @@ import org.mmarini.routes.model.v2.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import hu.akarnokd.rxjava3.swing.SwingObservable;
-
 /**
  *
  */
 public class Controller {
-	private static final String INITIAL_MAP = "/test.yml"; // $NON-NLS-1$
 	private static final int MAP_BORDER = 60;
-	private static final int DEFAULT_SCALE = 1;
+	private static final double DEFAULT_SCALE = 10;
+	private static final double MIN_GRID_SIZE_METERS = 1;
+	private static final int MIN_GRID_SIZE_PIXELS = 10;
+	private static final String INITIAL_MAP = "/test.yml"; // $NON-NLS-1$
 
 	private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
@@ -105,7 +110,6 @@ public class Controller {
 		return list;
 	}
 
-	private final double scale;
 	private final JFileChooser fileChooser;
 	private final MapProfilePane mapProfilePane;
 	private final RouteMap routeMap;
@@ -118,12 +122,14 @@ public class Controller {
 	private final List<String> gridLegendPattern;
 	private final List<String> pointLegendPattern;
 	private final List<String> edgeLegendPattern;
+	/** The scale of route map (pixels/m) */
+	private double scale;
+	private Optional<SimulationStatus> currentStatus;
 
 	/**
 	 *
 	 */
 	public Controller() {
-		this.scale = DEFAULT_SCALE;
 		this.simulator = new Simulator();
 		this.routeMap = new RouteMap();
 		this.mapProfilePane = new MapProfilePane();
@@ -136,9 +142,9 @@ public class Controller {
 		this.gridLegendPattern = loadPatterns("ScrollMap.gridLegendPattern");
 		this.pointLegendPattern = loadPatterns("ScrollMap.pointLegendPattern");
 		this.edgeLegendPattern = loadPatterns("ScrollMap.edgeLegendPattern");
-
+		this.currentStatus = Optional.empty();
+		this.setScale(DEFAULT_SCALE);
 		init();
-
 	}
 
 	/**
@@ -161,11 +167,7 @@ public class Controller {
 			});
 		});
 
-		simulator.getOutput().compose(SwingObservable.observeOnEdt()).subscribe(status -> {
-			routeMap.setTransform(getTransform()).setStatus(status);
-			scrollMap.setHud(computeHud(pointLegendPattern, new Point2D.Double()));
-			mainFrame.repaint();
-		});
+		simulator.getOutput().subscribe(this::handleNewStatus);
 
 		return this;
 	}
@@ -192,13 +194,8 @@ public class Controller {
 	 * @param pt the screen point
 	 */
 	private Point2D computeMapLocation(final Point pt) {
-		try {
-			final Point2D result = getTransform().createInverse().transform(pt, new Point2D.Double());
-			return result;
-		} catch (final NoninvertibleTransformException e) {
-			logger.error(e.getMessage(), e);
-			return new Point2D.Double();
-		}
+		final Point2D result = getInverseTransform().transform(pt, new Point2D.Double());
+		return result;
 	}
 
 	/**
@@ -209,15 +206,54 @@ public class Controller {
 	}
 
 	/**
-	 * Returns the grid size
+	 * Returns the grid size in meters
 	 */
-	public double getGridSize() {
-		final double size = 10 / scale;
-		double gridSize = 1;
+	private double getGridSize() {
+		// size meters to have a grid of at least 10 pixels in the screen
+		final double size = MIN_GRID_SIZE_PIXELS / scale;
+		// Minimum grid of size 1 m
+		double gridSize = MIN_GRID_SIZE_METERS;
 		while (size > gridSize) {
 			gridSize *= 10;
 		}
 		return gridSize;
+	}
+
+	/**
+	 * Returns the transformation from screen coordinates to map coordinates
+	 */
+	private AffineTransform getInverseTransform() {
+		try {
+			return getTransform().createInverse();
+		} catch (final NoninvertibleTransformException e) {
+			e.printStackTrace();
+			return new AffineTransform();
+		}
+	}
+
+	/**
+	 * Returns the map bound
+	 * 
+	 * @param map the map
+	 */
+	private Rectangle2D getMapBound() {
+		final Rectangle2D result = currentStatus.flatMap(st -> {
+			final GeoMap map = st.getMap();
+			final Set<MapNode> all = new HashSet<>(map.getSites());
+			all.addAll(map.getNodes());
+			final OptionalDouble x0 = all.parallelStream().mapToDouble(n -> n.getX()).min();
+			final OptionalDouble x1 = all.parallelStream().mapToDouble(n -> n.getX()).max();
+			final OptionalDouble y0 = all.parallelStream().mapToDouble(n -> n.getY()).min();
+			final OptionalDouble y1 = all.parallelStream().mapToDouble(n -> n.getY()).max();
+
+			final Optional<Rectangle2D> result1 = (x0.isPresent() && x1.isPresent() && y0.isPresent() && y1.isPresent())
+					? Optional.of(new Rectangle2D.Double(x0.getAsDouble(), y0.getAsDouble(),
+							x1.getAsDouble() - x0.getAsDouble(), y1.getAsDouble() - y0.getAsDouble()))
+					: Optional.empty();
+			;
+			return result1;
+		}).orElseGet(() -> new Rectangle2D.Double());
+		return result;
 	}
 
 	/**
@@ -235,13 +271,27 @@ public class Controller {
 	}
 
 	/**
-	 * Returns the transformation
+	 * Returns the map size
+	 * 
+	 * @param map the map
+	 */
+	private Dimension getScreenMapSize() {
+		final Rectangle2D bound = getMapBound();
+		final int width = (int) Math.round(bound.getWidth() * scale) + MAP_BORDER * 2;
+		final int height = (int) Math.round(bound.getHeight() * scale) + MAP_BORDER * 2;
+		final Dimension result = new Dimension(width, height);
+		return result;
+	}
+
+	/**
+	 * Returns the transformation from map coordinates to screen coordinates
 	 */
 	private AffineTransform getTransform() {
-		final AffineTransform scaleTr = AffineTransform.getScaleInstance(scale, scale);
-		final AffineTransform offsetTr = AffineTransform.getTranslateInstance(MAP_BORDER, MAP_BORDER);
-		scaleTr.concatenate(offsetTr);
-		return scaleTr;
+		final Rectangle2D mapBound = getMapBound();
+		final AffineTransform result = AffineTransform.getTranslateInstance(MAP_BORDER, MAP_BORDER);
+		result.scale(scale, scale);
+		result.translate(-mapBound.getMinX(), -mapBound.getMinY());
+		return result;
 	}
 
 	/**
@@ -284,6 +334,20 @@ public class Controller {
 			mainFrame.resetTitle().setSaveActionEnabled(false).repaint();
 		}
 //		startSimulation();
+		return this;
+	}
+
+	/**
+	 * 
+	 * @param status
+	 * @return
+	 */
+	private Controller handleNewStatus(final SimulationStatus status) {
+		currentStatus = Optional.of(status);
+		final Dimension preferredSize = getScreenMapSize();
+		routeMap.setTransform(getTransform()).setStatus(status).setPreferredSize(preferredSize);
+		scrollMap.setHud(computeHud(pointLegendPattern, new Point2D.Double()));
+		mainFrame.repaint();
 		return this;
 	}
 
@@ -375,6 +439,17 @@ public class Controller {
 
 		mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		mainFrame.setVisible(true);
+		return this;
+	}
+
+	/**
+	 * 
+	 * @param scale
+	 * @return
+	 */
+	private Controller setScale(final double scale) {
+		this.scale = scale;
+		routeMap.setGridSize(getGridSize()).setBorderPainted(scale > 1).repaint();
 		return this;
 	}
 
