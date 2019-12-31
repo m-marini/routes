@@ -31,6 +31,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Rectangle2D;
@@ -53,11 +54,11 @@ public class RouteMap extends JComponent {
 	private static final Logger logger = LoggerFactory.getLogger(RouteMap.class);
 
 	private final Observable<MouseEvent> mouseObs;
+	private final Observable<MouseWheelEvent> mouseWheelObs;
 	private boolean trafficView;
 	private Optional<SimulationStatus> status;
 	private AffineTransform transform;
 	private double gridSize;
-
 	private boolean borderPainted;
 
 	/**
@@ -68,6 +69,7 @@ public class RouteMap extends JComponent {
 		transform = new AffineTransform();
 		gridSize = 10;
 		mouseObs = SwingObservable.mouse(this);
+		mouseWheelObs = SwingObservable.mouseWheel(this);
 		status = Optional.empty();
 		setBackground(Color.WHITE);
 		setDoubleBuffered(true);
@@ -86,6 +88,13 @@ public class RouteMap extends JComponent {
 	 */
 	public Observable<MouseEvent> getMouseObs() {
 		return mouseObs;
+	}
+
+	/**
+	 * @return the mouseWeelObs
+	 */
+	public Observable<MouseWheelEvent> getMouseWheelObs() {
+		return mouseWheelObs;
 	}
 
 	/**
@@ -136,7 +145,7 @@ public class RouteMap extends JComponent {
 
 	/**
 	 * Returns the route map with set border painted
-	 * 
+	 *
 	 * @param borderPainted true if border painted
 	 */
 	public RouteMap setBorderPainted(final boolean borderPainted) {
@@ -146,7 +155,7 @@ public class RouteMap extends JComponent {
 
 	/**
 	 * Returns the route map with grid size set
-	 * 
+	 *
 	 * @param gridSize the grid size in meters
 	 */
 	public RouteMap setGridSize(final double gridSize) {
@@ -182,7 +191,7 @@ public class RouteMap extends JComponent {
 
 	/**
 	 * Returns the route map with set transform
-	 * 
+	 *
 	 * @param transform the transform from map coordinate to screen coordinate
 	 */
 	public RouteMap setTransform(final AffineTransform transform) {

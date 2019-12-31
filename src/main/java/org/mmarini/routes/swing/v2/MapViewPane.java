@@ -57,7 +57,6 @@ public class MapViewPane extends JPanel {
 	private final JToggleButton selectButton;
 	private final JToggleButton edgeButton;
 	private final JToggleButton moduleButton;
-	private final JToggleButton centerButton;
 	private final ButtonGroup toolGroup;
 	private final JToggleButton normalViewButton;
 	private final JToggleButton trafficViewButton;
@@ -71,7 +70,6 @@ public class MapViewPane extends JPanel {
 
 		edgeButton = createJToggleButton("MapViewPane.edgeAction"); //$NON-NLS-1$
 		moduleButton = createJToggleButton("MapViewPane.moduleAction"); //$NON-NLS-1$
-		centerButton = createJToggleButton("MapViewPane.centerAction"); //$NON-NLS-1$
 
 		toolGroup = new ButtonGroup();
 		viewGroup = new ButtonGroup();
@@ -104,7 +102,6 @@ public class MapViewPane extends JPanel {
 		final JToolBar bar = new JToolBar();
 		bar.add(selectButton);
 		bar.add(edgeButton);
-		bar.add(centerButton);
 		bar.add(moduleButton);
 		bar.add(new JSeparator(SwingConstants.VERTICAL));
 
@@ -136,7 +133,6 @@ public class MapViewPane extends JPanel {
 		toolGroup.add(selectButton);
 		toolGroup.add(edgeButton);
 		toolGroup.add(moduleButton);
-		toolGroup.add(centerButton);
 
 		viewGroup.add(normalViewButton);
 		viewGroup.add(trafficViewButton);

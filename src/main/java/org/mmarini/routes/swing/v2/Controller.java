@@ -28,7 +28,9 @@ package org.mmarini.routes.swing.v2;
 
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
@@ -64,10 +66,13 @@ import org.mmarini.routes.model.v2.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.reactivex.rxjava3.core.Observable;
+
 /**
  *
  */
 public class Controller {
+	private static final double SCALE_FACTOR = Math.sqrt(2);
 	private static final int MAP_BORDER = 60;
 	private static final double DEFAULT_SCALE = 10;
 	private static final double MIN_GRID_SIZE_METERS = 1;
@@ -160,6 +165,16 @@ public class Controller {
 			mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
 		});
 
+		createCenterMapObs().subscribe(point -> {
+			scrollMap.getViewport().setViewPosition(point);
+			mainFrame.repaint();
+		});
+
+		createScaleObs().subscribe(t -> {
+			logger.info("{}", t);
+			setScale(t.getElem2());
+			mainFrame.repaint();
+		});
 		routeMap.getMouseObs().subscribe(ev -> {
 			Optional.ofNullable(ev.getPoint()).ifPresent(pt -> {
 				final Point2D mapPt = computeMapLocation(pt);
@@ -199,6 +214,29 @@ public class Controller {
 	}
 
 	/**
+	 * Returns the observable of viewport location for center map action
+	 */
+	private Observable<Point> createCenterMapObs() {
+		return routeMap.getMouseObs().filter(ev -> ev.getID() == MouseEvent.MOUSE_CLICKED).map(ev -> {
+			final Point mouseAt = ev.getPoint();
+			final Dimension size = scrollMap.getViewport().getExtentSize();
+			final int x = Math.max(0, mouseAt.x - size.width / 2);
+			final int y = Math.max(0, mouseAt.y - size.height / 2);
+			final Point newViewPos = new Point(x, y);
+			return newViewPos;
+		});
+	}
+
+	private Observable<Tuple2<Point2D, Double>> createScaleObs() {
+		return routeMap.getMouseWheelObs().map(ev -> {
+			final double scale = Math.pow(SCALE_FACTOR, -ev.getWheelRotation());
+			final Point2D center = getInverseTransform().transform(ev.getPoint(), new Point2D.Double());
+			final double newScale = this.scale * scale;
+			return new Tuple2<>(center, newScale);
+		});
+	}
+
+	/**
 	 * Returns the explorerPane
 	 */
 	public ExplorerPane getExplorerPane() {
@@ -233,7 +271,7 @@ public class Controller {
 
 	/**
 	 * Returns the map bound
-	 * 
+	 *
 	 * @param map the map
 	 */
 	private Rectangle2D getMapBound() {
@@ -272,7 +310,7 @@ public class Controller {
 
 	/**
 	 * Returns the map size
-	 * 
+	 *
 	 * @param map the map
 	 */
 	private Dimension getScreenMapSize() {
@@ -338,7 +376,7 @@ public class Controller {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param status
 	 * @return
 	 */
@@ -443,13 +481,13 @@ public class Controller {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param scale
 	 * @return
 	 */
 	private Controller setScale(final double scale) {
 		this.scale = scale;
-		routeMap.setGridSize(getGridSize()).setBorderPainted(scale > 1).repaint();
+		routeMap.setGridSize(getGridSize()).setBorderPainted(scale > 1).setPreferredSize(getScreenMapSize());
 		return this;
 	}
 

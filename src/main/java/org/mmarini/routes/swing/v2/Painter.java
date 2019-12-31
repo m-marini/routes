@@ -266,7 +266,7 @@ public class Painter {
 
 	/**
 	 * Returns the painter with set border painted
-	 * 
+	 *
 	 * @param borderPainted true if border painted
 	 */
 	public Painter setBorderPainted(final boolean borderPainted) {
