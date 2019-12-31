@@ -58,6 +58,8 @@ public class RouteMap extends JComponent {
 	private AffineTransform transform;
 	private double gridSize;
 
+	private boolean borderPainted;
+
 	/**
 	 *
 	 */
@@ -73,7 +75,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	 * @return the gridSize
+	 * Returns the grid size in meter
 	 */
 	public double getGridSize() {
 		return gridSize;
@@ -126,15 +128,26 @@ public class RouteMap extends JComponent {
 			final Rectangle2D bound = new Rectangle2D.Double(0, 0, size.width, size.height);
 			final Rectangle2D realBound = tr.createInverse().createTransformedShape(bound).getBounds2D();
 			Painter.create((Graphics2D) g.create()).setBound(realBound).setStatus(status).setTransform(tr)
-					.setGridSize(gridSize).paint();
+					.setGridSize(gridSize).setBorderPainted(borderPainted).paint();
 		} catch (final NoninvertibleTransformException e) {
 			logger.error(e.getMessage(), e);
 		}
 	}
 
 	/**
-	 * @param gridSize the gridSize to set
-	 * @return
+	 * Returns the route map with set border painted
+	 * 
+	 * @param borderPainted true if border painted
+	 */
+	public RouteMap setBorderPainted(final boolean borderPainted) {
+		this.borderPainted = borderPainted;
+		return this;
+	}
+
+	/**
+	 * Returns the route map with grid size set
+	 * 
+	 * @param gridSize the grid size in meters
 	 */
 	public RouteMap setGridSize(final double gridSize) {
 		this.gridSize = gridSize;
@@ -155,20 +168,22 @@ public class RouteMap extends JComponent {
 	 */
 	public RouteMap setStatus(final SimulationStatus status) {
 		this.status = Optional.ofNullable(status);
-		repaint();
 		return this;
 	}
 
 	/**
 	 * @param trafficView the trafficView to set
+	 * @return
 	 */
-	public void setTrafficView(final boolean trafficView) {
+	public RouteMap setTrafficView(final boolean trafficView) {
 		this.trafficView = trafficView;
+		return this;
 	}
 
 	/**
-	 * @param transform the transform to set
-	 * @return
+	 * Returns the route map with set transform
+	 * 
+	 * @param transform the transform from map coordinate to screen coordinate
 	 */
 	public RouteMap setTransform(final AffineTransform transform) {
 		this.transform = transform;
