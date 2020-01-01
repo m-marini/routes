@@ -28,7 +28,6 @@ package org.mmarini.routes.swing.v2;
 
 import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
@@ -72,6 +71,7 @@ import io.reactivex.rxjava3.core.Observable;
  *
  */
 public class Controller {
+	private static final int BORDER_SCALE = 10;
 	private static final double SCALE_FACTOR = Math.sqrt(2);
 	private static final int MAP_BORDER = 60;
 	private static final double DEFAULT_SCALE = 10;
@@ -171,10 +171,14 @@ public class Controller {
 		});
 
 		createScaleObs().subscribe(t -> {
-			logger.info("{}", t);
+			logger.debug("{}", t);
 			setScale(t.getElem2());
-			mainFrame.repaint();
+			scrollMap.getViewport().setViewPosition(t.getElem1());
+			routeMap.repaint();
+//			mainFrame.repaint();
 		});
+
+		scrollMap.getChangeObs().subscribe(ev -> scrollMap.repaint());
 		routeMap.getMouseObs().subscribe(ev -> {
 			Optional.ofNullable(ev.getPoint()).ifPresent(pt -> {
 				final Point2D mapPt = computeMapLocation(pt);
@@ -227,12 +231,18 @@ public class Controller {
 		});
 	}
 
-	private Observable<Tuple2<Point2D, Double>> createScaleObs() {
+	/**
+	 * Returns the observable of viewport location and scale for zoom action
+	 */
+	private Observable<Tuple2<Point, Double>> createScaleObs() {
 		return routeMap.getMouseWheelObs().map(ev -> {
-			final double scale = Math.pow(SCALE_FACTOR, -ev.getWheelRotation());
-			final Point2D center = getInverseTransform().transform(ev.getPoint(), new Point2D.Double());
-			final double newScale = this.scale * scale;
-			return new Tuple2<>(center, newScale);
+			final Point point = ev.getPoint();
+			final double newScale = this.scale * Math.pow(SCALE_FACTOR, -ev.getWheelRotation());
+			final Point p0 = scrollMap.getViewport().getViewPosition();
+			final int x = Math.max(0, (int) Math.round((point.x - MAP_BORDER) * (newScale / scale - 1) + p0.x));
+			final int y = Math.max(0, (int) Math.round((point.y - MAP_BORDER) * (newScale / scale - 1) + p0.y));
+			final Point corner = new Point(x, y);
+			return new Tuple2<>(corner, newScale);
 		});
 	}
 
@@ -325,6 +335,15 @@ public class Controller {
 	 * Returns the transformation from map coordinates to screen coordinates
 	 */
 	private AffineTransform getTransform() {
+		return getTransform(scale);
+	}
+
+	/**
+	 * Returns the transformation from map coordinates to screen coordinate
+	 *
+	 * @param scale the scale
+	 */
+	private AffineTransform getTransform(final double scale) {
 		final Rectangle2D mapBound = getMapBound();
 		final AffineTransform result = AffineTransform.getTranslateInstance(MAP_BORDER, MAP_BORDER);
 		result.scale(scale, scale);
@@ -487,7 +506,8 @@ public class Controller {
 	 */
 	private Controller setScale(final double scale) {
 		this.scale = scale;
-		routeMap.setGridSize(getGridSize()).setBorderPainted(scale > 1).setPreferredSize(getScreenMapSize());
+		routeMap.setTransform(getTransform()).setGridSize(getGridSize()).setBorderPainted(scale >= BORDER_SCALE)
+				.setPreferredSize(getScreenMapSize());
 		return this;
 	}
 
