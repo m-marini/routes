@@ -113,6 +113,20 @@ public class MapNode implements Comparable<MapNode> {
 	}
 
 	/**
+	 * Return the name (the uuid)
+	 */
+	private String getName() {
+		return id.toString();
+	}
+
+	/**
+	 * Returns the short name (first 6 characters of uuid)
+	 */
+	public String getShortName() {
+		return getName().substring(0, 6);
+	}
+
+	/**
 	 *
 	 * @return
 	 */

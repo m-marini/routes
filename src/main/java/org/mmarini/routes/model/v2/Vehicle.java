@@ -151,6 +151,20 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 	}
 
 	/**
+	 * Return the name (the uuid)
+	 */
+	private String getName() {
+		return id.toString();
+	}
+
+	/**
+	 * Returns the short name (first 6 characters of uuid)
+	 */
+	public String getShortName() {
+		return getName().substring(0, 6);
+	}
+
+	/**
 	 * Returns the target site
 	 * <p>
 	 * Returns the destination if vehicle is not returning or else the departure

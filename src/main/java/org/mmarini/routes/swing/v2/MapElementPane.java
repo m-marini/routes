@@ -32,6 +32,9 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JPanel;
 
+import org.mmarini.routes.model.v2.MapEdge;
+import org.mmarini.routes.model.v2.MapNode;
+
 /**
  *
  */
@@ -48,12 +51,24 @@ public class MapElementPane extends JPanel {
 	private final MapNodePane mapNodePane;
 	private final EdgePane edgePane;
 
-	public MapElementPane() {
+	/**
+	 *
+	 * @param nodePane
+	 * @param edgePane
+	 */
+	public MapElementPane(final MapNodePane nodePane, final EdgePane edgePane) {
+		this.mapNodePane = nodePane;
+		this.edgePane = edgePane;
 		cardLayout = new CardLayout();
-		mapNodePane = new MapNodePane();
-//		siteNodePane = new SiteNodePane();
-		edgePane = new EdgePane();
 		createContent();
+	}
+
+	/**
+	 *
+	 */
+	public MapElementPane clearSelection() {
+		cardLayout.show(this, EMPTY_CARD);
+		return this;
 	}
 
 	/**
@@ -67,6 +82,28 @@ public class MapElementPane extends JPanel {
 		add(mapNodePane, NODE_CARD);
 //		add(siteNodePane, SITE_CARD);
 		add(edgePane, EDGE_CARD);
+		return this;
+	}
+
+	/**
+	 * Returns the map element panel with edge detail panel
+	 *
+	 * @param edge the edge
+	 */
+	public MapElementPane setEdge(final MapEdge edge) {
+		edgePane.setEdge(edge);
+		cardLayout.show(this, EDGE_CARD);
+		return this;
+	}
+
+	/**
+	 * Returns the map element panel with node detail panel
+	 *
+	 * @param node the node
+	 */
+	public MapElementPane setNode(final MapNode node) {
+		mapNodePane.setNode(node);
+		cardLayout.show(this, NODE_CARD);
 		return this;
 	}
 }

@@ -112,9 +112,9 @@ public class ExplorerPane extends JTabbedPane {
 				.map(ev -> siteJList.getSelectedValue());
 		nodeObs = SwingObservable.listSelection(nodeJList).filter(ev -> !ev.getValueIsAdjusting())
 				.map(ev -> nodeJList.getSelectedValue());
-		siteJList.setCellRenderer(new StringCellRenderer<>(a -> a.getId().toString().substring(0, 6)));
-		nodeJList.setCellRenderer(new StringCellRenderer<>(a -> a.getId().toString().substring(0, 6)));
-		edgeJList.setCellRenderer(new StringCellRenderer<>(a -> a.getId().toString().substring(0, 6)));
+		siteJList.setCellRenderer(new StringCellRenderer<>(a -> a.getShortName()));
+		nodeJList.setCellRenderer(new StringCellRenderer<>(a -> a.getShortName()));
+		edgeJList.setCellRenderer(new StringCellRenderer<>(a -> a.getShortName()));
 		init().createContent();
 	}
 
