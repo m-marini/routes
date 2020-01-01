@@ -34,7 +34,7 @@ import org.mmarini.routes.model.Constants;
 /**
  * A vehicle in the simulation model
  */
-public class Vehicle implements Constants {
+public class Vehicle implements Comparable<Vehicle>, Constants {
 
 	private static final double EPSILON = 1e-3;
 
@@ -76,6 +76,11 @@ public class Vehicle implements Constants {
 		this.location = location;
 		this.edgeEntryTime = edgeEntryTime;
 		this.returning = returning;
+	}
+
+	@Override
+	public int compareTo(final Vehicle other) {
+		return UUIDComparator.compareTo(id, other.id);
 	}
 
 	@Override

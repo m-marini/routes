@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #22: Create reactive simulation
 - Issue #28: Zoom in / out
 - Issue #29: Head up display
+- Issue #30: Explorer panel
 - Issue #32: Scroll panel
 - Issue #35: Center map to cursor
 

@@ -49,7 +49,7 @@ import org.mmarini.routes.model.Constants;
  * dove Vl = 5 è la lunghezza del veicolo.<br>
  * </p>
  */
-public class MapEdge implements Constants {
+public class MapEdge implements Comparable<MapEdge>, Constants {
 	/**
 	 *
 	 * @param begin
@@ -82,6 +82,11 @@ public class MapEdge implements Constants {
 		this.end = end;
 		this.speedLimit = speedLimit;
 		this.priority = priority;
+	}
+
+	@Override
+	public int compareTo(final MapEdge other) {
+		return UUIDComparator.compareTo(id, other.id);
 	}
 
 	/**

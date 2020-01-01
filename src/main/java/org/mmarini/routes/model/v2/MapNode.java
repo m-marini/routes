@@ -33,7 +33,7 @@ import java.util.UUID;
 /**
  *
  */
-public class MapNode {
+public class MapNode implements Comparable<MapNode> {
 	/**
 	 *
 	 * @param x
@@ -68,6 +68,11 @@ public class MapNode {
 		super();
 		this.id = id;
 		this.location = location;
+	}
+
+	@Override
+	public int compareTo(final MapNode other) {
+		return UUIDComparator.compareTo(id, other.id);
 	}
 
 	@Override

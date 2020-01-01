@@ -165,9 +165,9 @@ public class Controller {
 			mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
 		});
 
-		createCenterMapObs().subscribe(point -> {
+		createMapViewPosObs().subscribe(point -> {
+			logger.debug("Viewport at {}", point);
 			scrollMap.getViewport().setViewPosition(point);
-			mainFrame.repaint();
 		});
 
 		createScaleObs().subscribe(t -> {
@@ -175,16 +175,11 @@ public class Controller {
 			setScale(t.getElem2());
 			scrollMap.getViewport().setViewPosition(t.getElem1());
 			routeMap.repaint();
-//			mainFrame.repaint();
 		});
 
 		scrollMap.getChangeObs().subscribe(ev -> scrollMap.repaint());
-		routeMap.getMouseObs().subscribe(ev -> {
-			Optional.ofNullable(ev.getPoint()).ifPresent(pt -> {
-				final Point2D mapPt = computeMapLocation(pt);
-				scrollMap.setHud(computeHud(pointLegendPattern, mapPt));
-			});
-		});
+
+		createHudObs().subscribe(scrollMap::setHud);
 
 		simulator.getOutput().subscribe(this::handleNewStatus);
 
@@ -199,9 +194,7 @@ public class Controller {
 	 */
 	private List<String> computeHud(final List<String> patterns, final Point2D point) {
 		final Object[] parms = new Object[] { routeMap.getGridSize(), point.getX(), point.getY(), 0 };
-		/*
-		 * Compute the pattern
-		 */
+		// Compute the pattern
 		final List<String> texts = patterns.stream().map(pattern -> MessageFormat.format(pattern, parms))
 				.collect(Collectors.toList());
 		return texts;
@@ -218,17 +211,39 @@ public class Controller {
 	}
 
 	/**
+	 * Returns the observable of head up display
+	 */
+	private Observable<List<String>> createHudObs() {
+		final Observable<List<String>> result = routeMap.getMouseObs().filter(ev -> ev.getPoint() != null).map(ev -> {
+			final Point2D mapPt = computeMapLocation(ev.getPoint());
+			return computeHud(pointLegendPattern, mapPt);
+		});
+		return result;
+	}
+
+	/**
 	 * Returns the observable of viewport location for center map action
 	 */
-	private Observable<Point> createCenterMapObs() {
-		return routeMap.getMouseObs().filter(ev -> ev.getID() == MouseEvent.MOUSE_CLICKED).map(ev -> {
-			final Point mouseAt = ev.getPoint();
+	private Observable<Point> createMapViewPosObs() {
+		final Observable<Point> onMouseClick = routeMap.getMouseObs()
+				.filter(ev -> ev.getID() == MouseEvent.MOUSE_CLICKED).map(MouseEvent::getPoint);
+		final Observable<Point2D> onSiteSelection = explorerPane.getSiteObs().map(SiteNode::getLocation);
+		final Observable<Point2D> onNodeSelection = explorerPane.getNodeObs().map(MapNode::getLocation);
+		final Observable<Point2D> onEdgeSelection = explorerPane.getEdgeObs().map(MapEdge::getBeginLocation);
+		final Observable<Point> onLocationSelection = onSiteSelection.mergeWith(onNodeSelection)
+				.mergeWith(onEdgeSelection).map(point -> {
+					final Point2D pt = getTransform().transform(point, new Point());
+					return new Point((int) Math.round(pt.getX()), (int) Math.round(pt.getY()));
+				});
+		final Observable<Point> result = onMouseClick.mergeWith(onLocationSelection).map(pt -> {
 			final Dimension size = scrollMap.getViewport().getExtentSize();
-			final int x = Math.max(0, mouseAt.x - size.width / 2);
-			final int y = Math.max(0, mouseAt.y - size.height / 2);
+			final int x = Math.max(0, pt.x - size.width / 2);
+			final int y = Math.max(0, pt.y - size.height / 2);
 			final Point newViewPos = new Point(x, y);
 			return newViewPos;
 		});
+		return result;
+
 	}
 
 	/**
@@ -404,7 +419,7 @@ public class Controller {
 		final Dimension preferredSize = getScreenMapSize();
 		routeMap.setTransform(getTransform()).setStatus(status).setPreferredSize(preferredSize);
 		scrollMap.setHud(computeHud(pointLegendPattern, new Point2D.Double()));
-		mainFrame.repaint();
+		explorerPane.setMap(status.getMap());
 		return this;
 	}
 
