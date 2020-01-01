@@ -25,6 +25,8 @@ import org.mmarini.routes.model.v2.MapNode;
 import org.mmarini.routes.model.v2.SimulationStatus;
 import org.mmarini.routes.model.v2.SiteNode;
 import org.mmarini.routes.model.v2.Tuple2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author mmarini
@@ -72,6 +74,8 @@ public class Painter {
 	private static final Rectangle2D VEHICLE_SHAPE = new Rectangle2D.Double(-VEICLE_LENGTH, -VEICLE_WIDTH / 2,
 			VEICLE_LENGTH, VEICLE_WIDTH);
 
+	private static final Logger logger = LoggerFactory.getLogger(Painter.class);
+
 	/**
 	 * Returns the comparison between two nodes
 	 *
@@ -97,8 +101,7 @@ public class Painter {
 	private final boolean reversed;
 	private final double gridSize;
 	private final Map<SiteNode, Color> colorMap;
-
-	private boolean borderPainted;
+	private final boolean borderPainted;
 
 	/**
 	 * @param graphics
@@ -117,6 +120,7 @@ public class Painter {
 		this.status = status;
 		this.bound = bound;
 		this.colorMap = colorMap;
+		this.borderPainted = false;
 	}
 
 	/**
@@ -176,7 +180,6 @@ public class Painter {
 	private Painter paintGrid() {
 		final Color minorColor = reversed ? MINOR_GRID_REVERSED_COLOR : MINOR_GRID_COLOR;
 		final Color majorColor = reversed ? MAJOR_GRID_REVERSED_COLOR : MAJOR_GRID_COLOR;
-		graphics.setColor(minorColor);
 		graphics.setStroke(THIN_STROKE);
 
 		final long i0 = (long) Math.floor(bound.getMinX() / gridSize);
@@ -189,13 +192,13 @@ public class Painter {
 		final double y0 = j0 * gridSize;
 		final double y1 = j1 * gridSize;
 		for (long i = i0; i <= i1; ++i) {
-			graphics.setColor(i % 10 == 0 ? majorColor : minorColor);
+			graphics.setColor((i % 10) == 0 ? majorColor : minorColor);
 			final double x = i * gridSize;
 			graphics.draw(new Line2D.Double(x, y0, x, y1));
 
 		}
 		for (long j = j0; j <= j1; ++j) {
-			graphics.setColor(j % 10 == 0 ? majorColor : minorColor);
+			graphics.setColor((j % 10) == 0 ? majorColor : minorColor);
 			final double y = j * gridSize;
 			graphics.draw(new Line2D.Double(x0, y, x1, y));
 
@@ -270,8 +273,7 @@ public class Painter {
 	 * @param borderPainted true if border painted
 	 */
 	public Painter setBorderPainted(final boolean borderPainted) {
-		this.borderPainted = borderPainted;
-		return this;
+		return new Painter(graphics, reversed, gridSize, status, bound, colorMap);
 	}
 
 	/**

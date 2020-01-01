@@ -72,6 +72,7 @@ public class RouteMap extends JComponent {
 		mouseWheelObs = SwingObservable.mouseWheel(this);
 		status = Optional.empty();
 		setBackground(Color.WHITE);
+		setOpaque(true);
 		setDoubleBuffered(true);
 		logger.debug("RouteMap created");
 	}
@@ -123,7 +124,7 @@ public class RouteMap extends JComponent {
 	 */
 	@Override
 	protected void paintComponent(final Graphics g) {
-		final Dimension size = getSize();
+		final Dimension size = getPreferredSize();
 		Color bg;
 		if (trafficView) {
 			bg = Color.BLACK;
@@ -132,12 +133,12 @@ public class RouteMap extends JComponent {
 		}
 		g.setColor(bg);
 		g.fillRect(0, 0, size.width, size.height);
-		final AffineTransform tr = transform;
 		try {
 			final Rectangle2D bound = new Rectangle2D.Double(0, 0, size.width, size.height);
-			final Rectangle2D realBound = tr.createInverse().createTransformedShape(bound).getBounds2D();
-			Painter.create((Graphics2D) g.create()).setBound(realBound).setStatus(status).setTransform(tr)
-					.setGridSize(gridSize).setBorderPainted(borderPainted).paint();
+			final Rectangle2D realBound = transform.createInverse().createTransformedShape(bound).getBounds2D();
+			final Graphics2D gr = (Graphics2D) g.create();
+			Painter.create(gr).setBound(realBound).setStatus(status).setTransform(transform).setGridSize(gridSize)
+					.setBorderPainted(borderPainted).paint();
 		} catch (final NoninvertibleTransformException e) {
 			logger.error(e.getMessage(), e);
 		}

@@ -34,13 +34,12 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.event.ChangeEvent;
 
 import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
@@ -55,8 +54,7 @@ public class ScrollMap extends JScrollPane {
 	private static final Insets LEGEND_INSETS = new Insets(3, 3, 3, 3);
 
 	private final Observable<ActionEvent> scaleToObs;
-	private final Observable<MouseWheelEvent> mouseWeelObs;
-	private final Observable<MouseEvent> mouseMotionObs;
+	private final Observable<ChangeEvent> changeObs;
 	private List<String> hud;
 
 	/**
@@ -70,11 +68,10 @@ public class ScrollMap extends JScrollPane {
 
 		final JButton lowerLeftCornerButton = new JButton();
 		scaleToObs = SwingObservable.actions(lowerLeftCornerButton);
-		mouseWeelObs = SwingObservable.mouseWheel(this);
-		mouseMotionObs = SwingObservable.mouse(this);
+		changeObs = SwingObservable.change(getViewport());
 		setCorner(ScrollPaneConstants.LOWER_RIGHT_CORNER, lowerLeftCornerButton);
 
-		setDoubleBuffered(true);
+		setDoubleBuffered(false);
 		setOpaque(false);
 	}
 
@@ -93,17 +90,10 @@ public class ScrollMap extends JScrollPane {
 	}
 
 	/**
-	 * Returns the mouseMotionObs
+	 * @return the changeObs
 	 */
-	public Observable<MouseEvent> getMouseMotionObs() {
-		return mouseMotionObs;
-	}
-
-	/**
-	 * Returns the mouseWeelObs
-	 */
-	public Observable<MouseWheelEvent> getMouseWeelObs() {
-		return mouseWeelObs;
+	public Observable<ChangeEvent> getChangeObs() {
+		return changeObs;
 	}
 
 	/**
