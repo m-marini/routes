@@ -194,10 +194,24 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	}
 
 	/**
+	 * Return the name (the uuid)
+	 */
+	private String getName() {
+		return id.toString();
+	}
+
+	/**
 	 * @return the priority
 	 */
 	public int getPriority() {
 		return priority;
+	}
+
+	/**
+	 * Returns the short name (first 6 characters of uuid)
+	 */
+	public String getShortName() {
+		return getName().substring(0, 6);
 	}
 
 	/**

@@ -119,6 +119,8 @@ public class Controller {
 	private final MapProfilePane mapProfilePane;
 	private final RouteMap routeMap;
 	private final ExplorerPane explorerPane;
+	private final MapNodePane nodePane;
+	private final EdgePane edgePane;
 	private final MapElementPane mapElementPane;
 	private final MainFrame mainFrame;
 	private final Simulator simulator;
@@ -140,7 +142,9 @@ public class Controller {
 		this.mapProfilePane = new MapProfilePane();
 		this.fileChooser = new JFileChooser();
 		this.explorerPane = new ExplorerPane();
-		this.mapElementPane = new MapElementPane();
+		this.edgePane = new EdgePane();
+		this.nodePane = new MapNodePane();
+		this.mapElementPane = new MapElementPane(nodePane, edgePane);
 		this.scrollMap = new ScrollMap(routeMap);
 		this.mapViewPane = new MapViewPane(scrollMap);
 		this.mainFrame = new MainFrame(mapViewPane, explorerPane, mapElementPane);
@@ -164,7 +168,9 @@ public class Controller {
 		mainFrame.getExitObs().subscribe(ev -> {
 			mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
 		});
-
+		createDetailSiteObs().subscribe(mapElementPane::setNode);
+		createDetailNodeObs().subscribe(mapElementPane::setNode);
+		createDetailEdgeObs().subscribe(mapElementPane::setEdge);
 		createMapViewPosObs().subscribe(point -> {
 			logger.debug("Viewport at {}", point);
 			scrollMap.getViewport().setViewPosition(point);
@@ -207,6 +213,29 @@ public class Controller {
 	 */
 	private Point2D computeMapLocation(final Point pt) {
 		final Point2D result = getInverseTransform().transform(pt, new Point2D.Double());
+		return result;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	private Observable<MapEdge> createDetailEdgeObs() {
+		final Observable<MapEdge> result = explorerPane.getEdgeObs();
+		return result;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	private Observable<MapNode> createDetailNodeObs() {
+		final Observable<MapNode> result = explorerPane.getNodeObs();
+		return result;
+	}
+
+	private Observable<SiteNode> createDetailSiteObs() {
+		final Observable<SiteNode> result = explorerPane.getSiteObs();
 		return result;
 	}
 
