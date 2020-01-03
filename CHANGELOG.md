@@ -9,9 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-### Added
+### Changed
 
-- Issue #17: Load immutable model
+- Issue #17: Change model rendering
+- Issue #18: Load immutable model
+- Issue #21: Create main frame
 - Issue #22: Create reactive simulation
 - Issue #28: Zoom in / out
 - Issue #29: Head up display
@@ -19,11 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #31: Detail info panel
 - Issue #32: Scroll panel
 - Issue #35: Center map to cursor
-
-### Changed
-
-- Issue #17: Change model rendering
-- Issue #21: Create main frame
+- Issue #36: Select node with cursor
 
 ## [4.2.0] - 2019-12-08
 

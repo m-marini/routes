@@ -10,6 +10,11 @@
 package org.mmarini.routes.swing.v2;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.net.URL;
 
 import javax.swing.AbstractButton;
@@ -25,6 +30,329 @@ import javax.swing.KeyStroke;
  * Various functionalities used in the user interface.
  */
 public class SwingUtils {
+	public static class GridBagConstraintsBuilder {
+		private final GridBagConstraints constraints;
+
+		/**
+		 * @param constraints
+		 */
+		protected GridBagConstraintsBuilder(final GridBagConstraints constraints) {
+			super();
+			this.constraints = constraints;
+		}
+
+		public GridBagConstraintsBuilder above() {
+			constraints.fill = GridBagConstraints.ABOVE_BASELINE;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder aboveLeading() {
+			constraints.fill = GridBagConstraints.ABOVE_BASELINE_LEADING;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder aboveTrailing() {
+			constraints.fill = GridBagConstraints.ABOVE_BASELINE_TRAILING;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder anchor(final int anchor) {
+			constraints.anchor = anchor;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder baseline() {
+			constraints.fill = GridBagConstraints.BASELINE;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder below() {
+			constraints.fill = GridBagConstraints.BELOW_BASELINE;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder belowLeading() {
+			constraints.fill = GridBagConstraints.BELOW_BASELINE_LEADING;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder belowTrailing() {
+			constraints.fill = GridBagConstraints.BELOW_BASELINE_TRAILING;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder both() {
+			constraints.fill = GridBagConstraints.BOTH;
+			return this;
+		}
+
+		/**
+		 *
+		 * @return
+		 */
+		public GridBagConstraints build() {
+			return constraints;
+		}
+
+		public GridBagConstraintsBuilder center() {
+			constraints.anchor = GridBagConstraints.CENTER;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder east() {
+			constraints.anchor = GridBagConstraints.EAST;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder fill(final int fill) {
+			constraints.fill = fill;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder firstLineEnd() {
+			constraints.anchor = GridBagConstraints.FIRST_LINE_END;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder firstLineStart() {
+			constraints.anchor = GridBagConstraints.FIRST_LINE_START;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder grid(final int gridx, final int gridy, final int gridwidth,
+				final int gridheight) {
+			constraints.gridx = gridx;
+			constraints.gridy = gridy;
+			constraints.gridwidth = gridwidth;
+			constraints.gridheight = gridheight;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder height(final int gridheight) {
+			constraints.gridheight = gridheight;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder horizontal() {
+			constraints.fill = GridBagConstraints.HORIZONTAL;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder inset(final int size) {
+			constraints.insets = new Insets(size, size, size, size);
+			return this;
+		}
+
+		public GridBagConstraintsBuilder inset(final int vertical, final int horizontal) {
+			constraints.insets = new Insets(vertical, horizontal, vertical, horizontal);
+			return this;
+		}
+
+		public GridBagConstraintsBuilder inset(final int top, final int horizontal, final int bottom) {
+			constraints.insets = new Insets(top, horizontal, bottom, horizontal);
+			return this;
+		}
+
+		public GridBagConstraintsBuilder inset(final int top, final int left, final int bottom, final int right) {
+			constraints.insets = new Insets(top, left, bottom, right);
+			return this;
+		}
+
+		public GridBagConstraintsBuilder insets(final Insets insets) {
+			constraints.insets = insets;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder ipad(final int ipadx, final int ipady) {
+			constraints.ipadx = ipadx;
+			constraints.ipady = ipady;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder ipadx(final int ipadx) {
+			constraints.ipadx = ipadx;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder ipady(final int ipady) {
+			constraints.ipady = ipady;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder lastInColumn() {
+			constraints.gridwidth = GridBagConstraints.REMAINDER;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder lastInRow() {
+			constraints.gridheight = GridBagConstraints.REMAINDER;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder lastLineEnd() {
+			constraints.anchor = GridBagConstraints.LAST_LINE_END;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder lastLineStart() {
+			constraints.anchor = GridBagConstraints.LAST_LINE_START;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder leading() {
+			constraints.fill = GridBagConstraints.BASELINE_LEADING;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder lineEnd() {
+			constraints.anchor = GridBagConstraints.LINE_END;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder lineStart() {
+			constraints.anchor = GridBagConstraints.LINE_START;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder nextLastInColumn() {
+			constraints.gridwidth = GridBagConstraints.RELATIVE;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder nextLastInRow() {
+			constraints.gridheight = GridBagConstraints.RELATIVE;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder nextx() {
+			constraints.gridx = GridBagConstraints.RELATIVE;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder nexty() {
+			constraints.gridy = GridBagConstraints.RELATIVE;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder none() {
+			constraints.fill = GridBagConstraints.NONE;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder north() {
+			constraints.anchor = GridBagConstraints.NORTH;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder northEast() {
+			constraints.anchor = GridBagConstraints.NORTHEAST;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder northWest() {
+			constraints.anchor = GridBagConstraints.NORTHWEST;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder pageEnd() {
+			constraints.anchor = GridBagConstraints.PAGE_END;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder pageStart() {
+			constraints.anchor = GridBagConstraints.PAGE_START;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder south() {
+			constraints.anchor = GridBagConstraints.SOUTH;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder southEast() {
+			constraints.anchor = GridBagConstraints.SOUTHEAST;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder southWest() {
+			constraints.anchor = GridBagConstraints.SOUTHWEST;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder trailing() {
+			constraints.fill = GridBagConstraints.BASELINE_TRAILING;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder vertical() {
+			constraints.fill = GridBagConstraints.VERTICAL;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder weight(final double weightx, final double weighty) {
+			constraints.weightx = weightx;
+			constraints.weighty = weighty;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder weightx(final double weightx) {
+			constraints.weightx = weightx;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder weighty(final double weighty) {
+			constraints.weighty = weighty;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder west() {
+			constraints.anchor = GridBagConstraints.WEST;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder width(final int gridwidth) {
+			constraints.gridwidth = gridwidth;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder x(final int x) {
+			constraints.gridx = x;
+			return this;
+		}
+
+		public GridBagConstraintsBuilder y(final int y) {
+			constraints.gridy = y;
+			return this;
+		}
+	}
+
+	/**
+	 *
+	 */
+	public static class WithGridBagConstraints<T extends Container> {
+		private final T container;
+
+		/**
+		 * @param container
+		 */
+		public WithGridBagConstraints(final T container) {
+			super();
+			this.container = container;
+			container.setLayout(new GridBagLayout());
+		}
+
+		public WithGridBagConstraints<T> add(final Component component, final GridBagConstraints constraints) {
+			((GridBagLayout) container.getLayout()).setConstraints(component, constraints);
+			container.add(component);
+			return this;
+		}
+
+		public T getContainer() {
+			return container;
+		}
+
+	}
+
 	private static final double BRIGHTNESS_ZERO = 0.7;
 	private static final double BRIGHTNESS_ONE = 1;
 	private static final double HUE_ZERO = 0.8;
@@ -44,6 +372,22 @@ public class SwingUtils {
 		final double h = interpolate(value, HUE_ZERO, HUE_ONE);
 		final Color color = Color.getHSBColor((float) h, (float) saturation, (float) b);
 		return color;
+	}
+
+	public static GridBagConstraintsBuilder createFieldConstraints(final int x, final int y, final int w, final int h) {
+		return createGridConstraints(x, y, w, h).west().horizontal().inset(2);
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public static GridBagConstraintsBuilder createGridConstraints() {
+		return new GridBagConstraintsBuilder(new GridBagConstraints());
+	}
+
+	public static GridBagConstraintsBuilder createGridConstraints(final int x, final int y, final int w, final int h) {
+		return new GridBagConstraintsBuilder(new GridBagConstraints()).grid(x, y, w, h);
 	}
 
 	/**
@@ -89,6 +433,10 @@ public class SwingUtils {
 	 */
 	public static JToggleButton createJToggleButton(final String key) {
 		return setButtonProperties(new JToggleButton(), key);
+	}
+
+	public static GridBagConstraintsBuilder createLabelConstraints(final int x, final int y, final int w, final int h) {
+		return createGridConstraints(x, y, w, h).east().inset(2);
 	}
 
 	/**
@@ -145,5 +493,15 @@ public class SwingUtils {
 			result.setAccelerator(KeyStroke.getKeyStroke(acc));
 		}
 		return result;
+	}
+
+	/**
+	 *
+	 * @param <T>
+	 * @param container
+	 * @return
+	 */
+	public static <T extends Container> WithGridBagConstraints<T> withGridBagConstraints(final T container) {
+		return new WithGridBagConstraints<>(container);
 	}
 }
