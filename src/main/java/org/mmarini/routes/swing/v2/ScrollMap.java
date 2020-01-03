@@ -110,6 +110,7 @@ public class ScrollMap extends JScrollPane {
 	protected void paintChildren(final Graphics g) {
 		super.paintChildren(g);
 		paintHud(g, hud);
+		repaint();
 	}
 
 	/**

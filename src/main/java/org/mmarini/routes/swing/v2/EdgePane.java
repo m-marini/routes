@@ -26,13 +26,15 @@
 
 package org.mmarini.routes.swing.v2;
 
+import static org.mmarini.routes.swing.v2.SwingUtils.createFieldConstraints;
+import static org.mmarini.routes.swing.v2.SwingUtils.createGridConstraints;
 import static org.mmarini.routes.swing.v2.SwingUtils.createJButton;
+import static org.mmarini.routes.swing.v2.SwingUtils.createLabelConstraints;
+import static org.mmarini.routes.swing.v2.SwingUtils.withGridBagConstraints;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.text.NumberFormat;
@@ -112,207 +114,32 @@ public class EdgePane extends JPanel {
 	 * @return
 	 */
 	private Component createInfoPane() {
-		final JPanel pane = new JPanel();
-		final GridBagLayout layout = new GridBagLayout();
-		pane.setLayout(layout);
-		final GridBagConstraints cons = new GridBagConstraints();
-		cons.insets = new Insets(2, 2, 2, 2);
-
-		Component c;
-		c = new JLabel(Messages.getString("EdgePane.name.label")); //$NON-NLS-1$
-		cons.gridx = 0;
-		cons.gridy = 0;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		c = nameField;
-		cons.gridx = 1;
-		cons.gridy = 0;
-		cons.gridwidth = 2;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.HORIZONTAL;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		c = Box.createGlue();
-		cons.gridx = 3;
-		cons.gridy = 0;
-		cons.gridwidth = 1;
-		cons.gridheight = 7;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 1;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		c = new JLabel(Messages.getString("EdgePane.begin.label")); //$NON-NLS-1$
-		cons.gridx = 0;
-		cons.gridy = 1;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		c = beginField;
-		cons.gridx = 1;
-		cons.gridy = 1;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
 		browseBeginNodeButton.setBorder(BorderFactory.createEmptyBorder());
-		c = browseBeginNodeButton;
-		cons.gridx = 2;
-		cons.gridy = 1;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		c = new JLabel(Messages.getString("EdgePane.end.label")); //$NON-NLS-1$
-		cons.gridx = 0;
-		cons.gridy = 2;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		c = endField;
-		cons.gridx = 1;
-		cons.gridy = 2;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
 		browseEndNodeButton.setBorder(BorderFactory.createEmptyBorder());
-		c = browseEndNodeButton;
-		cons.gridx = 2;
-		cons.gridy = 2;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
 
-		c = new JLabel(Messages.getString("EdgePane.distance.label")); //$NON-NLS-1$
-		cons.gridx = 0;
-		cons.gridy = 3;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		c = distanceField;
-		cons.gridx = 1;
-		cons.gridy = 3;
-		cons.gridwidth = 2;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		c = new JLabel(Messages.getString("EdgePane.speedLimit.label")); //$NON-NLS-1$
-		cons.gridx = 0;
-		cons.gridy = 4;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		c = speedLimitField;
-		cons.gridx = 1;
-		cons.gridy = 4;
-		cons.gridwidth = 2;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		c = new JLabel(Messages.getString("EdgePane.priority.label")); //$NON-NLS-1$
-		cons.gridx = 0;
-		cons.gridy = 5;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		c = priorityField;
-		cons.gridx = 1;
-		cons.gridy = 5;
-		cons.gridwidth = 2;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		c = Box.createGlue();
-		cons.gridx = 0;
-		cons.gridy = 6;
-		cons.gridwidth = 3;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 1;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
+		final Container pane = withGridBagConstraints(new JPanel())
+				.add(new JLabel(Messages.getString("EdgePane.name.label")), //$NON-NLS-1$
+						createLabelConstraints(0, 0, 1, 1).build())
+				.add(nameField, createFieldConstraints(1, 0, 1, 1).build())
+				.add(Box.createGlue(), createGridConstraints(3, 0, 1, 1).weightx(1).inset(2).build())
+				.add(new JLabel(Messages.getString("EdgePane.begin.label")), //$NON-NLS-1$
+						createLabelConstraints(0, 1, 1, 1).weightx(1).build())
+				.add(beginField, createFieldConstraints(1, 1, 1, 1).build())
+				.add(browseBeginNodeButton, createGridConstraints().grid(2, 1, 1, 1).west().inset(2).build())
+				.add(new JLabel(Messages.getString("EdgePane.end.label")), //$NON-NLS-1$
+						createLabelConstraints(0, 2, 1, 1).build())
+				.add(endField, createFieldConstraints(1, 2, 1, 1).build())
+				.add(browseEndNodeButton, createGridConstraints().grid(2, 2, 1, 1).west().inset(2).build())
+				.add(new JLabel(Messages.getString("EdgePane.distance.label")), //$NON-NLS-1$
+						createLabelConstraints(0, 3, 1, 1).build())
+				.add(distanceField, createFieldConstraints(1, 3, 1, 1).build())
+				.add(new JLabel(Messages.getString("EdgePane.speedLimit.label")), //$NON-NLS-1$
+						createLabelConstraints(0, 4, 1, 1).build())
+				.add(speedLimitField, createFieldConstraints(1, 4, 1, 1).build())
+				.add(new JLabel(Messages.getString("EdgePane.priority.label")), //$NON-NLS-1$
+						createLabelConstraints(0, 5, 1, 1).build())
+				.add(priorityField, createFieldConstraints(1, 5, 1, 1).build())
+				.add(Box.createGlue(), createGridConstraints(0, 6, 3, 1).weighty(1).inset(2).build()).getContainer();
 		return pane;
 	}
 

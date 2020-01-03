@@ -26,13 +26,13 @@
 
 package org.mmarini.routes.swing.v2;
 
+import static org.mmarini.routes.swing.v2.SwingUtils.createFieldConstraints;
+import static org.mmarini.routes.swing.v2.SwingUtils.createGridConstraints;
 import static org.mmarini.routes.swing.v2.SwingUtils.createJButton;
+import static org.mmarini.routes.swing.v2.SwingUtils.createLabelConstraints;
+import static org.mmarini.routes.swing.v2.SwingUtils.withGridBagConstraints;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
 
@@ -107,109 +107,18 @@ public class MapNodePane extends JPanel {
 	 * Returns the info panel
 	 */
 	private JComponent createInfoPane() {
-		final JPanel pane = new JPanel();
-		final GridBagLayout layout = new GridBagLayout();
-		pane.setLayout(layout);
-		final GridBagConstraints cons = new GridBagConstraints();
-		cons.insets = new Insets(2, 2, 2, 2);
-
-		Component c;
-		cons.gridx = 0;
-		cons.gridy = 0;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		c = new JLabel(Messages.getString("MapNodePane.name.label")); //$NON-NLS-1$
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		cons.gridx = 1;
-		cons.gridy = 0;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.HORIZONTAL;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		c = nameField;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		cons.gridx = 2;
-		cons.gridy = 0;
-		cons.gridwidth = 1;
-		cons.gridheight = 4;
-		cons.anchor = GridBagConstraints.CENTER;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 1;
-		cons.weighty = 0;
-		c = Box.createGlue();
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		cons.gridx = 0;
-		cons.gridy = 1;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		c = new JLabel(Messages.getString("MapNodePane.x.label")); //$NON-NLS-1$
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		cons.gridx = 1;
-		cons.gridy = 1;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		c = xField;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		cons.gridx = 0;
-		cons.gridy = 2;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		c = new JLabel(Messages.getString("MapNodePane.y.label")); //$NON-NLS-1$
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		cons.gridx = 1;
-		cons.gridy = 2;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		c = yField;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		cons.gridx = 0;
-		cons.gridy = 3;
-		cons.gridwidth = 2;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.CENTER;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 1;
-		c = Box.createGlue();
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
+		final JPanel pane = withGridBagConstraints(new JPanel())
+				.add(new JLabel(Messages.getString("MapNodePane.name.label")), //$NON-NLS-1$
+						createLabelConstraints(0, 0, 1, 1).build())
+				.add(nameField, createFieldConstraints(1, 0, 1, 1).build())
+				.add(Box.createGlue(), createGridConstraints(2, 0, 1, 4).weightx(1).inset(2).build())
+				.add(new JLabel(Messages.getString("MapNodePane.x.label")), //$NON-NLS-1$
+						createLabelConstraints(0, 1, 1, 1).weightx(1).build())
+				.add(xField, createFieldConstraints(1, 1, 1, 1).build())
+				.add(new JLabel(Messages.getString("MapNodePane.y.label")), //$NON-NLS-1$
+						createLabelConstraints(0, 2, 1, 1).weightx(1).build())
+				.add(yField, createFieldConstraints(1, 2, 1, 1).build())
+				.add(Box.createGlue(), createGridConstraints(0, 3, 2, 1).weighty(1).inset(2).build()).getContainer();
 		return pane;
 	}
 

@@ -26,10 +26,12 @@
 
 package org.mmarini.routes.swing.v2;
 
+import static org.mmarini.routes.swing.v2.RxUtils.withMouseObs;
+import static org.mmarini.routes.swing.v2.RxUtils.withPointObs;
+
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
@@ -71,15 +73,37 @@ import io.reactivex.rxjava3.core.Observable;
  *
  */
 public class Controller {
-	private static final int BORDER_SCALE = 10;
-	private static final double SCALE_FACTOR = Math.sqrt(2);
-	private static final int MAP_BORDER = 60;
-	private static final double DEFAULT_SCALE = 10;
+	private static final double DEFAULT_SCALE = 1;
+	private static final double BORDER_SCALE = 1;
+	private static final double SCALE_FACTOR = Math.pow(10, 1.0 / 4);
+	private static final int MAP_INSETS = 60;
 	private static final double MIN_GRID_SIZE_METERS = 1;
 	private static final int MIN_GRID_SIZE_PIXELS = 10;
 	private static final String INITIAL_MAP = "/test.yml"; // $NON-NLS-1$
 
 	private static final Logger logger = LoggerFactory.getLogger(Controller.class);
+
+	/**
+	 * Returns true if location is in range of node
+	 *
+	 * @param node  node
+	 * @param point location
+	 */
+	private static boolean isInRange(final MapNode node, final Point2D point) {
+		final double distance = node.getLocation().distance(point);
+		return distance <= RouteMap.NODE_SIZE / 2;
+	}
+
+	/**
+	 * Returns true if location is in range of site
+	 *
+	 * @param node  site
+	 * @param point location
+	 */
+	private static boolean isInRange(final SiteNode node, final Point2D point) {
+		final double distance = node.getLocation().distance(point);
+		return distance <= RouteMap.SITE_SIZE / 2;
+	}
 
 	/**
 	 * Returns the default status
@@ -129,8 +153,10 @@ public class Controller {
 	private final List<String> gridLegendPattern;
 	private final List<String> pointLegendPattern;
 	private final List<String> edgeLegendPattern;
+
 	/** The scale of route map (pixels/m) */
 	private double scale;
+
 	private Optional<SimulationStatus> currentStatus;
 
 	/**
@@ -168,27 +194,68 @@ public class Controller {
 		mainFrame.getExitObs().subscribe(ev -> {
 			mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
 		});
+		simulator.getOutput().subscribe(this::handleNewStatus);
+		return bindForMapElementPane().bindForScrollMap().bindForExplorerPane().bindForRouteMap();
+	}
+
+	/**
+	 *
+	 */
+	private Controller bindForExplorerPane() {
+		createExplorerSelectNodeObs().subscribe(node -> {
+			logger.debug("onNext explorer node selected {}", node);
+			explorerPane.setSelectedNode(node);
+		});
+
+		createExplorerSelectSiteObs().subscribe(node -> {
+			logger.debug("onNext explorer site selected {}", node);
+			explorerPane.setSelectedSite(node);
+		});
+
+		createNoneSelectionObs().subscribe(pt -> explorerPane.clearSelection());
+		return this;
+	}
+
+	/**
+	 * @return
+	 *
+	 */
+	private Controller bindForMapElementPane() {
 		createDetailSiteObs().subscribe(mapElementPane::setNode);
 		createDetailNodeObs().subscribe(mapElementPane::setNode);
 		createDetailEdgeObs().subscribe(mapElementPane::setEdge);
+		return this;
+	}
+
+	/**
+	 * @return
+	 *
+	 */
+	private Controller bindForRouteMap() {
+		createSelectNodeObs().subscribe(node -> {
+			logger.debug("onNext route map selected {}", node);
+			routeMap.setSelectedNode(node);
+		});
+		return this;
+	}
+
+	/**
+	 * @return
+	 *
+	 */
+	private Controller bindForScrollMap() {
 		createMapViewPosObs().subscribe(point -> {
-			logger.debug("Viewport at {}", point);
+			logger.debug("onNext viewport at {}", point);
 			scrollMap.getViewport().setViewPosition(point);
 		});
 
 		createScaleObs().subscribe(t -> {
-			logger.debug("{}", t);
+			logger.debug("onNext scale at {}", t);
 			setScale(t.getElem2());
 			scrollMap.getViewport().setViewPosition(t.getElem1());
-			routeMap.repaint();
 		});
 
-		scrollMap.getChangeObs().subscribe(ev -> scrollMap.repaint());
-
 		createHudObs().subscribe(scrollMap::setHud);
-
-		simulator.getOutput().subscribe(this::handleNewStatus);
-
 		return this;
 	}
 
@@ -196,10 +263,11 @@ public class Controller {
 	 * Returns the head up display text
 	 *
 	 * @param patterns the text pattern
-	 * @param point
+	 * @param point    cursor point
 	 */
+
 	private List<String> computeHud(final List<String> patterns, final Point2D point) {
-		final Object[] parms = new Object[] { routeMap.getGridSize(), point.getX(), point.getY(), 0 };
+		final Object[] parms = new Object[] { getGridSize(), point.getX(), point.getY(), scale };
 		// Compute the pattern
 		final List<String> texts = patterns.stream().map(pattern -> MessageFormat.format(pattern, parms))
 				.collect(Collectors.toList());
@@ -207,18 +275,44 @@ public class Controller {
 	}
 
 	/**
+	 * Returns the location for a pivot point
+	 *
+	 * @param pivot    the pivot point
+	 * @param newScale the new scale
+	 */
+	private Point computeViewportLocationWithScale(final Point pivot, final double newScale) {
+		final Point p0 = scrollMap.getViewport().getViewPosition();
+		final int x = Math.max(0, (int) Math.round((pivot.x - MAP_INSETS) * (newScale / scale - 1) + p0.x));
+		final int y = Math.max(0, (int) Math.round((pivot.y - MAP_INSETS) * (newScale / scale - 1) + p0.y));
+		final Point corner = new Point(x, y);
+		return corner;
+	}
+
+	/**
+	 * Returns the viewport position for a center point
+	 *
+	 * @param center the center point
+	 */
+	private Point computeViewportPosition(final Point center) {
+		final Dimension size = scrollMap.getViewport().getExtentSize();
+		final int x = Math.max(0, center.x - size.width / 2);
+		final int y = Math.max(0, center.y - size.height / 2);
+		final Point newViewPos = new Point(x, y);
+		return newViewPos;
+	}
+
+	/**
 	 * Returns the location in the map of a route map screen point
 	 *
 	 * @param pt the screen point
 	 */
-	private Point2D computeMapLocation(final Point pt) {
-		final Point2D result = getInverseTransform().transform(pt, new Point2D.Double());
-		return result;
-	}
+//	private Point2D computeMapLocation(final Point pt) {
+//		final Point2D result = getInverseTransform().transform(pt, new Point2D.Double());
+//		return result;
+//	}
 
 	/**
-	 *
-	 * @return
+	 * Returns the observable of edge detail
 	 */
 	private Observable<MapEdge> createDetailEdgeObs() {
 		final Observable<MapEdge> result = explorerPane.getEdgeObs();
@@ -226,68 +320,158 @@ public class Controller {
 	}
 
 	/**
-	 *
-	 * @return
+	 * Returns the observable of node detail
 	 */
 	private Observable<MapNode> createDetailNodeObs() {
 		final Observable<MapNode> result = explorerPane.getNodeObs();
 		return result;
 	}
 
+	/**
+	 * Returns the observable of site detail
+	 */
 	private Observable<SiteNode> createDetailSiteObs() {
 		final Observable<SiteNode> result = explorerPane.getSiteObs();
 		return result;
 	}
 
 	/**
+	 * Returns the observable of node selection for explore panel
+	 */
+	private Observable<MapNode> createExplorerSelectNodeObs() {
+		return createSelectionNodeObs().filter(site -> site.isPresent()).map(Optional::get);
+	}
+
+	/**
+	 * Returns the observable of site selection for explorer panel
+	 */
+	private Observable<SiteNode> createExplorerSelectSiteObs() {
+		return createSelectionSiteObs().filter(site -> site.isPresent()).map(Optional::get);
+	}
+
+	/**
 	 * Returns the observable of head up display
 	 */
 	private Observable<List<String>> createHudObs() {
-		final Observable<List<String>> result = routeMap.getMouseObs().filter(ev -> ev.getPoint() != null).map(ev -> {
-			final Point2D mapPt = computeMapLocation(ev.getPoint());
-			return computeHud(pointLegendPattern, mapPt);
-		});
+		return withMouseObs(routeMap.getMouseObs()).move().withPoint().transform(() -> getInverseTransform())
+				.observable().map(mapPt -> computeHud(pointLegendPattern, mapPt));
+	}
+
+	/**
+	 * Returns the observable of viewport location for center map action.
+	 * <p>
+	 * The viewport location is changed when the mouse click on an empty point in
+	 * the map or when an element is selected in the explorer panel
+	 * </p>
+	 */
+	private Observable<Point> createMapViewPosObs() {
+		final Observable<Point2D> onMouseClick = withMouseObs(routeMap.getMouseObs()).click().withPoint()
+				.transform(() -> getInverseTransform()).withFilter(pt -> findAnyNodeAt(pt).isEmpty()).observable();
+
+		final Observable<Point2D> onSiteSelection = explorerPane.getSiteObs().map(SiteNode::getLocation);
+		final Observable<Point2D> onNodeSelection = explorerPane.getNodeObs().map(MapNode::getLocation);
+		final Observable<Point2D> onEdgeSelection = explorerPane.getEdgeObs().map(MapEdge::getBeginLocation);
+
+		final Observable<Point> result = withPointObs(
+				onSiteSelection.mergeWith(onNodeSelection).mergeWith(onEdgeSelection).mergeWith(onMouseClick))
+						.transform(() -> getTransform()).toPoint().map(this::computeViewportPosition);
 		return result;
 	}
 
 	/**
-	 * Returns the observable of viewport location for center map action
+	 * Returns the observable of none selection
 	 */
-	private Observable<Point> createMapViewPosObs() {
-		final Observable<Point> onMouseClick = routeMap.getMouseObs()
-				.filter(ev -> ev.getID() == MouseEvent.MOUSE_CLICKED).map(MouseEvent::getPoint);
-		final Observable<Point2D> onSiteSelection = explorerPane.getSiteObs().map(SiteNode::getLocation);
-		final Observable<Point2D> onNodeSelection = explorerPane.getNodeObs().map(MapNode::getLocation);
-		final Observable<Point2D> onEdgeSelection = explorerPane.getEdgeObs().map(MapEdge::getBeginLocation);
-		final Observable<Point> onLocationSelection = onSiteSelection.mergeWith(onNodeSelection)
-				.mergeWith(onEdgeSelection).map(point -> {
-					final Point2D pt = getTransform().transform(point, new Point());
-					return new Point((int) Math.round(pt.getX()), (int) Math.round(pt.getY()));
-				});
-		final Observable<Point> result = onMouseClick.mergeWith(onLocationSelection).map(pt -> {
-			final Dimension size = scrollMap.getViewport().getExtentSize();
-			final int x = Math.max(0, pt.x - size.width / 2);
-			final int y = Math.max(0, pt.y - size.height / 2);
-			final Point newViewPos = new Point(x, y);
-			return newViewPos;
-		});
+	private Observable<Point2D> createNoneSelectionObs() {
+		final Observable<Point2D> result = withMouseObs(routeMap.getMouseObs()).click().withPoint()
+				.transform(() -> getInverseTransform())
+				.withFilter(pt -> findNodeAt(pt).or(() -> findSiteAt(pt)).isEmpty()).observable();
 		return result;
-
 	}
 
 	/**
 	 * Returns the observable of viewport location and scale for zoom action
+	 * <p>
+	 * The scale is changed when the mouse wheel is rolled or when the zoom in zoom
+	 * out button are pressed.
+	 * </p>
 	 */
 	private Observable<Tuple2<Point, Double>> createScaleObs() {
 		return routeMap.getMouseWheelObs().map(ev -> {
-			final Point point = ev.getPoint();
 			final double newScale = this.scale * Math.pow(SCALE_FACTOR, -ev.getWheelRotation());
-			final Point p0 = scrollMap.getViewport().getViewPosition();
-			final int x = Math.max(0, (int) Math.round((point.x - MAP_BORDER) * (newScale / scale - 1) + p0.x));
-			final int y = Math.max(0, (int) Math.round((point.y - MAP_BORDER) * (newScale / scale - 1) + p0.y));
-			final Point corner = new Point(x, y);
-			return new Tuple2<>(corner, newScale);
+			return new Tuple2<>(computeViewportLocationWithScale(ev.getPoint(), newScale), newScale);
 		});
+	}
+
+	/**
+	 * Returns the observable of node selection from map
+	 */
+	private Observable<Optional<MapNode>> createSelectionNodeObs() {
+		final Observable<Optional<MapNode>> result = withMouseObs(routeMap.getMouseObs()).click().withPoint()
+				.transform(() -> getInverseTransform()).observable().doOnNext(ev -> logger.debug("Find node at {}", ev))
+				.map(this::findNodeAt);
+		return result;
+	}
+
+	/**
+	 * Returns the observable of site selection from map
+	 */
+	private Observable<Optional<SiteNode>> createSelectionSiteObs() {
+		final Observable<Optional<SiteNode>> result = withMouseObs(routeMap.getMouseObs()).click().withPoint()
+				.transform(() -> getInverseTransform()).observable().doOnNext(ev -> logger.debug("Find site at {}", ev))
+				.map(this::findSiteAt);
+		return result;
+	}
+
+	/**
+	 * Returns the observable of selection node
+	 */
+	private Observable<Optional<MapNode>> createSelectNodeObs() {
+		// Selection from explorer site list
+		final Observable<MapNode> siteObs = explorerPane.getSiteObs().map(s -> (MapNode) s);
+		// Selection from explorer node list
+		final Observable<MapNode> nodeObs = explorerPane.getNodeObs();
+		// Selection from mouse click on map
+		final Observable<Optional<MapNode>> mouseUnselectionObs = createNoneSelectionObs().map(pt -> Optional.empty());
+		final Observable<Optional<MapNode>> result = siteObs.mergeWith(nodeObs).map(Optional::of)
+				.mergeWith(mouseUnselectionObs);
+		return result;
+	}
+
+	/**
+	 * Returns any node at location
+	 *
+	 * @param pt the location
+	 */
+	private Optional<MapNode> findAnyNodeAt(final Point2D pt) {
+		final Optional<MapNode> node = findNodeAt(pt).or(() -> findSiteAt(pt));
+		return node;
+	}
+
+	/**
+	 * Returns the node at location
+	 *
+	 * @param pt the location
+	 */
+	private Optional<MapNode> findNodeAt(final Point2D pt) {
+		final Optional<MapNode> result = currentStatus.map(SimulationStatus::getMap).flatMap(map -> {
+			final Optional<MapNode> node = map.getNodes().stream().filter(s -> isInRange(s, pt)).findAny();
+			return node;
+		});
+		return result;
+
+	}
+
+	/**
+	 * Returns the node at location
+	 *
+	 * @param pt the location
+	 */
+	private Optional<SiteNode> findSiteAt(final Point2D pt) {
+		final Optional<SiteNode> result = currentStatus.map(SimulationStatus::getMap).flatMap(map -> {
+			final Optional<SiteNode> node = map.getSites().stream().filter(s -> isInRange(s, pt)).findAny();
+			return node;
+		});
+		return result;
 	}
 
 	/**
@@ -318,7 +502,7 @@ public class Controller {
 		try {
 			return getTransform().createInverse();
 		} catch (final NoninvertibleTransformException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			return new AffineTransform();
 		}
 	}
@@ -369,8 +553,8 @@ public class Controller {
 	 */
 	private Dimension getScreenMapSize() {
 		final Rectangle2D bound = getMapBound();
-		final int width = (int) Math.round(bound.getWidth() * scale) + MAP_BORDER * 2;
-		final int height = (int) Math.round(bound.getHeight() * scale) + MAP_BORDER * 2;
+		final int width = (int) Math.round(bound.getWidth() * scale) + MAP_INSETS * 2;
+		final int height = (int) Math.round(bound.getHeight() * scale) + MAP_INSETS * 2;
 		final Dimension result = new Dimension(width, height);
 		return result;
 	}
@@ -389,7 +573,7 @@ public class Controller {
 	 */
 	private AffineTransform getTransform(final double scale) {
 		final Rectangle2D mapBound = getMapBound();
-		final AffineTransform result = AffineTransform.getTranslateInstance(MAP_BORDER, MAP_BORDER);
+		final AffineTransform result = AffineTransform.getTranslateInstance(MAP_INSETS, MAP_INSETS);
 		result.scale(scale, scale);
 		result.translate(-mapBound.getMinX(), -mapBound.getMinY());
 		return result;
@@ -551,7 +735,7 @@ public class Controller {
 	private Controller setScale(final double scale) {
 		this.scale = scale;
 		routeMap.setTransform(getTransform()).setGridSize(getGridSize()).setBorderPainted(scale >= BORDER_SCALE)
-				.setPreferredSize(getScreenMapSize());
+				.setBorderPainted(scale >= BORDER_SCALE).setPreferredSize(getScreenMapSize());
 		return this;
 	}
 
