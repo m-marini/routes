@@ -90,6 +90,35 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	}
 
 	/**
+	 * Returns ka for a given edge
+	 * <p>
+	 * The ka is distance from the begin node along the edge direction.<br>
+	 * It is computed as the ratio between the scalar product of edge direction and
+	 * point direction and the length of edge.
+	 * </p>
+	 *
+	 * <pre>
+	 * ka = &lt;A, B> / lA = lB * cos(a)
+	 * &lt;A, B> = lA * lB * cos(a)
+	 * </pre>
+	 *
+	 * @param point the point
+	 */
+	private double computeKa(final Point2D point) {
+		final Point2D begin = getBeginLocation();
+		final double x0 = begin.getX();
+		final double y0 = begin.getY();
+		final Point2D ev = getDirection();
+		final double xe = ev.getX();
+		final double ye = ev.getY();
+		final double xp = point.getX() - x0;
+		final double yp = point.getY() - y0;
+		final double ep = xe * xp + ye * yp;
+		final double ka = ep / getLength();
+		return ka;
+	}
+
+	/**
 	 *
 	 * @param edge
 	 * @return
@@ -142,6 +171,23 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	}
 
 	/**
+	 * Returns the closest edge point from a given point
+	 *
+	 * @param point
+	 * @return
+	 */
+	private Point2D getClosest(final Point2D point) {
+		final double ka = computeKa(point);
+		if (ka <= 0) {
+			return begin.getLocation();
+		} else if (ka >= getLength()) {
+			return end.getLocation();
+		} else {
+			return getLocation(ka);
+		}
+	}
+
+	/**
 	 * Returns the direction of the edge
 	 */
 	public Point2D getDirection() {
@@ -151,32 +197,42 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	}
 
 	/**
-	 * @return the distance
+	 * Returns the distance of a point from the edge
+	 *
+	 * @param point the point
 	 */
-	public double getDistance() {
-		return begin.getLocation().distance(end.getLocation());
+	public double getDistance(final Point2D point) {
+		final Point2D closer = getClosest(point);
+		final double result = point.distance(closer);
+		return result;
 	}
 
 	/**
-	 * @return the end
+	 * Returns the end node
 	 */
 	public MapNode getEnd() {
 		return end;
 	}
 
 	/**
-	 * @return
+	 * Returns the end point
 	 */
 	public Point2D getEndLocation() {
 		return end.getLocation();
 	}
 
 	/**
-	 *
-	 * @return
+	 * Returns the id og edge
 	 */
 	public UUID getId() {
 		return id;
+	}
+
+	/**
+	 * Returns the length of edge
+	 */
+	public double getLength() {
+		return begin.getLocation().distance(end.getLocation());
 	}
 
 	/**
@@ -186,7 +242,7 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	 */
 	public Point2D getLocation(final double distance) {
 		final Point2D dir = getDirection();
-		final double lambda = distance / getDistance();
+		final double lambda = distance / getLength();
 		final double x = dir.getX() * lambda + getBeginLocation().getX();
 		final double y = dir.getY() * lambda + getBeginLocation().getY();
 		final Point2D result = new Point2D.Double(x, y);
@@ -230,7 +286,7 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	 * @return the transit time
 	 */
 	public double getTransitTime() {
-		return getDistance() / speedLimit;
+		return getLength() / speedLimit;
 	}
 
 	@Override
