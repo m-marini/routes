@@ -31,6 +31,7 @@ import static org.mmarini.routes.swing.v2.RxUtils.withPointObs;
 
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
@@ -75,7 +76,7 @@ import io.reactivex.rxjava3.core.Observable;
 public class Controller {
 	private static final double DEFAULT_SCALE = 1;
 	private static final double BORDER_SCALE = 1;
-	private static final double SCALE_FACTOR = Math.pow(10, 1.0 / 4);
+	private static final double SCALE_FACTOR = Math.pow(10, 1.0 / 6);
 	private static final int MAP_INSETS = 60;
 	private static final double MIN_GRID_SIZE_METERS = 1;
 	private static final int MIN_GRID_SIZE_PIXELS = 10;
@@ -150,6 +151,10 @@ public class Controller {
 		return list;
 	}
 
+	private static Point toPoint(final Point2D point) {
+		return new Point((int) Math.round(point.getX()), (int) Math.round(point.getY()));
+	}
+
 	private final JFileChooser fileChooser;
 	private final MapProfilePane mapProfilePane;
 	private final RouteMap routeMap;
@@ -163,6 +168,7 @@ public class Controller {
 	private final MapViewPane mapViewPane;
 	private final List<String> gridLegendPattern;
 	private final List<String> pointLegendPattern;
+
 	private final List<String> edgeLegendPattern;
 
 	/** The scale of route map (pixels/m) */
@@ -334,14 +340,6 @@ public class Controller {
 	}
 
 	/**
-	 * Returns the observable of node detail
-	 */
-	private Observable<MapNode> createDetailNodeObs() {
-		final Observable<MapNode> result = explorerPane.getNodeObs();
-		return result;
-	}
-
-	/**
 	 * Returns the location in the map of a route map screen point
 	 *
 	 * @param pt the screen point
@@ -350,6 +348,14 @@ public class Controller {
 //		final Point2D result = getInverseTransform().transform(pt, new Point2D.Double());
 //		return result;
 //	}
+
+	/**
+	 * Returns the observable of node detail
+	 */
+	private Observable<MapNode> createDetailNodeObs() {
+		final Observable<MapNode> result = explorerPane.getNodeObs();
+		return result;
+	}
 
 	/**
 	 * Returns the observable of site detail
@@ -428,10 +434,41 @@ public class Controller {
 	 * </p>
 	 */
 	private Observable<Tuple2<Point, Double>> createScaleObs() {
-		return routeMap.getMouseWheelObs().map(ev -> {
-			final double newScale = this.scale * Math.pow(SCALE_FACTOR, -ev.getWheelRotation());
-			return new Tuple2<>(computeViewportLocationWithScale(ev.getPoint(), newScale), newScale);
+		final Observable<Tuple2<Point, Double>> defaultZoomObs = mapViewPane.getZoomDefaultObs().map(ev -> {
+			final Rectangle rect = scrollMap.getViewport().getViewRect();
+			final Point pivot = toPoint(new Point2D.Double(rect.getCenterX(), rect.getCenterY()));
+			return new Tuple2<>(pivot, DEFAULT_SCALE);
 		});
+		final Observable<Tuple2<Point, Double>> zoomInObs = mapViewPane.getZoomInObs().map(ev -> {
+			final Rectangle rect = scrollMap.getViewport().getViewRect();
+			final Point pivot = toPoint(new Point2D.Double(rect.getCenterX(), rect.getCenterY()));
+			return new Tuple2<>(pivot, this.scale * SCALE_FACTOR);
+		});
+		final Observable<Tuple2<Point, Double>> zoomOutObs = mapViewPane.getZoomOutObs().map(ev -> {
+			final Rectangle rect = scrollMap.getViewport().getViewRect();
+			final Point pivot = toPoint(new Point2D.Double(rect.getCenterX(), rect.getCenterY()));
+			return new Tuple2<>(pivot, this.scale / SCALE_FACTOR);
+		});
+
+		final Observable<Tuple2<Point, Double>> fitInWindowObs = mapViewPane.getFitInWindowObs().map(ev -> {
+			final Rectangle2D mapRect = getMapBound();
+			final Dimension screenSize = scrollMap.getViewport().getExtentSize();
+			final double sx = (screenSize.getWidth() - MAP_INSETS * 2) / mapRect.getWidth();
+			final double sy = (screenSize.getHeight() - MAP_INSETS * 2) / mapRect.getHeight();
+			final double newScale1 = Math.min(sx, sy);
+			final double scaleStep = Math.floor(Math.log(newScale1) / Math.log(SCALE_FACTOR));
+			final double newScale = Math.pow(SCALE_FACTOR, scaleStep);
+			return new Tuple2<>(new Point(), newScale);
+		});
+		final Observable<Tuple2<Point, Double>> wheelScaleObs = routeMap.getMouseWheelObs()
+				.map(ev -> new Tuple2<>(ev.getPoint(), this.scale * Math.pow(SCALE_FACTOR, -ev.getWheelRotation())));
+
+		final Observable<Tuple2<Point, Double>> result = fitInWindowObs.mergeWith(zoomOutObs).mergeWith(zoomInObs)
+				.mergeWith(wheelScaleObs).mergeWith(defaultZoomObs).map(tuple -> {
+					final double newScale = tuple.getElem2();
+					return new Tuple2<>(computeViewportLocationWithScale(tuple.getElem1(), newScale), newScale);
+				}).mergeWith(fitInWindowObs);
+		return result;
 	}
 
 	/**
@@ -461,21 +498,6 @@ public class Controller {
 		final Observable<Optional<SiteNode>> result = withMouseObs(routeMap.getMouseObs()).click().withPoint()
 				.transform(() -> getInverseTransform()).observable().doOnNext(ev -> logger.debug("Find site at {}", ev))
 				.map(this::findSiteAt);
-		return result;
-	}
-
-	/**
-	 * Returns the observable of selection node
-	 */
-	private Observable<Optional<MapNode>> createSelectNodeObs() {
-		// Selection from explorer site list
-		final Observable<MapNode> siteObs = explorerPane.getSiteObs().map(s -> (MapNode) s);
-		// Selection from explorer node list
-		final Observable<MapNode> nodeObs = explorerPane.getNodeObs();
-		// Selection from mouse click on map
-		final Observable<Optional<MapNode>> mouseUnselectionObs = createNoneSelectionObs().map(pt -> Optional.empty());
-		final Observable<Optional<MapNode>> result = siteObs.mergeWith(nodeObs).map(Optional::of)
-				.mergeWith(mouseUnselectionObs);
 		return result;
 	}
 
