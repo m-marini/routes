@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #35: Center map to cursor
 - Issue #36: Select node with cursor
 - Issue #37: Select edge with cursor
+- Issue #46: Zoom buttons
 
 ## [4.2.0] - 2019-12-08
 

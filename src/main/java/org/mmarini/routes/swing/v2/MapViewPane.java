@@ -31,6 +31,7 @@ import static org.mmarini.routes.swing.v2.SwingUtils.createJToggleButton;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -39,6 +40,9 @@ import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
+
+import hu.akarnokd.rxjava3.swing.SwingObservable;
+import io.reactivex.rxjava3.core.Observable;
 
 /**
  * The MapViewPane allows the user to view and interact with the map.
@@ -61,21 +65,35 @@ public class MapViewPane extends JPanel {
 	private final JToggleButton normalViewButton;
 	private final JToggleButton trafficViewButton;
 	private final ButtonGroup viewGroup;
+	private final JButton zoomDefaultButton;
+	private final JButton zoomInButton;
+	private final JButton zoomOutButton;
+	private final JButton fitInWindowAction;
+	private final Observable<ActionEvent> zoomInObs;
+	private final Observable<ActionEvent> zoomOutObs;
+	private final Observable<ActionEvent> fitInWindowObs;
+	private final Observable<ActionEvent> zoomDefaultObs;
 
 	/**
 	 * Create the component
 	 */
 	public MapViewPane(final Component content) {
 		selectButton = createJToggleButton("MapViewPane.selectAction"); //$NON-NLS-1$
-
 		edgeButton = createJToggleButton("MapViewPane.edgeAction"); //$NON-NLS-1$
 		moduleButton = createJToggleButton("MapViewPane.moduleAction"); //$NON-NLS-1$
-
+		zoomDefaultButton = createJButton("MapViewPane.zoomDefaultAction"); //$NON-NLS-1$
+		zoomInButton = createJButton("MapViewPane.zoomInAction"); //$NON-NLS-1$
+		zoomOutButton = createJButton("MapViewPane.zoomOutAction"); //$NON-NLS-1$
+		fitInWindowAction = createJButton("MapViewPane.fitInWindowAction"); //$NON-NLS-1$
+		normalViewButton = createJToggleButton("MapViewPane.normalViewAction"); //$NON-NLS-1$
+		trafficViewButton = createJToggleButton("MapViewPane.trafficViewAction"); //$NON-NLS-1$
 		toolGroup = new ButtonGroup();
 		viewGroup = new ButtonGroup();
 
-		normalViewButton = createJToggleButton("MapViewPane.normalViewAction"); //$NON-NLS-1$
-		trafficViewButton = createJToggleButton("MapViewPane.trafficViewAction"); //$NON-NLS-1$
+		zoomDefaultObs = SwingObservable.actions(zoomDefaultButton);
+		zoomInObs = SwingObservable.actions(zoomInButton);
+		zoomOutObs = SwingObservable.actions(zoomOutButton);
+		fitInWindowObs = SwingObservable.actions(fitInWindowAction);
 
 		init(content);
 		setOpaque(false);
@@ -105,22 +123,43 @@ public class MapViewPane extends JPanel {
 		bar.add(moduleButton);
 		bar.add(new JSeparator(SwingConstants.VERTICAL));
 
-		final JButton zoomDefaultButton = createJButton("MapViewPane.zoomDefaultAction"); //$NON-NLS-1$
 		bar.add(zoomDefaultButton);
-
-		final JButton zoomInButton = createJButton("MapViewPane.zoomInAction"); //$NON-NLS-1$
 		bar.add(zoomInButton);
-
-		final JButton zoomOutButton = createJButton("MapViewPane.zoomOutAction"); //$NON-NLS-1$
 		bar.add(zoomOutButton);
-
-		final JButton fitInWindowAction = createJButton("MapViewPane.fitInWindowAction"); //$NON-NLS-1$
 		bar.add(fitInWindowAction);
 
 		bar.add(new JSeparator(SwingConstants.VERTICAL));
 		bar.add(normalViewButton);
 		bar.add(trafficViewButton);
 		return bar;
+	}
+
+	/**
+	 * @return the fitInWindowObs
+	 */
+	public Observable<ActionEvent> getFitInWindowObs() {
+		return fitInWindowObs;
+	}
+
+	/**
+	 * @return the zoomDefaultObs
+	 */
+	public Observable<ActionEvent> getZoomDefaultObs() {
+		return zoomDefaultObs;
+	}
+
+	/**
+	 * @return the zoomInObs
+	 */
+	public Observable<ActionEvent> getZoomInObs() {
+		return zoomInObs;
+	}
+
+	/**
+	 * @return the zoomOutObs
+	 */
+	public Observable<ActionEvent> getZoomOutObs() {
+		return zoomOutObs;
 	}
 
 	/**
