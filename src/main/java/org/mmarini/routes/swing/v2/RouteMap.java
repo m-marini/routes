@@ -111,7 +111,8 @@ public class RouteMap extends JComponent implements Constants {
 		 * Returns the painter with painted canvas
 		 */
 		public Painter paint() {
-			return computeSiteColorMap().paintGrid().paintEdges().paintSelectedNode().paintSites().paintVehicles();
+			return computeSiteColorMap().paintGrid().paintEdges().paintSites().paintSelectedNode().paintSelectedEdge()
+					.paintSelectedSite().paintVehicles();
 		}
 
 		/**
@@ -185,10 +186,30 @@ public class RouteMap extends JComponent implements Constants {
 			return this;
 		}
 
+		private Painter paintSelectedEdge() {
+			selectedEdge.filter(s -> isBlink()).ifPresent(edge -> {
+				graphics.setColor(SELECTED_EDGE_COLOR);
+				paintEdge(edge);
+				graphics.setColor(BEGIN_NODE_COLOR);
+				paintNodeShape(edge.getBegin());
+				graphics.setColor(END_NODE_COLOR);
+				paintNodeShape(edge.getEnd());
+			});
+			return this;
+		}
+
 		private Painter paintSelectedNode() {
-			selectedNode.filter(s -> !(s instanceof SiteNode) && isBlink()).ifPresent(node -> {
+			selectedNode.filter(s -> isBlink()).ifPresent(node -> {
 				graphics.setColor(SELECTED_NODE_COLOR);
 				paintNodeShape(node);
+			});
+			return this;
+		}
+
+		private Painter paintSelectedSite() {
+			selectedSite.filter(s -> isBlink()).ifPresent(site -> {
+				graphics.setColor(SELECTED_SITE_COLOR);
+				paintSiteShape(site);
 			});
 			return this;
 		}
@@ -197,9 +218,7 @@ public class RouteMap extends JComponent implements Constants {
 		 * @param site
 		 */
 		private Painter paintSite(final SiteNode site) {
-			final Color color = selectedNode
-					.flatMap(s -> site.equals(s) && !isBlink() ? Optional.of(SELECTED_SITE_COLOR) : Optional.empty())
-					.orElseGet(() -> colorMap.getOrDefault(site, DEFAULT_SITE_COLOR));
+			final Color color = colorMap.getOrDefault(site, DEFAULT_SITE_COLOR);
 			graphics.setColor(color);
 			return paintSiteShape(site);
 		}
@@ -339,6 +358,8 @@ public class RouteMap extends JComponent implements Constants {
 	private double gridSize;
 	private boolean borderPainted;
 	private Optional<MapNode> selectedNode;
+	private Optional<MapEdge> selectedEdge;
+	private Optional<SiteNode> selectedSite;
 
 	/**
 	 *
@@ -351,6 +372,8 @@ public class RouteMap extends JComponent implements Constants {
 		this.mouseWheelObs = SwingObservable.mouseWheel(this);
 		this.status = Optional.empty();
 		this.selectedNode = Optional.empty();
+		this.selectedSite = Optional.empty();
+		this.selectedEdge = Optional.empty();
 		setBackground(Color.WHITE);
 		setOpaque(true);
 		setDoubleBuffered(true);
@@ -417,12 +440,32 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
+	 * Returns the route map with selected edge
+	 *
+	 * @param edge the edge
+	 */
+	public RouteMap setSelectedEdge(final Optional<MapEdge> edge) {
+		this.selectedEdge = edge;
+		return this;
+	}
+
+	/**
 	 * Returns the route map with selected node
 	 *
 	 * @param node the selected node
 	 */
 	public RouteMap setSelectedNode(final Optional<MapNode> node) {
-		selectedNode = node;
+		this.selectedNode = node;
+		return this;
+	}
+
+	/**
+	 * Returns the route map with selected site
+	 *
+	 * @param site the selected site
+	 */
+	public RouteMap setSelectedSite(final Optional<SiteNode> site) {
+		this.selectedSite = site;
 		return this;
 	}
 

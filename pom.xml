@@ -8,7 +8,7 @@
 	<name>routes</name>
 	<description>Routes - Traffic simulator</description>
 	<properties>
-		<java.version>1.11</java.version>
+		<java.version>11</java.version>
 		<rxjava.version>3.0.0-RC2</rxjava.version>
 		<slf4j.version>1.7.28</slf4j.version>
 		<logback.version>1.2.3</logback.version>
@@ -55,7 +55,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>org.mmarini.routes.swing.MainFrame</mainClass>
+							<mainClass>org.mmarini.routes.swing.v2.MainFrame</mainClass>
 							<addClasspath>true</addClasspath>
 						</manifest>
 					</archive>

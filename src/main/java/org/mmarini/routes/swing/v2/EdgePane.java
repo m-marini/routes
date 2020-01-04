@@ -240,7 +240,7 @@ public class EdgePane extends JPanel {
 		speedLimitField.setValue(edge.getSpeedLimit() * 3.6);
 		beginField.setText(edge.getBegin().getShortName());
 		endField.setText(edge.getEnd().getShortName());
-		distanceField.setValue(edge.getDistance());
+		distanceField.setValue(edge.getLength());
 		nameField.setText(edge.getShortName());
 		return this;
 	}

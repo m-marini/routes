@@ -84,6 +84,17 @@ public class Controller {
 	private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
 	/**
+	 * Returns true if location is in range of an edge
+	 *
+	 * @param node  edge
+	 * @param point point
+	 */
+	private static boolean isInRange(final MapEdge edge, final Point2D point) {
+		final double distance = edge.getDistance(point);
+		return distance <= RouteMap.EDGE_WIDTH / 2;
+	}
+
+	/**
 	 * Returns true if location is in range of node
 	 *
 	 * @param node  node
@@ -98,7 +109,7 @@ public class Controller {
 	 * Returns true if location is in range of site
 	 *
 	 * @param node  site
-	 * @param point location
+	 * @param point point
 	 */
 	private static boolean isInRange(final SiteNode node, final Point2D point) {
 		final double distance = node.getLocation().distance(point);
@@ -212,6 +223,11 @@ public class Controller {
 			explorerPane.setSelectedSite(node);
 		});
 
+		createExplorerSelectEdgeObs().subscribe(edge -> {
+			logger.debug("onNext explorer site selected {}", edge);
+			explorerPane.setSelectedEdge(edge);
+		});
+
 		createNoneSelectionObs().subscribe(pt -> explorerPane.clearSelection());
 		return this;
 	}
@@ -232,9 +248,17 @@ public class Controller {
 	 *
 	 */
 	private Controller bindForRouteMap() {
-		createSelectNodeObs().subscribe(node -> {
-			logger.debug("onNext route map selected {}", node);
+		createSelectionNodeObs().subscribe(node -> {
+			logger.debug("onNext route map selected node {}", node);
 			routeMap.setSelectedNode(node);
+		});
+		createSelectionSiteObs().subscribe(node -> {
+			logger.debug("onNext route map selected site {}", node);
+			routeMap.setSelectedSite(node);
+		});
+		createSelectionEdgeObs().subscribe(edge -> {
+			logger.debug("onNext route map selected edge {}", edge);
+			routeMap.setSelectedEdge(edge);
 		});
 		return this;
 	}
@@ -302,16 +326,6 @@ public class Controller {
 	}
 
 	/**
-	 * Returns the location in the map of a route map screen point
-	 *
-	 * @param pt the screen point
-	 */
-//	private Point2D computeMapLocation(final Point pt) {
-//		final Point2D result = getInverseTransform().transform(pt, new Point2D.Double());
-//		return result;
-//	}
-
-	/**
 	 * Returns the observable of edge detail
 	 */
 	private Observable<MapEdge> createDetailEdgeObs() {
@@ -328,11 +342,28 @@ public class Controller {
 	}
 
 	/**
+	 * Returns the location in the map of a route map screen point
+	 *
+	 * @param pt the screen point
+	 */
+//	private Point2D computeMapLocation(final Point pt) {
+//		final Point2D result = getInverseTransform().transform(pt, new Point2D.Double());
+//		return result;
+//	}
+
+	/**
 	 * Returns the observable of site detail
 	 */
 	private Observable<SiteNode> createDetailSiteObs() {
 		final Observable<SiteNode> result = explorerPane.getSiteObs();
 		return result;
+	}
+
+	/**
+	 * Returns the observable of edge selection for explorer panel
+	 */
+	private Observable<MapEdge> createExplorerSelectEdgeObs() {
+		return createSelectionEdgeObs().filter(site -> site.isPresent()).map(Optional::get);
 	}
 
 	/**
@@ -384,7 +415,8 @@ public class Controller {
 	private Observable<Point2D> createNoneSelectionObs() {
 		final Observable<Point2D> result = withMouseObs(routeMap.getMouseObs()).click().withPoint()
 				.transform(() -> getInverseTransform())
-				.withFilter(pt -> findNodeAt(pt).or(() -> findSiteAt(pt)).isEmpty()).observable();
+				.withFilter(pt -> findNodeAt(pt).isEmpty() && findSiteAt(pt).isEmpty() && findEdgeAt(pt).isEmpty())
+				.observable();
 		return result;
 	}
 
@@ -400,6 +432,16 @@ public class Controller {
 			final double newScale = this.scale * Math.pow(SCALE_FACTOR, -ev.getWheelRotation());
 			return new Tuple2<>(computeViewportLocationWithScale(ev.getPoint(), newScale), newScale);
 		});
+	}
+
+	/**
+	 * Returns the observable of edge selection from mouse click
+	 */
+	private Observable<Optional<MapEdge>> createSelectionEdgeObs() {
+		final Observable<Optional<MapEdge>> result = withMouseObs(routeMap.getMouseObs()).click().withPoint()
+				.transform(() -> getInverseTransform()).observable().doOnNext(ev -> logger.debug("Find edge at {}", ev))
+				.map(this::findEdgeAt);
+		return result;
 	}
 
 	/**
@@ -445,6 +487,19 @@ public class Controller {
 	private Optional<MapNode> findAnyNodeAt(final Point2D pt) {
 		final Optional<MapNode> node = findNodeAt(pt).or(() -> findSiteAt(pt));
 		return node;
+	}
+
+	/**
+	 * Returns the edge at location
+	 *
+	 * @param pt the location
+	 */
+	private Optional<MapEdge> findEdgeAt(final Point2D pt) {
+		final Optional<MapEdge> result = currentStatus.map(SimulationStatus::getMap).flatMap(map -> {
+			final Optional<MapEdge> node = map.getEdges().stream().filter(s -> isInRange(s, pt)).findAny();
+			return node;
+		});
+		return result;
 	}
 
 	/**

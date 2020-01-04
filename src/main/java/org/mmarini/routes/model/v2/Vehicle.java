@@ -204,7 +204,7 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 	 */
 	public Tuple2<Vehicle, Double> move(final MapEdge edge, final double interval,
 			final OptionalDouble nextVehicleLocation) {
-		final double length = edge.getDistance();
+		final double length = edge.getLength();
 		final double speed = edge.getSpeedLimit();
 		final double maxLocation = location + speed * interval;
 		if (!nextVehicleLocation.isPresent()) {

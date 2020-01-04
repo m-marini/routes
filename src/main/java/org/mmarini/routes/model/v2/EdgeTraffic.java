@@ -239,7 +239,7 @@ public class EdgeTraffic implements Constants {
 	 */
 	public EdgeTraffic removeLast() {
 		final Vehicle vehicle = getLast();
-		assert (vehicle.getLocation() == edge.getDistance());
+		assert (vehicle.getLocation() == edge.getLength());
 		final List<Vehicle> newFromVehicle = vehicles.stream().takeWhile(v -> !vehicle.equals(v))
 				.collect(Collectors.toList());
 		final EdgeTraffic result1 = newFromVehicle.isEmpty() ? this
