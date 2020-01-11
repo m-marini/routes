@@ -55,14 +55,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.OptionalDouble;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 import org.mmarini.routes.model.Constants;
 
 /**
  * A traffic information for a given edge
  */
-public class EdgeTraffic implements Constants {
+public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 
 	/**
 	 * Returns the new empty traffic information for an edge
@@ -113,6 +115,69 @@ public class EdgeTraffic implements Constants {
 		return result;
 	}
 
+	/**
+	 * Returns the cross of edges
+	 *
+	 * @param other
+	 * @see org.mmarini.routes.model.v2.MapEdge#cross(MapEdge)
+	 */
+	public int compareDirection(final EdgeTraffic other) {
+		return edge.cross(other.edge);
+	}
+
+	/*
+	 */
+
+	/**
+	 * Return the comparison between the exiting time.
+	 * <ul>
+	 * <li>zero both edges have no vehicle or have the same exit times</li>
+	 * <li>negative if other has no vehicle or edge has exit time lower then
+	 * other</li>
+	 * <li>positive if has no vehicle or it has exit time greater the other
+	 * edge</li>
+	 * </ul>
+	 *
+	 * @param other the other traffic edge
+	 */
+	public int compareExitTime(final EdgeTraffic other) {
+		final DoubleStream ets = getExitTime().stream();
+		final DoubleStream oets = other.getExitTime().stream();
+
+		final int result = ets.mapToInt(et -> oets.mapToInt(oet -> {
+			// Both with vehicle
+			return Double.compare(et, oet);
+		}).findAny().orElse(
+				// with vehicles and other without vehicles
+				-1)).findAny().orElseGet(() -> oets.mapToInt(oet ->
+		// without vehicles and other with vehicles
+		1).findAny().orElse(
+				// both without vehicles
+				0));
+		return result;
+	}
+
+	/**
+	 * Return positive if edge priority higher then other edge priority, negative if
+	 * edge priority greater then other edge priority or 0 if same priority
+	 *
+	 * @param other the other traffic edge
+	 */
+	public int comparePriority(final EdgeTraffic other) {
+		return Integer.compare(edge.getPriority(), other.edge.getPriority());
+	}
+
+	/**
+	 * Returns the natural order of edge
+	 *
+	 * @param other other edge
+	 * @see org.mmarini.routes.model.v2.MapEdge#compareTo(MapEdge)
+	 */
+	@Override
+	public int compareTo(final EdgeTraffic other) {
+		return edge.compareTo(other.edge);
+	}
+
 	@Override
 	public boolean equals(final Object obj) {
 		if (this == obj) {
@@ -140,6 +205,15 @@ public class EdgeTraffic implements Constants {
 	 */
 	public MapEdge getEdge() {
 		return edge;
+	}
+
+	/**
+	 * Returns the expected time of exit of last vehicle in the edge
+	 */
+	public OptionalDouble getExitTime() {
+		final OptionalDouble result = vehicles.isEmpty() ? OptionalDouble.empty()
+				: OptionalDouble.of((edge.getLength() - getLast().getLocation()) / edge.getSpeedLimit() + time);
+		return result;
 	}
 
 	/**
@@ -191,11 +265,62 @@ public class EdgeTraffic implements Constants {
 	}
 
 	/**
+	 * Returns true if all the traffics are coming from left
+	 *
+	 * @param traffics traffics
+	 */
+	public boolean isAllfromLeft(final Set<EdgeTraffic> traffics) {
+		final boolean allFromLeft = traffics.parallelStream()
+				.allMatch(traffic -> this.equals(traffic) || this.compareDirection(traffic) > 0);
+		return allFromLeft;
+	}
+
+	/**
 	 *
 	 * @return
 	 */
 	public boolean isBusy() {
 		return !getVehicles().isEmpty() && getVehicles().get(0).getLocation() <= VEHICLE_LENGTH;
+	}
+
+	/**
+	 * Returns true if the traffic edge is crossing with other
+	 *
+	 * @param the other traffic edge
+	 */
+	public boolean isCrossing(final EdgeTraffic other) {
+		return edge.isCrossing(other.edge);
+	}
+
+	/**
+	 * Returns the traffic information by moving all the vehicles to the given time
+	 *
+	 * @param time the time
+	 */
+	public EdgeTraffic moveToTime(final double time) {
+		if (time <= this.time) {
+			return this;
+		}
+		if (vehicles.isEmpty()) {
+			return setTime(time);
+		}
+		// The moving order is from the last to the first vehicle in the edge
+		final List<Vehicle> reversed = new ArrayList<>(vehicles);
+		Collections.reverse(reversed);
+
+		final List<Vehicle> newVehicles = new ArrayList<>();
+		// Max delta time
+		OptionalDouble nextLocation = OptionalDouble.empty();
+		final double dt = time - this.time;
+		for (final Vehicle v : reversed) {
+			final Tuple2<Vehicle, Double> tuple = v.move(edge, dt, nextLocation);
+			final Vehicle movedVehicle = tuple.getElem1();
+			nextLocation = OptionalDouble.of(movedVehicle.getLocation());
+			newVehicles.add(0, movedVehicle);
+		}
+
+		final EdgeTraffic result = setVehicles(newVehicles).setTime(time);
+		return result;
 	}
 
 	/**
@@ -216,6 +341,7 @@ public class EdgeTraffic implements Constants {
 		Collections.reverse(reversed);
 
 		final List<Vehicle> newVehicles = new ArrayList<>();
+		// Max delta time
 		final double dtMax = time - this.time;
 
 		OptionalDouble nextLocation = OptionalDouble.empty();
@@ -226,7 +352,9 @@ public class EdgeTraffic implements Constants {
 			final Tuple2<Vehicle, Double> tuple = v.move(edge, dt1, nextLocation);
 			final Vehicle movedVehicle = tuple.getElem1();
 			nextLocation = OptionalDouble.of(movedVehicle.getLocation());
-			dt = dt.isEmpty() ? OptionalDouble.of(tuple.getElem2()) : dt;
+			if (dt.isEmpty()) {
+				dt = OptionalDouble.of(tuple.getElem2());
+			}
 			newVehicles.add(0, movedVehicle);
 		}
 
@@ -246,17 +374,6 @@ public class EdgeTraffic implements Constants {
 				: setLastTravelTime(OptionalDouble.of(time - vehicle.getEdgeEntryTime()));
 		final EdgeTraffic result = result1.setVehicles(newFromVehicle);
 		return result;
-	}
-
-	/**
-	 * Returns the edge traffic with the given last vehicle
-	 *
-	 * @param vehicle the vehicle
-	 */
-	public EdgeTraffic setLast(final Vehicle vehicle) {
-		final List<Vehicle> newVehicles = new ArrayList<>(vehicles);
-		newVehicles.set(newVehicles.size() - 1, vehicle);
-		return setVehicles(newVehicles);
 	}
 
 	/**

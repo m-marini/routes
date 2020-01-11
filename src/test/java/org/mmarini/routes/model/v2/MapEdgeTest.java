@@ -1,6 +1,7 @@
 package org.mmarini.routes.model.v2;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasToString;
@@ -9,12 +10,151 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mmarini.routes.model.v2.TestUtils.genArguments;
+import static org.mmarini.routes.model.v2.TestUtils.genDouble;
+
+import java.awt.geom.Point2D;
+import java.util.stream.DoubleStream;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mmarini.routes.model.Constants;
 
 public class MapEdgeTest implements Constants {
+
+	static DoubleStream distanceRange() {
+		return genArguments().mapToDouble(i -> genDouble(i, 0, 100));
+	}
+
+	static Stream<Point2D> locationRange() {
+		return genArguments().mapToObj(i -> new Point2D.Double(genDouble(i, 0, 100), genDouble(i, 0, 100)));
+	}
+
+	@Test
+	public void compareTo() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(10, 0);
+		final MapEdge edge1 = MapEdge.create(begin, end);
+		final MapEdge edge2 = MapEdge.create(end, begin);
+
+		final int result12 = edge1.compareTo(edge2);
+		final int result21 = edge2.compareTo(edge1);
+
+		assertThat(result21, lessThan(0));
+		assertThat(result12, greaterThan(0));
+	}
+
+	@ParameterizedTest
+	@MethodSource("locationRange")
+	public void getDirection(final Point2D pt) {
+		final MapNode begin = MapNode.create(50, 50);
+		final MapNode end = MapNode.create(pt);
+		final MapEdge edge = MapEdge.create(begin, end);
+
+		final double dx = pt.getX() - 50;
+		final double dy = pt.getY() - 50;
+
+		final Point2D result = edge.getDirection();
+		assertNotNull(result);
+		assertThat(result.getX(), equalTo(dx));
+		assertThat(result.getY(), equalTo(dy));
+	}
+
+	@ParameterizedTest
+	@MethodSource("distanceRange")
+	public void getDistance(final double distance) {
+		final MapNode begin = MapNode.create(50, 50);
+		final MapNode end = MapNode.create(150, 50);
+		final MapEdge edge = MapEdge.create(begin, end);
+
+		final Point2D result = edge.getLocation(distance);
+		assertNotNull(result);
+		assertThat(result.getX(), equalTo(50 + distance));
+		assertThat(result.getY(), equalTo(50.0));
+	}
+
+	@ParameterizedTest
+	@MethodSource("locationRange")
+	public void getDistanceAlongX(final Point2D pt) {
+		final MapNode begin = MapNode.create(0, 50);
+		final MapNode end = MapNode.create(100, 50);
+		final MapEdge edge = MapEdge.create(begin, end);
+
+		final double result = edge.getDistance(pt);
+
+		assertNotNull(result);
+		assertThat(result, closeTo(Math.abs(pt.getY() - 50), 1e-3));
+	}
+
+	@ParameterizedTest
+	@MethodSource("locationRange")
+	public void getDistanceAlongY(final Point2D pt) {
+		final MapNode begin = MapNode.create(50, 0);
+		final MapNode end = MapNode.create(50, 100);
+		final MapEdge edge = MapEdge.create(begin, end);
+
+		final double result = edge.getDistance(pt);
+
+		assertNotNull(result);
+		assertThat(result, closeTo(Math.abs(pt.getX() - 50), 1e-3));
+	}
+
+	@ParameterizedTest
+	@MethodSource("locationRange")
+	public void getDistanceFromBegin(final Point2D pt) {
+		final MapNode begin = MapNode.create(100, 100);
+		final MapNode end = MapNode.create(200, 200);
+		final MapEdge edge = MapEdge.create(begin, end);
+
+		final double result = edge.getDistance(pt);
+		final double expected = pt.distance(begin.getLocation());
+
+		assertNotNull(result);
+		assertThat(result, closeTo(expected, 1e-3));
+	}
+
+	@ParameterizedTest
+	@MethodSource("locationRange")
+	public void getDistanceFromEnd(final Point2D pt) {
+		final MapNode begin = MapNode.create(200, 200);
+		final MapNode end = MapNode.create(100, 100);
+		final MapEdge edge = MapEdge.create(begin, end);
+
+		final double result = edge.getDistance(pt);
+		final double expected = pt.distance(end.getLocation());
+
+		assertNotNull(result);
+		assertThat(result, closeTo(expected, 1e-3));
+	}
+
+	@ParameterizedTest
+	@MethodSource("locationRange")
+	public void getLength(final Point2D pt) {
+		final MapNode begin = MapNode.create(50, 50);
+		final MapNode end = MapNode.create(pt);
+		final MapEdge edge = MapEdge.create(begin, end);
+
+		final double dx = pt.getX() - 50;
+		final double dy = pt.getY() - 50;
+		final double expected = Math.sqrt(dx * dx + dy * dy);
+
+		final double result = edge.getLength();
+		assertThat(result, closeTo(expected, 1e-3));
+	}
+
+	@Test
+	public void getShortName() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(10, 10);
+		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(10);
+		final String result = edge.getShortName();
+		assertThat(result, notNullValue());
+		assertThat(result, equalTo("590864"));
+	}
 
 	@Test
 	public void test() {
@@ -129,6 +269,26 @@ public class MapEdgeTest implements Constants {
 		assertTrue(e13.equals(e11));
 		assertTrue(e13.equals(e12));
 		assertTrue(e13.equals(e13));
+
+		assertThat(e1.compareTo(e1), equalTo(0));
+		assertThat(e1.compareTo(e11), equalTo(0));
+		assertThat(e1.compareTo(e12), equalTo(0));
+		assertThat(e1.compareTo(e13), equalTo(0));
+
+		assertThat(e11.compareTo(e1), equalTo(0));
+		assertThat(e11.compareTo(e11), equalTo(0));
+		assertThat(e11.compareTo(e12), equalTo(0));
+		assertThat(e11.compareTo(e13), equalTo(0));
+
+		assertThat(e12.compareTo(e1), equalTo(0));
+		assertThat(e12.compareTo(e11), equalTo(0));
+		assertThat(e12.compareTo(e12), equalTo(0));
+		assertThat(e12.compareTo(e13), equalTo(0));
+
+		assertThat(e13.compareTo(e1), equalTo(0));
+		assertThat(e13.compareTo(e11), equalTo(0));
+		assertThat(e13.compareTo(e12), equalTo(0));
+		assertThat(e13.compareTo(e13), equalTo(0));
 	}
 
 	@Test

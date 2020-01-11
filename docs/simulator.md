@@ -4,11 +4,11 @@
 
 ## Vehicle movement
 
-Lo spostamento di un veicolo in una tratta è semplificato vincolando la velocità del veicolo al massimo consentito nel tratto, il limite di tempo simulato, la distanza di sicurezza con l'eventuale veicolo sucessivo e il limite di spazio della tratta. Si assume un'accelerazione istantanea illimitata.
+Lo spostamento di un veicolo in una tratta è semplificato vincolando la velocità del veicolo al massimo consentito nel tratto, il limite di tempo simulato, la distanza di sicurezza con l'eventuale veicolo successivo e il limite di spazio della tratta. Si assume un'accelerazione istantanea illimitata.
 
 La simulazione deve calcolare la nuova posizione del veicolo e il tempo impegato per raggiungere la nuova posizione.
 
-La distanza di sicurezza tra un'auto e la sucessiva è determinata da
+La distanza di sicurezza tra un'auto e la successiva è determinata da
 
 ```math
     s = v \cdot t_r + l_v
@@ -92,12 +92,18 @@ Abbiamo ora un'insieme di tratte il cui tempo di simulazione è diverso e dobbia
 
 La regola è che tra i veicoli che si intersecano sullo stesso nodo nell'intervallo del tempo di reazione hanno la precedenza quelli sulle tratte a priorità e in caso di stessa priorità la precedenza è ai veicoli provenienti da destra.
 
-- Si prende la tratta con tempo di simulazione minimo
-- Se la tratta ha tempo di simulazione uguale al limite imposto la simulazione è completata
+- Prendiamo le tratte con tempo non completo (tratte con veicoli uscenti).
+- Se non ce ne sono abbiamo concluso la fase di simulazione parziale
+
+- Filtriamo le tratte con tempo di simulazione minimo
+- Filtriamo le tratte prioritarie e con tratto successivo libero, spostiamo i veicoli e ripetiamo il processo
+- Se non ci sono tratte prioritarie con tratto successivo libero, quelle che rimandono sono tratte bloccate per priorità o per intasamento quindi si modificano tutti i tempi di simulazione delle tratte al tempo della tratta con tempo minimo diverso dalla attuale e si ripete il processo
+
+Il completamento della simulazione avviene spostando eventuali veicoli uscenti alla tratta sucecssiva se libera.
 
 ### Selezione precedenze
 
-- Si esaminano le tratte con tempo di simulazione successivo entro il tempo di reazione
+- Consideriamo le tratte con tempo di uscita previsto entro il tempo di reazione considerato
 
 - Tra queste si selezionano quelle a priorità maggiore
 - Tra queste si prende quella più a destra,
@@ -106,7 +112,7 @@ La regola è che tra i veicoli che si intersecano sullo stesso nodo nell'interva
 ### Spostamento veicolo a fine tratta
 
 - Si calcola la tratta successiva per il veicolo della tratta selezionata o si elimina se ritornato alla partenza.
-- il veicolo della viene spostato alla tratta sucessiva se è libera
+- il veicolo della viene spostato alla tratta successiva se è libera
 - Si calcolando la posizione per il tempo dato dalla differenza tra il tempo di simulazione della tratta successiva e la tratta in uscita
 - Tutti le tratte con tempo minore vengono fermate per il tempo della tratta selezionata.
 - Se la tratta è occupata tutte le tratte con tempo minore o uguale vengono fermate per il tempo della tratta in uscita.

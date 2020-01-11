@@ -5,7 +5,7 @@
 	<id>bin</id>
 	<formats>
 		<format>zip</format>
-		<format>tar.gz</format>
+		<format>tgz</format>
 	</formats>
 	<includeBaseDirectory>true</includeBaseDirectory>
 	<fileSets>

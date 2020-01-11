@@ -119,9 +119,14 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	}
 
 	/**
+	 * Returns the sign of cross product of direction by other edge direction.
+	 * <ul>
+	 * <li>>0 if the other edge direction is coming from left</li>
+	 * <li>0 if the other edge has the same direction of the edge</li>
+	 * <li>&lt;0 if the other edge direction is coming from right</li>
+	 * </ul>
 	 *
-	 * @param edge
-	 * @return
+	 * @param edge the other edge
 	 */
 	public int cross(final MapEdge edge) {
 		final double dx = getEndLocation().getX() - getBeginLocation().getX();
@@ -176,7 +181,7 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	 * @param point
 	 * @return
 	 */
-	private Point2D getClosest(final Point2D point) {
+	Point2D getClosest(final Point2D point) {
 		final double ka = computeKa(point);
 		if (ka <= 0) {
 			return begin.getLocation();
@@ -295,6 +300,15 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 		int result = 1;
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		return result;
+	}
+
+	/**
+	 * Returns true if the edge is crossing with other
+	 *
+	 * @param other the other edge
+	 */
+	public boolean isCrossing(final MapEdge other) {
+		return end.equals(other.end);
 	}
 
 	/**

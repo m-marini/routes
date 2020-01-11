@@ -68,7 +68,9 @@ import org.mmarini.routes.model.v2.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.PublishSubject;
 
 /**
  *
@@ -168,13 +170,13 @@ public class Controller {
 	private final MapViewPane mapViewPane;
 	private final List<String> gridLegendPattern;
 	private final List<String> pointLegendPattern;
-
 	private final List<String> edgeLegendPattern;
+	private final PublishSubject<Integer> edtObs;
 
 	/** The scale of route map (pixels/m) */
 	private double scale;
-
 	private Optional<SimulationStatus> currentStatus;
+	private Optional<SimulationStatus> status;
 
 	/**
 	 *
@@ -195,8 +197,13 @@ public class Controller {
 		this.pointLegendPattern = loadPatterns("ScrollMap.pointLegendPattern");
 		this.edgeLegendPattern = loadPatterns("ScrollMap.edgeLegendPattern");
 		this.currentStatus = Optional.empty();
+		this.status = Optional.empty();
+		edtObs = PublishSubject.create();
 		this.setScale(DEFAULT_SCALE);
 		init();
+		edtObs.subscribe(this::handleEdt);
+		edtObs.onNext(1);
+		simulator.start();
 	}
 
 	/**
@@ -211,7 +218,7 @@ public class Controller {
 		mainFrame.getExitObs().subscribe(ev -> {
 			mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
 		});
-		simulator.getOutput().subscribe(this::handleNewStatus);
+		simulator.getOutput().subscribe(s -> status = Optional.of(s));
 		return bindForMapElementPane().bindForScrollMap().bindForExplorerPane().bindForRouteMap();
 	}
 
@@ -340,6 +347,14 @@ public class Controller {
 	}
 
 	/**
+	 * Returns the observable of node detail
+	 */
+	private Observable<MapNode> createDetailNodeObs() {
+		final Observable<MapNode> result = explorerPane.getNodeObs();
+		return result;
+	}
+
+	/**
 	 * Returns the location in the map of a route map screen point
 	 *
 	 * @param pt the screen point
@@ -348,14 +363,6 @@ public class Controller {
 //		final Point2D result = getInverseTransform().transform(pt, new Point2D.Double());
 //		return result;
 //	}
-
-	/**
-	 * Returns the observable of node detail
-	 */
-	private Observable<MapNode> createDetailNodeObs() {
-		final Observable<MapNode> result = explorerPane.getNodeObs();
-		return result;
-	}
 
 	/**
 	 * Returns the observable of site detail
@@ -656,6 +663,23 @@ public class Controller {
 		return result;
 	}
 
+	private Controller handleEdt(final int x) {
+		final Optional<SimulationStatus> s = status;
+		if (!s.equals(currentStatus)) {
+			currentStatus = s;
+			currentStatus.ifPresent(status -> {
+				final Dimension preferredSize = getScreenMapSize();
+				routeMap.setTransform(getTransform()).setStatus(status).setPreferredSize(preferredSize);
+//				scrollMap.setHud(computeHud(pointLegendPattern, new Point2D.Double()));
+				explorerPane.setMap(status.getMap());
+			});
+		}
+		Observable.just(x + 1).compose(SwingObservable.observeOnEdt()).subscribe(y -> {
+			edtObs.onNext(y);
+		});
+		return this;
+	}
+
 	/**
 	 * Returns the controller with new random map event handled
 	 *
@@ -696,20 +720,6 @@ public class Controller {
 			mainFrame.resetTitle().setSaveActionEnabled(false).repaint();
 		}
 //		startSimulation();
-		return this;
-	}
-
-	/**
-	 *
-	 * @param status
-	 * @return
-	 */
-	private Controller handleNewStatus(final SimulationStatus status) {
-		currentStatus = Optional.of(status);
-		final Dimension preferredSize = getScreenMapSize();
-		routeMap.setTransform(getTransform()).setStatus(status).setPreferredSize(preferredSize);
-		scrollMap.setHud(computeHud(pointLegendPattern, new Point2D.Double()));
-		explorerPane.setMap(status.getMap());
 		return this;
 	}
 
