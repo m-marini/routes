@@ -115,7 +115,7 @@ public class MapNode implements Comparable<MapNode> {
 	/**
 	 * Return the name (the uuid)
 	 */
-	private String getName() {
+	public String getName() {
 		return id.toString();
 	}
 

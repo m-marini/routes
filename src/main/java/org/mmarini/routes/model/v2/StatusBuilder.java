@@ -1,5 +1,4 @@
-//
-
+//scusa 
 // Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
 //
 // Permission is hereby granted, free of charge, to any person
@@ -35,6 +34,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.mmarini.routes.model.Constants;
 
@@ -46,15 +46,6 @@ import org.mmarini.routes.model.Constants;
  * </p>
  */
 public class StatusBuilder implements Constants {
-	/**
-	 *
-	 * @param a
-	 * @param b
-	 * @return
-	 */
-	static int compareTrafficsForTime(final EdgeTraffic a, final EdgeTraffic b) {
-		return Double.compare(a.getTime(), b.getTime());
-	}
 
 	/**
 	 *
@@ -75,33 +66,51 @@ public class StatusBuilder implements Constants {
 	}
 
 	/**
-	 * Select the edge with priority.
 	 *
-	 * @param edgesInfo the list of edge
+	 * @param builder
 	 * @return
 	 */
-	static EdgeTraffic selectByPriority(final Collection<EdgeTraffic> edgesInfo) {
-		// Compute the time limit
-		final double timeLimit = edgesInfo.stream().min(StatusBuilder::compareTrafficsForTime).get().getTime()
-				+ REACTION_TIME;
-		// Filter the conflicting edges
-		final List<EdgeTraffic> filtered = edgesInfo.stream().filter(ei -> ei.getTime() <= timeLimit)
-				.collect(Collectors.toList());
-		// Compute the max edge priority
-		final int priority = filtered.stream().mapToInt(f -> f.getEdge().getPriority()).max().getAsInt();
-		// Filter the max priority edges
-		final List<EdgeTraffic> maxPriority = filtered.stream().filter(f -> f.getEdge().getPriority() == priority)
-				.collect(Collectors.toList());
-		// Select for edge coming from right direction
-		final Optional<EdgeTraffic> selected = maxPriority.stream().filter(edge -> maxPriority.stream()
-				.filter(f -> f != edge).allMatch(other -> edge.getEdge().cross(other.getEdge()) > 0)).findFirst();
-		final EdgeTraffic result = selected.orElseGet(() -> maxPriority.get(0));
-		return result;
+	static StatusBuilder simulationProcess(final StatusBuilder builder) {
+		// TODO Auto-generated method stub
+		StatusBuilder st = builder;
+		for (;;) {
+			// Move all vehicles in the edges
+			st = st.moveVehiclesInAllEdges();
+
+			if (st.isCompleted()) {
+				break;
+			}
+
+			// Find the edges candidates to vehicle move
+			final Set<EdgeTraffic> earliests = st.findCandidates();
+
+			// Filter the priority and the next free to move vehicles
+			st.getTrafficStats();
+			final StatusBuilder st1 = st;
+			final Set<EdgeTraffic> toMove = earliests.parallelStream()
+					.filter(ed -> st1.getNextTraffic(ed).map(next -> !next.isBusy() && st1.isPrior(ed)).orElse(true))
+					.collect(Collectors.toSet());
+			if (toMove.isEmpty()) {
+				// no edge with priority and free next edge
+				// stop vehicles to next instant
+				final double nextTime = st.getNextMinimumTime();
+				final Set<EdgeTraffic> nextTraffics = earliests.parallelStream().map(ed -> ed.moveToTime(nextTime))
+						.collect(Collectors.toSet());
+				st = st.addTraffics(nextTraffics);
+			} else {
+				// at least an edge with priority and free next edge
+				final EdgeTraffic edge = toMove.parallelStream().findAny().get();
+				st = st.moveLastVehicleAt(edge);
+			}
+		}
+		return st;
+
 	}
 
 	private final Set<EdgeTraffic> traffics;
 	private final double time;
 	private final SimulationStatus initialStatus;
+	private TrafficStats trafficStats;
 
 	/**
 	 * @param status
@@ -121,7 +130,7 @@ public class StatusBuilder implements Constants {
 	 * @param traffics the added traffics
 	 * @return the status builder with new traffics added
 	 */
-	StatusBuilder addTraffics(final Collection<EdgeTraffic> traffics) {
+	private StatusBuilder addTraffics(final Collection<EdgeTraffic> traffics) {
 		if (traffics.isEmpty()) {
 			return this;
 		} else {
@@ -149,30 +158,21 @@ public class StatusBuilder implements Constants {
 	 * Returns the simulation status at the given instant
 	 */
 	public SimulationStatus build() {
-		final StatusBuilder st = simulate();
-		return st.initialStatus.setTraffics(st.getTraffics());
+		final StatusBuilder finalStatus = simulationProcess(this).createVehicles();
+		return finalStatus.initialStatus.setTraffics(finalStatus.traffics);
 	}
 
 	/**
 	 *
 	 * @return
 	 */
-	TrafficStats buildTrafficStats() {
-		final TrafficStats result = TrafficStats.create().setEdgeStats(traffics);
-		return result;
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	public StatusBuilder createVehicles() {
+	StatusBuilder createVehicles() {
 		final double frequence = initialStatus.getFrequence();
 		final double t0 = initialStatus.getTraffic().stream().findAny().map(x -> x.getTime()).get();
 		final double dt = time - t0;
-		final int noSites = getInitialStatus().getMap().getSites().size();
+		final int noSites = initialStatus.getMap().getSites().size();
 		final double lambda0 = frequence * dt / (noSites - 1) / 2;
-		final TrafficStats ts = buildTrafficStats();
+		final TrafficStats ts = getTrafficStats();
 		StatusBuilder result = this;
 		for (final Entry<Tuple2<SiteNode, SiteNode>, Double> entry : initialStatus.getWeights().entrySet()) {
 			final SiteNode from = entry.getKey().getElem1();
@@ -212,10 +212,57 @@ public class StatusBuilder implements Constants {
 	}
 
 	/**
+	 * Returns the edge candidate of vehicle movement.
+	 * <p>
+	 * The candidates are the edges with the lowest simulation time
+	 * </p>
+	 */
+	Set<EdgeTraffic> findCandidates() {
+		final double minTime = getMinimumTime();
+		final Set<EdgeTraffic> result = traffics.parallelStream().filter(et -> et.getTime() == minTime)
+				.collect(Collectors.toSet());
+		return result;
+	}
+
+	/**
 	 * Returns the initial status
 	 */
 	SimulationStatus getInitialStatus() {
 		return initialStatus;
+	}
+
+	/**
+	 * Returns the minimum simulation time
+	 */
+	double getMinimumTime() {
+		final double result = traffics.parallelStream().mapToDouble(EdgeTraffic::getTime).min().orElseGet(() -> time);
+		return result;
+	}
+
+	/**
+	 * Returns the next minimum simulation time
+	 */
+	double getNextMinimumTime() {
+		final double min = getMinimumTime();
+		final double result = traffics.parallelStream().mapToDouble(EdgeTraffic::getTime).filter(t -> t != min).min()
+				.orElseGet(() -> time);
+		return result;
+	}
+
+	/**
+	 * Returns the next edge for a give edge
+	 *
+	 * @param edge edge
+	 */
+	Optional<EdgeTraffic> getNextTraffic(final EdgeTraffic edge) {
+		final TrafficStats stats = getTrafficStats();
+		if (edge.getVehicles().isEmpty()) {
+			return Optional.empty();
+		} else {
+			final SiteNode to = edge.getLast().getTarget();
+			final Optional<EdgeTraffic> result = stats.nextEdge(edge.getEdge().getEnd(), to);
+			return result;
+		}
 	}
 
 	/**
@@ -227,95 +274,125 @@ public class StatusBuilder implements Constants {
 	}
 
 	/**
-	 * Returns the status builder after moving all vehicles
+	 *
+	 * @return
 	 */
-	StatusBuilder moveAllVehicles() {
-		StatusBuilder st = this;
-		for (;;) {
-			final StatusBuilder st1 = st;
-			final Set<EdgeTraffic> newTraffics = st.traffics.parallelStream().map(et -> et.moveVehicles(st1.time))
-					.collect(Collectors.toSet());
-			st = setTraffics(newTraffics);
-			final EdgeTraffic earlier = newTraffics.parallelStream().min(StatusBuilder::compareTrafficsForTime).get();
-			// TODO moving from head
-			if (earlier.getTime() == st.time) {
-				break;
-			}
-			// Filter the crossing edge
-			final MapNode end = earlier.getEdge().getEnd();
-			final Set<EdgeTraffic> crossingEdges = newTraffics.parallelStream()
-					.filter(et -> !et.getVehicles().isEmpty() && et.getEdge().getEnd().equals(end))
-					.collect(Collectors.toSet());
-			st = st.moveVehicleAtCross(crossingEdges);
+	TrafficStats getTrafficStats() {
+		if (trafficStats == null) {
+			trafficStats = TrafficStats.create().setEdgeStats(traffics);
 		}
-		return st;
+		return trafficStats;
+	}
+
+	private Stream<EdgeTraffic> incomingTrafficStream(final EdgeTraffic trafficEdge) {
+		return traffics.parallelStream().filter(te -> !te.getVehicles().isEmpty() && te.isCrossing(trafficEdge));
 	}
 
 	/**
-	 * Returns the status builder with the last vehicle of a given edge moved to a
-	 * new edge.
-	 *
-	 * @param from source edge
-	 * @param to   destination edge
-	 * @return the new status builder
+	 * Returns true if not any edge has not completed the simulation
 	 */
-	StatusBuilder moveVehicle(final EdgeTraffic from, final EdgeTraffic to) {
-		final Vehicle last = from.getLast();
-		final EdgeTraffic newFrom = from.removeLast();
-		final EdgeTraffic newTo = to.addVehicle(last, from.getTime());
-		final StatusBuilder result = addTraffics(List.of(newFrom, newTo));
+	boolean isCompleted() {
+		return !traffics.parallelStream().anyMatch(edge -> edge.getTime() < time);
+	}
+
+	/**
+	 * Returns true if the traffic edge is has priority
+	 *
+	 * @param trafficEdge edge
+	 */
+	boolean isPrior(final EdgeTraffic trafficEdge) {
+		final boolean result = trafficEdge.getExitTime().stream().mapToObj(exitTime -> {
+			final double limitTime = exitTime + REACTION_TIME;
+			// Filter all the crossing traffics within expected exit time within limit
+			final Set<EdgeTraffic> xTraffics = incomingTrafficStream(trafficEdge)
+					.filter(traffic -> traffic.getExitTime().getAsDouble() <= limitTime).collect(Collectors.toSet());
+			if (xTraffics.size() == 1) {
+				// no other crossing traffics
+				return true;
+			}
+			// check for higher priority edge
+			final boolean exitsHigherPriorityTraffics = xTraffics.parallelStream()
+					.anyMatch(traffic -> traffic.comparePriority(trafficEdge) > 0);
+			if (exitsHigherPriorityTraffics) {
+				return false;
+			}
+			// filter same priority edges
+			final Set<EdgeTraffic> isoPriorities = xTraffics.parallelStream()
+					.filter(traffic -> traffic.comparePriority(trafficEdge) == 0).collect(Collectors.toSet());
+			if (isoPriorities.size() == 1) {
+				// no other crossing traffic with same priority
+				return true;
+			}
+			// Check for traffics coming from right priority
+			if (trafficEdge.isAllfromLeft(isoPriorities)) {
+				// All traffics are coming from left
+				return true;
+			}
+			// Check for stale
+			// Look for traffics from right with absolute priority
+			final boolean stale = !isoPriorities.parallelStream()
+					.anyMatch(traffic -> traffic.isAllfromLeft(isoPriorities));
+			if (!stale) {
+				// there is at least an edge with traffic with absolute priority
+				return false;
+			}
+
+			// Check for arrivals
+			final double earliestTime = isoPriorities.parallelStream()
+					.flatMapToDouble(traffic -> traffic.getExitTime().stream()).min().getAsDouble();
+			final EdgeTraffic priorTraffic = isoPriorities.stream().filter(
+					traffic -> traffic.getExitTime().stream().mapToObj(time -> time == earliestTime).findAny().get())
+					.sorted().findFirst().get();
+			return priorTraffic.equals(trafficEdge);
+		}).findAny().orElseGet(
+				// no vehicles on traffic edge
+				() -> false);
 		return result;
 	}
 
 	/**
-	 * Returns the status builder with the last vehicle of priority moved to cross
+	 * Returns the status builder with last vehicle of the given edge moved to next
+	 * edge
 	 *
-	 * @param crossingEdges the sorted by time incoming edges at the crossing node
+	 * @param traffic the edge
 	 */
-	StatusBuilder moveVehicleAtCross(final Collection<EdgeTraffic> crossingEdges) {
-		// Select the priority inbound edge in the cross
-		final EdgeTraffic priorityEdge = selectByPriority(crossingEdges);
-		// Select all other inbound edges in the cross
-		final List<EdgeTraffic> idleEdges = crossingEdges.stream()
-				.filter(e -> !e.equals(priorityEdge) && Double.compare(e.getTime(), priorityEdge.getTime()) < 0)
-				.collect(Collectors.toList());
-		// Get the exiting vehicle
-		final Vehicle vehicle = priorityEdge.getLast();
-		if (vehicle.getTarget().equals(priorityEdge.getEdge().getEnd())) {
-			// Vehicle reached the destination
-			if (vehicle.isReturning()) {
-				// Remove the vehicle
-				final EdgeTraffic newegde = priorityEdge.removeLast();
-				final StatusBuilder result = addTraffics(newegde).stopEdges(idleEdges, priorityEdge.getTime());
-				return result;
-			} else {
-				// Invert vehicle
-				final EdgeTraffic retOutboundEdge = priorityEdge.setLast(vehicle.setReturning(true));
-				final StatusBuilder result = addTraffics(retOutboundEdge);
-				return result;
-			}
+	StatusBuilder moveLastVehicleAt(final EdgeTraffic traffic) {
+
+		final Vehicle vehicle = traffic.getLast();
+		final EdgeTraffic newTraffic = traffic.removeLast();
+		if (!vehicle.getTarget().equals(traffic.getEdge().getEnd())) {
+			// Vehicle not at target
+			return getNextTraffic(traffic).map(
+					// Move vehicle
+					nextTraffic -> addTraffics(List.of(newTraffic, nextTraffic.addVehicle(vehicle, traffic.getTime()))))
+					.orElseGet(
+							// No way => remove vehicle
+							() -> addTraffics(newTraffic));
+		} else if (vehicle.isReturning()) {
+			// Vehicle arrived at departure => remove vehicle
+			return addTraffics(newTraffic);
 		} else {
-			final TrafficStats ts = buildTrafficStats();
-			final Optional<EdgeTraffic> next = ts.nextEdge(priorityEdge.getEdge().getEnd(), vehicle.getTarget());
-			final StatusBuilder result1 = next.stream().map(edge -> {
-				if (edge.isBusy()) {
-					final double nextTime = edge.getTime();
-					final StatusBuilder result = stopEdges(idleEdges, nextTime).stopEdges(List.of(priorityEdge),
-							nextTime);
-					return result;
-				} else {
-					final StatusBuilder result = moveVehicle(priorityEdge, edge).stopEdges(idleEdges,
-							priorityEdge.getTime());
-					return result;
-				}
-			}).findAny().orElseGet(() -> {
-				// Remove the vehicle
-				final EdgeTraffic newegde = priorityEdge.removeLast();
-				final StatusBuilder result = addTraffics(newegde).stopEdges(idleEdges, priorityEdge.getTime());
-				return result;
-			});
-			return result1;
+			// Vehicle arrived at destination => returning
+			final Optional<EdgeTraffic> nextTraffic = getTrafficStats().nextEdge(vehicle.getDestination(),
+					vehicle.getDeparture());
+			return nextTraffic.map(
+					// Move vehicle
+					traffic1 -> {
+						final EdgeTraffic newNext = traffic1.addVehicle(vehicle.setReturning(true), traffic.getTime());
+						return addTraffics(List.of(newTraffic, newNext));
+					}).orElseGet(
+							// No way => remove vehicle
+							() -> addTraffics(newTraffic));
 		}
+	}
+
+	/**
+	 * Returns the status builder with all vehicles moved in the edges
+	 */
+	StatusBuilder moveVehiclesInAllEdges() {
+		final Set<EdgeTraffic> newTraffics = traffics.parallelStream().map(et -> et.moveVehicles(time))
+				.collect(Collectors.toSet());
+		return setTraffics(newTraffics);
 	}
 
 	/**
@@ -334,30 +411,5 @@ public class StatusBuilder implements Constants {
 	 */
 	public StatusBuilder setTraffics(final Set<EdgeTraffic> traffics) {
 		return new StatusBuilder(initialStatus, traffics, time);
-	}
-
-	/**
-	 * Returns the status builder after simulation to the given instant
-	 */
-	StatusBuilder simulate() {
-		return moveAllVehicles().createVehicles();
-	}
-
-	/**
-	 * Returns the status builder with a edge collection stopped until a given
-	 * instant
-	 *
-	 * @param edges the edge collection
-	 * @param time  the instant
-	 */
-	StatusBuilder stopEdges(final Collection<EdgeTraffic> edges, final double time) {
-		if (edges.isEmpty()) {
-			return this;
-		} else {
-			final List<EdgeTraffic> newIdleEdges = edges.stream().map(e -> e.setTime(time))
-					.collect(Collectors.toList());
-			final StatusBuilder result = addTraffics(newIdleEdges);
-			return result;
-		}
 	}
 }

@@ -26,6 +26,11 @@
 
 package org.mmarini.routes.model.v2;
 
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.reactivex.rxjava3.subjects.PublishSubject;
@@ -35,11 +40,15 @@ import io.reactivex.rxjava3.subjects.Subject;
  *
  */
 public class Simulator {
+	private static final long DEFAULT_MIN_TIME_NS = 100000000L;
+	private static final Logger logger = LoggerFactory.getLogger(Simulator.class);
+
 	private final Subject<SimulationStatus> output;
 	private boolean running;
 	private double speed;
 	private SimulationStatus simulationStatus;
 	private long prevTime;
+	private final long minTimeNs = DEFAULT_MIN_TIME_NS;
 
 	/**
 	 *
@@ -48,21 +57,7 @@ public class Simulator {
 		super();
 		speed = 1;
 		output = PublishSubject.create();
-		output.subscribe(status -> {
-			final long time = System.nanoTime();
-			final long dt = time - prevTime;
-			prevTime = time;
-			simulationStatus = status;
-			if (running) {
-//				Single.timer(100, TimeUnit.MILLISECONDS).map(x -> next(status, dt * 1e-9)).subscribe(next -> {
-//					output.onNext(next);
-//				});
-				Single.fromSupplier(() -> next(status, dt * 1e-9)).subscribeOn(Schedulers.computation())
-						.subscribe(next -> {
-							output.onNext(next);
-						});
-			}
-		});
+		output.subscribe(this::handleNextReady);
 	}
 
 	/**
@@ -70,6 +65,33 @@ public class Simulator {
 	 */
 	public Subject<SimulationStatus> getOutput() {
 		return output;
+	}
+
+	/**
+	 *
+	 * @param next
+	 */
+	private Simulator handleNextReady(final SimulationStatus next) {
+		final long time = System.nanoTime();
+		// Compute interval
+		final long dt = time - prevTime;
+		prevTime = time;
+		simulationStatus = next;
+		if (running) {
+			final long waitTime = minTimeNs - dt;
+			if (waitTime >= 0) {
+				// Reschedule for next status
+				Single.fromSupplier(() -> this.next(next, dt * 1e-9)).delay(waitTime, TimeUnit.NANOSECONDS)
+						.subscribe(output::onNext);
+			} else {
+				// Reschedule for next status
+				Single.fromSupplier(() -> this.next(next, dt * 1e-9)).subscribeOn(Schedulers.computation())
+						.subscribe(output::onNext);
+			}
+		} else {
+			logger.debug("Simulator stopped.");
+		}
+		return this;
 	}
 
 	/**
@@ -115,6 +137,7 @@ public class Simulator {
 			running = true;
 			prevTime = System.nanoTime();
 			output.onNext(simulationStatus);
+			logger.debug("Simulator started ...");
 		}
 		return this;
 	}
@@ -125,6 +148,7 @@ public class Simulator {
 	 */
 	public Simulator stop() {
 		running = false;
+		logger.debug("Stopping simulator ...");
 		return this;
 	}
 }

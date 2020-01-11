@@ -102,6 +102,8 @@ public class ExplorerPane extends JTabbedPane {
 	private final Observable<MapNode> nodeObs;
 	private final Observable<SiteNode> siteObs;
 
+	private GeoMap map;
+
 	/**
 	 *
 	 */
@@ -200,16 +202,19 @@ public class ExplorerPane extends JTabbedPane {
 	 * @param map the map
 	 */
 	public ExplorerPane setMap(final GeoMap map) {
-		logger.debug("setMap {}", map);
-		final List<SiteNode> sites = map.getSites().stream().sorted().collect(Collectors.toList());
-		final List<MapNode> nodes = map.getNodes().stream().sorted().collect(Collectors.toList());
-		final List<MapEdge> edges = map.getEdges().stream().sorted().collect(Collectors.toList());
-		siteList.removeAllElements();
-		siteList.addAll(sites);
-		nodeList.removeAllElements();
-		nodeList.addAll(nodes);
-		edgeList.removeAllElements();
-		edgeList.addAll(edges);
+		this.map = map;
+		if (!map.equals(this.map)) {
+			logger.debug("setMap {}", map);
+			final List<SiteNode> sites = map.getSites().stream().sorted().collect(Collectors.toList());
+			final List<MapNode> nodes = map.getNodes().stream().sorted().collect(Collectors.toList());
+			final List<MapEdge> edges = map.getEdges().stream().sorted().collect(Collectors.toList());
+			siteList.removeAllElements();
+			siteList.addAll(sites);
+			nodeList.removeAllElements();
+			nodeList.addAll(nodes);
+			edgeList.removeAllElements();
+			edgeList.addAll(edges);
+		}
 		return this;
 	}
 

@@ -5,26 +5,195 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.hasToString;
+import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mmarini.routes.model.v2.TestUtils.genArguments;
+import static org.mmarini.routes.model.v2.TestUtils.genDouble;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.OptionalDouble;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mmarini.routes.model.Constants;
 
 public class EdgeTrafficTest implements Constants {
 	private static final double SPEED = 10.0;
 
 	private static final double EXPECTED_DEFAULT_TIME = 10.0 * sqrt(2) / DEFAULT_SPEED_LIMIT_KMH / KMH_TO_MPS;
+
+	static DoubleStream locationRange() {
+		return genArguments().mapToDouble(i -> genDouble(i, 0, 100));
+	}
+
+	static Stream<Arguments> locationsRange() {
+		final Stream<Arguments> result = genArguments()
+				.mapToObj(i -> Arguments.of(genDouble(i, 0, 100), genDouble(i, 0, 100)));
+		return result;
+	}
+
+	static Stream<Arguments> prioritiesRange() {
+		final Stream<Arguments> result = IntStream.range(0, 10).mapToObj(Integer::valueOf)
+				.flatMap(i -> IntStream.range(0, 10).mapToObj(j -> Arguments.of(i, j + 1)));
+		return result;
+	}
+
+	static IntStream priorityRange() {
+		return genArguments(10);
+	}
+
+	@Test
+	public void compareDifferentDirection() {
+		final SiteNode s0 = SiteNode.create(0, 0);
+		final SiteNode s1 = SiteNode.create(10, 10);
+		final MapNode n = MapNode.create(10, 0);
+		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(s0, n));
+		final EdgeTraffic et2 = EdgeTraffic.create(MapEdge.create(s1, n));
+
+		final int result12 = et1.compareDirection(et2);
+		final int result21 = et2.compareDirection(et1);
+
+		assertThat(result12, lessThan(0));
+		assertThat(result21, greaterThan(0));
+	}
+
+	@ParameterizedTest
+	@MethodSource("prioritiesRange")
+	public void compareDifferentPriority(final int priority, final int delta) {
+		final SiteNode begin = SiteNode.create(0, 0);
+		final SiteNode end = SiteNode.create(0, 10);
+		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(begin, end).setPriority(priority));
+		final EdgeTraffic et2 = EdgeTraffic.create(MapEdge.create(begin, end).setPriority(priority + delta));
+
+		final int result12 = et1.comparePriority(et2);
+		final int result21 = et2.comparePriority(et1);
+
+		assertThat(result12, lessThan(0));
+		assertThat(result21, greaterThan(0));
+	}
+
+	@ParameterizedTest
+	@MethodSource("priorityRange")
+	public void compareEqualPriority(final int priority) {
+		final SiteNode begin = SiteNode.create(0, 0);
+		final SiteNode end = SiteNode.create(0, 10);
+		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(begin, end).setPriority(priority));
+		final EdgeTraffic et2 = EdgeTraffic.create(MapEdge.create(begin, end).setPriority(priority));
+
+		final int result = et1.comparePriority(et2);
+		assertThat(result, equalTo(0));
+	}
+
+	@ParameterizedTest
+	@MethodSource("locationsRange")
+	public void compareExit(final double location1, final double location2) {
+		final SiteNode begin = SiteNode.create(0, 0);
+		final SiteNode end = SiteNode.create(100, 0);
+		final Vehicle v1 = Vehicle.create(begin, end).setLocation(location1);
+		final Vehicle v2 = Vehicle.create(begin, end).setLocation(location2);
+		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(begin, end).setSpeedLimit(10))
+				.setVehicles(List.of(v1));
+		final EdgeTraffic et2 = EdgeTraffic.create(MapEdge.create(end, begin).setSpeedLimit(10))
+				.setVehicles(List.of(v2));
+
+		final int expected = Double.compare(location1, location2);
+
+		final int result12 = et1.compareExitTime(et2);
+		final int result21 = et2.compareExitTime(et1);
+
+		if (expected < 0) {
+			assertThat(result12, greaterThan(0));
+			assertThat(result21, lessThan(0));
+		} else if (expected > 0) {
+			assertThat(result12, lessThan(0));
+			assertThat(result21, greaterThan(0));
+		} else {
+			assertThat(result12, equalTo(0));
+			assertThat(result21, equalTo(0));
+		}
+	}
+
+	@Test
+	public void compareExitNoVehicles() {
+		final SiteNode begin = SiteNode.create(0, 0);
+		final SiteNode end = SiteNode.create(100, 0);
+		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(begin, end).setSpeedLimit(10));
+		final EdgeTraffic et2 = EdgeTraffic.create(MapEdge.create(end, begin).setSpeedLimit(10));
+
+		final int result12 = et1.compareExitTime(et2);
+		final int result21 = et2.compareExitTime(et1);
+
+		assertThat(result12, equalTo(0));
+		assertThat(result21, equalTo(0));
+	}
+
+	@Test
+	public void compareExitOneNoVehicles() {
+		final SiteNode begin = SiteNode.create(0, 0);
+		final SiteNode end = SiteNode.create(100, 0);
+		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(begin, end).setSpeedLimit(10))
+				.setVehicles(List.of(Vehicle.create(begin, end)));
+		final EdgeTraffic et2 = EdgeTraffic.create(MapEdge.create(end, begin).setSpeedLimit(10));
+
+		final int result12 = et1.compareExitTime(et2);
+		final int result21 = et2.compareExitTime(et1);
+
+		assertThat(result12, lessThan(0));
+		assertThat(result21, greaterThan(0));
+	}
+
+	@Test
+	public void compareSameDirection() {
+		final SiteNode begin = SiteNode.create(0, 0);
+		final SiteNode end = SiteNode.create(0, 10);
+		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(begin, end));
+		final EdgeTraffic et2 = EdgeTraffic.create(MapEdge.create(end, begin));
+		final int result12 = et1.compareDirection(et2);
+		final int result21 = et2.compareDirection(et1);
+		assertThat(result12, equalTo(0));
+		assertThat(result21, equalTo(0));
+	}
+
+	@ParameterizedTest
+	@MethodSource("locationRange")
+	public void getExitTime(final double location) {
+		final SiteNode begin = SiteNode.create(0, 0);
+		final SiteNode end = SiteNode.create(100, 0);
+		final Vehicle v = Vehicle.create(begin, end).setLocation(location);
+		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(begin, end).setSpeedLimit(10))
+				.setVehicles(List.of(v));
+
+		final OptionalDouble result = et1.getExitTime();
+		assertNotNull(result);
+		assertTrue(result.isPresent());
+		assertThat(result.getAsDouble(), closeTo((100 - location) / 10, 1e-3));
+	}
+
+	@Test
+	public void getExitTimeEmpty() {
+		final SiteNode begin = SiteNode.create(0, 0);
+		final SiteNode end = SiteNode.create(100, 0);
+		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(begin, end).setSpeedLimit(10));
+
+		final OptionalDouble result = et1.getExitTime();
+		assertNotNull(result);
+		assertTrue(result.isEmpty());
+	}
 
 	@Test
 	public void test() {

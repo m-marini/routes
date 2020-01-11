@@ -153,7 +153,7 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 	/**
 	 * Return the name (the uuid)
 	 */
-	private String getName() {
+	public String getName() {
 		return id.toString();
 	}
 

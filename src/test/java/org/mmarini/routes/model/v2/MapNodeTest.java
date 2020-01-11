@@ -2,7 +2,9 @@ package org.mmarini.routes.model.v2;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasToString;
+import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -11,6 +13,34 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 public class MapNodeTest {
+
+	@Test
+	public void compareTo() {
+		final MapNode node1 = MapNode.create(0, 0);
+		final MapNode node2 = MapNode.create(0, 10);
+
+		final int result12 = node1.compareTo(node2);
+		final int result21 = node2.compareTo(node1);
+
+		assertThat(result12, lessThan(0));
+		assertThat(result21, greaterThan(0));
+	}
+
+	@Test
+	public void getName() {
+		final MapNode node = MapNode.create(0, 0);
+		final String result = node.getName();
+		assertNotNull(result);
+		assertThat(result, equalTo("4ae71336-e44b-39bf-b9d2-752e234818a5"));
+	}
+
+	@Test
+	public void getShortName() {
+		final MapNode node = MapNode.create(0, 0);
+		final String result = node.getShortName();
+		assertNotNull(result);
+		assertThat(result, equalTo("4ae713"));
+	}
 
 	@Test
 	public void test() {
@@ -40,6 +70,12 @@ public class MapNodeTest {
 
 		assertTrue(node11.equals(node1));
 		assertTrue(node11.equals(node11));
+
+		assertThat(node1.compareTo(node1), equalTo(0));
+		assertThat(node1.compareTo(node11), equalTo(0));
+
+		assertThat(node11.compareTo(node1), equalTo(0));
+		assertThat(node11.compareTo(node11), equalTo(0));
 	}
 
 	@Test

@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mmarini.routes.model.v2.TestUtils.genArguments;
 import static org.mmarini.routes.model.v2.TestUtils.genDouble;
@@ -46,6 +47,39 @@ public class VehicleTest implements Constants {
 	}
 
 	@Test
+	public void compareTo() {
+		final SiteNode departure = SiteNode.create(0, 0);
+		final SiteNode destination = SiteNode.create(10, 10);
+		final Vehicle v1 = Vehicle.create(departure, destination);
+		final Vehicle v2 = Vehicle.create(departure, destination);
+
+		final int result12 = v1.compareTo(v2);
+		final int result21 = v2.compareTo(v1);
+
+		assertThat(Math.signum(result21), equalTo(-Math.signum(result12)));
+	}
+
+	@Test
+	public void getName() {
+		final SiteNode departure = SiteNode.create(0, 0);
+		final SiteNode destination = SiteNode.create(10, 10);
+		final Vehicle v = Vehicle.create(departure, destination);
+		final String result = v.getName();
+		assertNotNull(result);
+		assertThat(result, matchesPattern(".{8}-.{4}-.{4}-.{4}-.{12}"));
+	}
+
+	@Test
+	public void getShortName() {
+		final SiteNode departure = SiteNode.create(0, 0);
+		final SiteNode destination = SiteNode.create(10, 10);
+		final Vehicle v = Vehicle.create(departure, destination);
+		final String result = v.getShortName();
+		assertNotNull(result);
+		assertThat(result, matchesPattern(".{6}"));
+	}
+
+	@Test
 	public void test() {
 		final SiteNode departure = SiteNode.create(0, 0);
 		final SiteNode destination = SiteNode.create(10, 10);
@@ -76,6 +110,7 @@ public class VehicleTest implements Constants {
 		assertFalse(v1.equals(new Object()));
 		assertFalse(v2.equals(v1));
 		assertFalse(v1.equals(v2));
+
 		assertTrue(v1.equals(v1));
 		assertTrue(v1.equals(v11));
 		assertTrue(v1.equals(v12));
@@ -92,6 +127,23 @@ public class VehicleTest implements Constants {
 		assertTrue(v13.equals(v11));
 		assertTrue(v13.equals(v12));
 		assertTrue(v13.equals(v13));
+
+		assertThat(v1.compareTo(v1), equalTo(0));
+		assertThat(v1.compareTo(v11), equalTo(0));
+		assertThat(v1.compareTo(v12), equalTo(0));
+		assertThat(v1.compareTo(v13), equalTo(0));
+		assertThat(v11.compareTo(v1), equalTo(0));
+		assertThat(v11.compareTo(v11), equalTo(0));
+		assertThat(v11.compareTo(v12), equalTo(0));
+		assertThat(v11.compareTo(v13), equalTo(0));
+		assertThat(v12.compareTo(v1), equalTo(0));
+		assertThat(v12.compareTo(v11), equalTo(0));
+		assertThat(v12.compareTo(v12), equalTo(0));
+		assertThat(v12.compareTo(v13), equalTo(0));
+		assertThat(v13.compareTo(v1), equalTo(0));
+		assertThat(v13.compareTo(v11), equalTo(0));
+		assertThat(v13.compareTo(v12), equalTo(0));
+		assertThat(v13.compareTo(v13), equalTo(0));
 	}
 
 	@Test
@@ -236,4 +288,5 @@ public class VehicleTest implements Constants {
 		assertThat(v, notNullValue());
 		assertThat(v, hasToString(matchesPattern("Vehicle \\[.{8}-.{4}-.{4}-.{4}-.{12}\\]")));
 	}
+
 }
