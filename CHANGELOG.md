@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- Issue #27: Simualtion stop after a while
+- Issue #51: Check for destination arrival on busy exit
+
 ### Changed
 
 - Issue #17: Change model rendering
