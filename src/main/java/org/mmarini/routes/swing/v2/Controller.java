@@ -33,6 +33,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
@@ -219,7 +220,7 @@ public class Controller {
 			mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
 		});
 		simulator.getOutput().subscribe(s -> status = Optional.of(s));
-		return bindForMapElementPane().bindForScrollMap().bindForExplorerPane().bindForRouteMap();
+		return bindForMapElementPane().bindForScrollMap().bindForExplorerPane().bindForRouteMap().bindForMap();
 	}
 
 	/**
@@ -243,6 +244,25 @@ public class Controller {
 
 		createNoneSelectionObs().subscribe(pt -> explorerPane.clearSelection());
 		return this;
+	}
+
+	/**
+	 * Returns the controller with bind for map change
+	 */
+	private Controller bindForMap() {
+		final Observable<MapEdge> deleteByKeyObs = routeMap.getKeyboardObs()
+				.filter(ev -> ev.getID() == KeyEvent.KEY_PRESSED
+						&& (ev.getKeyCode() == KeyEvent.VK_BACK_SPACE || ev.getKeyCode() == KeyEvent.VK_DELETE))
+				.map(ev -> routeMap.getSelectedEdge()).filter(ed -> ed.isPresent()).map(ed -> ed.get());
+		final Observable<SimulationStatus> stopAndDeleteEdgeObs = edgePane.getDeleteObs().mergeWith(deleteByKeyObs)
+				.flatMap(edge -> {
+					final Observable<SimulationStatus> r = simulator.stop().map(status -> status.removeEdge(edge))
+							.toObservable();
+					return r;
+				});
+		stopAndDeleteEdgeObs.subscribe(this::setStatusAndStart);
+		return this;
+
 	}
 
 	/**
@@ -832,6 +852,17 @@ public class Controller {
 		this.scale = scale;
 		routeMap.setTransform(getTransform()).setGridSize(getGridSize()).setBorderPainted(scale >= BORDER_SCALE)
 				.setBorderPainted(scale >= BORDER_SCALE).setPreferredSize(getScreenMapSize());
+		return this;
+	}
+
+	/**
+	 * Returns the controller with a new simulation status and simulator started
+	 *
+	 * @param status the new status
+	 */
+	private Controller setStatusAndStart(final SimulationStatus status) {
+		routeMap.setSelectedEdge(Optional.empty());
+		simulator.setSimulationStatus(status).start();
 		return this;
 	}
 
