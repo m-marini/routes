@@ -1,4 +1,4 @@
-//scusa 
+//scusa
 // Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
 //
 // Permission is hereby granted, free of charge, to any person

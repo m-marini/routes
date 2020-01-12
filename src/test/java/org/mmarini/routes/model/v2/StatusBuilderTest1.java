@@ -149,7 +149,7 @@ public class StatusBuilderTest1 extends AbstractStatusBuilderTest {
 	 * edge 0<br>
 	 * When invoke isCompleted<br>
 	 * Than should result false
-	 * 
+	 *
 	 * @param time
 	 */
 	@ParameterizedTest
@@ -166,7 +166,7 @@ public class StatusBuilderTest1 extends AbstractStatusBuilderTest {
 	 * Given a status builder with all traffic times at limitTime<br>
 	 * When invoke isCompleted<br>
 	 * Than should result true
-	 * 
+	 *
 	 * @param time
 	 */
 	@ParameterizedTest
@@ -814,6 +814,48 @@ public class StatusBuilderTest1 extends AbstractStatusBuilderTest {
 	}
 
 	/**
+	 * <pre>
+	 * Given an initial status at time t
+	 * And a vehicle from 0 to 1 in edge 4 at 495 m
+	 * And busy traffic on edge 1
+	 * And a builder to time t + 10 s
+	 * When simulationProcess
+	 * Than the vehicle should be at edge 4 at 500 m
+	 * </pre>
+	 */
+	@ParameterizedTest
+	@MethodSource("timeRange")
+	public void simulationProcessBusyDestination(final double time) {
+		final double limitTime = time + 0.5;
+		final StatusBuilder builder = createBuilder(time, limitTime, (traffic, i) -> {
+			switch (i) {
+			case 1: {
+				final List<Vehicle> vs = IntStream.range(0, 995)
+						.mapToObj(j -> Vehicle.create(site(0), site(1)).setReturning(true).setLocation(j + 5))
+						.collect(Collectors.toList());
+				return traffic.setVehicles(vs).setTime(limitTime);
+			}
+			case 4: {
+				final List<Vehicle> vs = List.of(Vehicle.create(site(0), site(1)).setLocation(495));
+				return traffic.setVehicles(vs);
+			}
+			default:
+				return traffic;
+			}
+		});
+
+		final StatusBuilder result = StatusBuilder.simulationProcess(builder);
+		assertNotNull(result);
+
+		final EdgeTraffic nt4 = traffic(result, 4).get();
+		assertThat(nt4.getTime(), equalTo(limitTime));
+		assertThat(nt4.getVehicles(), hasSize(1));
+
+		final Vehicle v = nt4.getLast();
+		assertThat(v, equalTo(traffic(4).getLast()));
+	}
+
+	/**
 	 * Given an initial status at time t without any vehicle<br>
 	 * And a builder to time t + 1 s<br>
 	 * When simulationProcess<br>
@@ -853,13 +895,13 @@ public class StatusBuilderTest1 extends AbstractStatusBuilderTest {
 			switch (i) {
 			case 0: {
 				final List<Vehicle> vs = IntStream.range(0, 995)
-						.mapToObj(j -> Vehicle.create(sites.get(0), sites.get(1)).setReturning(true).setLocation(j + 5))
+						.mapToObj(j -> Vehicle.create(site(0), site(1)).setReturning(true).setLocation(j + 5))
 						.collect(Collectors.toList());
 				return traffic.setVehicles(vs);
 			}
 			case 3: {
 				final List<Vehicle> vs = IntStream.range(0, 995)
-						.mapToObj(j -> Vehicle.create(sites.get(1), sites.get(0)).setReturning(true).setLocation(j + 5))
+						.mapToObj(j -> Vehicle.create(site(1), site(0)).setReturning(true).setLocation(j + 5))
 						.collect(Collectors.toList());
 				return traffic.setVehicles(vs);
 			}
