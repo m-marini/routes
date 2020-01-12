@@ -26,6 +26,7 @@
 
 package org.mmarini.routes.model.v2;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -44,11 +45,12 @@ public class Simulator {
 	private static final Logger logger = LoggerFactory.getLogger(Simulator.class);
 
 	private final Subject<SimulationStatus> output;
+	private final long minTimeNs = DEFAULT_MIN_TIME_NS;
+	private Optional<Subject<SimulationStatus>> stoppedSubj;
 	private boolean running;
 	private double speed;
 	private SimulationStatus simulationStatus;
 	private long prevTime;
-	private final long minTimeNs = DEFAULT_MIN_TIME_NS;
 
 	/**
 	 *
@@ -58,6 +60,7 @@ public class Simulator {
 		speed = 1;
 		output = PublishSubject.create();
 		output.subscribe(this::handleNextReady);
+		stoppedSubj = Optional.empty();
 	}
 
 	/**
@@ -90,6 +93,11 @@ public class Simulator {
 			}
 		} else {
 			logger.debug("Simulator stopped.");
+			stoppedSubj.ifPresent(subj -> {
+				subj.onNext(next);
+				subj.onComplete();
+			});
+			stoppedSubj = Optional.empty();
 		}
 		return this;
 	}
@@ -146,9 +154,15 @@ public class Simulator {
 	 *
 	 * @return
 	 */
-	public Simulator stop() {
-		running = false;
-		logger.debug("Stopping simulator ...");
-		return this;
+	public Single<SimulationStatus> stop() {
+		if (running) {
+			running = false;
+			logger.debug("Stopping simulator ...");
+			final Subject<SimulationStatus> subj = PublishSubject.create();
+			stoppedSubj = Optional.of(subj);
+			return subj.singleOrError();
+		} else {
+			return Single.just(simulationStatus);
+		}
 	}
 }

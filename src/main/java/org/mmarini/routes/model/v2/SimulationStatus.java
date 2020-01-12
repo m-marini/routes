@@ -28,13 +28,15 @@ package org.mmarini.routes.model.v2;
 
 import java.util.Collections;
 import java.util.HashMap;
-//import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.mmarini.routes.model.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author us00852
@@ -43,6 +45,7 @@ import org.mmarini.routes.model.Constants;
 public class SimulationStatus implements Constants {
 	private static final SimulationStatus EMPTY = new SimulationStatus(GeoMap.create(), Collections.emptySet(),
 			Collections.emptyMap(), DEFAULT_FREQUENCE, new Random());
+	private static final Logger logger = LoggerFactory.getLogger(SimulationStatus.class);
 
 	public static SimulationStatus create() {
 		return EMPTY;
@@ -150,6 +153,19 @@ public class SimulationStatus implements Constants {
 			p *= random.nextDouble();
 		} while (p > l);
 		return k;
+	}
+
+	/**
+	 * Returns the simulation status without edge
+	 *
+	 * @param edge the removing edge
+	 */
+	public SimulationStatus removeEdge(final MapEdge edge) {
+		logger.debug("Remove edge {}", edge);
+		final GeoMap newMap = map.remove(edge);
+		final Set<EdgeTraffic> newTraffics = traffics.parallelStream()
+				.filter(traffic -> !edge.equals(traffic.getEdge())).collect(Collectors.toSet());
+		return setGeoMap(newMap).setTraffics(newTraffics);
 	}
 
 	/**

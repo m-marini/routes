@@ -32,6 +32,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Shape;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.AffineTransform;
@@ -352,6 +353,7 @@ public class RouteMap extends JComponent implements Constants {
 
 	private final Observable<MouseEvent> mouseObs;
 	private final Observable<MouseWheelEvent> mouseWheelObs;
+	private Observable<KeyEvent> keyboardObs;
 	private boolean trafficView;
 	private Optional<SimulationStatus> status;
 	private AffineTransform transform;
@@ -370,6 +372,10 @@ public class RouteMap extends JComponent implements Constants {
 		this.gridSize = 10;
 		this.mouseObs = SwingObservable.mouse(this);
 		this.mouseWheelObs = SwingObservable.mouseWheel(this);
+		this.keyboardObs = SwingObservable.keyboard(this);
+		setFocusable(true);
+		setRequestFocusEnabled(true);
+
 		this.status = Optional.empty();
 		this.selectedNode = Optional.empty();
 		this.selectedSite = Optional.empty();
@@ -378,6 +384,13 @@ public class RouteMap extends JComponent implements Constants {
 		setOpaque(true);
 		setDoubleBuffered(true);
 		logger.debug("RouteMap created");
+	}
+
+	/**
+	 * @return the keyboardObs
+	 */
+	Observable<KeyEvent> getKeyboardObs() {
+		return keyboardObs;
 	}
 
 	/**
@@ -392,6 +405,27 @@ public class RouteMap extends JComponent implements Constants {
 	 */
 	public Observable<MouseWheelEvent> getMouseWheelObs() {
 		return mouseWheelObs;
+	}
+
+	/**
+	 * @return the selectedEdge
+	 */
+	Optional<MapEdge> getSelectedEdge() {
+		return selectedEdge;
+	}
+
+	/**
+	 * @return the selectedNode
+	 */
+	Optional<MapNode> getSelectedNode() {
+		return selectedNode;
+	}
+
+	/**
+	 * @return the selectedSite
+	 */
+	Optional<SiteNode> getSelectedSite() {
+		return selectedSite;
 	}
 
 	/**
@@ -440,12 +474,20 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
+	 * @param keyboardObs the keyboardObs to set
+	 */
+	void setKeyboardObs(final Observable<KeyEvent> keyboardObs) {
+		this.keyboardObs = keyboardObs;
+	}
+
+	/**
 	 * Returns the route map with selected edge
 	 *
 	 * @param edge the edge
 	 */
 	public RouteMap setSelectedEdge(final Optional<MapEdge> edge) {
 		this.selectedEdge = edge;
+		requestFocus();
 		return this;
 	}
 

@@ -35,9 +35,9 @@ import static org.mmarini.routes.swing.v2.SwingUtils.withGridBagConstraints;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.text.NumberFormat;
+import java.util.Optional;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -51,6 +51,8 @@ import javax.swing.SwingConstants;
 import javax.swing.text.NumberFormatter;
 
 import org.mmarini.routes.model.v2.MapEdge;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
@@ -60,6 +62,7 @@ import io.reactivex.rxjava3.core.Observable;
  */
 public class EdgePane extends JPanel {
 	private static final long serialVersionUID = 1L;
+	private static final Logger logger = LoggerFactory.getLogger(EdgePane.class);
 
 	private final JFormattedTextField priorityField;
 	private final JFormattedTextField speedLimitField;
@@ -71,11 +74,13 @@ public class EdgePane extends JPanel {
 	private final JButton browseBeginNodeButton;
 	private final JButton browseEndNodeButton;
 	private final JButton deleteButton;
-	private final Observable<ActionEvent> browseBeginObs;
-	private final Observable<ActionEvent> browseEndObs;
-	private final Observable<ActionEvent> deleteObs;
+	private final Observable<MapEdge> browseBeginObs;
+	private final Observable<MapEdge> browseEndObs;
+	private final Observable<MapEdge> deleteObs;
 	private final Observable<PropertyChangeEvent> priorityObs;
 	private final Observable<PropertyChangeEvent> speedLimitObs;
+
+	private Optional<MapEdge> edge;
 
 	/**
 	 *
@@ -92,9 +97,12 @@ public class EdgePane extends JPanel {
 		browseEndNodeButton = createJButton("EdgePane.browseEndNodeAction"); //$NON-NLS-1$
 		deleteButton = createJButton("EdgePane.deleteAction"); //$NON-NLS-1$
 
-		browseBeginObs = SwingObservable.actions(browseBeginNodeButton);
-		browseEndObs = SwingObservable.actions(browseBeginNodeButton);
-		deleteObs = SwingObservable.actions(deleteButton);
+		browseBeginObs = SwingObservable.actions(browseBeginNodeButton).map(ev -> getEdge())
+				.filter(ed -> ed.isPresent()).map(ed -> ed.get());
+		browseEndObs = SwingObservable.actions(browseBeginNodeButton).map(ev -> getEdge()).filter(ed -> ed.isPresent())
+				.map(ed -> ed.get());
+		deleteObs = SwingObservable.actions(deleteButton).map(ev -> getEdge()).filter(ed -> ed.isPresent())
+				.map(ed -> ed.get()).doOnNext(ev -> logger.debug("on next delete {}", ev));
 		priorityObs = SwingObservable.propertyChange(priorityField, "value");
 		speedLimitObs = SwingObservable.propertyChange(speedLimitField, "value");
 		init().createContent();
@@ -148,7 +156,6 @@ public class EdgePane extends JPanel {
 	 */
 	private JToolBar createToolbar() {
 		final JToolBar bar = new JToolBar();
-		final JButton deleteButton = createJButton("EdgePane.deleteAction"); //$NON-NLS-1$
 		bar.add(deleteButton);
 		return bar;
 	}
@@ -156,22 +163,29 @@ public class EdgePane extends JPanel {
 	/**
 	 * @return the browseBeginObs
 	 */
-	public Observable<ActionEvent> getBrowseBeginObs() {
+	public Observable<MapEdge> getBrowseBeginObs() {
 		return browseBeginObs;
 	}
 
 	/**
 	 * @return the browseEndObs
 	 */
-	public Observable<ActionEvent> getBrowseEndObs() {
+	public Observable<MapEdge> getBrowseEndObs() {
 		return browseEndObs;
 	}
 
 	/**
 	 * @return the deleteObs
 	 */
-	public Observable<ActionEvent> getDeleteObs() {
+	public Observable<MapEdge> getDeleteObs() {
 		return deleteObs;
+	}
+
+	/**
+	 * @return the edge
+	 */
+	Optional<MapEdge> getEdge() {
+		return edge;
 	}
 
 	/**
@@ -236,6 +250,7 @@ public class EdgePane extends JPanel {
 	 * @param edge
 	 */
 	public EdgePane setEdge(final MapEdge edge) {
+		this.edge = Optional.ofNullable(edge);
 		priorityField.setValue(edge.getPriority());
 		speedLimitField.setValue(edge.getSpeedLimit() * 3.6);
 		beginField.setText(edge.getBegin().getShortName());
