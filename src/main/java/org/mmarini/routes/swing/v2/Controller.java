@@ -355,16 +355,6 @@ public class Controller {
 	}
 
 	/**
-	 * Returns the location in the map of a route map screen point
-	 *
-	 * @param pt the screen point
-	 */
-//	private Point2D computeMapLocation(final Point pt) {
-//		final Point2D result = getInverseTransform().transform(pt, new Point2D.Double());
-//		return result;
-//	}
-
-	/**
 	 * Returns the observable of site detail
 	 */
 	private Observable<SiteNode> createDetailSiteObs() {
@@ -377,6 +367,16 @@ public class Controller {
 	 */
 	private Observable<MapEdge> createExplorerSelectEdgeObs() {
 		return createSelectionEdgeObs().filter(site -> site.isPresent()).map(Optional::get);
+	}
+
+	/**
+	 * Returns the observable of selection map element
+	 */
+	private Observable<Optional<MapElement>> createExplorerSelectElementObs() {
+		final Observable<Optional<MapElement>> result = withMouseObs(routeMap.getMouseObs()).click().withPoint()
+				.transform(() -> getInverseTransform()).observable()
+				.doOnNext(ev -> logger.debug("Find element at {}", ev)).map(this::findElementAt);
+		return result;
 	}
 
 	/**
@@ -482,9 +482,8 @@ public class Controller {
 	 * Returns the observable of edge selection from mouse click
 	 */
 	private Observable<Optional<MapEdge>> createSelectionEdgeObs() {
-		final Observable<Optional<MapEdge>> result = withMouseObs(routeMap.getMouseObs()).click().withPoint()
-				.transform(() -> getInverseTransform()).observable().doOnNext(ev -> logger.debug("Find edge at {}", ev))
-				.map(this::findEdgeAt);
+		final Observable<Optional<MapEdge>> result = createExplorerSelectElementObs()
+				.map(elem -> elem.flatMap(MapElement::getEdge));
 		return result;
 	}
 
@@ -492,9 +491,8 @@ public class Controller {
 	 * Returns the observable of node selection from map
 	 */
 	private Observable<Optional<MapNode>> createSelectionNodeObs() {
-		final Observable<Optional<MapNode>> result = withMouseObs(routeMap.getMouseObs()).click().withPoint()
-				.transform(() -> getInverseTransform()).observable().doOnNext(ev -> logger.debug("Find node at {}", ev))
-				.map(this::findNodeAt);
+		final Observable<Optional<MapNode>> result = createExplorerSelectElementObs()
+				.map(elem -> elem.flatMap(MapElement::getNode));
 		return result;
 	}
 
@@ -502,9 +500,8 @@ public class Controller {
 	 * Returns the observable of site selection from map
 	 */
 	private Observable<Optional<SiteNode>> createSelectionSiteObs() {
-		final Observable<Optional<SiteNode>> result = withMouseObs(routeMap.getMouseObs()).click().withPoint()
-				.transform(() -> getInverseTransform()).observable().doOnNext(ev -> logger.debug("Find site at {}", ev))
-				.map(this::findSiteAt);
+		final Observable<Optional<SiteNode>> result = createExplorerSelectElementObs()
+				.map(elem -> elem.flatMap(MapElement::getSite));
 		return result;
 	}
 
@@ -528,6 +525,18 @@ public class Controller {
 			final Optional<MapEdge> node = map.getEdges().stream().filter(s -> isInRange(s, pt)).findAny();
 			return node;
 		});
+		return result;
+	}
+
+	/**
+	 * Returns the map element at location
+	 *
+	 * @param pt the location
+	 */
+	private Optional<MapElement> findElementAt(final Point2D pt) {
+		final Optional<MapElement> result = findSiteAt(pt).map(site -> MapElement.create(site))
+				.or(() -> findNodeAt(pt).map(node -> MapElement.create(node)))
+				.or(() -> findEdgeAt(pt).map(edge -> MapElement.create(edge)));
 		return result;
 	}
 
