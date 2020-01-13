@@ -277,7 +277,7 @@ public class RouteMap extends JComponent implements Constants {
 		 */
 		private Painter paintVehicles() {
 			if (!trafficView) {
-				status.stream().<EdgeTraffic>flatMap(st -> st.getTraffic().stream())
+				status.stream().<EdgeTraffic>flatMap(st -> st.getTraffics().stream())
 						.<VehicleInfo>flatMap(te -> te.getVehicles().stream().map(v -> {
 							final Point2D location = te.getEdge().getLocation(v.getLocation());
 							final Point2D direction = te.getEdge().getDirection();

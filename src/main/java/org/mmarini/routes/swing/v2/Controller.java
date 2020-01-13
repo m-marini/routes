@@ -250,19 +250,36 @@ public class Controller {
 	 * Returns the controller with bind for map change
 	 */
 	private Controller bindForMap() {
-		final Observable<MapEdge> deleteByKeyObs = routeMap.getKeyboardObs()
+		// observable of delete keys
+		final Observable<KeyEvent> keyDeleteKeyObs = routeMap.getKeyboardObs()
 				.filter(ev -> ev.getID() == KeyEvent.KEY_PRESSED
-						&& (ev.getKeyCode() == KeyEvent.VK_BACK_SPACE || ev.getKeyCode() == KeyEvent.VK_DELETE))
-				.map(ev -> routeMap.getSelectedEdge()).filter(ed -> ed.isPresent()).map(ed -> ed.get());
-		final Observable<SimulationStatus> stopAndDeleteEdgeObs = edgePane.getDeleteObs().mergeWith(deleteByKeyObs)
-				.flatMap(edge -> {
-					final Observable<SimulationStatus> r = simulator.stop().map(status -> status.removeEdge(edge))
-							.toObservable();
-					return r;
-				});
-		stopAndDeleteEdgeObs.subscribe(this::setStatusAndStart);
-		return this;
+						&& (ev.getKeyCode() == KeyEvent.VK_BACK_SPACE || ev.getKeyCode() == KeyEvent.VK_DELETE));
 
+		// observable of delete edge by keys
+		final Observable<MapEdge> deleteEdgeByKeyObs = keyDeleteKeyObs.map(ev -> routeMap.getSelectedEdge())
+				.filter(ed -> ed.isPresent()).map(ed -> ed.get());
+
+		// observable of delete node by keys
+		final Observable<MapNode> deleteNodeByKeyObs = keyDeleteKeyObs
+				.map(ev -> routeMap.getSelectedNode().or(() -> routeMap.getSelectedSite()))
+				.filter(node -> node.isPresent()).map(node -> node.get());
+
+		// observable of stop stop and delete edge
+		final Observable<SimulationStatus> stopAndDeleteEdgeObs = edgePane.getDeleteObs().mergeWith(deleteEdgeByKeyObs)
+				.flatMap(edge -> simulator.stop().map(status -> status.removeEdge(edge)).toObservable());
+
+		// observable of stop stop and change node
+		final Observable<SimulationStatus> stopAndChangeNodeObs = nodePane.getChangeObs()
+				.flatMap(node -> simulator.stop().map(status -> status.changeNode(node)).toObservable());
+
+		// observable of stop stop and delete node
+		final Observable<SimulationStatus> stopAndDeleteNodeObs = nodePane.getDeleteObs().mergeWith(deleteNodeByKeyObs)
+				.flatMap(node -> simulator.stop().map(status -> status.removeNode(node)).toObservable());
+
+		// Merge all stop and process observables and subscribe
+		stopAndDeleteEdgeObs.mergeWith(stopAndDeleteNodeObs).mergeWith(stopAndChangeNodeObs)
+				.subscribe(this::setStatusAndStart);
+		return this;
 	}
 
 	/**
@@ -861,7 +878,7 @@ public class Controller {
 	 * @param status the new status
 	 */
 	private Controller setStatusAndStart(final SimulationStatus status) {
-		routeMap.setSelectedEdge(Optional.empty());
+		routeMap.setSelectedEdge(Optional.empty()).setSelectedNode(Optional.empty()).setSelectedSite(Optional.empty());
 		simulator.setSimulationStatus(status).start();
 		return this;
 	}

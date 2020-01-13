@@ -33,8 +33,8 @@ import static org.mmarini.routes.swing.v2.SwingUtils.createLabelConstraints;
 import static org.mmarini.routes.swing.v2.SwingUtils.withGridBagConstraints;
 
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
+import java.util.Optional;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -49,6 +49,8 @@ import javax.swing.SwingConstants;
 import javax.swing.text.NumberFormatter;
 
 import org.mmarini.routes.model.v2.MapNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
@@ -58,14 +60,16 @@ import io.reactivex.rxjava3.core.Observable;
  */
 public class MapNodePane extends JPanel {
 	private static final long serialVersionUID = 1L;
+	private static final Logger logger = LoggerFactory.getLogger(MapNodePane.class);
 
 	private final JTextField nameField;
 	private final JFormattedTextField xField;
 	private final JFormattedTextField yField;
 	private final JButton changeButton;
 	private final JButton deleteButton;
-	private final Observable<ActionEvent> changeObs;
-	private final Observable<ActionEvent> deleteObs;
+	private final Observable<MapNode> changeObs;
+	private final Observable<MapNode> deleteObs;
+	private Optional<MapNode> node;
 
 	/**
 	 *
@@ -76,9 +80,11 @@ public class MapNodePane extends JPanel {
 		yField = new JFormattedTextField(new NumberFormatter());
 		changeButton = createJButton("MapNodePane.changeAction"); //$NON-NLS-1$
 		deleteButton = createJButton("MapNodePane.deleteAction"); //$NON-NLS-1$
-
-		changeObs = SwingObservable.actions(changeButton);
-		deleteObs = SwingObservable.actions(changeButton);
+		node = Optional.empty();
+		changeObs = SwingObservable.actions(changeButton).map(ev -> getNode()).filter(node -> node.isPresent())
+				.map(ed -> ed.get()).doOnNext(ev -> logger.debug("on next change {}", ev));
+		deleteObs = SwingObservable.actions(deleteButton).map(ev -> getNode()).filter(node -> node.isPresent())
+				.map(ed -> ed.get()).doOnNext(ev -> logger.debug("on next delete {}", ev));
 
 		setBorder(BorderFactory.createTitledBorder(Messages.getString("MapNodePane.title"))); //$NON-NLS-1$
 
@@ -136,15 +142,22 @@ public class MapNodePane extends JPanel {
 	/**
 	 * @return the changeObs
 	 */
-	public Observable<ActionEvent> getChangeObs() {
+	public Observable<MapNode> getChangeObs() {
 		return changeObs;
 	}
 
 	/**
 	 * @return the deleteObs
 	 */
-	public Observable<ActionEvent> getDeleteObs() {
+	public Observable<MapNode> getDeleteObs() {
 		return deleteObs;
+	}
+
+	/**
+	 * @return the node
+	 */
+	Optional<MapNode> getNode() {
+		return node;
 	}
 
 	/**
@@ -152,6 +165,7 @@ public class MapNodePane extends JPanel {
 	 * @param node
 	 */
 	public MapNodePane setNode(final MapNode node) {
+		this.node = Optional.of(node);
 		final Point2D location = node.getLocation();
 		xField.setValue(location.getX());
 		yField.setValue(location.getY());

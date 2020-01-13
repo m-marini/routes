@@ -62,7 +62,7 @@ public class StatusBuilder implements Constants {
 	 * @param time   the instant
 	 */
 	public static StatusBuilder create(final SimulationStatus status, final double time) {
-		return new StatusBuilder(status, status.getTraffic(), time);
+		return new StatusBuilder(status, status.getTraffics(), time);
 	}
 
 	/**
@@ -168,7 +168,7 @@ public class StatusBuilder implements Constants {
 	 */
 	StatusBuilder createVehicles() {
 		final double frequence = initialStatus.getFrequence();
-		final double t0 = initialStatus.getTraffic().stream().findAny().map(x -> x.getTime()).get();
+		final double t0 = initialStatus.getTraffics().stream().findAny().map(x -> x.getTime()).get();
 		final double dt = time - t0;
 		final int noSites = initialStatus.getMap().getSites().size();
 		final double lambda0 = frequence * dt / (noSites - 1) / 2;

@@ -29,6 +29,7 @@ package org.mmarini.routes.model.v2;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.mmarini.routes.model.Constants;
 
@@ -176,6 +177,29 @@ public class GeoMap implements Constants {
 		} else {
 			return this;
 		}
+	}
+
+	/**
+	 * Returns the map with removed node and edges
+	 * 
+	 * @param node the node to remove
+	 */
+	public GeoMap removeNodeFromMap(final MapNode node) {
+		if (!sites.contains(node) && !nodes.contains(node)) {
+			return this;
+		}
+
+		final Set<SiteNode> newSites = sites.contains(node)
+				? sites.parallelStream().filter(site -> !site.equals(node)).collect(Collectors.toSet())
+				: sites;
+		final Set<MapNode> newNodes = nodes.contains(node)
+				? nodes.parallelStream().filter(site -> !site.equals(node)).collect(Collectors.toSet())
+				: nodes;
+		final Set<MapEdge> newEdges = edges.parallelStream()
+				.filter(edge -> !edge.getBegin().equals(node) && !edge.getEnd().equals(node))
+				.collect(Collectors.toSet());
+
+		return setSites(newSites).setNodes(newNodes).setEdges(newEdges);
 	}
 
 	/**
