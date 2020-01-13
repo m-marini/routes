@@ -78,7 +78,7 @@ public class SimulationStatusDeserializerTest implements Constants {
 		assertThat(nodes, hasSize(1));
 		assertThat(nodes, hasItem(allOf(hasProperty("location", equalTo(new Point2D.Double(0, 50))))));
 
-		final Set<EdgeTraffic> edges = result.getTraffic();
+		final Set<EdgeTraffic> edges = result.getTraffics();
 		assertThat(edges, hasSize(1));
 		assertThat(edges,
 				hasItem(allOf(
@@ -117,7 +117,7 @@ public class SimulationStatusDeserializerTest implements Constants {
 		assertThat(nodes, hasSize(1));
 		assertThat(nodes, hasItem(allOf(hasProperty("location", equalTo(new Point2D.Double(0, 50))))));
 
-		final Set<EdgeTraffic> edges = s.getTraffic();
+		final Set<EdgeTraffic> edges = s.getTraffics();
 		assertThat(edges, hasSize(1));
 		assertThat(edges,
 				hasItem(allOf(

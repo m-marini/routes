@@ -84,6 +84,22 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 		this.priority = priority;
 	}
 
+	/**
+	 * Returns the map edge with a changed node
+	 *
+	 * @param node    orignal node
+	 * @param newNode new node
+	 */
+	public MapEdge changeNode(final MapNode node, final MapNode newNode) {
+		if (node.equals(begin)) {
+			return create(newNode, end).setSpeedLimit(speedLimit).setPriority(priority);
+		} else if (node.equals(end)) {
+			return create(begin, newNode).setSpeedLimit(speedLimit).setPriority(priority);
+		} else {
+			return this;
+		}
+	}
+
 	@Override
 	public int compareTo(final MapEdge other) {
 		return UUIDComparator.compareTo(id, other.id);

@@ -377,6 +377,15 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 	}
 
 	/**
+	 * Returns a traffic information with the new edge
+	 *
+	 * @param edge the edge
+	 */
+	public EdgeTraffic setEdge(final MapEdge edge) {
+		return new EdgeTraffic(edge, vehicles, time, lastTravelTime);
+	}
+
+	/**
 	 * Returns the traffic information with the given last travel time
 	 *
 	 * @param lastTravelTime last travel time

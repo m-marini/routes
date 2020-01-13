@@ -11,6 +11,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -55,6 +56,10 @@ public class EdgeTrafficTest implements Constants {
 
 	static IntStream priorityRange() {
 		return genArguments(10);
+	}
+
+	static DoubleStream timeRange() {
+		return genArguments().mapToDouble(i -> genDouble(i, 1, 10));
 	}
 
 	@Test
@@ -193,6 +198,39 @@ public class EdgeTrafficTest implements Constants {
 		final OptionalDouble result = et1.getExitTime();
 		assertNotNull(result);
 		assertTrue(result.isEmpty());
+	}
+
+	@ParameterizedTest
+	@MethodSource("timeRange")
+	public void moveToTimeBefore(final double time) {
+		final SiteNode begin = SiteNode.create(0, 0);
+		final SiteNode end = SiteNode.create(0, 100);
+		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(SPEED);
+		final Vehicle v1 = Vehicle.create(begin, end).setLocation(40.0);
+		final Vehicle v2 = Vehicle.create(begin, end).setLocation(10.0);
+		final List<Vehicle> list = List.of(v2, v1);
+		final EdgeTraffic traffic = EdgeTraffic.create(edge).setVehicles(list).setTime(time);
+
+		final EdgeTraffic result = traffic.moveToTime(time - 1);
+
+		assertNotNull(result);
+		assertThat(result, sameInstance(traffic));
+
+	}
+
+	@ParameterizedTest
+	@MethodSource("timeRange")
+	public void moveToTimeEmpty(final double time) {
+		final SiteNode begin = SiteNode.create(0, 0);
+		final SiteNode end = SiteNode.create(0, 100);
+		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(SPEED);
+		final EdgeTraffic traffic = EdgeTraffic.create(edge).setTime(time);
+
+		final EdgeTraffic result = traffic.moveToTime(time + 1);
+
+		assertNotNull(result);
+		assertThat(result.getTime(), equalTo(time + 1));
+
 	}
 
 	@Test

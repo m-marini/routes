@@ -51,7 +51,7 @@ public class StatusBuilderTest1 extends AbstractStatusBuilderTest {
 		final SimulationStatus result = builder.build();
 		assertNotNull(result);
 
-		final Set<EdgeTraffic> traffics1 = result.getTraffic();
+		final Set<EdgeTraffic> traffics1 = result.getTraffics();
 
 		final EdgeTraffic e0 = traffic(traffics1, 0).get();
 		assertThat(e0.getVehicles(), hasSize(1));

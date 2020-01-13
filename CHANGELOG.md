@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #37: Select edge with cursor
 - Issue #46: Zoom buttons
 - Issue #55: Delete edge by keyboard and detail button
+- Issue #61: Change node and site type and remove node
 
 ## [4.2.0] - 2019-12-08
 

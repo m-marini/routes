@@ -35,6 +35,114 @@ public class MapEdgeTest implements Constants {
 	}
 
 	@Test
+	public void changeNodeBeginLocation() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(10, 10);
+		final MapEdge edge = MapEdge.create(begin, end);
+
+		final MapNode newNode = MapNode.create(5, 5);
+		final MapEdge result = edge.changeNode(begin, newNode);
+		assertNotNull(result);
+		assertThat(result.getId(), not(equalTo(edge.getId())));
+		assertThat(result.getBegin(), sameInstance(newNode));
+		assertThat(result.getEnd(), sameInstance(end));
+		assertThat(result.getPriority(), equalTo(edge.getPriority()));
+		assertThat(result.getSpeedLimit(), equalTo(edge.getSpeedLimit()));
+	}
+
+	@Test
+	public void changeNodeBeginToNode() {
+		final MapNode begin = SiteNode.create(0, 0);
+		final MapNode end = MapNode.create(10, 10);
+		final MapEdge edge = MapEdge.create(begin, end);
+
+		final MapNode newNode = MapNode.create(0, 0);
+		final MapEdge result = edge.changeNode(begin, newNode);
+		assertNotNull(result);
+		assertThat(result.getId(), equalTo(edge.getId()));
+		assertThat(result.getBegin(), sameInstance(newNode));
+		assertThat(result.getEnd(), sameInstance(end));
+		assertThat(result.getPriority(), equalTo(edge.getPriority()));
+		assertThat(result.getSpeedLimit(), equalTo(edge.getSpeedLimit()));
+	}
+
+	@Test
+	public void changeNodeBeginToSite() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(10, 10);
+		final MapEdge edge = MapEdge.create(begin, end);
+
+		final MapNode newNode = SiteNode.create(0, 0);
+		final MapEdge result = edge.changeNode(begin, newNode);
+		assertNotNull(result);
+		assertThat(result.getId(), equalTo(edge.getId()));
+		assertThat(result.getBegin(), sameInstance(newNode));
+		assertThat(result.getEnd(), sameInstance(end));
+		assertThat(result.getPriority(), equalTo(edge.getPriority()));
+		assertThat(result.getSpeedLimit(), equalTo(edge.getSpeedLimit()));
+	}
+
+	@Test
+	public void changeNodeEndLocation() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(10, 10);
+		final MapEdge edge = MapEdge.create(begin, end);
+
+		final MapNode newNode = MapNode.create(5, 5);
+		final MapEdge result = edge.changeNode(end, newNode);
+		assertNotNull(result);
+		assertThat(result.getId(), not(equalTo(edge.getId())));
+		assertThat(result.getBegin(), sameInstance(begin));
+		assertThat(result.getEnd(), sameInstance(newNode));
+		assertThat(result.getPriority(), equalTo(edge.getPriority()));
+		assertThat(result.getSpeedLimit(), equalTo(edge.getSpeedLimit()));
+	}
+
+	@Test
+	public void changeNodeEndToNode() {
+		final MapNode begin = SiteNode.create(0, 0);
+		final MapNode end = MapNode.create(10, 10);
+		final MapEdge edge = MapEdge.create(begin, end);
+
+		final MapNode newNode = MapNode.create(10, 10);
+		final MapEdge result = edge.changeNode(end, newNode);
+		assertNotNull(result);
+		assertThat(result.getId(), equalTo(edge.getId()));
+		assertThat(result.getBegin(), sameInstance(begin));
+		assertThat(result.getEnd(), sameInstance(newNode));
+		assertThat(result.getPriority(), equalTo(edge.getPriority()));
+		assertThat(result.getSpeedLimit(), equalTo(edge.getSpeedLimit()));
+	}
+
+	@Test
+	public void changeNodeEndToSite() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(10, 10);
+		final MapEdge edge = MapEdge.create(begin, end);
+
+		final MapNode newNode = SiteNode.create(10, 10);
+		final MapEdge result = edge.changeNode(end, newNode);
+		assertNotNull(result);
+		assertThat(result.getId(), equalTo(edge.getId()));
+		assertThat(result.getBegin(), sameInstance(begin));
+		assertThat(result.getEnd(), sameInstance(newNode));
+		assertThat(result.getPriority(), equalTo(edge.getPriority()));
+		assertThat(result.getSpeedLimit(), equalTo(edge.getSpeedLimit()));
+	}
+
+	@Test
+	public void changeNodeNoNode() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(10, 10);
+		final MapEdge edge = MapEdge.create(begin, end);
+
+		final MapNode newNode = MapNode.create(5, 5);
+		final MapEdge result = edge.changeNode(newNode, newNode);
+		assertNotNull(result);
+		assertThat(result, sameInstance(edge));
+	}
+
+	@Test
 	public void compareTo() {
 		final MapNode begin = MapNode.create(0, 0);
 		final MapNode end = MapNode.create(10, 0);

@@ -28,10 +28,13 @@ package org.mmarini.routes.model.v2;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.mmarini.routes.model.Constants;
@@ -89,6 +92,66 @@ public class SimulationStatus implements Constants {
 	}
 
 	/**
+	 * Returns the simulation status with changed node
+	 *
+	 * @param edge the removing edge
+	 */
+	public SimulationStatus changeNode(final MapNode node) {
+		logger.debug("changeNode {}", node);
+		// Check for site node
+		if (node instanceof SiteNode) {
+			if (!map.getSites().contains(node)) {
+				return this;
+			}
+		} else if (!map.getNodes().contains(node)) {
+			return this;
+		}
+
+		// Creates the new node, the new sets of sites and newNodes and the new map
+		final MapNode newNode = (node instanceof SiteNode) ? MapNode.create(node.getLocation())
+				: SiteNode.create(node.getLocation());
+		final Set<SiteNode> newSites = new HashSet<>(map.getSites());
+		final Set<MapNode> newNodes = new HashSet<>(map.getNodes());
+		if (node instanceof SiteNode) {
+			newSites.remove(node);
+			newNodes.add(newNode);
+		} else {
+			newSites.add((SiteNode) newNode);
+			newNodes.remove(node);
+		}
+		final Map<Tuple2<SiteNode, SiteNode>, Double> newWeights = newSites.parallelStream().flatMap(
+				from -> newSites.parallelStream().filter(to -> !to.equals(from)).map(to -> new Tuple2<>(from, to)))
+				.collect(Collectors.toMap(Function.identity(), t -> weights.getOrDefault(t, 1.0)));
+
+		// Filter the edges with the referenced nodes
+		final Map<MapEdge, MapEdge> changeEdgeMap = map.getEdges().parallelStream()
+				.filter(edge -> edge.getBegin().equals(node) || edge.getEnd().equals(node)).map(edge -> {
+					final MapEdge newEdge = edge.changeNode(node, newNode);
+					return new Tuple2<>(edge, newEdge);
+				}).collect(Collectors.toMap(t -> t.getElem1(), t -> t.getElem2()));
+
+		final Set<MapEdge> newEdges = new HashSet<>(map.getEdges());
+		newEdges.removeAll(changeEdgeMap.keySet());
+		newEdges.addAll(changeEdgeMap.values());
+		final GeoMap newMap = map.setSites(newSites).setNodes(newNodes).setEdges(newEdges);
+		// Creates new traffics
+		final Set<EdgeTraffic> newTraffics = traffics.parallelStream().map(traffic -> {
+			final Optional<MapEdge> changingEdge = Optional.ofNullable(changeEdgeMap.get(traffic.getEdge()));
+			final EdgeTraffic newTraffic = changingEdge.map(edge -> traffic.setEdge(edge)).orElseGet(() -> traffic);
+			if (node instanceof SiteNode) {
+				// Remove all vehicles traveling from or to the previous node
+				final List<Vehicle> newVehicles = traffic.getVehicles().stream()
+						.filter(v -> !(v.getDeparture().equals(node) || v.getDestination().equals(node)))
+						.collect(Collectors.toList());
+				return newTraffic.setVehicles(newVehicles);
+			} else {
+				return newTraffic;
+			}
+		}).collect(Collectors.toSet());
+		return setGeoMap(newMap).setTraffics(newTraffics).setWeights(newWeights);
+	}
+
+	/**
 	 *
 	 * @return
 	 */
@@ -115,7 +178,7 @@ public class SimulationStatus implements Constants {
 	 *
 	 * @return
 	 */
-	public Set<EdgeTraffic> getTraffic() {
+	public Set<EdgeTraffic> getTraffics() {
 		return traffics;
 	}
 
@@ -161,11 +224,36 @@ public class SimulationStatus implements Constants {
 	 * @param edge the removing edge
 	 */
 	public SimulationStatus removeEdge(final MapEdge edge) {
-		logger.debug("Remove edge {}", edge);
+		logger.debug("removeEdge {}", edge);
 		final GeoMap newMap = map.remove(edge);
 		final Set<EdgeTraffic> newTraffics = traffics.parallelStream()
 				.filter(traffic -> !edge.equals(traffic.getEdge())).collect(Collectors.toSet());
 		return setGeoMap(newMap).setTraffics(newTraffics);
+	}
+
+	/**
+	 * Returns simulation status with a removed node
+	 * 
+	 * @param node the node
+	 */
+	public SimulationStatus removeNode(final MapNode node) {
+		logger.debug("removeNode {}", node);
+		if (!map.getSites().contains(node) && !map.getNodes().contains(node)) {
+			return this;
+		}
+
+		final GeoMap newMap = map.removeNodeFromMap(node);
+		final Map<Tuple2<SiteNode, SiteNode>, Double> newWeights = weights.keySet().parallelStream()
+				.filter(t -> !t.getElem1().equals(node) && !t.getElem2().equals(node))
+				.collect(Collectors.toMap(Function.identity(), weights::get));
+		final Set<EdgeTraffic> newTraffics = traffics.parallelStream()
+				.filter(traffic -> newMap.getEdges().contains(traffic.getEdge())).map(traffic -> {
+					final List<Vehicle> vehicles = traffic.getVehicles().stream()
+							.filter(v -> !v.getDeparture().equals(node) && !v.getDestination().equals(node))
+							.collect(Collectors.toList());
+					return traffic.setVehicles(vehicles);
+				}).collect(Collectors.toSet());
+		return setGeoMap(newMap).setTraffics(newTraffics).setWeights(newWeights);
 	}
 
 	/**
