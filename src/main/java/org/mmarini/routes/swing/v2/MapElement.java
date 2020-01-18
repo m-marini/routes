@@ -35,7 +35,219 @@ import org.mmarini.routes.model.v2.SiteNode;
 /**
  * Keeps the information about the selected element on map
  */
-public class MapElement {
+public interface MapElement {
+
+	public static class EdgeElement extends Empty {
+		private final Optional<MapEdge> edge;
+
+		/**
+		 * @param edge
+		 */
+		public EdgeElement(final MapEdge edge) {
+			this.edge = Optional.of(edge);
+		}
+
+		@Override
+		public boolean equals(final Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			final EdgeElement other = (EdgeElement) obj;
+			if (edge == null) {
+				if (other.edge != null) {
+					return false;
+				}
+			} else if (!edge.equals(other.edge)) {
+				return false;
+			}
+			return true;
+		}
+
+		@Override
+		public Optional<MapEdge> getEdge() {
+			return edge;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((edge == null) ? 0 : edge.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean isEdge() {
+			return true;
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return false;
+		}
+	}
+
+	public static class Empty implements MapElement {
+		static final MapElement EMPTY_ELEMENT = new Empty();
+
+		protected Empty() {
+			super();
+		}
+
+		@Override
+		public Optional<MapEdge> getEdge() {
+			return Optional.empty();
+		}
+
+		@Override
+		public Optional<MapNode> getNode() {
+			return Optional.empty();
+		}
+
+		@Override
+		public Optional<SiteNode> getSite() {
+			return Optional.empty();
+		}
+
+		@Override
+		public boolean isEdge() {
+			return false;
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return true;
+		}
+
+		@Override
+		public boolean isNode() {
+			return false;
+		}
+
+		@Override
+		public boolean isSite() {
+			return false;
+		}
+	}
+
+	public static class NodeElement extends Empty {
+		private final Optional<MapNode> node;
+
+		/**
+		 * @param node
+		 */
+		public NodeElement(final MapNode node) {
+			this.node = Optional.of(node);
+		}
+
+		@Override
+		public boolean equals(final Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			final NodeElement other = (NodeElement) obj;
+			if (node == null) {
+				if (other.node != null) {
+					return false;
+				}
+			} else if (!node.equals(other.node)) {
+				return false;
+			}
+			return true;
+		}
+
+		@Override
+		public Optional<MapNode> getNode() {
+			return node;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((node == null) ? 0 : node.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return false;
+		}
+
+		@Override
+		public boolean isNode() {
+			return true;
+		}
+
+	}
+
+	public static class SiteElement extends Empty {
+		private final Optional<SiteNode> site;
+
+		/**
+		 * @param node
+		 */
+		public SiteElement(final SiteNode site) {
+			this.site = Optional.of(site);
+		}
+
+		@Override
+		public boolean equals(final Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			final SiteElement other = (SiteElement) obj;
+			if (site == null) {
+				if (other.site != null) {
+					return false;
+				}
+			} else if (!site.equals(other.site)) {
+				return false;
+			}
+			return true;
+		}
+
+		@Override
+		public Optional<SiteNode> getSite() {
+			return site;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((site == null) ? 0 : site.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return false;
+		}
+
+		@Override
+		public boolean isSite() {
+			return true;
+		}
+	}
 
 	/**
 	 * Returns the element selection for an edge
@@ -43,7 +255,7 @@ public class MapElement {
 	 * @param edge the edge
 	 */
 	public static MapElement create(final MapEdge edge) {
-		return new MapElement(Optional.empty(), Optional.empty(), Optional.of(edge));
+		return new EdgeElement(edge);
 	}
 
 	/**
@@ -52,7 +264,7 @@ public class MapElement {
 	 * @param node the node
 	 */
 	public static MapElement create(final MapNode node) {
-		return new MapElement(Optional.empty(), Optional.of(node), Optional.empty());
+		return new NodeElement(node);
 	}
 
 	/**
@@ -61,65 +273,47 @@ public class MapElement {
 	 * @param site the site
 	 */
 	public static MapElement create(final SiteNode site) {
-		return new MapElement(Optional.of(site), Optional.empty(), Optional.empty());
-	}
-
-	private final Optional<SiteNode> site;
-	private final Optional<MapNode> node;
-	private final Optional<MapEdge> edge;
-
-	/**
-	 * @param site
-	 * @param node
-	 * @param edge
-	 */
-	protected MapElement(final Optional<SiteNode> site, final Optional<MapNode> node, final Optional<MapEdge> edge) {
-		super();
-		this.site = site;
-		this.node = node;
-		this.edge = edge;
+		return new SiteElement(site);
 	}
 
 	/**
-	 * Returns the selected edge
+	 * Returns the element selection for an edge
+	 *
+	 * @param edge the edge
 	 */
-	public Optional<MapEdge> getEdge() {
-		return edge;
+	public static MapElement empty() {
+		return Empty.EMPTY_ELEMENT;
 	}
+
+	public Optional<MapEdge> getEdge();
 
 	/**
 	 * Returns the selected node
 	 */
-	public Optional<MapNode> getNode() {
-		return node;
-	}
+	public Optional<MapNode> getNode();
 
 	/**
 	 * Returns the selected site
 	 */
-	public Optional<SiteNode> getSite() {
-		return site;
-	}
+	public Optional<SiteNode> getSite();
 
 	/**
 	 * Returns true if the element is a edge
 	 */
-	public boolean isEdge() {
-		return edge.isPresent();
-	}
+	public boolean isEdge();
+
+	/**
+	 * Returns true id there is no element
+	 */
+	public boolean isEmpty();
 
 	/**
 	 * Returns true if the element is a node
 	 */
-	public boolean isNode() {
-		return node.isPresent();
-	}
+	public boolean isNode();
 
 	/**
 	 * Returns true if the element is a site
 	 */
-	public boolean isSite() {
-		return site.isPresent();
-	}
-
+	public boolean isSite();
 }

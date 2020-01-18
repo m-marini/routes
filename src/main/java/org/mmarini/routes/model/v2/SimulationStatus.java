@@ -80,6 +80,35 @@ public class SimulationStatus implements Constants {
 
 	/**
 	 *
+	 * @param edge
+	 * @return
+	 */
+	public SimulationStatus addEdge(final MapEdge edge) {
+		logger.debug("addEdge {}", edge);
+		final GeoMap newMap = map.addEdge(edge);
+		final EdgeTraffic traffic = EdgeTraffic.create(edge).setTime(getTime());
+		final Set<EdgeTraffic> newTraffics = new HashSet<>(traffics);
+		newTraffics.add(traffic);
+		final Map<Tuple2<SiteNode, SiteNode>, Double> newWeights = new HashMap<>(weights);
+		final MapNode begin = edge.getBegin();
+		if (begin instanceof SiteNode && !map.getSites().contains(begin)) {
+			for (final SiteNode old : map.getSites()) {
+				newWeights.put(new Tuple2<>((SiteNode) begin, old), 1.0);
+				newWeights.put(new Tuple2<>(old, (SiteNode) begin), 1.0);
+			}
+		}
+		final MapNode end = edge.getEnd();
+		if (end instanceof SiteNode && !map.getSites().contains(end)) {
+			for (final SiteNode old : map.getSites()) {
+				newWeights.put(new Tuple2<>((SiteNode) end, old), 1.0);
+				newWeights.put(new Tuple2<>(old, (SiteNode) end), 1.0);
+			}
+		}
+		return new SimulationStatus(newMap, newTraffics, newWeights, frequence, random);
+	}
+
+	/**
+	 *
 	 * @param from
 	 * @param to
 	 * @param weight
@@ -233,7 +262,7 @@ public class SimulationStatus implements Constants {
 
 	/**
 	 * Returns simulation status with a removed node
-	 * 
+	 *
 	 * @param node the node
 	 */
 	public SimulationStatus removeNode(final MapNode node) {

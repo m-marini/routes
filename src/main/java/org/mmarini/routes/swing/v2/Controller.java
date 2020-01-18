@@ -26,28 +26,22 @@
 
 package org.mmarini.routes.swing.v2;
 
-import static org.mmarini.routes.swing.v2.RxUtils.withMouseObs;
-import static org.mmarini.routes.swing.v2.RxUtils.withPointObs;
-
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.awt.event.WindowEvent;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -66,59 +60,24 @@ import org.mmarini.routes.model.v2.SimulationStatusDeserializer;
 import org.mmarini.routes.model.v2.Simulator;
 import org.mmarini.routes.model.v2.SiteNode;
 import org.mmarini.routes.model.v2.Tuple2;
+import org.mmarini.routes.swing.v2.UIStatus.MapMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 
 /**
  *
  */
 public class Controller {
-	private static final double DEFAULT_SCALE = 1;
-	private static final double BORDER_SCALE = 1;
+
 	private static final double SCALE_FACTOR = Math.pow(10, 1.0 / 6);
-	private static final int MAP_INSETS = 60;
-	private static final double MIN_GRID_SIZE_METERS = 1;
-	private static final int MIN_GRID_SIZE_PIXELS = 10;
 	private static final String INITIAL_MAP = "/test.yml"; // $NON-NLS-1$
 
 	private static final Logger logger = LoggerFactory.getLogger(Controller.class);
-
-	/**
-	 * Returns true if location is in range of an edge
-	 *
-	 * @param node  edge
-	 * @param point point
-	 */
-	private static boolean isInRange(final MapEdge edge, final Point2D point) {
-		final double distance = edge.getDistance(point);
-		return distance <= RouteMap.EDGE_WIDTH / 2;
-	}
-
-	/**
-	 * Returns true if location is in range of node
-	 *
-	 * @param node  node
-	 * @param point location
-	 */
-	private static boolean isInRange(final MapNode node, final Point2D point) {
-		final double distance = node.getLocation().distance(point);
-		return distance <= RouteMap.NODE_SIZE / 2;
-	}
-
-	/**
-	 * Returns true if location is in range of site
-	 *
-	 * @param node  site
-	 * @param point point
-	 */
-	private static boolean isInRange(final SiteNode node, final Point2D point) {
-		final double distance = node.getLocation().distance(point);
-		return distance <= RouteMap.SITE_SIZE / 2;
-	}
 
 	/**
 	 * Returns the default status
@@ -133,25 +92,6 @@ public class Controller {
 			}
 		}
 		return SimulationStatus.create();
-	}
-
-	/**
-	 * Returns the list of patterns by key.n
-	 *
-	 * @param key the key
-	 */
-	private static List<String> loadPatterns(final String key) {
-		final List<String> list = new ArrayList<String>(0);
-		int i = 0;
-		for (;;) {
-			final String text = Messages.getString(key + "." + i);
-			if (text.startsWith("!")) {
-				break;
-			}
-			list.add(text);
-			++i;
-		}
-		return list;
 	}
 
 	private static Point toPoint(final Point2D point) {
@@ -169,15 +109,12 @@ public class Controller {
 	private final Simulator simulator;
 	private final ScrollMap scrollMap;
 	private final MapViewPane mapViewPane;
-	private final List<String> gridLegendPattern;
+//	private final List<String> gridLegendPattern;
 	private final List<String> pointLegendPattern;
 	private final List<String> edgeLegendPattern;
 	private final PublishSubject<Integer> edtObs;
-
-	/** The scale of route map (pixels/m) */
-	private double scale;
-	private Optional<SimulationStatus> currentStatus;
-	private Optional<SimulationStatus> status;
+	private final Observable<UIStatus> uiStatusObs;
+	private final PublishSubject<UIStatus> uiStatusSubj;
 
 	/**
 	 *
@@ -194,414 +131,458 @@ public class Controller {
 		this.scrollMap = new ScrollMap(routeMap);
 		this.mapViewPane = new MapViewPane(scrollMap);
 		this.mainFrame = new MainFrame(mapViewPane, explorerPane, mapElementPane);
-		this.gridLegendPattern = loadPatterns("ScrollMap.gridLegendPattern");
-		this.pointLegendPattern = loadPatterns("ScrollMap.pointLegendPattern");
-		this.edgeLegendPattern = loadPatterns("ScrollMap.edgeLegendPattern");
-		this.currentStatus = Optional.empty();
-		this.status = Optional.empty();
-		edtObs = PublishSubject.create();
-		this.setScale(DEFAULT_SCALE);
-		init();
-		edtObs.subscribe(this::handleEdt);
-		edtObs.onNext(1);
+//		this.gridLegendPattern = SwingUtils.loadPatterns("ScrollMap.gridLegendPattern");
+		this.pointLegendPattern = SwingUtils.loadPatterns("ScrollMap.pointLegendPattern");
+		this.edgeLegendPattern = SwingUtils.loadPatterns("ScrollMap.edgeLegendPattern");
+		this.edtObs = PublishSubject.create();
+		this.uiStatusSubj = PublishSubject.create();
+		this.uiStatusObs = uiStatusSubj;
+
+		this.fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("Controller.filetype.title"), //$NON-NLS-1$
+				"yml", "rml")); //$NON-NLS-1$ //$NON-NLS-2$
+
+		bindAll();
+
+		edtObs.subscribe(this::handleEdt, this::showError);
+
+		final SimulationStatus status1 = loadDefault();
+		final UIStatus initStatus = UIStatus.create().setStatus(status1);
+		mapChanged(initStatus);
+		uiStatusSubj.onNext(initStatus);
+		simulator.setSimulationStatus(status1);
 		simulator.start();
+		edtObs.onNext(1);
+		mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		mainFrame.setVisible(true);
+	}
+
+	/**
+	 * Returns the single status with new edge
+	 *
+	 * @param st         the initial status
+	 * @param startPoint start point of edge
+	 * @param endPoint   end point of edge
+	 */
+	private Single<UIStatus> addEdge(final UIStatus st, final Point2D startPoint, final Point2D endPoint) {
+		logger.debug("addEdge {}, {}", startPoint, endPoint);
+		return simulator.stop().map(st1 -> st.createEdge(startPoint, endPoint));
 	}
 
 	/**
 	 *
 	 */
 	private Controller bindAll() {
-		mainFrame.getNewRandomObs().subscribe(this::handleNewRandomMap);
-		mainFrame.getSaveMapAsObs().subscribe(this::handleSaveAsMap);
-		mainFrame.getOpenMapObs().subscribe(this::handleOpenMap);
-		mainFrame.getSaveMapObs().subscribe(this::handleSaveMap);
-		mainFrame.getNewMapObs().subscribe(this::handleNewMap);
+		mainFrame.getNewRandomObs().subscribe(this::handleNewRandomMap, this::showError);
+		mainFrame.getSaveMapAsObs().subscribe(this::handleSaveAsMap, this::showError);
+		mainFrame.getOpenMapObs().subscribe(this::handleOpenMap, this::showError);
+		mainFrame.getSaveMapObs().subscribe(this::handleSaveMap, this::showError);
+		mainFrame.getNewMapObs().subscribe(this::handleNewMap, this::showError);
 		mainFrame.getExitObs().subscribe(ev -> {
 			mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
-		});
-		simulator.getOutput().subscribe(s -> status = Optional.of(s));
-		return bindForMapElementPane().bindForScrollMap().bindForExplorerPane().bindForRouteMap().bindForMap();
+		}, this::showError);
+		return bindOnStatus().bindOnMouse().bindOnMouseWheel().bindOnExplorerPane().bindOnMapViewPane().bindOnEdgePane()
+				.bindOnNodePane().bindOnKey();
 	}
 
 	/**
 	 *
+	 * @param withPointObs
+	 * @return
 	 */
-	private Controller bindForExplorerPane() {
-		createExplorerSelectNodeObs().subscribe(node -> {
-			logger.debug("onNext explorer node selected {}", node);
-			explorerPane.setSelectedNode(node);
-		});
+	private Controller bindOnDragEdge(final Observable<Tuple2<UIStatus, Tuple2<Point2D, MouseEvent>>> withPointObs) {
+		withPointObs.filter(t -> {
+			final UIStatus st = t.getElem1();
+			return st.getMode().equals(MapMode.DRAG_EDGE);
+		}).subscribe(t -> {
+			final UIStatus st = t.getElem1();
+			final MouseEvent ev = t.getElem2().getElem2();
+			final Point2D endPoint = st.snapToNode(t.getElem2().getElem1());
+			final Point2D startPoint = st.getDragEdge().get().getElem1();
+			switch (ev.getID()) {
+			case MouseEvent.MOUSE_ENTERED:
+			case MouseEvent.MOUSE_EXITED:
+			case MouseEvent.MOUSE_DRAGGED:
+			case MouseEvent.MOUSE_MOVED: {
+				final Optional<Tuple2<Point2D, Point2D>> dragEdge = Optional.of(new Tuple2<>(startPoint, endPoint));
+				routeMap.setDragEdge(dragEdge);
+				uiStatusSubj.onNext(st.setDragEdge(dragEdge));
+			}
+				break;
+			case MouseEvent.MOUSE_PRESSED: {
+				logger.debug("bindOnDragEdge addEdge status {} {}", st, st.getStatus().getTraffics().size());
+				addEdge(st, startPoint, endPoint).subscribe(status -> {
+					logger.debug("bindOnDragEdge addEdge {}", st);
+					final Optional<Tuple2<Point2D, Point2D>> dragEdge = Optional.of(new Tuple2<>(endPoint, endPoint));
+					final UIStatus newStatus = status.setDragEdge(dragEdge);
+					logger.debug("bindOnDragEdge addEdge new status {} {}", newStatus,
+							newStatus.getStatus().getTraffics().size());
+					mapChanged(newStatus);
+					uiStatusSubj.onNext(newStatus);
+					simulator.setSimulationStatus(newStatus.getStatus()).start();
+				}, this::showError);
+			}
+				break;
+			}
+		}, this::showError);
+		return this;
+	}
 
-		createExplorerSelectSiteObs().subscribe(node -> {
-			logger.debug("onNext explorer site selected {}", node);
-			explorerPane.setSelectedSite(node);
-		});
+	/**
+	 *
+	 * @return
+	 */
+	private Controller bindOnEdgePane() {
+		edgePane.getDeleteObs().withLatestFrom(uiStatusObs, (edge, st) -> new Tuple2<>(st, edge))
+				.flatMap(t -> deleteEdge(t.getElem1(), t.getElem2()).toObservable()).subscribe(st -> {
+					mapChanged(st);
+					uiStatusSubj.onNext(st);
+					simulator.setSimulationStatus(st.getStatus()).start();
+				}, this::showError);
+		return this;
+	}
 
-		createExplorerSelectEdgeObs().subscribe(edge -> {
-			logger.debug("onNext explorer site selected {}", edge);
-			explorerPane.setSelectedEdge(edge);
-		});
-
-		createNoneSelectionObs().subscribe(pt -> explorerPane.clearSelection());
+	/**
+	 *
+	 * @return
+	 */
+	private Controller bindOnExplorerPane() {
+		explorerPane.getSiteObs().withLatestFrom(uiStatusObs, (site, st) -> new Tuple2<>(st, site)).subscribe(t -> {
+			final UIStatus st = t.getElem1();
+			final SiteNode site = t.getElem2();
+			final UIStatus newStatus = st.setSelectedElement(MapElement.create(site));
+			mapElementPane.setNode(site);
+			routeMap.setSelectedSite(Optional.of(site));
+			uiStatusSubj.onNext(newStatus);
+			centerMapTo(newStatus, site.getLocation());
+		}, this::showError);
+		explorerPane.getNodeObs().withLatestFrom(uiStatusObs, (node, st) -> new Tuple2<>(st, node)).subscribe(t -> {
+			final UIStatus st = t.getElem1();
+			final MapNode node = t.getElem2();
+			final UIStatus newStatus = st.setSelectedElement(MapElement.create(node));
+			mapElementPane.setNode(node);
+			routeMap.setSelectedNode(Optional.of(node));
+			uiStatusSubj.onNext(newStatus);
+			centerMapTo(newStatus, node.getLocation());
+		}, this::showError);
+		explorerPane.getEdgeObs().withLatestFrom(uiStatusObs, (edge, st) -> new Tuple2<>(st, edge)).subscribe(t -> {
+			final UIStatus st = t.getElem1();
+			final MapEdge edge = t.getElem2();
+			final UIStatus newStatus = st.setSelectedElement(MapElement.create(edge));
+			mapElementPane.setEdge(edge);
+			routeMap.setSelectedEdge(Optional.of(edge));
+			uiStatusSubj.onNext(newStatus);
+			centerMapTo(newStatus, edge.getBeginLocation());
+		}, this::showError);
 		return this;
 	}
 
 	/**
 	 * Returns the controller with bind for map change
 	 */
-	private Controller bindForMap() {
+	private Controller bindOnKey() {
 		// observable of delete keys
-		final Observable<KeyEvent> keyDeleteKeyObs = routeMap.getKeyboardObs()
+		routeMap.getKeyboardObs()
+				//
+				.doOnNext(ev -> logger.debug("key {}", ev))
+				// Filter for delete keys pressed
 				.filter(ev -> ev.getID() == KeyEvent.KEY_PRESSED
-						&& (ev.getKeyCode() == KeyEvent.VK_BACK_SPACE || ev.getKeyCode() == KeyEvent.VK_DELETE));
+						&& (ev.getKeyCode() == KeyEvent.VK_BACK_SPACE || ev.getKeyCode() == KeyEvent.VK_DELETE))
+				// Combine with ui status
+				.withLatestFrom(uiStatusObs, (ev, st) -> st)
+				// Flat map with delete process
+				.flatMap(st -> {
+					final Optional<MapNode> mapNode = routeMap.getSelectedSite().map(site -> (MapNode) site)
+							.or(() -> routeMap.getSelectedNode());
+					final Optional<Observable<UIStatus>> deleteNodeProcess = mapNode
+							.map(node -> deleteNode(st, node).toObservable());
+					final Optional<Observable<UIStatus>> deleteProcess = deleteNodeProcess
+							.or(() -> routeMap.getSelectedEdge().map(edge -> deleteEdge(st, edge).toObservable()));
+					final Observable<UIStatus> result = deleteProcess.orElseGet(() -> Observable.just(st));
+					return result;
+				}).subscribe(st -> {
+					mapChanged(st);
+					uiStatusSubj.onNext(st);
+					simulator.setSimulationStatus(st.getStatus()).start();
+				}, this::showError);
 
-		// observable of delete edge by keys
-		final Observable<MapEdge> deleteEdgeByKeyObs = keyDeleteKeyObs.map(ev -> routeMap.getSelectedEdge())
-				.filter(ed -> ed.isPresent()).map(ed -> ed.get());
-
-		// observable of delete node by keys
-		final Observable<MapNode> deleteNodeByKeyObs = keyDeleteKeyObs
-				.map(ev -> routeMap.getSelectedNode().or(() -> routeMap.getSelectedSite()))
-				.filter(node -> node.isPresent()).map(node -> node.get());
-
-		// observable of stop stop and delete edge
-		final Observable<SimulationStatus> stopAndDeleteEdgeObs = edgePane.getDeleteObs().mergeWith(deleteEdgeByKeyObs)
-				.flatMap(edge -> simulator.stop().map(status -> status.removeEdge(edge)).toObservable());
-
-		// observable of stop stop and change node
-		final Observable<SimulationStatus> stopAndChangeNodeObs = nodePane.getChangeObs()
-				.flatMap(node -> simulator.stop().map(status -> status.changeNode(node)).toObservable());
-
-		// observable of stop stop and delete node
-		final Observable<SimulationStatus> stopAndDeleteNodeObs = nodePane.getDeleteObs().mergeWith(deleteNodeByKeyObs)
-				.flatMap(node -> simulator.stop().map(status -> status.removeNode(node)).toObservable());
-
-		// Merge all stop and process observables and subscribe
-		stopAndDeleteEdgeObs.mergeWith(stopAndDeleteNodeObs).mergeWith(stopAndChangeNodeObs)
-				.subscribe(this::setStatusAndStart);
 		return this;
 	}
 
 	/**
 	 * @return
-	 *
 	 */
-	private Controller bindForMapElementPane() {
-		createDetailSiteObs().subscribe(mapElementPane::setNode);
-		createDetailNodeObs().subscribe(mapElementPane::setNode);
-		createDetailEdgeObs().subscribe(mapElementPane::setEdge);
+	private Controller bindOnMapViewPane() {
+		mapViewPane.getEdgeModeObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
+			routeMap.setDragEdge(Optional.empty());
+			uiStatusSubj.onNext(st.setMode(MapMode.START_EDGE).setDragEdge(Optional.empty()));
+		}, this::showError);
+		mapViewPane.getSelectModeObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
+			routeMap.setDragEdge(Optional.empty());
+			uiStatusSubj.onNext(st.setMode(MapMode.SELECTION).setDragEdge(Optional.empty()));
+		}, this::showError);
+
+		mapViewPane.getZoomDefaultObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
+			final Rectangle rect = scrollMap.getViewport().getViewRect();
+			final Point pivot = toPoint(new Point2D.Double(rect.getCenterX(), rect.getCenterY()));
+			final UIStatus newStatus = scaleTo(st, UIStatus.DEFAULT_SCALE, pivot);
+			uiStatusSubj.onNext(newStatus);
+		}, this::showError);
+
+		mapViewPane.getZoomInObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
+			final Rectangle rect = scrollMap.getViewport().getViewRect();
+			final Point pivot = toPoint(new Point2D.Double(rect.getCenterX(), rect.getCenterY()));
+			final UIStatus newStatus = scaleTo(st, st.getScale() * SCALE_FACTOR, pivot);
+			uiStatusSubj.onNext(newStatus);
+		}, this::showError);
+
+		mapViewPane.getZoomOutObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
+			final Rectangle rect = scrollMap.getViewport().getViewRect();
+			final Point pivot = toPoint(new Point2D.Double(rect.getCenterX(), rect.getCenterY()));
+			final UIStatus newStatus = scaleTo(st, st.getScale() / SCALE_FACTOR, pivot);
+			uiStatusSubj.onNext(newStatus);
+		}, this::showError);
+
+		mapViewPane.getFitInWindowObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
+			final Rectangle2D mapRect = st.getMapBound();
+			final Dimension screenSize = scrollMap.getViewport().getExtentSize();
+			final double sx = (screenSize.getWidth() - UIStatus.MAP_INSETS * 2) / mapRect.getWidth();
+			final double sy = (screenSize.getHeight() - UIStatus.MAP_INSETS * 2) / mapRect.getHeight();
+			final double newScale1 = Math.min(sx, sy);
+			final double scaleStep = Math.floor(Math.log(newScale1) / Math.log(SCALE_FACTOR));
+			final double newScale = Math.pow(SCALE_FACTOR, scaleStep);
+			final UIStatus newStatus = scaleTo(st, newScale, new Point());
+			uiStatusSubj.onNext(newStatus);
+		}, this::showError);
+		return this;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	private Controller bindOnMouse() {
+		final PublishSubject<Tuple2<UIStatus, Tuple2<Point2D, MouseEvent>>> withPointObs1 = PublishSubject.create();
+		routeMap.getMouseObs().withLatestFrom(uiStatusObs, (ev, status) -> {
+			final Point2D pt = status.toMapPoint(ev.getPoint());
+			return new Tuple2<>(status, new Tuple2<>(pt, ev));
+		}).subscribe(withPointObs1);
+		final Observable<Tuple2<UIStatus, Tuple2<Point2D, MouseEvent>>> withPointObs = withPointObs1;
+		return bindOnMouseForHud(withPointObs).bindOnMouseSelection(withPointObs).bindOnStartEdge(withPointObs)
+				.bindOnDragEdge(withPointObs);
+	}
+
+	/**
+	 * @param withPointObs
+	 */
+	private Controller bindOnMouseForHud(final Observable<Tuple2<UIStatus, Tuple2<Point2D, MouseEvent>>> withPointObs) {
+
+		withPointObs.subscribe(t -> updateHud(t.getElem1(), t.getElem2().getElem1()), this::showError);
+		return this;
+	}
+
+	/**
+	 * @param withPointObs
+	 * @return
+	 */
+	private Controller bindOnMouseSelection(
+			final Observable<Tuple2<UIStatus, Tuple2<Point2D, MouseEvent>>> withPointObs) {
+		withPointObs.filter(t -> {
+			final UIStatus st = t.getElem1();
+			final MouseEvent ev = t.getElem2().getElem2();
+			return st.getMode().equals(MapMode.SELECTION) && ev.getID() == MouseEvent.MOUSE_PRESSED;
+		}).subscribe(t -> {
+			final UIStatus st = t.getElem1();
+			final Point2D point = t.getElem2().getElem1();
+			final MapElement elem = st.findElementAt(point);
+			elem.getSite().ifPresent(explorerPane::setSelectedSite);
+			elem.getNode().ifPresent(explorerPane::setSelectedNode);
+			elem.getEdge().ifPresent(explorerPane::setSelectedEdge);
+			if (elem.isEmpty()) {
+				explorerPane.clearSelection();
+				centerMapTo(st, t.getElem2().getElem1());
+			}
+			if (!st.getSelectedElement().equals(elem)) {
+				uiStatusSubj.onNext(st.setSelectedElement(elem));
+			}
+		}, this::showError);
+		return this;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	private Controller bindOnMouseWheel() {
+		routeMap.getMouseWheelObs().withLatestFrom(uiStatusObs, (ev, status) -> new Tuple2<>(status, ev))
+				.subscribe(t -> {
+					final UIStatus st = t.getElem1();
+					final MouseWheelEvent ev = t.getElem2();
+					final double newScale = st.getScale() * Math.pow(SCALE_FACTOR, -ev.getWheelRotation());
+					logger.debug("onNext scale at {}", newScale);
+					final Point pivot = ev.getPoint();
+					final UIStatus newStatus = scaleTo(st, newScale, pivot);
+					updateHud(newStatus, newStatus.toMapPoint(pivot));
+					uiStatusSubj.onNext(newStatus);
+				}, this::showError);
 		return this;
 	}
 
 	/**
 	 * @return
-	 *
 	 */
-	private Controller bindForRouteMap() {
-		createSelectionNodeObs().subscribe(node -> {
-			logger.debug("onNext route map selected node {}", node);
-			routeMap.setSelectedNode(node);
-		});
-		createSelectionSiteObs().subscribe(node -> {
-			logger.debug("onNext route map selected site {}", node);
-			routeMap.setSelectedSite(node);
-		});
-		createSelectionEdgeObs().subscribe(edge -> {
-			logger.debug("onNext route map selected edge {}", edge);
-			routeMap.setSelectedEdge(edge);
-		});
+	private Controller bindOnNodePane() {
+		final Observable<UIStatus> deleteNodeObs = nodePane.getDeleteObs()
+				.withLatestFrom(uiStatusObs, (node, st) -> new Tuple2<>(st, node))
+				.flatMap(t -> deleteNode(t.getElem1(), t.getElem2()).toObservable());
+
+		final Observable<UIStatus> changeNodeObs = nodePane.getChangeObs()
+				.withLatestFrom(uiStatusObs, (node, st) -> new Tuple2<>(st, node))
+				.flatMap(t -> changeNode(t.getElem1(), t.getElem2()).toObservable());
+
+		changeNodeObs.mergeWith(deleteNodeObs).subscribe(st -> {
+			mapChanged(st);
+			uiStatusSubj.onNext(st);
+			simulator.setSimulationStatus(st.getStatus()).start();
+		}, this::showError);
 		return this;
 	}
 
 	/**
+	 *
+	 * @param withPointObs
 	 * @return
+	 */
+	private Controller bindOnStartEdge(final Observable<Tuple2<UIStatus, Tuple2<Point2D, MouseEvent>>> withPointObs) {
+		withPointObs.filter(t -> {
+			final UIStatus st = t.getElem1();
+			final MouseEvent ev = t.getElem2().getElem2();
+			return st.getMode().equals(MapMode.START_EDGE) && ev.getID() == MouseEvent.MOUSE_PRESSED;
+		}).subscribe(t -> {
+			final UIStatus st = t.getElem1();
+			final Point2D startPoint = st.snapToNode(t.getElem2().getElem1());
+			final Optional<Tuple2<Point2D, Point2D>> dragEdge = Optional.of(new Tuple2<>(startPoint, startPoint));
+			routeMap.setSelectedEdge(Optional.empty()).setSelectedNode(Optional.empty())
+					.setSelectedSite(Optional.empty()).setDragEdge(dragEdge);
+			uiStatusSubj.onNext(st.setDragEdge(dragEdge).setMode(MapMode.DRAG_EDGE));
+		}, this::showError);
+		return this;
+	}
+
+	/**
 	 *
 	 */
-	private Controller bindForScrollMap() {
-		createMapViewPosObs().subscribe(point -> {
-			logger.debug("onNext viewport at {}", point);
-			scrollMap.getViewport().setViewPosition(point);
-		});
-
-		createScaleObs().subscribe(t -> {
-			logger.debug("onNext scale at {}", t);
-			setScale(t.getElem2());
-			scrollMap.getViewport().setViewPosition(t.getElem1());
-		});
-
-		createHudObs().subscribe(scrollMap::setHud);
+	private Controller bindOnStatus() {
+		edtObs.withLatestFrom(simulator.getOutput()
+//				.doOnNext(st -> logger.debug("bindForStatus: st={}", st))
+				, (t, status) -> status).withLatestFrom(uiStatusObs, (simStat, uiStat) -> uiStat.setStatus(simStat))
+				.subscribe(uiStatus -> {
+//					logger.debug("bindForStatus: ui={}", uiStatus);
+					trafficChanged(uiStatus);
+					routeMap.requestFocus();
+					uiStatusSubj.onNext(uiStatus);
+				}, this::showError);
 		return this;
+	}
+
+	/**
+	 * Returns the controller with centered map
+	 *
+	 * @param status the ui status
+	 * @param center the center
+	 */
+	private Controller centerMapTo(final UIStatus status, final Point2D center) {
+		logger.debug("centerMapTo {} ", center);
+		final Point2D pt = status.toScreenPoint(center);
+		final Point vp = computeViewportPosition(pt);
+		scrollMap.getViewport().setViewPosition(vp);
+		return this;
+	}
+
+	/**
+	 * @param uiStatus
+	 * @param edge
+	 * @return
+	 */
+	private Single<UIStatus> changeNode(final UIStatus uiStatus, final MapNode node) {
+		return simulator.stop().map(status -> {
+			logger.debug("changeNode {} ", node);
+			final SimulationStatus nextSt = uiStatus.getStatus().changeNode(node);
+			return uiStatus.setStatus(nextSt).setSelectedElement(MapElement.empty());
+		});
 	}
 
 	/**
 	 * Returns the head up display text
 	 *
-	 * @param patterns the text pattern
-	 * @param point    cursor point
+	 * @param patterns
+	 * @param gridSize
+	 * @param point
+	 * @param dragEdge
+	 * @return
 	 */
-
-	private List<String> computeHud(final List<String> patterns, final Point2D point) {
-		final Object[] parms = new Object[] { getGridSize(), point.getX(), point.getY(), scale };
-		// Compute the pattern
-		final List<String> texts = patterns.stream().map(pattern -> MessageFormat.format(pattern, parms))
+	private List<String> computeHud(final List<String> patterns, final double gridSize, final Point2D point,
+			final Optional<Tuple2<Point2D, Point2D>> dragEdge) {
+		final Double length = dragEdge.map(t -> t.getElem1().distance(t.getElem2())).orElse(null);
+		final List<String> texts = patterns.stream()
+				.map(pattern -> String.format(pattern, gridSize, point.getX(), point.getY(), length))
 				.collect(Collectors.toList());
 		return texts;
 	}
 
 	/**
-	 * Returns the location for a pivot point
+	 * Returns the head up display text
 	 *
-	 * @param pivot    the pivot point
-	 * @param newScale the new scale
+	 * @param status
+	 * @param point
+	 * @return
 	 */
-	private Point computeViewportLocationWithScale(final Point pivot, final double newScale) {
-		final Point p0 = scrollMap.getViewport().getViewPosition();
-		final int x = Math.max(0, (int) Math.round((pivot.x - MAP_INSETS) * (newScale / scale - 1) + p0.x));
-		final int y = Math.max(0, (int) Math.round((pivot.y - MAP_INSETS) * (newScale / scale - 1) + p0.y));
-		final Point corner = new Point(x, y);
-		return corner;
+	private List<String> computeHud(final UIStatus status, final Point2D point) {
+		switch (status.getMode()) {
+		case START_EDGE:
+		case DRAG_EDGE:
+			return computeHud(edgeLegendPattern, status.getGridSize(), point, status.getDragEdge());
+		default:
+			return computeHud(pointLegendPattern, status.getGridSize(), point, status.getDragEdge());
+		}
 	}
 
 	/**
 	 * Returns the viewport position for a center point
 	 *
-	 * @param center the center point
+	 * @param center the graph center point
 	 */
-	private Point computeViewportPosition(final Point center) {
+	private Point computeViewportPosition(final Point2D center) {
 		final Dimension size = scrollMap.getViewport().getExtentSize();
-		final int x = Math.max(0, center.x - size.width / 2);
-		final int y = Math.max(0, center.y - size.height / 2);
-		final Point newViewPos = new Point(x, y);
-		return newViewPos;
-	}
-
-	/**
-	 * Returns the observable of edge detail
-	 */
-	private Observable<MapEdge> createDetailEdgeObs() {
-		final Observable<MapEdge> result = explorerPane.getEdgeObs();
+		final double x = Math.max(0, center.getX() - size.width / 2);
+		final double y = Math.max(0, center.getY() - size.height / 2);
+		final Point result = new Point((int) Math.round(x), (int) Math.round(y));
 		return result;
 	}
 
 	/**
-	 * Returns the observable of node detail
+	 * @param uiStatus
+	 * @param edge
+	 * @return
 	 */
-	private Observable<MapNode> createDetailNodeObs() {
-		final Observable<MapNode> result = explorerPane.getNodeObs();
-		return result;
-	}
-
-	/**
-	 * Returns the observable of site detail
-	 */
-	private Observable<SiteNode> createDetailSiteObs() {
-		final Observable<SiteNode> result = explorerPane.getSiteObs();
-		return result;
-	}
-
-	/**
-	 * Returns the observable of edge selection for explorer panel
-	 */
-	private Observable<MapEdge> createExplorerSelectEdgeObs() {
-		return createSelectionEdgeObs().filter(site -> site.isPresent()).map(Optional::get);
-	}
-
-	/**
-	 * Returns the observable of selection map element
-	 */
-	private Observable<Optional<MapElement>> createExplorerSelectElementObs() {
-		final Observable<Optional<MapElement>> result = withMouseObs(routeMap.getMouseObs()).click().withPoint()
-				.transform(() -> getInverseTransform()).observable()
-				.doOnNext(ev -> logger.debug("Find element at {}", ev)).map(this::findElementAt);
-		return result;
-	}
-
-	/**
-	 * Returns the observable of node selection for explore panel
-	 */
-	private Observable<MapNode> createExplorerSelectNodeObs() {
-		return createSelectionNodeObs().filter(site -> site.isPresent()).map(Optional::get);
-	}
-
-	/**
-	 * Returns the observable of site selection for explorer panel
-	 */
-	private Observable<SiteNode> createExplorerSelectSiteObs() {
-		return createSelectionSiteObs().filter(site -> site.isPresent()).map(Optional::get);
-	}
-
-	/**
-	 * Returns the observable of head up display
-	 */
-	private Observable<List<String>> createHudObs() {
-		return withMouseObs(routeMap.getMouseObs()).move().withPoint().transform(() -> getInverseTransform())
-				.observable().map(mapPt -> computeHud(pointLegendPattern, mapPt));
-	}
-
-	/**
-	 * Returns the observable of viewport location for center map action.
-	 * <p>
-	 * The viewport location is changed when the mouse click on an empty point in
-	 * the map or when an element is selected in the explorer panel
-	 * </p>
-	 */
-	private Observable<Point> createMapViewPosObs() {
-		final Observable<Point2D> onMouseClick = withMouseObs(routeMap.getMouseObs()).click().withPoint()
-				.transform(() -> getInverseTransform()).withFilter(pt -> findAnyNodeAt(pt).isEmpty()).observable();
-
-		final Observable<Point2D> onSiteSelection = explorerPane.getSiteObs().map(SiteNode::getLocation);
-		final Observable<Point2D> onNodeSelection = explorerPane.getNodeObs().map(MapNode::getLocation);
-		final Observable<Point2D> onEdgeSelection = explorerPane.getEdgeObs().map(MapEdge::getBeginLocation);
-
-		final Observable<Point> result = withPointObs(
-				onSiteSelection.mergeWith(onNodeSelection).mergeWith(onEdgeSelection).mergeWith(onMouseClick))
-						.transform(() -> getTransform()).toPoint().map(this::computeViewportPosition);
-		return result;
-	}
-
-	/**
-	 * Returns the observable of none selection
-	 */
-	private Observable<Point2D> createNoneSelectionObs() {
-		final Observable<Point2D> result = withMouseObs(routeMap.getMouseObs()).click().withPoint()
-				.transform(() -> getInverseTransform())
-				.withFilter(pt -> findNodeAt(pt).isEmpty() && findSiteAt(pt).isEmpty() && findEdgeAt(pt).isEmpty())
-				.observable();
-		return result;
-	}
-
-	/**
-	 * Returns the observable of viewport location and scale for zoom action
-	 * <p>
-	 * The scale is changed when the mouse wheel is rolled or when the zoom in zoom
-	 * out button are pressed.
-	 * </p>
-	 */
-	private Observable<Tuple2<Point, Double>> createScaleObs() {
-		final Observable<Tuple2<Point, Double>> defaultZoomObs = mapViewPane.getZoomDefaultObs().map(ev -> {
-			final Rectangle rect = scrollMap.getViewport().getViewRect();
-			final Point pivot = toPoint(new Point2D.Double(rect.getCenterX(), rect.getCenterY()));
-			return new Tuple2<>(pivot, DEFAULT_SCALE);
+	private Single<UIStatus> deleteEdge(final UIStatus uiStatus, final MapEdge edge) {
+		return simulator.stop().map(status -> {
+			logger.debug("deleteEdge {} ", edge);
+			final SimulationStatus nextSt = uiStatus.getStatus().removeEdge(edge);
+			return uiStatus.setStatus(nextSt).setSelectedElement(MapElement.empty());
 		});
-		final Observable<Tuple2<Point, Double>> zoomInObs = mapViewPane.getZoomInObs().map(ev -> {
-			final Rectangle rect = scrollMap.getViewport().getViewRect();
-			final Point pivot = toPoint(new Point2D.Double(rect.getCenterX(), rect.getCenterY()));
-			return new Tuple2<>(pivot, this.scale * SCALE_FACTOR);
+	}
+
+	/**
+	 * @param uiStatus
+	 * @param edge
+	 * @return
+	 */
+	private Single<UIStatus> deleteNode(final UIStatus uiStatus, final MapNode node) {
+		return simulator.stop().map(status -> {
+			logger.debug("deleteNode {} ", node);
+			final SimulationStatus nextSt = uiStatus.getStatus().removeNode(node);
+			return uiStatus.setStatus(nextSt).setSelectedElement(MapElement.empty());
 		});
-		final Observable<Tuple2<Point, Double>> zoomOutObs = mapViewPane.getZoomOutObs().map(ev -> {
-			final Rectangle rect = scrollMap.getViewport().getViewRect();
-			final Point pivot = toPoint(new Point2D.Double(rect.getCenterX(), rect.getCenterY()));
-			return new Tuple2<>(pivot, this.scale / SCALE_FACTOR);
-		});
-
-		final Observable<Tuple2<Point, Double>> fitInWindowObs = mapViewPane.getFitInWindowObs().map(ev -> {
-			final Rectangle2D mapRect = getMapBound();
-			final Dimension screenSize = scrollMap.getViewport().getExtentSize();
-			final double sx = (screenSize.getWidth() - MAP_INSETS * 2) / mapRect.getWidth();
-			final double sy = (screenSize.getHeight() - MAP_INSETS * 2) / mapRect.getHeight();
-			final double newScale1 = Math.min(sx, sy);
-			final double scaleStep = Math.floor(Math.log(newScale1) / Math.log(SCALE_FACTOR));
-			final double newScale = Math.pow(SCALE_FACTOR, scaleStep);
-			return new Tuple2<>(new Point(), newScale);
-		});
-		final Observable<Tuple2<Point, Double>> wheelScaleObs = routeMap.getMouseWheelObs()
-				.map(ev -> new Tuple2<>(ev.getPoint(), this.scale * Math.pow(SCALE_FACTOR, -ev.getWheelRotation())));
-
-		final Observable<Tuple2<Point, Double>> result = fitInWindowObs.mergeWith(zoomOutObs).mergeWith(zoomInObs)
-				.mergeWith(wheelScaleObs).mergeWith(defaultZoomObs).map(tuple -> {
-					final double newScale = tuple.getElem2();
-					return new Tuple2<>(computeViewportLocationWithScale(tuple.getElem1(), newScale), newScale);
-				}).mergeWith(fitInWindowObs);
-		return result;
-	}
-
-	/**
-	 * Returns the observable of edge selection from mouse click
-	 */
-	private Observable<Optional<MapEdge>> createSelectionEdgeObs() {
-		final Observable<Optional<MapEdge>> result = createExplorerSelectElementObs()
-				.map(elem -> elem.flatMap(MapElement::getEdge));
-		return result;
-	}
-
-	/**
-	 * Returns the observable of node selection from map
-	 */
-	private Observable<Optional<MapNode>> createSelectionNodeObs() {
-		final Observable<Optional<MapNode>> result = createExplorerSelectElementObs()
-				.map(elem -> elem.flatMap(MapElement::getNode));
-		return result;
-	}
-
-	/**
-	 * Returns the observable of site selection from map
-	 */
-	private Observable<Optional<SiteNode>> createSelectionSiteObs() {
-		final Observable<Optional<SiteNode>> result = createExplorerSelectElementObs()
-				.map(elem -> elem.flatMap(MapElement::getSite));
-		return result;
-	}
-
-	/**
-	 * Returns any node at location
-	 *
-	 * @param pt the location
-	 */
-	private Optional<MapNode> findAnyNodeAt(final Point2D pt) {
-		final Optional<MapNode> node = findNodeAt(pt).or(() -> findSiteAt(pt));
-		return node;
-	}
-
-	/**
-	 * Returns the edge at location
-	 *
-	 * @param pt the location
-	 */
-	private Optional<MapEdge> findEdgeAt(final Point2D pt) {
-		final Optional<MapEdge> result = currentStatus.map(SimulationStatus::getMap).flatMap(map -> {
-			final Optional<MapEdge> node = map.getEdges().stream().filter(s -> isInRange(s, pt)).findAny();
-			return node;
-		});
-		return result;
-	}
-
-	/**
-	 * Returns the map element at location
-	 *
-	 * @param pt the location
-	 */
-	private Optional<MapElement> findElementAt(final Point2D pt) {
-		final Optional<MapElement> result = findSiteAt(pt).map(site -> MapElement.create(site))
-				.or(() -> findNodeAt(pt).map(node -> MapElement.create(node)))
-				.or(() -> findEdgeAt(pt).map(edge -> MapElement.create(edge)));
-		return result;
-	}
-
-	/**
-	 * Returns the node at location
-	 *
-	 * @param pt the location
-	 */
-	private Optional<MapNode> findNodeAt(final Point2D pt) {
-		final Optional<MapNode> result = currentStatus.map(SimulationStatus::getMap).flatMap(map -> {
-			final Optional<MapNode> node = map.getNodes().stream().filter(s -> isInRange(s, pt)).findAny();
-			return node;
-		});
-		return result;
-
-	}
-
-	/**
-	 * Returns the node at location
-	 *
-	 * @param pt the location
-	 */
-	private Optional<SiteNode> findSiteAt(final Point2D pt) {
-		final Optional<SiteNode> result = currentStatus.map(SimulationStatus::getMap).flatMap(map -> {
-			final Optional<SiteNode> node = map.getSites().stream().filter(s -> isInRange(s, pt)).findAny();
-			return node;
-		});
-		return result;
 	}
 
 	/**
@@ -609,57 +590,6 @@ public class Controller {
 	 */
 	public ExplorerPane getExplorerPane() {
 		return explorerPane;
-	}
-
-	/**
-	 * Returns the grid size in meters
-	 */
-	private double getGridSize() {
-		// size meters to have a grid of at least 10 pixels in the screen
-		final double size = MIN_GRID_SIZE_PIXELS / scale;
-		// Minimum grid of size 1 m
-		double gridSize = MIN_GRID_SIZE_METERS;
-		while (size > gridSize) {
-			gridSize *= 10;
-		}
-		return gridSize;
-	}
-
-	/**
-	 * Returns the transformation from screen coordinates to map coordinates
-	 */
-	private AffineTransform getInverseTransform() {
-		try {
-			return getTransform().createInverse();
-		} catch (final NoninvertibleTransformException e) {
-			logger.error(e.getMessage(), e);
-			return new AffineTransform();
-		}
-	}
-
-	/**
-	 * Returns the map bound
-	 *
-	 * @param map the map
-	 */
-	private Rectangle2D getMapBound() {
-		final Rectangle2D result = currentStatus.flatMap(st -> {
-			final GeoMap map = st.getMap();
-			final Set<MapNode> all = new HashSet<>(map.getSites());
-			all.addAll(map.getNodes());
-			final OptionalDouble x0 = all.parallelStream().mapToDouble(n -> n.getX()).min();
-			final OptionalDouble x1 = all.parallelStream().mapToDouble(n -> n.getX()).max();
-			final OptionalDouble y0 = all.parallelStream().mapToDouble(n -> n.getY()).min();
-			final OptionalDouble y1 = all.parallelStream().mapToDouble(n -> n.getY()).max();
-
-			final Optional<Rectangle2D> result1 = (x0.isPresent() && x1.isPresent() && y0.isPresent() && y1.isPresent())
-					? Optional.of(new Rectangle2D.Double(x0.getAsDouble(), y0.getAsDouble(),
-							x1.getAsDouble() - x0.getAsDouble(), y1.getAsDouble() - y0.getAsDouble()))
-					: Optional.empty();
-			;
-			return result1;
-		}).orElseGet(() -> new Rectangle2D.Double());
-		return result;
 	}
 
 	/**
@@ -677,52 +607,14 @@ public class Controller {
 	}
 
 	/**
-	 * Returns the map size
 	 *
-	 * @param map the map
+	 * @param x
+	 * @return
 	 */
-	private Dimension getScreenMapSize() {
-		final Rectangle2D bound = getMapBound();
-		final int width = (int) Math.round(bound.getWidth() * scale) + MAP_INSETS * 2;
-		final int height = (int) Math.round(bound.getHeight() * scale) + MAP_INSETS * 2;
-		final Dimension result = new Dimension(width, height);
-		return result;
-	}
-
-	/**
-	 * Returns the transformation from map coordinates to screen coordinates
-	 */
-	private AffineTransform getTransform() {
-		return getTransform(scale);
-	}
-
-	/**
-	 * Returns the transformation from map coordinates to screen coordinate
-	 *
-	 * @param scale the scale
-	 */
-	private AffineTransform getTransform(final double scale) {
-		final Rectangle2D mapBound = getMapBound();
-		final AffineTransform result = AffineTransform.getTranslateInstance(MAP_INSETS, MAP_INSETS);
-		result.scale(scale, scale);
-		result.translate(-mapBound.getMinX(), -mapBound.getMinY());
-		return result;
-	}
-
 	private Controller handleEdt(final int x) {
-		final Optional<SimulationStatus> s = status;
-		if (!s.equals(currentStatus)) {
-			currentStatus = s;
-			currentStatus.ifPresent(status -> {
-				final Dimension preferredSize = getScreenMapSize();
-				routeMap.setTransform(getTransform()).setStatus(status).setPreferredSize(preferredSize);
-//				scrollMap.setHud(computeHud(pointLegendPattern, new Point2D.Double()));
-				explorerPane.setMap(status.getMap());
-			});
-		}
 		Observable.just(x + 1).compose(SwingObservable.observeOnEdt()).subscribe(y -> {
 			edtObs.onNext(y);
-		});
+		}, this::showError);
 		return this;
 	}
 
@@ -844,43 +736,45 @@ public class Controller {
 	}
 
 	/**
-	 * @return
 	 *
+	 * @param uiStatus
+	 * @return
 	 */
-	private Controller init() {
-		this.fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("Controller.filetype.title"), //$NON-NLS-1$
-				"yml", "rml")); //$NON-NLS-1$ //$NON-NLS-2$
-		bindAll();
-
-		final SimulationStatus status = loadDefault();
-		simulator.setSimulationStatus(status);
-
-		mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		mainFrame.setVisible(true);
+	private Controller mapChanged(final UIStatus uiStatus) {
+		routeMap.clearSelection().setStatus(uiStatus.getStatus()).setGridSize(uiStatus.getGridSize())
+				.setDragEdge(uiStatus.getDragEdge()).setTransform(uiStatus.getTransform())
+				.setPreferredSize(uiStatus.getScreenMapSize());
+		routeMap.requestFocus();
+		scrollMap.repaint();
+		explorerPane.setMap(uiStatus.getStatus().getMap());
 		return this;
 	}
 
 	/**
 	 *
+	 * @param uiStatus
+	 * @return
+	 */
+	private Controller scaleChanged(final UIStatus uiStatus) {
+		routeMap.setTransform(uiStatus.getTransform()).setPreferredSize(uiStatus.getScreenMapSize());
+		scrollMap.repaint();
+		return this;
+	}
+
+	/**
+	 *
+	 * @param status
 	 * @param scale
+	 * @param pivot
 	 * @return
 	 */
-	private Controller setScale(final double scale) {
-		this.scale = scale;
-		routeMap.setTransform(getTransform()).setGridSize(getGridSize()).setBorderPainted(scale >= BORDER_SCALE)
-				.setBorderPainted(scale >= BORDER_SCALE).setPreferredSize(getScreenMapSize());
-		return this;
-	}
-
-	/**
-	 * Returns the controller with a new simulation status and simulator started
-	 *
-	 * @param status the new status
-	 */
-	private Controller setStatusAndStart(final SimulationStatus status) {
-		routeMap.setSelectedEdge(Optional.empty()).setSelectedNode(Optional.empty()).setSelectedSite(Optional.empty());
-		simulator.setSimulationStatus(status).start();
-		return this;
+	private UIStatus scaleTo(final UIStatus status, final double scale, final Point pivot) {
+		final UIStatus newStatus = status.setScale(scale);
+		final Point vp = scrollMap.getViewport().getViewPosition();
+		final Point newVp = status.computeViewporPositionWithScale(vp, pivot, scale);
+		scrollMap.getViewport().setViewPosition(newVp);
+		scaleChanged(newStatus).updateHud(newStatus, newStatus.toMapPoint(pivot));
+		return newStatus;
 	}
 
 	/**
@@ -930,5 +824,26 @@ public class Controller {
 		final SimulationStatus status = SimulationStatus.create().setGeoMap(map).setTraffics(traffics)
 				.setWeights(weights);
 		return status;
+	}
+
+	/**
+	 *
+	 * @param uiStatus
+	 * @return
+	 */
+	private Controller trafficChanged(final UIStatus uiStatus) {
+		routeMap.setStatus(uiStatus.getStatus());
+		scrollMap.repaint();
+		return this;
+	}
+
+	/**
+	 * @param st
+	 * @param mapPt
+	 * @return
+	 */
+	private Controller updateHud(final UIStatus st, final Point2D mapPt) {
+		scrollMap.setHud(computeHud(st, mapPt));
+		return this;
 	}
 }

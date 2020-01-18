@@ -92,8 +92,8 @@ public class Simulator {
 						.subscribe(output::onNext);
 			}
 		} else {
-			logger.debug("Simulator stopped.");
 			stoppedSubj.ifPresent(subj -> {
+				logger.debug("Simulator stopped.");
 				subj.onNext(next);
 				subj.onComplete();
 			});
@@ -129,6 +129,7 @@ public class Simulator {
 	 * @return
 	 */
 	public Simulator setSimulationStatus(final SimulationStatus status) {
+		logger.debug("setSimulationStatus {}", status);
 		simulationStatus = status;
 		if (!running) {
 			output.onNext(simulationStatus);

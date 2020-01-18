@@ -67,24 +67,25 @@ import io.reactivex.rxjava3.core.Observable;
  */
 public class RouteMap extends JComponent implements Constants {
 
-	class Painter {
+	private class Painter {
 		private final Graphics2D graphics;
 		private final Map<SiteNode, Color> colorMap;
 		private final Rectangle2D bound;
+		private final boolean borderPainted;
 
 		/**
 		 * @param graphics
-		 * @param reversed
-		 * @param gridSize
-		 * @param status
 		 * @param bound
 		 * @param colorMap
+		 * @param borderPainted
 		 */
-		public Painter(final Graphics2D graphics, final Rectangle2D bound, final Map<SiteNode, Color> colorMap) {
+		public Painter(final Graphics2D graphics, final Rectangle2D bound, final Map<SiteNode, Color> colorMap,
+				final boolean borderPainted) {
 			super();
 			this.graphics = graphics;
 			this.bound = bound;
 			this.colorMap = colorMap;
+			this.borderPainted = borderPainted;
 		}
 
 		/**
@@ -105,15 +106,28 @@ public class RouteMap extends JComponent implements Constants {
 					return Map.of(sites.get(0), SwingUtils.computeColor(0, NODE_SATURATION));
 				}
 			}).orElseGet(() -> Collections.emptyMap());
-			return new Painter(graphics, bound, map);
+			return new Painter(graphics, bound, map, borderPainted);
 		}
 
 		/**
 		 * Returns the painter with painted canvas
 		 */
 		public Painter paint() {
-			return computeSiteColorMap().paintGrid().paintEdges().paintSites().paintSelectedNode().paintSelectedEdge()
-					.paintSelectedSite().paintVehicles();
+			return computeSiteColorMap().paintGrid().paintEdges().paintSites().paintSelectedEdge().paintVehicles()
+					.paintSelectedNode().paintSelectedSite().paintDragEdge();
+		}
+
+		/**
+		 *
+		 * @return
+		 */
+		private Painter paintDragEdge() {
+			dragEdge.ifPresent(line -> {
+				graphics.setColor(EDGE_DRAGING_COLOR);
+				graphics.setStroke(STROKE);
+				graphics.draw(new Line2D.Double(line.getElem1(), line.getElem2()));
+			});
+			return this;
 		}
 
 		/**
@@ -288,15 +302,6 @@ public class RouteMap extends JComponent implements Constants {
 			return this;
 
 		}
-
-		/**
-		 * Returns the painter for a given bound
-		 *
-		 * @param bound the bound
-		 */
-		public Painter setBound(final Rectangle2D bound) {
-			return new Painter(graphics, bound, colorMap);
-		}
 	}
 
 	static class VehicleInfo {
@@ -325,7 +330,7 @@ public class RouteMap extends JComponent implements Constants {
 	public static final double EDGE_WIDTH = 5;
 	public static final double SITE_SIZE = 10;
 	public static final double NODE_SIZE = 5;
-
+	private static final double BORDER_SCALE = 1;
 	private static final int BLINKING_ON_TIME = 100;
 	private static final int BLINKING_TIME = 300;
 	private static final Color END_NODE_COLOR = Color.RED;
@@ -333,6 +338,7 @@ public class RouteMap extends JComponent implements Constants {
 	private static final Color DEFAULT_SITE_COLOR = Color.GRAY;
 	private static final Color DEFAULT_VEHICLE_COLOR = Color.GRAY;
 	private static final Color SELECTED_SITE_COLOR = Color.WHITE;
+	private static final Color EDGE_DRAGING_COLOR = Color.GRAY;
 	private static final Color EDGE_COLOR = Color.LIGHT_GRAY;
 	private static final Color MAJOR_GRID_COLOR = new Color(0xc0c0c0);
 	private static final Color MINOR_GRID_COLOR = new Color(0xe0e0e0);
@@ -353,15 +359,15 @@ public class RouteMap extends JComponent implements Constants {
 
 	private final Observable<MouseEvent> mouseObs;
 	private final Observable<MouseWheelEvent> mouseWheelObs;
-	private Observable<KeyEvent> keyboardObs;
+	private final Observable<KeyEvent> keyboardObs;
 	private boolean trafficView;
 	private Optional<SimulationStatus> status;
 	private AffineTransform transform;
 	private double gridSize;
-	private boolean borderPainted;
 	private Optional<MapNode> selectedNode;
 	private Optional<MapEdge> selectedEdge;
 	private Optional<SiteNode> selectedSite;
+	private Optional<Tuple2<Point2D, Point2D>> dragEdge;
 
 	/**
 	 *
@@ -373,8 +379,10 @@ public class RouteMap extends JComponent implements Constants {
 		this.mouseObs = SwingObservable.mouse(this);
 		this.mouseWheelObs = SwingObservable.mouseWheel(this);
 		this.keyboardObs = SwingObservable.keyboard(this);
+		this.dragEdge = Optional.empty();
 		setFocusable(true);
 		setRequestFocusEnabled(true);
+		requestFocus();
 
 		this.status = Optional.empty();
 		this.selectedNode = Optional.empty();
@@ -386,10 +394,17 @@ public class RouteMap extends JComponent implements Constants {
 		logger.debug("RouteMap created");
 	}
 
+	public RouteMap clearSelection() {
+		this.selectedSite = Optional.empty();
+		this.selectedNode = Optional.empty();
+		this.selectedEdge = Optional.empty();
+		return this;
+	}
+
 	/**
 	 * @return the keyboardObs
 	 */
-	Observable<KeyEvent> getKeyboardObs() {
+	public Observable<KeyEvent> getKeyboardObs() {
 		return keyboardObs;
 	}
 
@@ -429,6 +444,15 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
+	 * Returns true if border is painted
+	 */
+	boolean isBorderPainted() {
+		final double scale = Math.max(transform.getScaleX(), transform.getScaleY());
+		final boolean borderPainted = scale >= BORDER_SCALE;
+		return borderPainted;
+	}
+
+	/**
 	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
 	 */
 	@Override
@@ -447,19 +471,20 @@ public class RouteMap extends JComponent implements Constants {
 			final Rectangle2D realBound = transform.createInverse().createTransformedShape(bound).getBounds2D();
 			final Graphics2D gr = (Graphics2D) g.create();
 			gr.transform(transform);
-			new Painter(gr, realBound, Collections.emptyMap()).paint();
+			new Painter(gr, realBound, Collections.emptyMap(), isBorderPainted()).paint();
 		} catch (final NoninvertibleTransformException e) {
 			logger.error(e.getMessage(), e);
 		}
 	}
 
 	/**
-	 * Returns the route map with set border painted
+	 * Returns the route map with drag edge
 	 *
-	 * @param borderPainted true if border painted
+	 * @param edge the edge
 	 */
-	public RouteMap setBorderPainted(final boolean borderPainted) {
-		this.borderPainted = borderPainted;
+	public RouteMap setDragEdge(final Optional<Tuple2<Point2D, Point2D>> edge) {
+		this.dragEdge = edge;
+		repaint();
 		return this;
 	}
 
@@ -474,20 +499,13 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * @param keyboardObs the keyboardObs to set
-	 */
-	void setKeyboardObs(final Observable<KeyEvent> keyboardObs) {
-		this.keyboardObs = keyboardObs;
-	}
-
-	/**
 	 * Returns the route map with selected edge
 	 *
 	 * @param edge the edge
 	 */
 	public RouteMap setSelectedEdge(final Optional<MapEdge> edge) {
+		clearSelection();
 		this.selectedEdge = edge;
-		requestFocus();
 		return this;
 	}
 
@@ -497,6 +515,7 @@ public class RouteMap extends JComponent implements Constants {
 	 * @param node the selected node
 	 */
 	public RouteMap setSelectedNode(final Optional<MapNode> node) {
+		clearSelection();
 		this.selectedNode = node;
 		return this;
 	}
@@ -507,16 +526,8 @@ public class RouteMap extends JComponent implements Constants {
 	 * @param site the selected site
 	 */
 	public RouteMap setSelectedSite(final Optional<SiteNode> site) {
+		clearSelection();
 		this.selectedSite = site;
-		return this;
-	}
-
-	/**
-	 * @param status the status to set
-	 * @return
-	 */
-	public RouteMap setStatus(final Optional<SimulationStatus> status) {
-		this.status = status;
 		return this;
 	}
 
