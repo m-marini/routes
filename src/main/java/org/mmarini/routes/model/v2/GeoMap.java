@@ -26,8 +26,10 @@
 
 package org.mmarini.routes.model.v2;
 
+import java.awt.geom.Point2D;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -112,6 +114,43 @@ public class GeoMap implements Constants {
 
 	/**
 	 *
+	 * @param edge
+	 * @return
+	 */
+	public GeoMap addEdge(final MapEdge edge) {
+		final MapNode start = edge.getBegin();
+		final MapNode end = edge.getEnd();
+		final GeoMap result1 = add(edge);
+		final GeoMap result2 = start instanceof SiteNode ? result1.add((SiteNode) start) : result1.add(start);
+		final GeoMap result3 = end instanceof SiteNode ? result2.add((SiteNode) end) : result2.add(end);
+		return result3;
+	}
+
+	/**
+	 * Returns the nearest node to the point within maximum distance
+	 *
+	 * @param point    the point
+	 * @param distance the distance
+	 */
+	public Optional<MapNode> findNearst(final Point2D point, final double distance) {
+		final double d2 = distance * distance;
+		final Optional<MapNode> result = getAllNodesStream().parallelStream()
+				.filter(n -> point.distanceSq(n.getLocation()) <= d2)
+				.min((a, b) -> Double.compare(a.getLocation().distanceSq(point), b.getLocation().distanceSq(point)));
+		return result;
+	}
+
+	/**
+	 * Returns the stream of all nodes
+	 */
+	private Set<MapNode> getAllNodesStream() {
+		final Set<MapNode> allNodes = new HashSet<>(nodes);
+		allNodes.addAll(sites);
+		return allNodes;
+	}
+
+	/**
+	 *
 	 * @return
 	 */
 	public Set<MapEdge> getEdges() {
@@ -181,7 +220,7 @@ public class GeoMap implements Constants {
 
 	/**
 	 * Returns the map with removed node and edges
-	 * 
+	 *
 	 * @param node the node to remove
 	 */
 	public GeoMap removeNodeFromMap(final MapNode node) {

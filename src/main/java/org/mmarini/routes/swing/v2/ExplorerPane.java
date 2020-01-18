@@ -223,9 +223,9 @@ public class ExplorerPane extends JTabbedPane {
 	 * @param edge the selected edge
 	 */
 	public ExplorerPane setSelectedEdge(final MapEdge edge) {
-		logger.debug("setSelectedEdge {}", edge);
 		if (!edge.equals(edgeJList.getSelectedValue())) {
 			clearSelection();
+			logger.debug("setSelectedEdge {}", edge);
 			edgeJList.setSelectedValue(edge, true);
 		}
 		setSelectedIndex(EDGE_TAB);
@@ -238,9 +238,9 @@ public class ExplorerPane extends JTabbedPane {
 	 * @param node the selected node
 	 */
 	public ExplorerPane setSelectedNode(final MapNode node) {
-		logger.debug("setSelectedNode {}", node);
 		if (!node.equals(nodeJList.getSelectedValue())) {
 			clearSelection();
+			logger.debug("setSelectedNode {}", node);
 			nodeJList.setSelectedValue(node, true);
 		}
 		setSelectedIndex(NODE_TAB);
@@ -253,9 +253,9 @@ public class ExplorerPane extends JTabbedPane {
 	 * @param site the selected site
 	 */
 	public ExplorerPane setSelectedSite(final SiteNode site) {
-		logger.debug("setSelectedSite {}", site);
 		if (!site.equals(siteJList.getSelectedValue())) {
 			clearSelection();
+			logger.debug("setSelectedSite {}", site);
 			siteJList.setSelectedValue(site, true);
 		}
 		setSelectedIndex(SITE_TAB);

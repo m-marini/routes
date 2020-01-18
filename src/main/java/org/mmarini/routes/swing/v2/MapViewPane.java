@@ -73,6 +73,8 @@ public class MapViewPane extends JPanel {
 	private final Observable<ActionEvent> zoomOutObs;
 	private final Observable<ActionEvent> fitInWindowObs;
 	private final Observable<ActionEvent> zoomDefaultObs;
+	private final Observable<ActionEvent> selectModeObs;
+	private final Observable<ActionEvent> edgeModeObs;
 
 	/**
 	 * Create the component
@@ -94,6 +96,8 @@ public class MapViewPane extends JPanel {
 		zoomInObs = SwingObservable.actions(zoomInButton);
 		zoomOutObs = SwingObservable.actions(zoomOutButton);
 		fitInWindowObs = SwingObservable.actions(fitInWindowAction);
+		selectModeObs = SwingObservable.actions(selectButton);
+		edgeModeObs = SwingObservable.actions(edgeButton);
 
 		init(content);
 		setOpaque(false);
@@ -135,10 +139,24 @@ public class MapViewPane extends JPanel {
 	}
 
 	/**
+	 * @return the edgeModeObs
+	 */
+	public Observable<ActionEvent> getEdgeModeObs() {
+		return edgeModeObs;
+	}
+
+	/**
 	 * @return the fitInWindowObs
 	 */
 	public Observable<ActionEvent> getFitInWindowObs() {
 		return fitInWindowObs;
+	}
+
+	/**
+	 * @return the selectModeObs
+	 */
+	public Observable<ActionEvent> getSelectModeObs() {
+		return selectModeObs;
 	}
 
 	/**

@@ -16,6 +16,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.AbstractButton;
 import javax.swing.ImageIcon;
@@ -30,6 +32,7 @@ import javax.swing.KeyStroke;
  * Various functionalities used in the user interface.
  */
 public class SwingUtils {
+
 	public static class GridBagConstraintsBuilder {
 		private final GridBagConstraints constraints;
 
@@ -354,6 +357,7 @@ public class SwingUtils {
 	}
 
 	private static final double BRIGHTNESS_ZERO = 0.7;
+
 	private static final double BRIGHTNESS_ONE = 1;
 	private static final double HUE_ZERO = 0.8;
 	private static final double HUE_ONE = 0;
@@ -450,6 +454,25 @@ public class SwingUtils {
 	 */
 	private static double interpolate(final double control, final double zeroLevel, final double oneLevel) {
 		return control * (oneLevel - zeroLevel) + zeroLevel;
+	}
+
+	/**
+	 * Returns the list of patterns by key.n
+	 *
+	 * @param key the key
+	 */
+	public static List<String> loadPatterns(final String key) {
+		final List<String> list = new ArrayList<String>(0);
+		int i = 0;
+		for (;;) {
+			final String text = Messages.getString(key + "." + i);
+			if (text.startsWith("!")) {
+				break;
+			}
+			list.add(text);
+			++i;
+		}
+		return list;
 	}
 
 	/**
