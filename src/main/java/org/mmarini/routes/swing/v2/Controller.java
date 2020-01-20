@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.swing.JFileChooser;
@@ -67,13 +68,14 @@ import org.slf4j.LoggerFactory;
 import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 
 /**
  *
  */
 public class Controller {
-
+	private static final int FPS = 25;
 	private static final double SCALE_FACTOR = Math.pow(10, 1.0 / 6);
 	private static final String INITIAL_MAP = "/test.yml"; // $NON-NLS-1$
 
@@ -112,9 +114,8 @@ public class Controller {
 //	private final List<String> gridLegendPattern;
 	private final List<String> pointLegendPattern;
 	private final List<String> edgeLegendPattern;
-	private final PublishSubject<Integer> edtObs;
+	private final BehaviorSubject<UIStatus> uiStatusSubj;
 	private final Observable<UIStatus> uiStatusObs;
-	private final PublishSubject<UIStatus> uiStatusSubj;
 
 	/**
 	 *
@@ -134,8 +135,9 @@ public class Controller {
 //		this.gridLegendPattern = SwingUtils.loadPatterns("ScrollMap.gridLegendPattern");
 		this.pointLegendPattern = SwingUtils.loadPatterns("ScrollMap.pointLegendPattern");
 		this.edgeLegendPattern = SwingUtils.loadPatterns("ScrollMap.edgeLegendPattern");
-		this.edtObs = PublishSubject.create();
-		this.uiStatusSubj = PublishSubject.create();
+		final SimulationStatus status1 = loadDefault();
+		final UIStatus initStatus = UIStatus.create().setStatus(status1);
+		this.uiStatusSubj = BehaviorSubject.createDefault(initStatus);
 		this.uiStatusObs = uiStatusSubj;
 
 		this.fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("Controller.filetype.title"), //$NON-NLS-1$
@@ -143,15 +145,9 @@ public class Controller {
 
 		bindAll();
 
-		edtObs.subscribe(this::handleEdt, this::showError);
-
-		final SimulationStatus status1 = loadDefault();
-		final UIStatus initStatus = UIStatus.create().setStatus(status1);
 		mapChanged(initStatus);
-		uiStatusSubj.onNext(initStatus);
 		simulator.setSimulationStatus(status1);
 		simulator.start();
-		edtObs.onNext(1);
 		mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		mainFrame.setVisible(true);
 	}
@@ -469,14 +465,19 @@ public class Controller {
 	}
 
 	/**
-	 *
+	 * Returns the controller with refresh status event binding
 	 */
 	private Controller bindOnStatus() {
-		edtObs.withLatestFrom(simulator.getOutput()
-//				.doOnNext(st -> logger.debug("bindForStatus: st={}", st))
-				, (t, status) -> status).withLatestFrom(uiStatusObs, (simStat, uiStat) -> uiStat.setStatus(simStat))
-				.subscribe(uiStatus -> {
-//					logger.debug("bindForStatus: ui={}", uiStatus);
+		Observable.interval(1000 / FPS, TimeUnit.MILLISECONDS)
+				// Add last simulator status
+				.withLatestFrom(simulator.getOutput(), (t, status) -> status)
+				// Add last ui status
+				.withLatestFrom(uiStatusObs, (simStat, uiStat) -> new Tuple2<>(simStat, uiStat))
+				// discard no change events
+				.filter(t -> !t.getElem2().getStatus().equals(t.getElem1()))
+				// Update ui status, refresh panels and send new event
+				.compose(SwingObservable.observeOnEdt()).subscribe(t -> {
+					final UIStatus uiStatus = t.getElem2().setStatus(t.getElem1());
 					trafficChanged(uiStatus);
 					routeMap.requestFocus();
 					uiStatusSubj.onNext(uiStatus);
@@ -604,18 +605,6 @@ public class Controller {
 	 */
 	public RouteMap getRouteMap() {
 		return routeMap;
-	}
-
-	/**
-	 *
-	 * @param x
-	 * @return
-	 */
-	private Controller handleEdt(final int x) {
-		Observable.just(x + 1).compose(SwingObservable.observeOnEdt()).subscribe(y -> {
-			edtObs.onNext(y);
-		}, this::showError);
-		return this;
 	}
 
 	/**
