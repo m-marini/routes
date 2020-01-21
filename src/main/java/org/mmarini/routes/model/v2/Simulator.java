@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import io.reactivex.rxjava3.subjects.Subject;
 
@@ -44,7 +45,7 @@ public class Simulator {
 	private static final long DEFAULT_MIN_TIME_NS = 100000000L;
 	private static final Logger logger = LoggerFactory.getLogger(Simulator.class);
 
-	private final Subject<SimulationStatus> output;
+	private final BehaviorSubject<SimulationStatus> output;
 	private final long minTimeNs = DEFAULT_MIN_TIME_NS;
 	private Optional<Subject<SimulationStatus>> stoppedSubj;
 	private boolean running;
@@ -58,7 +59,7 @@ public class Simulator {
 	public Simulator() {
 		super();
 		speed = 1;
-		output = PublishSubject.create();
+		output = BehaviorSubject.create();
 		output.subscribe(this::handleNextReady);
 		stoppedSubj = Optional.empty();
 	}

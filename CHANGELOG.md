@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #51: Check for destination arrival on busy exit
 - Issue #52: Empty explorer panel
 - Issue #58: Priority on element type in selection by mouse
+- Issue #64: Synchronization problem
 
 ### Changed
 
