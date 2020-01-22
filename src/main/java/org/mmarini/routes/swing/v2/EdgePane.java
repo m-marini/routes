@@ -35,7 +35,6 @@ import static org.mmarini.routes.swing.v2.SwingUtils.withGridBagConstraints;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
-import java.beans.PropertyChangeEvent;
 import java.text.NumberFormat;
 import java.util.Optional;
 
@@ -77,9 +76,8 @@ public class EdgePane extends JPanel {
 	private final Observable<MapEdge> browseBeginObs;
 	private final Observable<MapEdge> browseEndObs;
 	private final Observable<MapEdge> deleteObs;
-	private final Observable<PropertyChangeEvent> priorityObs;
-	private final Observable<PropertyChangeEvent> speedLimitObs;
-
+	private final Observable<Integer> priorityObs;
+	private final Observable<Double> speedLimitObs;
 	private Optional<MapEdge> edge;
 
 	/**
@@ -103,9 +101,9 @@ public class EdgePane extends JPanel {
 				.map(ed -> ed.get());
 		deleteObs = SwingObservable.actions(deleteButton).map(ev -> getEdge()).filter(ed -> ed.isPresent())
 				.map(ed -> ed.get()).doOnNext(ev -> logger.debug("on next delete {}", ev));
-		priorityObs = SwingObservable.propertyChange(priorityField, "value");
-		speedLimitObs = SwingObservable.propertyChange(speedLimitField, "value");
 		init().createContent();
+		priorityObs = SwingUtils.<Number>value(priorityField).map(v -> v.intValue());
+		speedLimitObs = SwingUtils.<Number>value(speedLimitField).map(v -> v.doubleValue());
 	}
 
 	/**
@@ -191,14 +189,14 @@ public class EdgePane extends JPanel {
 	/**
 	 * @return the priorityObs
 	 */
-	public Observable<PropertyChangeEvent> getPriorityObs() {
+	public Observable<Integer> getPriorityObs() {
 		return priorityObs;
 	}
 
 	/**
 	 * @return the speedLimitObs
 	 */
-	public Observable<PropertyChangeEvent> getSpeedLimitObs() {
+	public Observable<Double> getSpeedLimitObs() {
 		return speedLimitObs;
 	}
 

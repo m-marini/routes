@@ -51,6 +51,7 @@ import javax.swing.JOptionPane;
 import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import org.mmarini.routes.model.Constants;
 import org.mmarini.routes.model.v2.EdgeTraffic;
 import org.mmarini.routes.model.v2.GeoMap;
 import org.mmarini.routes.model.v2.MapEdge;
@@ -74,7 +75,7 @@ import io.reactivex.rxjava3.subjects.PublishSubject;
 /**
  *
  */
-public class Controller {
+public class Controller implements Constants {
 	private static final int FPS = 25;
 	private static final double SCALE_FACTOR = Math.pow(10, 1.0 / 6);
 	private static final String INITIAL_MAP = "/test.yml"; // $NON-NLS-1$
@@ -230,6 +231,35 @@ public class Controller {
 	private Controller bindOnEdgePane() {
 		edgePane.getDeleteObs().withLatestFrom(uiStatusObs, (edge, st) -> new Tuple2<>(st, edge))
 				.flatMap(t -> deleteEdge(t.getElem1(), t.getElem2()).toObservable()).subscribe(st -> {
+					mapChanged(st);
+					uiStatusSubj.onNext(st);
+					simulator.setSimulationStatus(st.getStatus()).start();
+				}, this::showError);
+
+		edgePane.getPriorityObs()
+				// add last ui status
+				.withLatestFrom(uiStatusObs, (p, st) -> new Tuple2<>(st, p))
+				// filter changes
+				.filter(t -> edgePane.getEdge().map(ed -> ed.getPriority() != t.getElem2()).orElse(false))
+				// change priority
+				.flatMap(t -> changePriority(t.getElem1(), edgePane.getEdge(), t.getElem2()).toObservable())
+				// update
+				.subscribe(st -> {
+					mapChanged(st);
+					uiStatusSubj.onNext(st);
+					simulator.setSimulationStatus(st.getStatus()).start();
+				}, this::showError);
+
+		edgePane.getSpeedLimitObs()
+				// add last ui status
+				.withLatestFrom(uiStatusObs, (speed, st) -> new Tuple2<>(st, speed))
+				// filter changes
+				.filter(t -> edgePane.getEdge().map(ed -> ed.getSpeedLimit() != t.getElem2()).orElse(false))
+				// change priority
+				.flatMap(t -> changeSpeedLimit(t.getElem1(), edgePane.getEdge(), t.getElem2() * KMH_TO_MPS)
+						.toObservable())
+				// update
+				.subscribe(st -> {
 					mapChanged(st);
 					uiStatusSubj.onNext(st);
 					simulator.setSimulationStatus(st.getStatus()).start();
@@ -479,7 +509,7 @@ public class Controller {
 				.compose(SwingObservable.observeOnEdt()).subscribe(t -> {
 					final UIStatus uiStatus = t.getElem2().setStatus(t.getElem1());
 					trafficChanged(uiStatus);
-					routeMap.requestFocus();
+//					routeMap.requestFocus();
 					uiStatusSubj.onNext(uiStatus);
 				}, this::showError);
 		return this;
@@ -510,6 +540,43 @@ public class Controller {
 			final SimulationStatus nextSt = uiStatus.getStatus().changeNode(node);
 			return uiStatus.setStatus(nextSt).setSelectedElement(MapElement.empty());
 		});
+	}
+
+	/**
+	 * 
+	 * @param uiStatus
+	 * @param edge
+	 * @param priority
+	 * @return
+	 */
+	private Single<UIStatus> changePriority(final UIStatus uiStatus, final Optional<MapEdge> edge, final int priority) {
+		return edge.map(ed -> simulator.stop().map(s -> {
+			logger.debug("changePriority {} {}", ed.getShortName(), priority);
+			final MapEdge newEdge = ed.setPriority(priority);
+			final UIStatus newStatus = uiStatus.setStatus(uiStatus.getStatus().changeEdge(newEdge));
+			return newStatus;
+		})).orElseGet(() ->
+		// no edge selected
+		Single.just(uiStatus));
+	}
+
+	/**
+	 * 
+	 * @param uiStatus
+	 * @param edge
+	 * @param speed
+	 * @return
+	 */
+	private Single<UIStatus> changeSpeedLimit(final UIStatus uiStatus, final Optional<MapEdge> edge,
+			final double speed) {
+		return edge.map(ed -> simulator.stop().map(s -> {
+			logger.debug("changeSpeedLimit {} {}", ed.getShortName(), speed);
+			final MapEdge newEdge = ed.setSpeedLimit(speed);
+			final UIStatus newStatus = uiStatus.setStatus(uiStatus.getStatus().changeEdge(newEdge));
+			return newStatus;
+		})).orElseGet(() ->
+		// no edge selected
+		Single.just(uiStatus));
 	}
 
 	/**
@@ -733,7 +800,7 @@ public class Controller {
 		routeMap.clearSelection().setStatus(uiStatus.getStatus()).setGridSize(uiStatus.getGridSize())
 				.setDragEdge(uiStatus.getDragEdge()).setTransform(uiStatus.getTransform())
 				.setPreferredSize(uiStatus.getScreenMapSize());
-		routeMap.requestFocus();
+//		routeMap.requestFocus();
 		scrollMap.repaint();
 		explorerPane.setMap(uiStatus.getStatus().getMap());
 		return this;

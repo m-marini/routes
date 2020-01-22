@@ -15,6 +15,8 @@ import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusEvent;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,16 +25,23 @@ import javax.swing.AbstractButton;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFormattedTextField;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import hu.akarnokd.rxjava3.swing.SwingObservable;
+import io.reactivex.rxjava3.core.Observable;
 
 /**
  * Various functionalities used in the user interface.
  */
 public class SwingUtils {
-
 	public static class GridBagConstraintsBuilder {
 		private final GridBagConstraints constraints;
 
@@ -356,11 +365,27 @@ public class SwingUtils {
 
 	}
 
+	private static final Logger logger = LoggerFactory.getLogger(SwingUtils.class);
+
 	private static final double BRIGHTNESS_ZERO = 0.7;
 
 	private static final double BRIGHTNESS_ONE = 1;
+
 	private static final double HUE_ZERO = 0.8;
+
 	private static final double HUE_ONE = 0;
+
+	/**
+	 * 
+	 * @param field
+	 * @return
+	 */
+	public static Observable<ActionEvent> action(final JTextField field) {
+		return Observable.<ActionEvent>create(emitter -> {
+			logger.debug("register listener on {}", field);
+			field.addActionListener(ev -> emitter.onNext(ev));
+		});
+	}
 
 	/**
 	 * Returns the iride color depending on a control value.<br>
@@ -515,6 +540,23 @@ public class SwingUtils {
 		if (!acc.startsWith("!")) { //$NON-NLS-1$
 			result.setAccelerator(KeyStroke.getKeyStroke(acc));
 		}
+		return result;
+	}
+
+	/**
+	 * 
+	 * @param field
+	 * @return
+	 */
+	public static <T> Observable<T> value(final JFormattedTextField field) {
+		final Observable<JFormattedTextField> focusObs = SwingObservable.focus(field)
+				.filter(ev -> ev.getID() == FocusEvent.FOCUS_LOST).map(ev -> field);
+		final Observable<JFormattedTextField> actionObs = action(field).map(ev -> field);
+		@SuppressWarnings("unchecked")
+		final Observable<T> result = focusObs.mergeWith(actionObs).filter(c -> c.isEditValid()).map(c -> {
+			c.commitEdit();
+			return (T) c.getValue();
+		});
 		return result;
 	}
 
