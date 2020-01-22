@@ -121,6 +121,24 @@ public class SimulationStatus implements Constants {
 	}
 
 	/**
+	 * 
+	 * @param newEdge
+	 * @return
+	 */
+	public SimulationStatus changeEdge(final MapEdge edge) {
+		final Set<MapEdge> newEdges = map.getEdges().parallelStream().map(ed -> ed.equals(edge) ? edge : ed)
+				.collect(Collectors.toSet());
+		final GeoMap newMap = map.setEdges(newEdges);
+		final Set<EdgeTraffic> newTraffics = traffics.parallelStream().map(traffic -> {
+			final MapEdge ed = traffic.getEdge();
+			final EdgeTraffic res = ed.equals(edge) ? traffic.setEdge(edge) : traffic;
+			return res;
+		}).collect(Collectors.toSet());
+		final SimulationStatus newStatus = setGeoMap(newMap).setTraffics(newTraffics);
+		return newStatus;
+	}
+
+	/**
 	 * Returns the simulation status with changed node
 	 *
 	 * @param edge the removing edge
