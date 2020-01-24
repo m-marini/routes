@@ -121,8 +121,10 @@ public class MapProfilePane extends Box {
 	public MapProfile getProfile() {
 		final int sizeIdx = mapSizeModel.getIndexOf(mapSizeModel.getSelectedItem());
 		final int diffIdx = difficultyModel.getIndexOf(difficultyModel.getSelectedItem());
-		final MapProfile result = new MapProfile(siteCount.getNumber().intValue(), mapSize[sizeIdx], mapSize[sizeIdx],
-				minWeight[diffIdx], frequence[diffIdx]);
+		final int siteCount = this.siteCount.getNumber().intValue();
+		final double width = mapSize[sizeIdx];
+		final double height = mapSize[sizeIdx];
+		final MapProfile result = new MapProfile(siteCount, width, height, minWeight[diffIdx], frequence[diffIdx]);
 		return result;
 	}
 

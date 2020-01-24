@@ -168,24 +168,27 @@ public class StatusBuilder implements Constants {
 	 */
 	StatusBuilder createVehicles() {
 		final double frequence = initialStatus.getFrequence();
-		final double t0 = initialStatus.getTraffics().stream().findAny().map(x -> x.getTime()).get();
-		final double dt = time - t0;
-		final int noSites = initialStatus.getMap().getSites().size();
-		final double lambda0 = frequence * dt / (noSites - 1) / 2;
-		final TrafficStats ts = getTrafficStats();
-		StatusBuilder result = this;
-		for (final Entry<Tuple2<SiteNode, SiteNode>, Double> entry : initialStatus.getWeights().entrySet()) {
-			final SiteNode from = entry.getKey().getElem1();
-			final SiteNode to = entry.getKey().getElem2();
-			if (!from.equals(to)) {
-				final Optional<EdgeTraffic> edge = ts.nextEdge(from, to);
-				final double weight = entry.getValue();
-				final int n = initialStatus.nextPoison(lambda0 * weight);
-				final StatusBuilder builder = result;
-				result = edge.map(ed -> builder.createVehicles(n, from, to, ed, t0)).orElseGet(() -> this);
+		final Optional<Double> t0o = initialStatus.getTraffics().parallelStream().findAny().map(EdgeTraffic::getTime);
+		final StatusBuilder result1 = t0o.map(t0 -> {
+			final double dt = time - t0;
+			final int noSites = initialStatus.getMap().getSites().size();
+			final double lambda0 = frequence * dt / (noSites - 1) / 2;
+			final TrafficStats ts = getTrafficStats();
+			StatusBuilder result = this;
+			for (final Entry<Tuple2<SiteNode, SiteNode>, Double> entry : initialStatus.getWeights().entrySet()) {
+				final SiteNode from = entry.getKey().getElem1();
+				final SiteNode to = entry.getKey().getElem2();
+				if (!from.equals(to)) {
+					final Optional<EdgeTraffic> edge = ts.nextEdge(from, to);
+					final double weight = entry.getValue();
+					final int n = initialStatus.nextPoison(lambda0 * weight);
+					final StatusBuilder builder = result;
+					result = edge.map(ed -> builder.createVehicles(n, from, to, ed, t0)).orElseGet(() -> this);
+				}
 			}
-		}
-		return result;
+			return result;
+		}).orElse(this);
+		return result1;
 	}
 
 	/**

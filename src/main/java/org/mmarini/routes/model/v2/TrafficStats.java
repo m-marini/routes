@@ -33,11 +33,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  *
  */
 public class TrafficStats {
-//	private static final Logger logger = LoggerFactory.getLogger(TrafficStats.class);
+	private static final Logger logger = LoggerFactory.getLogger(TrafficStats.class);
 
 	/**
 	 *
@@ -50,7 +53,6 @@ public class TrafficStats {
 	private final Set<EdgeTraffic> edgeTraffics;
 	private final List<MapNode> nodes;
 	private final int[][] connectionMatrix;
-
 	private final double[][] timeMatrix;
 
 	/**
@@ -190,9 +192,13 @@ public class TrafficStats {
 	public Optional<MapNode> prevNode(final MapNode from, final MapNode to) {
 		final int i = nodes.indexOf(from);
 		final int j = nodes.indexOf(to);
-		final int k = connectionMatrix[i][j];
-		final Optional<MapNode> result = k >= 0 ? Optional.of(nodes.get(k)) : Optional.empty();
-		return result;
+		if (i >= 0 && j >= 0) {
+			final int k = connectionMatrix[i][j];
+			final Optional<MapNode> result = k >= 0 ? Optional.of(nodes.get(k)) : Optional.empty();
+			return result;
+		} else {
+			return Optional.empty();
+		}
 	}
 
 	/**
