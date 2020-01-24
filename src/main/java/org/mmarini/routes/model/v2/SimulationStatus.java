@@ -50,12 +50,48 @@ public class SimulationStatus implements Constants {
 			Collections.emptyMap(), DEFAULT_FREQUENCE, new Random());
 	private static final Logger logger = LoggerFactory.getLogger(SimulationStatus.class);
 
+	/**
+	 * Returns an empty simulation status
+	 */
 	public static SimulationStatus create() {
 		return EMPTY;
 	}
 
-	private final GeoMap map;
+	/**
+	 *
+	 * @param profile
+	 * @param random
+	 * @return
+	 */
+	public static SimulationStatus random(final MapProfile profile, final Random random) {
+		final GeoMap map = GeoMap.random(profile, random);
+		final Map<Tuple2<SiteNode, SiteNode>, Double> weights = randomWeights(map.getSites(), profile.getMinWeight(),
+				random);
+		return new SimulationStatus(map, Set.of(), weights, profile.getFrequence(), random);
+	}
 
+	/**
+	 *
+	 * @param sites
+	 * @param minWeight
+	 * @param random
+	 * @return
+	 */
+	private static Map<Tuple2<SiteNode, SiteNode>, Double> randomWeights(final Set<SiteNode> sites,
+			final double minWeight, final Random random) {
+		final double scale = 1. - minWeight;
+		final Map<Tuple2<SiteNode, SiteNode>, Double> result = sites.parallelStream().flatMap(from -> {
+			return sites.parallelStream().filter(to -> !from.equals(to)).map(to -> {
+				return new Tuple2<>(from, to);
+			});
+		}).collect(Collectors.toMap(Function.identity(), t -> {
+			final double w = random.nextDouble() * scale + minWeight;
+			return w;
+		}));
+		return result;
+	}
+
+	private final GeoMap map;
 	private final Set<EdgeTraffic> traffics;
 	private final Map<Tuple2<SiteNode, SiteNode>, Double> weights;
 	private final double frequence;
@@ -121,7 +157,7 @@ public class SimulationStatus implements Constants {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param newEdge
 	 * @return
 	 */

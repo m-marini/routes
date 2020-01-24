@@ -376,7 +376,7 @@ public class SwingUtils {
 	private static final double HUE_ONE = 0;
 
 	/**
-	 * 
+	 *
 	 * @param field
 	 * @return
 	 */
@@ -544,7 +544,7 @@ public class SwingUtils {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param field
 	 * @return
 	 */

@@ -26,10 +26,10 @@
 
 package org.mmarini.routes.swing.v2;
 
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -42,6 +42,7 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -59,6 +60,7 @@ import org.mmarini.routes.model.v2.MapNode;
 import org.mmarini.routes.model.v2.MapProfile;
 import org.mmarini.routes.model.v2.SimulationStatus;
 import org.mmarini.routes.model.v2.SimulationStatusDeserializer;
+import org.mmarini.routes.model.v2.SimulationStatusSerializer;
 import org.mmarini.routes.model.v2.Simulator;
 import org.mmarini.routes.model.v2.SiteNode;
 import org.mmarini.routes.model.v2.Tuple2;
@@ -162,23 +164,17 @@ public class Controller implements Constants {
 	 */
 	private Single<UIStatus> addEdge(final UIStatus st, final Point2D startPoint, final Point2D endPoint) {
 		logger.debug("addEdge {}, {}", startPoint, endPoint);
-		return simulator.stop().map(st1 -> st.createEdge(startPoint, endPoint));
+		return simulator.stop().map(st1 -> {
+			return st.createEdge(startPoint, endPoint);
+		});
 	}
 
 	/**
 	 *
 	 */
 	private Controller bindAll() {
-		mainFrame.getNewRandomObs().subscribe(this::handleNewRandomMap, this::showError);
-		mainFrame.getSaveMapAsObs().subscribe(this::handleSaveAsMap, this::showError);
-		mainFrame.getOpenMapObs().subscribe(this::handleOpenMap, this::showError);
-		mainFrame.getSaveMapObs().subscribe(this::handleSaveMap, this::showError);
-		mainFrame.getNewMapObs().subscribe(this::handleNewMap, this::showError);
-		mainFrame.getExitObs().subscribe(ev -> {
-			mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
-		}, this::showError);
 		return bindOnStatus().bindOnMouse().bindOnMouseWheel().bindOnExplorerPane().bindOnMapViewPane().bindOnEdgePane()
-				.bindOnNodePane().bindOnKey();
+				.bindOnNodePane().bindOnKey().bindOnMainframe();
 	}
 
 	/**
@@ -229,41 +225,67 @@ public class Controller implements Constants {
 	 * @return
 	 */
 	private Controller bindOnEdgePane() {
-		edgePane.getDeleteObs().withLatestFrom(uiStatusObs, (edge, st) -> new Tuple2<>(st, edge))
-				.flatMap(t -> deleteEdge(t.getElem1(), t.getElem2()).toObservable()).subscribe(st -> {
-					mapChanged(st);
-					uiStatusSubj.onNext(st);
-					simulator.setSimulationStatus(st.getStatus()).start();
-				}, this::showError);
+		edgePane.getDeleteObs().withLatestFrom(uiStatusObs, (edge, st) -> {
+			return new Tuple2<>(st, edge);
+		}).flatMap(t -> {
+			return deleteEdge(t.getElem1(), t.getElem2()).toObservable();
+		}).subscribe(st -> {
+			mapChanged(st);
+			explorerPane.clearSelection();
+			routeMap.clearSelection();
+			uiStatusSubj.onNext(st);
+			simulator.setSimulationStatus(st.getStatus()).start();
+		}, this::showError);
 
-		edgePane.getPriorityObs()
-				// add last ui status
-				.withLatestFrom(uiStatusObs, (p, st) -> new Tuple2<>(st, p))
-				// filter changes
-				.filter(t -> edgePane.getEdge().map(ed -> ed.getPriority() != t.getElem2()).orElse(false))
-				// change priority
-				.flatMap(t -> changePriority(t.getElem1(), edgePane.getEdge(), t.getElem2()).toObservable())
-				// update
-				.subscribe(st -> {
-					mapChanged(st);
-					uiStatusSubj.onNext(st);
-					simulator.setSimulationStatus(st.getStatus()).start();
-				}, this::showError);
+		edgePane.getPriorityObs().withLatestFrom(uiStatusObs, (p, st) -> {
+			// add last ui status
+			return new Tuple2<>(st, p);
+		}).filter(t -> {
+			// filter changes
+			return edgePane.getEdge().map(ed -> {
+				return ed.getPriority() != t.getElem2();
+			}).orElse(false);
+		}).flatMap(t -> {
+			// change priority
+			final UIStatus status = t.getElem1();
+			final MapEdge edge = edgePane.getEdge().get();
+			final int priority = t.getElem2();
+			return changePriority(status, edge, priority).toObservable();
+		}).subscribe(t -> {
+			// update
+			final UIStatus st = t.getElem1();
+			final MapEdge edge = t.getElem2();
+			mapChanged(st);
+			routeMap.setSelectedEdge(Optional.of(edge)).repaint();
+			explorerPane.setSelectedEdge(edge);
+			uiStatusSubj.onNext(st);
+			simulator.setSimulationStatus(st.getStatus()).start();
+		}, this::showError);
 
-		edgePane.getSpeedLimitObs()
-				// add last ui status
-				.withLatestFrom(uiStatusObs, (speed, st) -> new Tuple2<>(st, speed))
-				// filter changes
-				.filter(t -> edgePane.getEdge().map(ed -> ed.getSpeedLimit() != t.getElem2()).orElse(false))
-				// change priority
-				.flatMap(t -> changeSpeedLimit(t.getElem1(), edgePane.getEdge(), t.getElem2() * KMH_TO_MPS)
-						.toObservable())
-				// update
-				.subscribe(st -> {
-					mapChanged(st);
-					uiStatusSubj.onNext(st);
-					simulator.setSimulationStatus(st.getStatus()).start();
-				}, this::showError);
+		edgePane.getSpeedLimitObs().withLatestFrom(uiStatusObs, (speed, st) -> {
+			// add last ui status
+			return new Tuple2<>(st, speed);
+		}).filter(t -> {
+			// filter changes
+			return edgePane.getEdge().map(ed -> {
+				return ed.getSpeedLimit() != t.getElem2();
+			}).orElse(false);
+		}).flatMap(t -> {
+			// change priority
+			final UIStatus status = t.getElem1();
+			final MapEdge edge = edgePane.getEdge().get();
+			final double speedLimit = t.getElem2() * KMH_TO_MPS;
+			return changeSpeedLimit(status, edge, speedLimit).toObservable();
+		}).subscribe(t -> {
+			// update
+			final UIStatus st = t.getElem1();
+			final MapEdge edge = t.getElem2();
+			mapChanged(st);
+			routeMap.setSelectedEdge(Optional.of(edge)).repaint();
+			explorerPane.setSelectedEdge(edge);
+			uiStatusSubj.onNext(st);
+			simulator.setSimulationStatus(st.getStatus()).start();
+		}, this::showError);
 		return this;
 	}
 
@@ -272,32 +294,40 @@ public class Controller implements Constants {
 	 * @return
 	 */
 	private Controller bindOnExplorerPane() {
-		explorerPane.getSiteObs().withLatestFrom(uiStatusObs, (site, st) -> new Tuple2<>(st, site)).subscribe(t -> {
+		explorerPane.getSiteObs().withLatestFrom(uiStatusObs, (site, st) -> {
+			return new Tuple2<>(st, site);
+		}).subscribe(t -> {
 			final UIStatus st = t.getElem1();
 			final SiteNode site = t.getElem2();
 			final UIStatus newStatus = st.setSelectedElement(MapElement.create(site));
 			mapElementPane.setNode(site);
 			routeMap.setSelectedSite(Optional.of(site));
-			uiStatusSubj.onNext(newStatus);
 			centerMapTo(newStatus, site.getLocation());
+			uiStatusSubj.onNext(newStatus);
 		}, this::showError);
-		explorerPane.getNodeObs().withLatestFrom(uiStatusObs, (node, st) -> new Tuple2<>(st, node)).subscribe(t -> {
+
+		explorerPane.getNodeObs().withLatestFrom(uiStatusObs, (node, st) -> {
+			return new Tuple2<>(st, node);
+		}).subscribe(t -> {
 			final UIStatus st = t.getElem1();
 			final MapNode node = t.getElem2();
 			final UIStatus newStatus = st.setSelectedElement(MapElement.create(node));
 			mapElementPane.setNode(node);
 			routeMap.setSelectedNode(Optional.of(node));
-			uiStatusSubj.onNext(newStatus);
 			centerMapTo(newStatus, node.getLocation());
+			uiStatusSubj.onNext(newStatus);
 		}, this::showError);
-		explorerPane.getEdgeObs().withLatestFrom(uiStatusObs, (edge, st) -> new Tuple2<>(st, edge)).subscribe(t -> {
+
+		explorerPane.getEdgeObs().withLatestFrom(uiStatusObs, (edge, st) -> {
+			return new Tuple2<>(st, edge);
+		}).subscribe(t -> {
 			final UIStatus st = t.getElem1();
 			final MapEdge edge = t.getElem2();
 			final UIStatus newStatus = st.setSelectedElement(MapElement.create(edge));
 			mapElementPane.setEdge(edge);
 			routeMap.setSelectedEdge(Optional.of(edge));
-			uiStatusSubj.onNext(newStatus);
 			centerMapTo(newStatus, edge.getBeginLocation());
+			uiStatusSubj.onNext(newStatus);
 		}, this::showError);
 		return this;
 	}
@@ -308,11 +338,11 @@ public class Controller implements Constants {
 	private Controller bindOnKey() {
 		// observable of delete keys
 		routeMap.getKeyboardObs()
-				//
-				.doOnNext(ev -> logger.debug("key {}", ev))
 				// Filter for delete keys pressed
-				.filter(ev -> ev.getID() == KeyEvent.KEY_PRESSED
-						&& (ev.getKeyCode() == KeyEvent.VK_BACK_SPACE || ev.getKeyCode() == KeyEvent.VK_DELETE))
+				.filter(ev -> {
+					return ev.getID() == KeyEvent.KEY_PRESSED
+							&& (ev.getKeyCode() == KeyEvent.VK_BACK_SPACE || ev.getKeyCode() == KeyEvent.VK_DELETE);
+				})
 				// Combine with ui status
 				.withLatestFrom(uiStatusObs, (ev, st) -> st)
 				// Flat map with delete process
@@ -335,16 +365,93 @@ public class Controller implements Constants {
 	}
 
 	/**
+	 *
+	 * @return
+	 */
+	private Controller bindOnMainframe() {
+		mainFrame.getOpenMapObs().withLatestFrom(uiStatusObs, (ev, st) -> st)
+				.flatMap(uiStatus -> loadProcess(uiStatus).toObservable())
+				//
+				.subscribe(t -> {
+					t.ifPresent(tup -> {
+						mainFrame.setSaveActionEnabled(true);
+						mainFrame.setTitle(tup.getElem2().getName());
+						final UIStatus uiStatus = tup.getElem1();
+						mapChanged(uiStatus);
+						uiStatusSubj.onNext(uiStatus);
+						simulator.setSimulationStatus(uiStatus.getStatus());
+					});
+					simulator.start();
+				}, this::showError);
+
+		mainFrame.getSaveMapAsObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
+			simulator.stop().subscribe(s -> {
+				final int choice = fileChooser.showSaveDialog(mainFrame);
+				if (choice == JFileChooser.APPROVE_OPTION) {
+					handleSaveMap(st);
+				}
+				simulator.start();
+			}, this::showError);
+		}, this::showError);
+
+		mainFrame.getSaveMapObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
+			simulator.stop().subscribe(s -> {
+				handleSaveMap(st);
+				simulator.start();
+			}, this::showError);
+		}, this::showError);
+
+		mainFrame.getNewMapObs().subscribe(ev -> {
+			simulator.stop().subscribe(st -> {
+				final UIStatus status = UIStatus.create();
+				mapChanged(status);
+				mainFrame.resetTitle().setSaveActionEnabled(false).repaint();
+				uiStatusSubj.onNext(status);
+				simulator.setSimulationStatus(status.getStatus());
+				simulator.start();
+			}, this::showError);
+		}, this::showError);
+
+		mainFrame.getNewRandomObs().subscribe(ev -> {
+			simulator.stop().subscribe(st -> {
+				mapProfilePane.setDifficultyOnly(false);
+				final int opt = JOptionPane.showConfirmDialog(mainFrame, mapProfilePane,
+						Messages.getString("Controller.mapProfilePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
+				if (opt == JOptionPane.OK_OPTION) {
+					final MapProfile profile = mapProfilePane.getProfile();
+					logger.info("Selected {}", profile);
+					final SimulationStatus status = SimulationStatus.random(profile, new Random());
+					final UIStatus uiStatus = UIStatus.create().setStatus(status);
+					simulator.setSimulationStatus(status);
+					mapChanged(uiStatus);
+					mainFrame.resetTitle().setSaveActionEnabled(false).repaint();
+					uiStatusSubj.onNext(uiStatus);
+				}
+				simulator.start();
+			}, this::showError);
+		}, this::showError);
+
+		mainFrame.getExitObs().subscribe(ev -> {
+			mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
+		}, this::showError);
+
+		return this;
+	}
+
+	/**
 	 * @return
 	 */
 	private Controller bindOnMapViewPane() {
 		mapViewPane.getEdgeModeObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			routeMap.setDragEdge(Optional.empty());
-			uiStatusSubj.onNext(st.setMode(MapMode.START_EDGE).setDragEdge(Optional.empty()));
+			routeMap.setDragEdge(Optional.empty()).setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+			final UIStatus newStatus = st.setMode(MapMode.START_EDGE).setDragEdge(Optional.empty());
+			uiStatusSubj.onNext(newStatus);
 		}, this::showError);
+
 		mapViewPane.getSelectModeObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			routeMap.setDragEdge(Optional.empty());
-			uiStatusSubj.onNext(st.setMode(MapMode.SELECTION).setDragEdge(Optional.empty()));
+			routeMap.setDragEdge(Optional.empty()).setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+			final UIStatus newStatus = st.setMode(MapMode.SELECTION).setDragEdge(Optional.empty());
+			uiStatusSubj.onNext(newStatus);
 		}, this::showError);
 
 		mapViewPane.getZoomDefaultObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
@@ -401,8 +508,9 @@ public class Controller implements Constants {
 	 * @param withPointObs
 	 */
 	private Controller bindOnMouseForHud(final Observable<Tuple2<UIStatus, Tuple2<Point2D, MouseEvent>>> withPointObs) {
-
-		withPointObs.subscribe(t -> updateHud(t.getElem1(), t.getElem2().getElem1()), this::showError);
+		withPointObs.subscribe(t -> {
+			updateHud(t.getElem1(), t.getElem2().getElem1());
+		}, this::showError);
 		return this;
 	}
 
@@ -420,7 +528,7 @@ public class Controller implements Constants {
 			final UIStatus st = t.getElem1();
 			final Point2D point = t.getElem2().getElem1();
 			final MapElement elem = st.findElementAt(point);
-			elem.getSite().ifPresent(explorerPane::setSelectedSite);
+			elem.getSite().ifPresent(explorerPane::setSelectedNode);
 			elem.getNode().ifPresent(explorerPane::setSelectedNode);
 			elem.getEdge().ifPresent(explorerPane::setSelectedEdge);
 			if (elem.isEmpty()) {
@@ -439,17 +547,18 @@ public class Controller implements Constants {
 	 * @return
 	 */
 	private Controller bindOnMouseWheel() {
-		routeMap.getMouseWheelObs().withLatestFrom(uiStatusObs, (ev, status) -> new Tuple2<>(status, ev))
-				.subscribe(t -> {
-					final UIStatus st = t.getElem1();
-					final MouseWheelEvent ev = t.getElem2();
-					final double newScale = st.getScale() * Math.pow(SCALE_FACTOR, -ev.getWheelRotation());
-					logger.debug("onNext scale at {}", newScale);
-					final Point pivot = ev.getPoint();
-					final UIStatus newStatus = scaleTo(st, newScale, pivot);
-					updateHud(newStatus, newStatus.toMapPoint(pivot));
-					uiStatusSubj.onNext(newStatus);
-				}, this::showError);
+		routeMap.getMouseWheelObs().withLatestFrom(uiStatusObs, (ev, status) -> {
+			return new Tuple2<>(status, ev);
+		}).subscribe(t -> {
+			final UIStatus st = t.getElem1();
+			final MouseWheelEvent ev = t.getElem2();
+			final double newScale = st.getScale() * Math.pow(SCALE_FACTOR, -ev.getWheelRotation());
+			logger.debug("onNext scale at {}", newScale);
+			final Point pivot = ev.getPoint();
+			final UIStatus newStatus = scaleTo(st, newScale, pivot);
+			updateHud(newStatus, newStatus.toMapPoint(pivot));
+			uiStatusSubj.onNext(newStatus);
+		}, this::showError);
 		return this;
 	}
 
@@ -457,16 +566,32 @@ public class Controller implements Constants {
 	 * @return
 	 */
 	private Controller bindOnNodePane() {
-		final Observable<UIStatus> deleteNodeObs = nodePane.getDeleteObs()
-				.withLatestFrom(uiStatusObs, (node, st) -> new Tuple2<>(st, node))
-				.flatMap(t -> deleteNode(t.getElem1(), t.getElem2()).toObservable());
-
-		final Observable<UIStatus> changeNodeObs = nodePane.getChangeObs()
-				.withLatestFrom(uiStatusObs, (node, st) -> new Tuple2<>(st, node))
-				.flatMap(t -> changeNode(t.getElem1(), t.getElem2()).toObservable());
-
-		changeNodeObs.mergeWith(deleteNodeObs).subscribe(st -> {
+		// Change node type
+		nodePane.getChangeObs().withLatestFrom(uiStatusObs, (node, st) -> {
+			return new Tuple2<>(st, node);
+		}).flatMap(t -> {
+			return changeNode(t).toObservable();
+		}).subscribe(t -> {
+			final UIStatus st = t.getElem1();
+			final MapNode node = t.getElem2();
 			mapChanged(st);
+			final GeoMap map = st.getStatus().getMap();
+			routeMap.setSelectedSite(map.getSite(node));
+			routeMap.setSelectedNode(map.getNode(node));
+			explorerPane.setSelectedNode(node);
+			uiStatusSubj.onNext(st);
+			simulator.setSimulationStatus(st.getStatus()).start();
+		}, this::showError);
+
+		// delete node type
+		nodePane.getDeleteObs().withLatestFrom(uiStatusObs, (node, st) -> {
+			return new Tuple2<>(st, node);
+		}).flatMap(t -> {
+			return deleteNode(t.getElem1(), t.getElem2()).toObservable();
+		}).subscribe(st -> {
+			mapChanged(st);
+			explorerPane.clearSelection();
+			routeMap.clearSelection();
 			uiStatusSubj.onNext(st);
 			simulator.setSimulationStatus(st.getStatus()).start();
 		}, this::showError);
@@ -487,8 +612,10 @@ public class Controller implements Constants {
 			final UIStatus st = t.getElem1();
 			final Point2D startPoint = st.snapToNode(t.getElem2().getElem1());
 			final Optional<Tuple2<Point2D, Point2D>> dragEdge = Optional.of(new Tuple2<>(startPoint, startPoint));
+
 			routeMap.setSelectedEdge(Optional.empty()).setSelectedNode(Optional.empty())
 					.setSelectedSite(Optional.empty()).setDragEdge(dragEdge);
+			scrollMap.repaint();
 			uiStatusSubj.onNext(st.setDragEdge(dragEdge).setMode(MapMode.DRAG_EDGE));
 		}, this::showError);
 		return this;
@@ -509,7 +636,6 @@ public class Controller implements Constants {
 				.compose(SwingObservable.observeOnEdt()).subscribe(t -> {
 					final UIStatus uiStatus = t.getElem2().setStatus(t.getElem1());
 					trafficChanged(uiStatus);
-//					routeMap.requestFocus();
 					uiStatusSubj.onNext(uiStatus);
 				}, this::showError);
 		return this;
@@ -530,53 +656,53 @@ public class Controller implements Constants {
 	}
 
 	/**
-	 * @param uiStatus
-	 * @param edge
+	 *
+	 * @param tuple
 	 * @return
 	 */
-	private Single<UIStatus> changeNode(final UIStatus uiStatus, final MapNode node) {
+	private Single<Tuple2<UIStatus, MapNode>> changeNode(final Tuple2<UIStatus, MapNode> tuple) {
+		final UIStatus uiStatus = tuple.getElem1();
+		final MapNode node = tuple.getElem2();
 		return simulator.stop().map(status -> {
 			logger.debug("changeNode {} ", node);
 			final SimulationStatus nextSt = uiStatus.getStatus().changeNode(node);
-			return uiStatus.setStatus(nextSt).setSelectedElement(MapElement.empty());
+			final UIStatus nextUiStatus = uiStatus.setStatus(nextSt).setSelectedElement(MapElement.empty());
+			return new Tuple2<>(nextUiStatus, node);
 		});
 	}
 
 	/**
-	 * 
+	 *
 	 * @param uiStatus
 	 * @param edge
 	 * @param priority
 	 * @return
 	 */
-	private Single<UIStatus> changePriority(final UIStatus uiStatus, final Optional<MapEdge> edge, final int priority) {
-		return edge.map(ed -> simulator.stop().map(s -> {
-			logger.debug("changePriority {} {}", ed.getShortName(), priority);
-			final MapEdge newEdge = ed.setPriority(priority);
+	private Single<Tuple2<UIStatus, MapEdge>> changePriority(final UIStatus uiStatus, final MapEdge edge,
+			final int priority) {
+		return simulator.stop().map(s -> {
+			logger.debug("changePriority {} {}", edge.getShortName(), priority);
+			final MapEdge newEdge = edge.setPriority(priority);
 			final UIStatus newStatus = uiStatus.setStatus(uiStatus.getStatus().changeEdge(newEdge));
-			return newStatus;
-		})).orElseGet(() ->
-		// no edge selected
-		Single.just(uiStatus));
+			return new Tuple2<>(newStatus, newEdge);
+		});
 	}
 
 	/**
-	 * 
+	 *
 	 * @param uiStatus
 	 * @param edge
 	 * @param speed
 	 * @return
 	 */
-	private Single<UIStatus> changeSpeedLimit(final UIStatus uiStatus, final Optional<MapEdge> edge,
+	private Single<Tuple2<UIStatus, MapEdge>> changeSpeedLimit(final UIStatus uiStatus, final MapEdge edge,
 			final double speed) {
-		return edge.map(ed -> simulator.stop().map(s -> {
-			logger.debug("changeSpeedLimit {} {}", ed.getShortName(), speed);
-			final MapEdge newEdge = ed.setSpeedLimit(speed);
+		return simulator.stop().map(s -> {
+			logger.debug("changeSpeedLimit {} {}", edge.getShortName(), speed);
+			final MapEdge newEdge = edge.setSpeedLimit(speed);
 			final UIStatus newStatus = uiStatus.setStatus(uiStatus.getStatus().changeEdge(newEdge));
-			return newStatus;
-		})).orElseGet(() ->
-		// no edge selected
-		Single.just(uiStatus));
+			return new Tuple2<>(newStatus, newEdge);
+		});
 	}
 
 	/**
@@ -675,112 +801,18 @@ public class Controller implements Constants {
 	}
 
 	/**
-	 * Returns the controller with new random map event handled
+	 * Returns the controller after status saved
 	 *
-	 * @param ev the event
+	 * @param status the status
 	 */
-	private Controller handleNewMap(final ActionEvent ev) {
-		logger.info(String.valueOf(ev));
-//			handler.clearMap();
-//			refresh();
-//			mapViewPane.selectSelector();
-//			mapViewPane.reset();
-//			mapViewPane.setSelectedElement((MapNode) null);
-//			mapElementPane.setSelectedElement((MapNode) null);
-		mainFrame.resetTitle().setSaveActionEnabled(false).repaint();
-		return this;
-	}
-
-	/**
-	 * Returns the controller with new random map event handled
-	 *
-	 * @param ev the event
-	 */
-	private Controller handleNewRandomMap(final ActionEvent ev) {
-		logger.info(String.valueOf(ev));
-//		stopSimulation();
-//		mapProfilePane.setDifficultyOnly(false);
-		final int opt = JOptionPane.showConfirmDialog(mainFrame, mapProfilePane,
-				Messages.getString("Controller.mapProfilePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
-		if (opt == JOptionPane.OK_OPTION) {
-			final MapProfile profile = mapProfilePane.getProfile();
-			logger.info("Selected {}", profile);
-//			handler.createRandomMap(profile);
-//			refresh();
-//			mapViewPane.selectSelector();
-//			mapViewPane.reset();
-//			mapViewPane.setSelectedElement((MapNode) null);
-//			mapElementPane.setSelectedElement((MapNode) null);
-			mainFrame.resetTitle().setSaveActionEnabled(false).repaint();
-		}
-//		startSimulation();
-		return this;
-	}
-
-	/**
-	 * Returns the controller with open map as ... event handled
-	 *
-	 * @param ev the event
-	 */
-	private Controller handleOpenMap(final ActionEvent ev) {
-		logger.info(String.valueOf(ev));
-		simulator.stop();
-		final int choice = fileChooser.showOpenDialog(mainFrame);
-		if (choice == JFileChooser.APPROVE_OPTION) {
-			final File file = fileChooser.getSelectedFile();
-			if (!file.canRead()) {
-				showError(Messages.getString("Controller.readError.message"), new Object[] { file }); //$NON-NLS-1$
-			} else {
-				try {
-					logger.info("Opening {} ...", file);
-					final SimulationStatus status = SimulationStatusDeserializer.create().parse(file);
-					simulator.setSimulationStatus(status);
-					mainFrame.setSaveActionEnabled(true);
-					mainFrame.setTitle(file.getName());
-				} catch (final Exception e) {
-					logger.error(e.getMessage(), e);
-					showError(e.getMessage());
-				} catch (final Throwable e) {
-					logger.error(e.getMessage(), e);
-					showError(e);
-				}
-//				mapViewPane.reset();
-			}
-		}
-		simulator.start();
-		return this;
-	}
-
-	/**
-	 * Returns the controller with save map as ... event handled
-	 *
-	 * @param ev the event
-	 */
-	private Controller handleSaveAsMap(final ActionEvent ev) {
-		logger.info(String.valueOf(ev));
-		simulator.stop();
-		final int choice = fileChooser.showSaveDialog(mainFrame);
-		if (choice == JFileChooser.APPROVE_OPTION) {
-			handleSaveMap(ev);
-		}
-		simulator.start();
-		return this;
-	}
-
-	/**
-	 * Returns the controller with save map event handled
-	 *
-	 * @param ev the event
-	 */
-	private Controller handleSaveMap(final ActionEvent ev) {
-		logger.info(String.valueOf(ev));
+	private Controller handleSaveMap(final UIStatus status) {
 		final File file = fileChooser.getSelectedFile();
 		if (file.exists() && !file.canWrite()) {
 			showError(Messages.getString("Controller.writeError.message"), new Object[] { file }); //$NON-NLS-1$
 		} else {
 			try {
 				logger.info("Saving {} ...", file);
-//				new SimulationStatusSerializer(null).writeFile(file);
+				new SimulationStatusSerializer(status.getStatus()).writeFile(file);
 				mainFrame.setSaveActionEnabled(true);
 				mainFrame.setTitle(file.getPath());
 			} catch (final Throwable e) {
@@ -793,17 +825,31 @@ public class Controller implements Constants {
 
 	/**
 	 *
-	 * @param uiStatus
+	 * @param status
 	 * @return
 	 */
-	private Controller mapChanged(final UIStatus uiStatus) {
-		routeMap.clearSelection().setStatus(uiStatus.getStatus()).setGridSize(uiStatus.getGridSize())
-				.setDragEdge(uiStatus.getDragEdge()).setTransform(uiStatus.getTransform())
-				.setPreferredSize(uiStatus.getScreenMapSize());
-//		routeMap.requestFocus();
-		scrollMap.repaint();
-		explorerPane.setMap(uiStatus.getStatus().getMap());
-		return this;
+	private Single<Optional<Tuple2<UIStatus, File>>> loadProcess(final UIStatus status) {
+		return simulator.stop().map(s -> {
+			final int choice = fileChooser.showOpenDialog(mainFrame);
+			if (choice == JFileChooser.APPROVE_OPTION) {
+				final File file = fileChooser.getSelectedFile();
+				if (!file.canRead()) {
+					showError(MessageFormat.format(Messages.getString("Controller.readError.message"), file)); //$NON-NLS-1$
+					return Optional.empty();
+				} else {
+					try {
+						logger.debug("loadProcess {}", file);
+						final SimulationStatus newStatus = SimulationStatusDeserializer.create().parse(file);
+						return Optional.of(new Tuple2<>(status.setStatus(newStatus), file));
+					} catch (final Throwable ex) {
+						showError(ex);
+						return Optional.empty();
+					}
+				}
+			} else {
+				return Optional.empty();
+			}
+		});
 	}
 
 	/**
@@ -811,9 +857,11 @@ public class Controller implements Constants {
 	 * @param uiStatus
 	 * @return
 	 */
-	private Controller scaleChanged(final UIStatus uiStatus) {
-		routeMap.setTransform(uiStatus.getTransform()).setPreferredSize(uiStatus.getScreenMapSize());
+	private Controller mapChanged(final UIStatus uiStatus) {
+		routeMap.setStatus(uiStatus.getStatus()).setGridSize(uiStatus.getGridSize())
+				.setTransform(uiStatus.getTransform()).setPreferredSize(uiStatus.getScreenMapSize());
 		scrollMap.repaint();
+		explorerPane.setMap(uiStatus.getStatus().getMap());
 		return this;
 	}
 
@@ -829,19 +877,11 @@ public class Controller implements Constants {
 		final Point vp = scrollMap.getViewport().getViewPosition();
 		final Point newVp = status.computeViewporPositionWithScale(vp, pivot, scale);
 		scrollMap.getViewport().setViewPosition(newVp);
-		scaleChanged(newStatus).updateHud(newStatus, newStatus.toMapPoint(pivot));
+		routeMap.setTransform(newStatus.getTransform()).setGridSize(newStatus.getGridSize())
+				.setPreferredSize(newStatus.getScreenMapSize());
+		scrollMap.repaint();
+		updateHud(newStatus, newStatus.toMapPoint(pivot));
 		return newStatus;
-	}
-
-	/**
-	 * Returns the controller with error message
-	 *
-	 * @param message the message
-	 */
-	private Controller showError(final String message) {
-		JOptionPane.showMessageDialog(mainFrame, message, Messages.getString("RouteMediator.error.title"), //$NON-NLS-1$
-				JOptionPane.ERROR_MESSAGE);
-		return this;
 	}
 
 	/**
@@ -850,8 +890,11 @@ public class Controller implements Constants {
 	 * @param pattern   the pattern
 	 * @param arguments the argument
 	 */
-	private Controller showError(final String pattern, final Object[] arguments) {
-		return showError(MessageFormat.format(pattern, arguments));
+	private Controller showError(final String pattern, final Object... arguments) {
+		JOptionPane.showMessageDialog(mainFrame, MessageFormat.format(pattern, arguments),
+				Messages.getString("RouteMediator.error.title"), //$NON-NLS-1$
+				JOptionPane.ERROR_MESSAGE);
+		return this;
 	}
 
 	/**

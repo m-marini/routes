@@ -86,11 +86,11 @@ public class Simulator {
 			if (waitTime >= 0) {
 				// Reschedule for next status
 				Single.fromSupplier(() -> this.next(next, dt * 1e-9)).delay(waitTime, TimeUnit.NANOSECONDS)
-						.subscribe(output::onNext);
+						.subscribe(output::onNext, ex -> logger.error(ex.getMessage(), ex));
 			} else {
 				// Reschedule for next status
 				Single.fromSupplier(() -> this.next(next, dt * 1e-9)).subscribeOn(Schedulers.computation())
-						.subscribe(output::onNext);
+						.subscribe(output::onNext, ex -> logger.error(ex.getMessage(), ex));
 			}
 		} else {
 			stoppedSubj.ifPresent(subj -> {
@@ -132,9 +132,6 @@ public class Simulator {
 	public Simulator setSimulationStatus(final SimulationStatus status) {
 		logger.debug("setSimulationStatus {}", status);
 		simulationStatus = status;
-		if (!running) {
-			output.onNext(simulationStatus);
-		}
 		return this;
 	}
 

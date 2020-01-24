@@ -102,8 +102,10 @@ public class RouteMap extends JComponent implements Constants {
 						return new Tuple2<SiteNode, Color>(sites.get(i), color);
 					}).collect(Collectors.toMap(Tuple2::getElem1, Tuple2::getElem2));
 					return map1;
-				} else {
+				} else if (n == 1) {
 					return Map.of(sites.get(0), SwingUtils.computeColor(0, NODE_SATURATION));
+				} else {
+					return Map.<SiteNode, Color>of();
 				}
 			}).orElseGet(() -> Collections.emptyMap());
 			return new Painter(graphics, bound, map, borderPainted);
@@ -494,6 +496,7 @@ public class RouteMap extends JComponent implements Constants {
 	 * @param gridSize the grid size in meters
 	 */
 	public RouteMap setGridSize(final double gridSize) {
+		logger.debug("setGridSize {}", gridSize);
 		this.gridSize = gridSize;
 		return this;
 	}

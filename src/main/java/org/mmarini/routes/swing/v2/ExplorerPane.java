@@ -238,27 +238,21 @@ public class ExplorerPane extends JTabbedPane {
 	 * @param node the selected node
 	 */
 	public ExplorerPane setSelectedNode(final MapNode node) {
-		if (!node.equals(nodeJList.getSelectedValue())) {
-			clearSelection();
-			logger.debug("setSelectedNode {}", node);
-			nodeJList.setSelectedValue(node, true);
+		if (node instanceof SiteNode) {
+			if (!node.equals(siteJList.getSelectedValue())) {
+				clearSelection();
+				logger.debug("setSelectedSite {}", node);
+				siteJList.setSelectedValue(node, true);
+			}
+			setSelectedIndex(SITE_TAB);
+		} else {
+			if (!node.equals(nodeJList.getSelectedValue())) {
+				clearSelection();
+				logger.debug("setSelectedNode {}", node);
+				nodeJList.setSelectedValue(node, true);
+			}
+			setSelectedIndex(NODE_TAB);
 		}
-		setSelectedIndex(NODE_TAB);
-		return this;
-	}
-
-	/**
-	 * Returns the explorer panel with selected site
-	 *
-	 * @param site the selected site
-	 */
-	public ExplorerPane setSelectedSite(final SiteNode site) {
-		if (!site.equals(siteJList.getSelectedValue())) {
-			clearSelection();
-			logger.debug("setSelectedSite {}", site);
-			siteJList.setSelectedValue(site, true);
-		}
-		setSelectedIndex(SITE_TAB);
 		return this;
 	}
 }

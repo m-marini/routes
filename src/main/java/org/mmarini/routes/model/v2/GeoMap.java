@@ -27,11 +27,16 @@
 package org.mmarini.routes.model.v2;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.mmarini.routes.model.Constants;
 
@@ -50,8 +55,51 @@ public class GeoMap implements Constants {
 		return EMPTY;
 	}
 
+	/**
+	 *
+	 * @param profile
+	 * @param random
+	 * @return
+	 */
+	public static GeoMap random(final MapProfile profile, final Random random) {
+		final Set<Point2D> siteLocations = IntStream.range(0, profile.getSiteCount())
+				.mapToObj(i -> new Point2D.Double(random.nextDouble(), random.nextDouble()))
+				.collect(Collectors.toSet());
+
+		final Optional<Rectangle2D> seed = Optional.empty();
+		final BiFunction<Optional<Rectangle2D>, ? super Point2D, Optional<Rectangle2D>> reducer = (a, pt) -> {
+			final Optional<Rectangle2D> result = a.map(acc -> {
+				final Rectangle2D newAcc = (Rectangle2D) acc.clone();
+				newAcc.add(pt);
+				return newAcc;
+			}).or(() -> Optional.of(new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0)));
+			return result;
+		};
+		final BinaryOperator<Optional<Rectangle2D>> merger = (ao, bo) -> {
+			return ao.map(a -> {
+				return bo.map(b -> {
+					return a.createUnion(b);
+				}).orElse(a);
+			}).or(() -> bo);
+		};
+
+		final Rectangle2D bound = siteLocations.parallelStream().<Optional<Rectangle2D>>reduce(seed, reducer, merger)
+				.get();
+
+		// normalize
+		final double minX = bound.getMinX();
+		final double minY = bound.getMinY();
+		final double scaleX = profile.getWidth() / bound.getWidth();
+		final double scaleY = profile.getHeight() / bound.getHeight();
+		final Set<SiteNode> sites = siteLocations.parallelStream().map(pt -> {
+			return SiteNode.create((pt.getX() - minX) * scaleX, (pt.getY() - minY) * scaleY);
+		}).collect(Collectors.toSet());
+		return GeoMap.create().setSites(sites);
+	}
+
 	private final Set<SiteNode> sites;
 	private final Set<MapNode> nodes;
+
 	private final Set<MapEdge> edges;
 
 	/**
@@ -159,10 +207,28 @@ public class GeoMap implements Constants {
 
 	/**
 	 *
+	 * @param node
+	 * @return
+	 */
+	public Optional<MapNode> getNode(final MapNode node) {
+		return nodes.parallelStream().filter(n -> n.equals(node)).findAny();
+	}
+
+	/**
+	 *
 	 * @return
 	 */
 	public Set<MapNode> getNodes() {
 		return nodes;
+	}
+
+	/**
+	 *
+	 * @param node
+	 * @return
+	 */
+	public Optional<SiteNode> getSite(final MapNode node) {
+		return sites.parallelStream().filter(s -> s.equals(node)).findAny();
 	}
 
 	/**
