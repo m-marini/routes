@@ -8,7 +8,10 @@ import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.awt.geom.Point2D;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,32 +30,17 @@ public class MapNodeTest {
 	}
 
 	@Test
-	public void getName() {
-		final MapNode node = MapNode.create(0, 0);
-		final String result = node.getName();
-		assertNotNull(result);
-		assertThat(result, equalTo("4ae71336-e44b-39bf-b9d2-752e234818a5"));
-	}
-
-	@Test
-	public void getShortName() {
-		final MapNode node = MapNode.create(0, 0);
-		final String result = node.getShortName();
-		assertNotNull(result);
-		assertThat(result, equalTo("4ae713"));
-	}
-
-	@Test
-	public void test() {
+	public void create() {
 		final MapNode node = MapNode.create(0, 0);
 		assertThat(node, notNullValue());
 		assertThat(node.getX(), equalTo(0.0));
 		assertThat(node.getY(), equalTo(0.0));
 		assertThat(node.getId().toString(), equalTo("4ae71336-e44b-39bf-b9d2-752e234818a5"));
+		assertThat(node.getLocation(), equalTo(new Point2D.Double()));
 	}
 
 	@Test
-	public void testEquals() {
+	public void equals() {
 		final MapNode node1 = MapNode.create(0, 0);
 		final MapNode node11 = MapNode.create(0, 0);
 		final MapNode node2 = MapNode.create(0, 10);
@@ -76,6 +64,29 @@ public class MapNodeTest {
 
 		assertThat(node11.compareTo(node1), equalTo(0));
 		assertThat(node11.compareTo(node11), equalTo(0));
+	}
+
+	@Test
+	public void getName() {
+		final MapNode node = MapNode.create(0, 0);
+		final String result = node.getName();
+		assertNotNull(result);
+		assertThat(result, equalTo("4ae71336-e44b-39bf-b9d2-752e234818a5"));
+	}
+
+	@Test
+	public void getShortName() {
+		final MapNode node = MapNode.create(0, 0);
+		final String result = node.getShortName();
+		assertNotNull(result);
+		assertThat(result, equalTo("4ae713"));
+	}
+
+	@Test
+	public void newMapNode() {
+		assertThrows(AssertionError.class, () -> {
+			new MapNode(null);
+		});
 	}
 
 	@Test

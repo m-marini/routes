@@ -54,6 +54,7 @@ package org.mmarini.routes.model.v2;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -90,7 +91,7 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 	protected EdgeTraffic(final MapEdge edge, final List<Vehicle> vehicles, final double time,
 			final OptionalDouble lastTravelTime) {
 		super();
-		assert (edge != null);
+		assert edge != null;
 		this.edge = edge;
 		this.vehicles = vehicles;
 		this.time = time;
@@ -104,7 +105,7 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 	 * @param time    the instant of insertion
 	 */
 	public EdgeTraffic addVehicle(final Vehicle vehicle, final double time) {
-		assert (!isBusy());
+		assert !isBusy();
 		final OptionalDouble nextDistance = vehicles.isEmpty() ? OptionalDouble.empty()
 				: OptionalDouble.of(vehicles.get(0).getLocation());
 		final Vehicle v = vehicle.setLocation(0).move(edge, this.time - time, nextDistance).getElem1()
@@ -190,11 +191,7 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 			return false;
 		}
 		final EdgeTraffic other = (EdgeTraffic) obj;
-		if (edge == null) {
-			if (other.edge != null) {
-				return false;
-			}
-		} else if (!edge.equals(other.edge)) {
+		if (!edge.equals(other.edge)) {
 			return false;
 		}
 		return true;
@@ -211,17 +208,18 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 	 * Returns the expected time of exit of last vehicle in the edge
 	 */
 	public OptionalDouble getExitTime() {
-		final OptionalDouble result = vehicles.isEmpty() ? OptionalDouble.empty()
-				: OptionalDouble.of((edge.getLength() - getLast().getLocation()) / edge.getSpeedLimit() + time);
+		final Optional<Double> result1 = getLast().map(last -> {
+			return (edge.getLength() - last.getLocation()) / edge.getSpeedLimit() + time;
+		});
+		final OptionalDouble result = vehicles.isEmpty() ? OptionalDouble.empty() : OptionalDouble.of(result1.get());
 		return result;
 	}
 
 	/**
 	 * Returns the last vehicle in the edge
 	 */
-	public Vehicle getLast() {
-		assert (!vehicles.isEmpty());
-		return vehicles.get(vehicles.size() - 1);
+	public Optional<Vehicle> getLast() {
+		return vehicles.isEmpty() ? Optional.empty() : Optional.of(vehicles.get(vehicles.size() - 1));
 	}
 
 	/**
@@ -260,7 +258,7 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((edge == null) ? 0 : edge.hashCode());
+		result = prime * result + edge.hashCode();
 		return result;
 	}
 
@@ -269,10 +267,11 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 	 *
 	 * @param traffics traffics
 	 */
-	public boolean isAllfromLeft(final Set<EdgeTraffic> traffics) {
-		final boolean allFromLeft = traffics.parallelStream()
-				.allMatch(traffic -> this.equals(traffic) || this.compareDirection(traffic) > 0);
-		return allFromLeft;
+	public boolean isAllFromLeft(final Set<EdgeTraffic> traffics) {
+		final boolean result = traffics.parallelStream().allMatch(traffic -> {
+			return this.equals(traffic) || this.compareDirection(traffic) > 0;
+		});
+		return result;
 	}
 
 	/**
@@ -366,13 +365,16 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 	 * Returns the edge traffic with last vehicle moved and the last travel time set
 	 */
 	public EdgeTraffic removeLast() {
-		final Vehicle vehicle = getLast();
-		assert (vehicle.getLocation() == edge.getLength());
-		final List<Vehicle> newFromVehicle = vehicles.stream().takeWhile(v -> !vehicle.equals(v))
-				.collect(Collectors.toList());
-		final EdgeTraffic result1 = newFromVehicle.isEmpty() ? this
-				: setLastTravelTime(OptionalDouble.of(time - vehicle.getEdgeEntryTime()));
-		final EdgeTraffic result = result1.setVehicles(newFromVehicle);
+		final EdgeTraffic result = getLast().filter(vehicle -> {
+			return vehicle.getLocation() == edge.getLength();
+		}).map(vehicle -> {
+			final List<Vehicle> newFromVehicle = vehicles.stream().takeWhile(v -> !vehicle.equals(v))
+					.collect(Collectors.toList());
+			final EdgeTraffic result1 = newFromVehicle.isEmpty() ? this
+					: setLastTravelTime(OptionalDouble.of(time - vehicle.getEdgeEntryTime()));
+			final EdgeTraffic result2 = result1.setVehicles(newFromVehicle);
+			return result2;
+		}).orElse(this);
 		return result;
 	}
 
@@ -382,7 +384,35 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 	 * @param edge the edge
 	 */
 	public EdgeTraffic setEdge(final MapEdge edge) {
-		return new EdgeTraffic(edge, vehicles, time, lastTravelTime);
+		final EdgeTraffic result = getLast().map(last -> {
+			if (last.getLocation() <= edge.getLength()) {
+				// no shrink
+				return new EdgeTraffic(edge, vehicles, time, lastTravelTime);
+			} else {
+				// Shrink and cut
+				final List<Vehicle> reverse = new ArrayList<>(vehicles);
+				Collections.reverse(reverse);
+
+				final List<Vehicle> newVehicles = new ArrayList<>();
+				double maxLocation = edge.getLength();
+				for (final Vehicle v : reverse) {
+					if (maxLocation >= 0) {
+						if (v.getLocation() < maxLocation) {
+							newVehicles.add(v);
+							maxLocation = v.getLocation() - VEHICLE_LENGTH;
+						} else {
+							newVehicles.add(v.setLocation(maxLocation));
+							maxLocation -= VEHICLE_LENGTH;
+						}
+					}
+				}
+				Collections.reverse(newVehicles);
+				return new EdgeTraffic(edge, newVehicles, time, lastTravelTime);
+			}
+		}).orElseGet(() -> {
+			return new EdgeTraffic(edge, vehicles, time, lastTravelTime);
+		});
+		return result;
 	}
 
 	/**

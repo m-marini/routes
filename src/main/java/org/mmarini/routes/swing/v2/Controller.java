@@ -53,16 +53,14 @@ import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.mmarini.routes.model.Constants;
-import org.mmarini.routes.model.v2.EdgeTraffic;
 import org.mmarini.routes.model.v2.GeoMap;
+import org.mmarini.routes.model.v2.GeoMapDeserializer;
+import org.mmarini.routes.model.v2.GeoMapSerializer;
 import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;
 import org.mmarini.routes.model.v2.MapProfile;
-import org.mmarini.routes.model.v2.SimulationStatus;
-import org.mmarini.routes.model.v2.SimulationStatusDeserializer;
-import org.mmarini.routes.model.v2.SimulationStatusSerializer;
 import org.mmarini.routes.model.v2.Simulator;
-import org.mmarini.routes.model.v2.SiteNode;
+import org.mmarini.routes.model.v2.Traffic;
 import org.mmarini.routes.model.v2.Tuple2;
 import org.mmarini.routes.swing.v2.UIStatus.MapMode;
 import org.slf4j.Logger;
@@ -87,16 +85,17 @@ public class Controller implements Constants {
 	/**
 	 * Returns the default status
 	 */
-	private static SimulationStatus loadDefault() {
+	private static Traffic loadDefault() {
 		final URL url = Controller.class.getResource(INITIAL_MAP);
 		if (url != null) {
 			try {
-				return SimulationStatusDeserializer.create().parse(url);
+				final GeoMap map = GeoMapDeserializer.create().parse(url);
+				return Traffic.create(map);
 			} catch (final Exception e) {
 				logger.error(e.getMessage(), e);
 			}
 		}
-		return SimulationStatus.create();
+		return Traffic.create();
 	}
 
 	private static Point toPoint(final Point2D point) {
@@ -138,7 +137,7 @@ public class Controller implements Constants {
 //		this.gridLegendPattern = SwingUtils.loadPatterns("ScrollMap.gridLegendPattern");
 		this.pointLegendPattern = SwingUtils.loadPatterns("ScrollMap.pointLegendPattern");
 		this.edgeLegendPattern = SwingUtils.loadPatterns("ScrollMap.edgeLegendPattern");
-		final SimulationStatus status1 = loadDefault();
+		final Traffic status1 = loadDefault();
 		final UIStatus initStatus = UIStatus.create().setStatus(status1);
 		this.uiStatusSubj = BehaviorSubject.createDefault(initStatus);
 		this.uiStatusObs = uiStatusSubj;
@@ -298,7 +297,7 @@ public class Controller implements Constants {
 			return new Tuple2<>(st, site);
 		}).subscribe(t -> {
 			final UIStatus st = t.getElem1();
-			final SiteNode site = t.getElem2();
+			final MapNode site = t.getElem2();
 			final UIStatus newStatus = st.setSelectedElement(MapElement.create(site));
 			mapElementPane.setNode(site);
 			routeMap.setSelectedSite(Optional.of(site));
@@ -347,7 +346,7 @@ public class Controller implements Constants {
 				.withLatestFrom(uiStatusObs, (ev, st) -> st)
 				// Flat map with delete process
 				.flatMap(st -> {
-					final Optional<MapNode> mapNode = routeMap.getSelectedSite().map(site -> (MapNode) site)
+					final Optional<MapNode> mapNode = routeMap.getSelectedSite().map(site -> site)
 							.or(() -> routeMap.getSelectedNode());
 					final Optional<Observable<UIStatus>> deleteNodeProcess = mapNode
 							.map(node -> deleteNode(st, node).toObservable());
@@ -420,7 +419,7 @@ public class Controller implements Constants {
 				if (opt == JOptionPane.OK_OPTION) {
 					final MapProfile profile = mapProfilePane.getProfile();
 					logger.info("Selected {}", profile);
-					final SimulationStatus status = SimulationStatus.random(profile, new Random());
+					final Traffic status = Traffic.random(profile, new Random());
 					final UIStatus uiStatus = UIStatus.create().setStatus(status);
 					simulator.setSimulationStatus(status);
 					mapChanged(uiStatus);
@@ -528,7 +527,6 @@ public class Controller implements Constants {
 			final UIStatus st = t.getElem1();
 			final Point2D point = t.getElem2().getElem1();
 			final MapElement elem = st.findElementAt(point);
-			elem.getSite().ifPresent(explorerPane::setSelectedNode);
 			elem.getNode().ifPresent(explorerPane::setSelectedNode);
 			elem.getEdge().ifPresent(explorerPane::setSelectedEdge);
 			if (elem.isEmpty()) {
@@ -665,7 +663,7 @@ public class Controller implements Constants {
 		final MapNode node = tuple.getElem2();
 		return simulator.stop().map(status -> {
 			logger.debug("changeNode {} ", node);
-			final SimulationStatus nextSt = uiStatus.getStatus().changeNode(node);
+			final Traffic nextSt = uiStatus.getStatus().changeNode(node, (a, b) -> 1);
 			final UIStatus nextUiStatus = uiStatus.setStatus(nextSt).setSelectedElement(MapElement.empty());
 			return new Tuple2<>(nextUiStatus, node);
 		});
@@ -683,7 +681,7 @@ public class Controller implements Constants {
 		return simulator.stop().map(s -> {
 			logger.debug("changePriority {} {}", edge.getShortName(), priority);
 			final MapEdge newEdge = edge.setPriority(priority);
-			final UIStatus newStatus = uiStatus.setStatus(uiStatus.getStatus().changeEdge(newEdge));
+			final UIStatus newStatus = uiStatus.setStatus(uiStatus.getStatus().change(newEdge));
 			return new Tuple2<>(newStatus, newEdge);
 		});
 	}
@@ -700,7 +698,7 @@ public class Controller implements Constants {
 		return simulator.stop().map(s -> {
 			logger.debug("changeSpeedLimit {} {}", edge.getShortName(), speed);
 			final MapEdge newEdge = edge.setSpeedLimit(speed);
-			final UIStatus newStatus = uiStatus.setStatus(uiStatus.getStatus().changeEdge(newEdge));
+			final UIStatus newStatus = uiStatus.setStatus(uiStatus.getStatus().change(newEdge));
 			return new Tuple2<>(newStatus, newEdge);
 		});
 	}
@@ -761,7 +759,7 @@ public class Controller implements Constants {
 	private Single<UIStatus> deleteEdge(final UIStatus uiStatus, final MapEdge edge) {
 		return simulator.stop().map(status -> {
 			logger.debug("deleteEdge {} ", edge);
-			final SimulationStatus nextSt = uiStatus.getStatus().removeEdge(edge);
+			final Traffic nextSt = uiStatus.getStatus().removeEdge(edge);
 			return uiStatus.setStatus(nextSt).setSelectedElement(MapElement.empty());
 		});
 	}
@@ -774,7 +772,7 @@ public class Controller implements Constants {
 	private Single<UIStatus> deleteNode(final UIStatus uiStatus, final MapNode node) {
 		return simulator.stop().map(status -> {
 			logger.debug("deleteNode {} ", node);
-			final SimulationStatus nextSt = uiStatus.getStatus().removeNode(node);
+			final Traffic nextSt = uiStatus.getStatus().removeNode(node);
 			return uiStatus.setStatus(nextSt).setSelectedElement(MapElement.empty());
 		});
 	}
@@ -812,7 +810,7 @@ public class Controller implements Constants {
 		} else {
 			try {
 				logger.info("Saving {} ...", file);
-				new SimulationStatusSerializer(status.getStatus()).writeFile(file);
+				new GeoMapSerializer(status.getStatus().getMap()).writeFile(file);
 				mainFrame.setSaveActionEnabled(true);
 				mainFrame.setTitle(file.getPath());
 			} catch (final Throwable e) {
@@ -839,7 +837,8 @@ public class Controller implements Constants {
 				} else {
 					try {
 						logger.debug("loadProcess {}", file);
-						final SimulationStatus newStatus = SimulationStatusDeserializer.create().parse(file);
+						final GeoMap map = GeoMapDeserializer.create().parse(file);
+						final Traffic newStatus = Traffic.create(map);
 						return Optional.of(new Tuple2<>(status.setStatus(newStatus), file));
 					} catch (final Throwable ex) {
 						showError(ex);
@@ -911,17 +910,14 @@ public class Controller implements Constants {
 	/**
 	 * @return
 	 */
-	SimulationStatus testMap() {
-		final SiteNode s0 = SiteNode.create(15, 15);
-		final SiteNode s1 = SiteNode.create(1000, 1000);
-		final Set<SiteNode> sites = Set.of(s0, s1);
+	Traffic testMap() {
+		final MapNode s0 = MapNode.create(15, 15);
+		final MapNode s1 = MapNode.create(1000, 1000);
+		final Set<MapNode> sites = Set.of(s0, s1);
 		final Set<MapEdge> edges = Set.of(MapEdge.create(s0, s1), MapEdge.create(s1, s0));
-		final GeoMap map = GeoMap.create().setSites(sites).setEdges(edges);
-		final Set<EdgeTraffic> traffics = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
-		final Map<Tuple2<SiteNode, SiteNode>, Double> weights = Map.of(new Tuple2<>(s0, s1), Double.valueOf(1),
-				new Tuple2<>(s1, s0), Double.valueOf(1));
-		final SimulationStatus status = SimulationStatus.create().setGeoMap(map).setTraffics(traffics)
-				.setWeights(weights);
+		final Map<Tuple2<MapNode, MapNode>, Double> weights = GeoMap.buildWeights(sites, (a, b) -> 1);
+		final GeoMap map = GeoMap.create(edges, weights);
+		final Traffic status = Traffic.create(map);
 		return status;
 	}
 

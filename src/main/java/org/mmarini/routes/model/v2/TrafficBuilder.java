@@ -45,14 +45,14 @@ import org.mmarini.routes.model.Constants;
  * simulation process for a given time interval
  * </p>
  */
-public class StatusBuilder implements Constants {
+public class TrafficBuilder implements Constants {
 
 	/**
 	 *
 	 * @return
 	 */
-	public static StatusBuilder create() {
-		return new StatusBuilder(SimulationStatus.create(), Collections.emptySet(), 0);
+	public static TrafficBuilder create() {
+		return new TrafficBuilder(Traffic.create(), Collections.emptySet(), 0);
 	}
 
 	/**
@@ -61,8 +61,8 @@ public class StatusBuilder implements Constants {
 	 * @param status the status
 	 * @param time   the instant
 	 */
-	public static StatusBuilder create(final SimulationStatus status, final double time) {
-		return new StatusBuilder(status, status.getTraffics(), time);
+	public static TrafficBuilder create(final Traffic status, final double time) {
+		return new TrafficBuilder(status, status.getTraffics(), time);
 	}
 
 	/**
@@ -70,9 +70,8 @@ public class StatusBuilder implements Constants {
 	 * @param builder
 	 * @return
 	 */
-	static StatusBuilder simulationProcess(final StatusBuilder builder) {
-		// TODO Auto-generated method stub
-		StatusBuilder st = builder;
+	static TrafficBuilder simulationProcess(final TrafficBuilder builder) {
+		TrafficBuilder st = builder;
 		for (;;) {
 			// Move all vehicles in the edges
 			st = st.moveVehiclesInAllEdges();
@@ -86,7 +85,7 @@ public class StatusBuilder implements Constants {
 
 			// Filter the priority and the next free to move vehicles
 			st.getTrafficStats();
-			final StatusBuilder st1 = st;
+			final TrafficBuilder st1 = st;
 			final Set<EdgeTraffic> toMove = earliests.parallelStream()
 					.filter(ed -> st1.getNextTraffic(ed).map(next -> !next.isBusy() && st1.isPrior(ed)).orElse(true))
 					.collect(Collectors.toSet());
@@ -109,7 +108,7 @@ public class StatusBuilder implements Constants {
 
 	private final Set<EdgeTraffic> traffics;
 	private final double time;
-	private final SimulationStatus initialStatus;
+	private final Traffic initialStatus;
 	private TrafficStats trafficStats;
 
 	/**
@@ -117,7 +116,7 @@ public class StatusBuilder implements Constants {
 	 * @param initialStatus
 	 * @param time
 	 */
-	protected StatusBuilder(final SimulationStatus status, final Set<EdgeTraffic> traffics, final double time) {
+	protected TrafficBuilder(final Traffic status, final Set<EdgeTraffic> traffics, final double time) {
 		super();
 		this.initialStatus = status;
 		this.traffics = traffics;
@@ -130,7 +129,7 @@ public class StatusBuilder implements Constants {
 	 * @param traffics the added traffics
 	 * @return the status builder with new traffics added
 	 */
-	private StatusBuilder addTraffics(final Collection<EdgeTraffic> traffics) {
+	private TrafficBuilder addTraffics(final Collection<EdgeTraffic> traffics) {
 		if (traffics.isEmpty()) {
 			return this;
 		} else {
@@ -147,7 +146,7 @@ public class StatusBuilder implements Constants {
 	 *
 	 * @param egde
 	 */
-	private StatusBuilder addTraffics(final EdgeTraffic egde) {
+	private TrafficBuilder addTraffics(final EdgeTraffic egde) {
 		final Set<EdgeTraffic> newTraffics = new HashSet<>(this.traffics);
 		newTraffics.remove(egde);
 		newTraffics.add(egde);
@@ -157,8 +156,8 @@ public class StatusBuilder implements Constants {
 	/**
 	 * Returns the simulation status at the given instant
 	 */
-	public SimulationStatus build() {
-		final StatusBuilder finalStatus = simulationProcess(this).createVehicles();
+	public Traffic build() {
+		final TrafficBuilder finalStatus = simulationProcess(this).createVehicles();
 		return finalStatus.initialStatus.setTraffics(finalStatus.traffics);
 	}
 
@@ -166,23 +165,23 @@ public class StatusBuilder implements Constants {
 	 *
 	 * @return
 	 */
-	StatusBuilder createVehicles() {
-		final double frequence = initialStatus.getFrequence();
+	TrafficBuilder createVehicles() {
+		final double frequence = initialStatus.getMap().getFrequence();
 		final Optional<Double> t0o = initialStatus.getTraffics().parallelStream().findAny().map(EdgeTraffic::getTime);
-		final StatusBuilder result1 = t0o.map(t0 -> {
+		final TrafficBuilder result1 = t0o.map(t0 -> {
 			final double dt = time - t0;
 			final int noSites = initialStatus.getMap().getSites().size();
 			final double lambda0 = frequence * dt / (noSites - 1) / 2;
 			final TrafficStats ts = getTrafficStats();
-			StatusBuilder result = this;
-			for (final Entry<Tuple2<SiteNode, SiteNode>, Double> entry : initialStatus.getWeights().entrySet()) {
-				final SiteNode from = entry.getKey().getElem1();
-				final SiteNode to = entry.getKey().getElem2();
+			TrafficBuilder result = this;
+			for (final Entry<Tuple2<MapNode, MapNode>, Double> entry : initialStatus.getMap().getWeights().entrySet()) {
+				final MapNode from = entry.getKey().getElem1();
+				final MapNode to = entry.getKey().getElem2();
 				if (!from.equals(to)) {
 					final Optional<EdgeTraffic> edge = ts.nextEdge(from, to);
 					final double weight = entry.getValue();
 					final int n = initialStatus.nextPoison(lambda0 * weight);
-					final StatusBuilder builder = result;
+					final TrafficBuilder builder = result;
 					result = edge.map(ed -> builder.createVehicles(n, from, to, ed, t0)).orElseGet(() -> this);
 				}
 			}
@@ -200,7 +199,7 @@ public class StatusBuilder implements Constants {
 	 * @param ed   the edge
 	 * @param t0   the insertion time
 	 */
-	StatusBuilder createVehicles(final int n, final SiteNode from, final SiteNode to, final EdgeTraffic ed,
+	TrafficBuilder createVehicles(final int n, final MapNode from, final MapNode to, final EdgeTraffic ed,
 			final double t0) {
 		if (n <= 0) {
 			return this;
@@ -230,7 +229,7 @@ public class StatusBuilder implements Constants {
 	/**
 	 * Returns the initial status
 	 */
-	SimulationStatus getInitialStatus() {
+	Traffic getInitialStatus() {
 		return initialStatus;
 	}
 
@@ -258,14 +257,13 @@ public class StatusBuilder implements Constants {
 	 * @param edge edge
 	 */
 	Optional<EdgeTraffic> getNextTraffic(final EdgeTraffic edge) {
-		final TrafficStats stats = getTrafficStats();
-		if (edge.getVehicles().isEmpty()) {
-			return Optional.empty();
-		} else {
-			final SiteNode to = edge.getLast().getTarget();
+		final Optional<EdgeTraffic> result1 = edge.getLast().flatMap(vehicle -> {
+			final TrafficStats stats = getTrafficStats();
+			final MapNode to = vehicle.getTarget();
 			final Optional<EdgeTraffic> result = stats.nextEdge(edge.getEdge().getEnd(), to);
 			return result;
-		}
+		});
+		return result1;
 	}
 
 	/**
@@ -327,14 +325,14 @@ public class StatusBuilder implements Constants {
 				return true;
 			}
 			// Check for traffics coming from right priority
-			if (trafficEdge.isAllfromLeft(isoPriorities)) {
+			if (trafficEdge.isAllFromLeft(isoPriorities)) {
 				// All traffics are coming from left
 				return true;
 			}
 			// Check for stale
 			// Look for traffics from right with absolute priority
 			final boolean stale = !isoPriorities.parallelStream()
-					.anyMatch(traffic -> traffic.isAllfromLeft(isoPriorities));
+					.anyMatch(traffic -> traffic.isAllFromLeft(isoPriorities));
 			if (!stale) {
 				// there is at least an edge with traffic with absolute priority
 				return false;
@@ -359,40 +357,42 @@ public class StatusBuilder implements Constants {
 	 *
 	 * @param traffic the edge
 	 */
-	StatusBuilder moveLastVehicleAt(final EdgeTraffic traffic) {
-
-		final Vehicle vehicle = traffic.getLast();
-		final EdgeTraffic newTraffic = traffic.removeLast();
-		if (!vehicle.getTarget().equals(traffic.getEdge().getEnd())) {
-			// Vehicle not at target
-			return getNextTraffic(traffic).map(
+	TrafficBuilder moveLastVehicleAt(final EdgeTraffic traffic) {
+		final TrafficBuilder result = traffic.getLast().map(vehicle -> {
+			final EdgeTraffic newTraffic = traffic.removeLast();
+			if (!vehicle.getTarget().equals(traffic.getEdge().getEnd())) {
+				// Vehicle not at target
+				return getNextTraffic(traffic).map(nextTraffic -> {
 					// Move vehicle
-					nextTraffic -> addTraffics(List.of(newTraffic, nextTraffic.addVehicle(vehicle, traffic.getTime()))))
-					.orElseGet(
-							// No way => remove vehicle
-							() -> addTraffics(newTraffic));
-		} else if (vehicle.isReturning()) {
-			// Vehicle arrived at departure => remove vehicle
-			return addTraffics(newTraffic);
-		} else {
-			// Vehicle arrived at destination => returning
-			final Optional<EdgeTraffic> nextTraffic = getTrafficStats().nextEdge(vehicle.getDestination(),
-					vehicle.getDeparture());
-			return nextTraffic.map(
+					return addTraffics(List.of(newTraffic, nextTraffic.addVehicle(vehicle, traffic.getTime())));
+				}).orElseGet(() -> {
+					// No way => remove vehicle
+					return addTraffics(newTraffic);
+				});
+			} else if (vehicle.isReturning()) {
+				// Vehicle arrived at departure => remove vehicle
+				return addTraffics(newTraffic);
+			} else {
+				// Vehicle arrived at destination => returning
+				final Optional<EdgeTraffic> nextTraffic = getTrafficStats().nextEdge(vehicle.getDestination(),
+						vehicle.getDeparture());
+				return nextTraffic.map(traffic1 -> {
 					// Move vehicle
-					traffic1 -> {
-						final EdgeTraffic newNext = traffic1.addVehicle(vehicle.setReturning(true), traffic.getTime());
-						return addTraffics(List.of(newTraffic, newNext));
-					}).orElseGet(
-							// No way => remove vehicle
-							() -> addTraffics(newTraffic));
-		}
+					final EdgeTraffic newNext = traffic1.addVehicle(vehicle.setReturning(true), traffic.getTime());
+					return addTraffics(List.of(newTraffic, newNext));
+				}).orElseGet(() -> {
+					// No way => remove vehicle
+					return addTraffics(newTraffic);
+				});
+			}
+		}).orElse(this);
+		return result;
 	}
 
 	/**
 	 * Returns the status builder with all vehicles moved in the edges
 	 */
-	StatusBuilder moveVehiclesInAllEdges() {
+	TrafficBuilder moveVehiclesInAllEdges() {
 		final Set<EdgeTraffic> newTraffics = traffics.parallelStream().map(et -> et.moveVehicles(time))
 				.collect(Collectors.toSet());
 		return setTraffics(newTraffics);
@@ -403,8 +403,8 @@ public class StatusBuilder implements Constants {
 	 *
 	 * @param initialStatus the initial status
 	 */
-	public StatusBuilder setInitialStatus(final SimulationStatus initialStatus) {
-		return new StatusBuilder(initialStatus, traffics, time);
+	public TrafficBuilder setInitialStatus(final Traffic initialStatus) {
+		return new TrafficBuilder(initialStatus, traffics, time);
 	}
 
 	/**
@@ -412,7 +412,7 @@ public class StatusBuilder implements Constants {
 	 * @param traffics
 	 * @return
 	 */
-	public StatusBuilder setTraffics(final Set<EdgeTraffic> traffics) {
-		return new StatusBuilder(initialStatus, traffics, time);
+	public TrafficBuilder setTraffics(final Set<EdgeTraffic> traffics) {
+		return new TrafficBuilder(initialStatus, traffics, time);
 	}
 }

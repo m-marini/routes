@@ -77,27 +77,15 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	protected MapEdge(final UUID id, final MapNode begin, final MapNode end, final double speedLimit,
 			final int priority) {
 		super();
+		assert id != null;
+		assert begin != null;
+		assert end != null;
+		assert !begin.equals(end);
 		this.id = id;
 		this.begin = begin;
 		this.end = end;
 		this.speedLimit = speedLimit;
 		this.priority = priority;
-	}
-
-	/**
-	 * Returns the map edge with a changed node
-	 *
-	 * @param node    orignal node
-	 * @param newNode new node
-	 */
-	public MapEdge changeNode(final MapNode node, final MapNode newNode) {
-		if (node.equals(begin)) {
-			return create(newNode, end).setSpeedLimit(speedLimit).setPriority(priority);
-		} else if (node.equals(end)) {
-			return create(begin, newNode).setSpeedLimit(speedLimit).setPriority(priority);
-		} else {
-			return this;
-		}
 	}
 
 	@Override
@@ -167,11 +155,7 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 			return false;
 		}
 		final MapEdge other = (MapEdge) obj;
-		if (id == null) {
-			if (other.id != null) {
-				return false;
-			}
-		} else if (!id.equals(other.id)) {
+		if (!id.equals(other.id)) {
 			return false;
 		}
 		return true;
@@ -314,7 +298,7 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + id.hashCode();
 		return result;
 	}
 

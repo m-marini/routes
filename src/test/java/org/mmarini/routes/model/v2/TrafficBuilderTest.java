@@ -15,11 +15,11 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class StatusBuilderTest {
+public class TrafficBuilderTest {
 
-	private SiteNode n1;
-	private SiteNode n2;
-	private SiteNode n3;
+	private MapNode n1;
+	private MapNode n2;
+	private MapNode n3;
 	private MapNode n4;
 	private MapEdge e14;
 	private MapEdge e34;
@@ -30,11 +30,11 @@ public class StatusBuilderTest {
 	private EdgeTraffic t34;
 	private EdgeTraffic t42;
 	private Set<EdgeTraffic> traffics;
-	private StatusBuilder builder;
+	private TrafficBuilder builder;
 
 	@Test
 	public void create() {
-		final StatusBuilder result = StatusBuilder.create();
+		final TrafficBuilder result = TrafficBuilder.create();
 		assertThat(result, notNullValue());
 		assertThat(result.getTraffics(), empty());
 	}
@@ -52,9 +52,9 @@ public class StatusBuilderTest {
 	 */
 	@BeforeEach
 	public void createCase() {
-		n1 = SiteNode.create(0, 0);
-		n2 = SiteNode.create(1000, 0);
-		n3 = SiteNode.create(500, 500);
+		n1 = MapNode.create(0, 0);
+		n2 = MapNode.create(1000, 0);
+		n3 = MapNode.create(500, 500);
 		n4 = MapNode.create(500, 0);
 		e14 = MapEdge.create(n1, n4).setSpeedLimit(10);
 		e34 = MapEdge.create(n3, n4).setSpeedLimit(10);
@@ -67,7 +67,7 @@ public class StatusBuilderTest {
 		t34 = EdgeTraffic.create(e34).setTime(50.0).setVehicles(v34);
 		t42 = EdgeTraffic.create(e42).setTime(55);
 		traffics = Set.of(t14, t34, t42);
-		builder = StatusBuilder.create().setTraffics(traffics);
+		builder = TrafficBuilder.create().setTraffics(traffics);
 	}
 
 	@Test
@@ -85,7 +85,7 @@ public class StatusBuilderTest {
 		final MapEdge edge = MapEdge.create(MapNode.create(0, 0), MapNode.create(10, 10));
 		final EdgeTraffic et = EdgeTraffic.create(edge);
 		final Set<EdgeTraffic> traffics = Set.of(et);
-		final StatusBuilder result = StatusBuilder.create().setTraffics(traffics);
+		final TrafficBuilder result = TrafficBuilder.create().setTraffics(traffics);
 		assertThat(result, notNullValue());
 		assertThat(result.getTraffics(), sameInstance(traffics));
 	}

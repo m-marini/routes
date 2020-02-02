@@ -45,14 +45,14 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 	 * @param destination the destination node site
 	 * @return
 	 */
-	public static Vehicle create(final SiteNode departure, final SiteNode destination) {
+	public static Vehicle create(final MapNode departure, final MapNode destination) {
 		final UUID id = UUID.randomUUID();
 		return new Vehicle(id, departure, destination, 0, 0, false);
 	}
 
 	private final UUID id;
-	private final SiteNode destination;
-	private final SiteNode departure;
+	private final MapNode destination;
+	private final MapNode departure;
 	private final double location;
 	private final double edgeEntryTime;
 	private final boolean returning;
@@ -67,9 +67,12 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 	 * @param edgeEntryTime the edge entry time
 	 * @param returning     true if vehicle is returning to the departure
 	 */
-	protected Vehicle(final UUID id, final SiteNode departure, final SiteNode destination, final double location,
+	protected Vehicle(final UUID id, final MapNode departure, final MapNode destination, final double location,
 			final double edgeEntryTime, final boolean returning) {
 		super();
+		assert id != null;
+		assert departure != null;
+		assert destination != null;
 		this.id = id;
 		this.destination = destination;
 		this.departure = departure;
@@ -95,11 +98,7 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 			return false;
 		}
 		final Vehicle other = (Vehicle) obj;
-		if (id == null) {
-			if (other.id != null) {
-				return false;
-			}
-		} else if (!id.equals(other.id)) {
+		if (!id.equals(other.id)) {
 			return false;
 		}
 		return true;
@@ -110,7 +109,7 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 	 *
 	 * @return the departure site node
 	 */
-	public SiteNode getDeparture() {
+	public MapNode getDeparture() {
 		return departure;
 	}
 
@@ -119,7 +118,7 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 	 *
 	 * @return the destination site node
 	 */
-	public SiteNode getDestination() {
+	public MapNode getDestination() {
 		return destination;
 	}
 
@@ -171,7 +170,7 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 	 *
 	 * @return the target site
 	 */
-	public SiteNode getTarget() {
+	public MapNode getTarget() {
 		return returning ? departure : destination;
 	}
 
@@ -179,7 +178,7 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + id.hashCode();
 		return result;
 	}
 

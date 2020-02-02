@@ -50,24 +50,24 @@ public class MapNode implements Comparable<MapNode> {
 	 * @return
 	 */
 	public static MapNode create(final Point2D location) {
-		final ByteBuffer name = ByteBuffer.allocate(Double.SIZE * 2 / 8).putDouble(location.getX())
-				.putDouble(location.getY());
-		final UUID id = UUID.nameUUIDFromBytes(name.array());
-		return new MapNode(id, location);
+		return new MapNode(location);
 	}
 
-	private final UUID id;
 	private final Point2D location;
+	private final UUID id;
 
 	/**
 	 *
 	 * @param id
 	 * @param location
 	 */
-	protected MapNode(final UUID id, final Point2D location) {
+	protected MapNode(final Point2D location) {
 		super();
-		this.id = id;
+		assert location != null;
 		this.location = location;
+		final ByteBuffer name = ByteBuffer.allocate(Double.SIZE * 2 / 8).putDouble(location.getX())
+				.putDouble(location.getY());
+		id = UUID.nameUUIDFromBytes(name.array());
 	}
 
 	@Override
@@ -87,11 +87,7 @@ public class MapNode implements Comparable<MapNode> {
 			return false;
 		}
 		final MapNode other = (MapNode) obj;
-		if (id == null) {
-			if (other.id != null) {
-				return false;
-			}
-		} else if (!id.equals(other.id)) {
+		if (!location.equals(other.location)) {
 			return false;
 		}
 		return true;
@@ -146,7 +142,7 @@ public class MapNode implements Comparable<MapNode> {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + (location.hashCode());
 		return result;
 	}
 

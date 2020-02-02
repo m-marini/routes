@@ -45,12 +45,12 @@ public class Simulator {
 	private static final long DEFAULT_MIN_TIME_NS = 100000000L;
 	private static final Logger logger = LoggerFactory.getLogger(Simulator.class);
 
-	private final BehaviorSubject<SimulationStatus> output;
+	private final BehaviorSubject<Traffic> output;
 	private final long minTimeNs = DEFAULT_MIN_TIME_NS;
-	private Optional<Subject<SimulationStatus>> stoppedSubj;
+	private Optional<Subject<Traffic>> stoppedSubj;
 	private boolean running;
 	private double speed;
-	private SimulationStatus simulationStatus;
+	private Traffic simulationStatus;
 	private long prevTime;
 
 	/**
@@ -67,7 +67,7 @@ public class Simulator {
 	/**
 	 * Returns the output
 	 */
-	public Subject<SimulationStatus> getOutput() {
+	public Subject<Traffic> getOutput() {
 		return output;
 	}
 
@@ -75,7 +75,7 @@ public class Simulator {
 	 *
 	 * @param next
 	 */
-	private Simulator handleNextReady(final SimulationStatus next) {
+	private Simulator handleNextReady(final Traffic next) {
 		final long time = System.nanoTime();
 		// Compute interval
 		final long dt = time - prevTime;
@@ -109,9 +109,9 @@ public class Simulator {
 	 * @param status initial status
 	 * @param dt     the real interval time
 	 */
-	private SimulationStatus next(final SimulationStatus status, final double dt) {
+	private Traffic next(final Traffic status, final double dt) {
 		final double time = status.getTime() + dt * speed;
-		return StatusBuilder.create(status, time).build();
+		return TrafficBuilder.create(status, time).build();
 	}
 
 	/**
@@ -129,7 +129,7 @@ public class Simulator {
 	 * @param status
 	 * @return
 	 */
-	public Simulator setSimulationStatus(final SimulationStatus status) {
+	public Simulator setSimulationStatus(final Traffic status) {
 		logger.debug("setSimulationStatus {}", status);
 		simulationStatus = status;
 		return this;
@@ -153,11 +153,11 @@ public class Simulator {
 	 *
 	 * @return
 	 */
-	public Single<SimulationStatus> stop() {
+	public Single<Traffic> stop() {
 		if (running) {
 			running = false;
 			logger.debug("Stopping simulator ...");
-			final Subject<SimulationStatus> subj = PublishSubject.create();
+			final Subject<Traffic> subj = PublishSubject.create();
 			stoppedSubj = Optional.of(subj);
 			return subj.singleOrError();
 		} else {
