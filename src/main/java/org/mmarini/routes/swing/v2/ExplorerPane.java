@@ -43,7 +43,6 @@ import javax.swing.ListSelectionModel;
 import org.mmarini.routes.model.v2.GeoMap;
 import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;
-import org.mmarini.routes.model.v2.SiteNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,15 +91,15 @@ public class ExplorerPane extends JTabbedPane {
 	private static final int NODE_TAB = 1;
 	private static final int EDGE_TAB = 2;
 
-	private final DefaultListModel<SiteNode> siteList;
+	private final DefaultListModel<MapNode> siteList;
 	private final DefaultListModel<MapNode> nodeList;
 	private final DefaultListModel<MapEdge> edgeList;
-	private final JList<SiteNode> siteJList;
+	private final JList<MapNode> siteJList;
 	private final JList<MapNode> nodeJList;
 	private final JList<MapEdge> edgeJList;
 	private final Observable<MapEdge> edgeObs;
 	private final Observable<MapNode> nodeObs;
-	private final Observable<SiteNode> siteObs;
+	private final Observable<MapNode> siteObs;
 	private GeoMap map;
 
 	/**
@@ -177,7 +176,7 @@ public class ExplorerPane extends JTabbedPane {
 	/**
 	 * @return the nodeSelectionObs
 	 */
-	public Observable<SiteNode> getSiteObs() {
+	public Observable<MapNode> getSiteObs() {
 		return siteObs;
 	}
 
@@ -204,8 +203,10 @@ public class ExplorerPane extends JTabbedPane {
 		if (!map.equals(this.map)) {
 			this.map = map;
 			logger.debug("setMap {}", map);
-			final List<SiteNode> sites = map.getSites().stream().sorted().collect(Collectors.toList());
-			final List<MapNode> nodes = map.getNodes().stream().sorted().collect(Collectors.toList());
+			final List<MapNode> sites = map.getSites().stream().sorted().collect(Collectors.toList());
+			final List<MapNode> nodes = map.getNodes().stream().filter(n -> {
+				return !sites.contains(n);
+			}).sorted().collect(Collectors.toList());
 			final List<MapEdge> edges = map.getEdges().stream().sorted().collect(Collectors.toList());
 			siteList.removeAllElements();
 			siteList.addAll(sites);
@@ -238,7 +239,7 @@ public class ExplorerPane extends JTabbedPane {
 	 * @param node the selected node
 	 */
 	public ExplorerPane setSelectedNode(final MapNode node) {
-		if (node instanceof SiteNode) {
+		if (siteList.contains(node)) {
 			if (!node.equals(siteJList.getSelectedValue())) {
 				clearSelection();
 				logger.debug("setSelectedSite {}", node);

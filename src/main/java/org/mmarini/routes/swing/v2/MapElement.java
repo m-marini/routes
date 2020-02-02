@@ -30,7 +30,6 @@ import java.util.Optional;
 
 import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;
-import org.mmarini.routes.model.v2.SiteNode;
 
 /**
  * Keeps the information about the selected element on map
@@ -111,11 +110,6 @@ public interface MapElement {
 		}
 
 		@Override
-		public Optional<SiteNode> getSite() {
-			return Optional.empty();
-		}
-
-		@Override
 		public boolean isEdge() {
 			return false;
 		}
@@ -127,11 +121,6 @@ public interface MapElement {
 
 		@Override
 		public boolean isNode() {
-			return false;
-		}
-
-		@Override
-		public boolean isSite() {
 			return false;
 		}
 	}
@@ -193,62 +182,6 @@ public interface MapElement {
 
 	}
 
-	public static class SiteElement extends Empty {
-		private final Optional<SiteNode> site;
-
-		/**
-		 * @param node
-		 */
-		public SiteElement(final SiteNode site) {
-			this.site = Optional.of(site);
-		}
-
-		@Override
-		public boolean equals(final Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			final SiteElement other = (SiteElement) obj;
-			if (site == null) {
-				if (other.site != null) {
-					return false;
-				}
-			} else if (!site.equals(other.site)) {
-				return false;
-			}
-			return true;
-		}
-
-		@Override
-		public Optional<SiteNode> getSite() {
-			return site;
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((site == null) ? 0 : site.hashCode());
-			return result;
-		}
-
-		@Override
-		public boolean isEmpty() {
-			return false;
-		}
-
-		@Override
-		public boolean isSite() {
-			return true;
-		}
-	}
-
 	/**
 	 * Returns the element selection for an edge
 	 *
@@ -268,15 +201,6 @@ public interface MapElement {
 	}
 
 	/**
-	 * Returns the element selection for a site
-	 *
-	 * @param site the site
-	 */
-	public static MapElement create(final SiteNode site) {
-		return new SiteElement(site);
-	}
-
-	/**
 	 * Returns the element selection for an edge
 	 *
 	 * @param edge the edge
@@ -293,11 +217,6 @@ public interface MapElement {
 	public Optional<MapNode> getNode();
 
 	/**
-	 * Returns the selected site
-	 */
-	public Optional<SiteNode> getSite();
-
-	/**
 	 * Returns true if the element is a edge
 	 */
 	public boolean isEdge();
@@ -311,9 +230,4 @@ public interface MapElement {
 	 * Returns true if the element is a node
 	 */
 	public boolean isNode();
-
-	/**
-	 * Returns true if the element is a site
-	 */
-	public boolean isSite();
 }

@@ -1,6 +1,6 @@
 ---
-default:
-  frequence: 1.3
+version: "1"
+frequence: 1.3
 sites:
   site1:
     x: 0.0
@@ -21,6 +21,6 @@ nodes:
     y: 50.0
 edges:
 - start: site2
-  end: site1
+  end: node1
   priority: 1
   speedLimit: 100.0

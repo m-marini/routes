@@ -41,8 +41,7 @@ import org.mmarini.routes.model.Constants;
 import org.mmarini.routes.model.v2.GeoMap;
 import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;
-import org.mmarini.routes.model.v2.SimulationStatus;
-import org.mmarini.routes.model.v2.SiteNode;
+import org.mmarini.routes.model.v2.Traffic;
 import org.mmarini.routes.model.v2.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,8 +66,7 @@ public class UIStatus implements Constants {
 	 * Returns default status
 	 */
 	public static UIStatus create() {
-		return new UIStatus(DEFAULT_SCALE, SimulationStatus.create(), MapMode.SELECTION, Optional.empty(),
-				MapElement.empty());
+		return new UIStatus(DEFAULT_SCALE, Traffic.create(), MapMode.SELECTION, Optional.empty(), MapElement.empty());
 	}
 
 	/**
@@ -83,30 +81,19 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns true if location is in range of node
-	 *
-	 * @param node  node
-	 * @param point location
-	 */
-	private static boolean isInRange(final MapNode node, final Point2D point) {
-		final double distance = node.getLocation().distance(point);
-		return distance <= RouteMap.NODE_SIZE / 2;
-	}
-
-	/**
 	 * Returns true if location is in range of site
 	 *
 	 * @param node  site
 	 * @param point point
 	 */
-	private static boolean isInRange(final SiteNode node, final Point2D point) {
+	private static boolean isInRange(final MapNode node, final Point2D point) {
 		final double distance = node.getLocation().distance(point);
 		return distance <= RouteMap.SITE_SIZE / 2;
 	}
 
 	/** The scale of route map (pixels/m) */
 	private final double scale;
-	private final SimulationStatus status;
+	private final Traffic status;
 	private final MapMode mode;
 	private final Optional<Tuple2<Point2D, Point2D>> dragEdge;
 	private final MapElement selectedElement;
@@ -120,7 +107,7 @@ public class UIStatus implements Constants {
 	 * @param dragEdge
 	 * @param selectedElement
 	 */
-	public UIStatus(final double scale, final SimulationStatus status, final MapMode mode,
+	public UIStatus(final double scale, final Traffic status, final MapMode mode,
 			final Optional<Tuple2<Point2D, Point2D>> dragEdge, final MapElement selectedElement) {
 		this.scale = scale;
 		this.status = status;
@@ -159,7 +146,7 @@ public class UIStatus implements Constants {
 		final MapNode startNode = findAnyNodeAt(startPoint).orElseGet(() -> MapNode.create(startPoint));
 		final MapNode endNode = findAnyNodeAt(endPoint).orElseGet(() -> MapNode.create(endPoint));
 		final MapEdge edge = MapEdge.create(startNode, endNode).setPriority(priority).setSpeedLimit(speedLimit);
-		final SimulationStatus newStatus = status.addEdge(edge);
+		final Traffic newStatus = status.addEdge(edge);
 		return setStatus(newStatus);
 	}
 
@@ -169,7 +156,7 @@ public class UIStatus implements Constants {
 	 * @return
 	 */
 	public Optional<MapNode> findAnyNodeAt(final Point2D pt) {
-		return findSiteAt(pt).map(site -> (MapNode) site).or(() -> findNodeAt(pt));
+		return findSiteAt(pt).map(site -> site).or(() -> findNodeAt(pt));
 	}
 
 	/**
@@ -209,8 +196,8 @@ public class UIStatus implements Constants {
 	 *
 	 * @param pt the location
 	 */
-	private Optional<SiteNode> findSiteAt(final Point2D pt) {
-		final Optional<SiteNode> result = status.getMap().getSites().stream().filter(s -> isInRange(s, pt)).findAny();
+	private Optional<MapNode> findSiteAt(final Point2D pt) {
+		final Optional<MapNode> result = status.getMap().getSites().stream().filter(s -> isInRange(s, pt)).findAny();
 		return result;
 	}
 
@@ -303,7 +290,7 @@ public class UIStatus implements Constants {
 	/**
 	 * @return the status
 	 */
-	public SimulationStatus getStatus() {
+	public Traffic getStatus() {
 		return status;
 	}
 
@@ -368,7 +355,7 @@ public class UIStatus implements Constants {
 	 *
 	 * @param status the status
 	 */
-	public UIStatus setStatus(final SimulationStatus status) {
+	public UIStatus setStatus(final Traffic status) {
 		return new UIStatus(scale, status, mode, dragEdge, selectedElement);
 	}
 

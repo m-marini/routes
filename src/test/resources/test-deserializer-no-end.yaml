@@ -1,7 +1,10 @@
 ---
-default:
-  frequence: 1.3
-sites:
+version: 1
+frequence: 1.3
+nodes:
+  "816a229d-3398-3ccf-adaa-e1b119fc369b":
+    x: 0.0
+    y: 50.0
   bdd6f09a-6468-3e63-ba85-40e2c6057a30:
     x: 0.0
     y: 100.0
@@ -15,10 +18,6 @@ paths:
 - departure: "4ae71336-e44b-39bf-b9d2-752e234818a5"
   destination: "bdd6f09a-6468-3e63-ba85-40e2c6057a30"
   weight: 0.8
-nodes:
-  "816a229d-3398-3ccf-adaa-e1b119fc369b":
-    x: 0.0
-    y: 50.0
 edges:
 - start: "4ae71336-e44b-39bf-b9d2-752e234818a5"
   end: "bdd6f09a-6468-3e63-ba85-40e2c6057a31"

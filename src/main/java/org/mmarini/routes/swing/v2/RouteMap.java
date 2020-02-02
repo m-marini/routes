@@ -54,8 +54,7 @@ import org.mmarini.routes.model.Constants;
 import org.mmarini.routes.model.v2.EdgeTraffic;
 import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;
-import org.mmarini.routes.model.v2.SimulationStatus;
-import org.mmarini.routes.model.v2.SiteNode;
+import org.mmarini.routes.model.v2.Traffic;
 import org.mmarini.routes.model.v2.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +68,7 @@ public class RouteMap extends JComponent implements Constants {
 
 	private class Painter {
 		private final Graphics2D graphics;
-		private final Map<SiteNode, Color> colorMap;
+		private final Map<MapNode, Color> colorMap;
 		private final Rectangle2D bound;
 		private final boolean borderPainted;
 
@@ -79,7 +78,7 @@ public class RouteMap extends JComponent implements Constants {
 		 * @param colorMap
 		 * @param borderPainted
 		 */
-		public Painter(final Graphics2D graphics, final Rectangle2D bound, final Map<SiteNode, Color> colorMap,
+		public Painter(final Graphics2D graphics, final Rectangle2D bound, final Map<MapNode, Color> colorMap,
 				final boolean borderPainted) {
 			super();
 			this.graphics = graphics;
@@ -92,20 +91,20 @@ public class RouteMap extends JComponent implements Constants {
 		 * Returns the painter with map of colors of sites
 		 */
 		private Painter computeSiteColorMap() {
-			final Map<SiteNode, Color> map = status.map(s -> {
-				final List<SiteNode> sites = s.getMap().getSites().stream().sorted().collect(Collectors.toList());
+			final Map<MapNode, Color> map = status.map(s -> {
+				final List<MapNode> sites = s.getMap().getSites().stream().sorted().collect(Collectors.toList());
 				final int n = sites.size();
 				if (n > 1) {
-					final Map<SiteNode, Color> map1 = IntStream.range(0, n).mapToObj(i -> {
+					final Map<MapNode, Color> map1 = IntStream.range(0, n).mapToObj(i -> {
 						final double value = (double) i / (n - 1);
 						final Color color = SwingUtils.computeColor(value, NODE_SATURATION);
-						return new Tuple2<SiteNode, Color>(sites.get(i), color);
+						return new Tuple2<MapNode, Color>(sites.get(i), color);
 					}).collect(Collectors.toMap(Tuple2::getElem1, Tuple2::getElem2));
 					return map1;
 				} else if (n == 1) {
 					return Map.of(sites.get(0), SwingUtils.computeColor(0, NODE_SATURATION));
 				} else {
-					return Map.<SiteNode, Color>of();
+					return Map.<MapNode, Color>of();
 				}
 			}).orElseGet(() -> Collections.emptyMap());
 			return new Painter(graphics, bound, map, borderPainted);
@@ -234,7 +233,7 @@ public class RouteMap extends JComponent implements Constants {
 		/**
 		 * @param site
 		 */
-		private Painter paintSite(final SiteNode site) {
+		private Painter paintSite(final MapNode site) {
 			final Color color = colorMap.getOrDefault(site, DEFAULT_SITE_COLOR);
 			graphics.setColor(color);
 			return paintSiteShape(site);
@@ -255,7 +254,7 @@ public class RouteMap extends JComponent implements Constants {
 		 *
 		 * @param node the node
 		 */
-		private Painter paintSiteShape(final SiteNode node) {
+		private Painter paintSiteShape(final MapNode node) {
 			final Ellipse2D shape = new Ellipse2D.Double(-SITE_SIZE * 0.5 + node.getX(), -SITE_SIZE * 0.5 + node.getY(),
 					SITE_SIZE, SITE_SIZE);
 			graphics.fill(shape);
@@ -363,12 +362,12 @@ public class RouteMap extends JComponent implements Constants {
 	private final Observable<MouseWheelEvent> mouseWheelObs;
 	private final Observable<KeyEvent> keyboardObs;
 	private boolean trafficView;
-	private Optional<SimulationStatus> status;
+	private Optional<Traffic> status;
 	private AffineTransform transform;
 	private double gridSize;
 	private Optional<MapNode> selectedNode;
 	private Optional<MapEdge> selectedEdge;
-	private Optional<SiteNode> selectedSite;
+	private Optional<MapNode> selectedSite;
 	private Optional<Tuple2<Point2D, Point2D>> dragEdge;
 
 	/**
@@ -441,7 +440,7 @@ public class RouteMap extends JComponent implements Constants {
 	/**
 	 * @return the selectedSite
 	 */
-	Optional<SiteNode> getSelectedSite() {
+	Optional<MapNode> getSelectedSite() {
 		return selectedSite;
 	}
 
@@ -528,7 +527,7 @@ public class RouteMap extends JComponent implements Constants {
 	 *
 	 * @param site the selected site
 	 */
-	public RouteMap setSelectedSite(final Optional<SiteNode> site) {
+	public RouteMap setSelectedSite(final Optional<MapNode> site) {
 		clearSelection();
 		this.selectedSite = site;
 		return this;
@@ -537,7 +536,7 @@ public class RouteMap extends JComponent implements Constants {
 	/**
 	 * @param status the status to set
 	 */
-	public RouteMap setStatus(final SimulationStatus status) {
+	public RouteMap setStatus(final Traffic status) {
 		this.status = Optional.ofNullable(status);
 		return this;
 	}

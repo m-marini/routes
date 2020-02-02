@@ -40,6 +40,8 @@ public class Tuple2<T1, T2> {
 	 */
 	public Tuple2(final T1 elem1, final T2 elem2) {
 		super();
+		assert elem1 != null;
+		assert elem2 != null;
 		this.elem1 = elem1;
 		this.elem2 = elem2;
 	}
@@ -56,18 +58,10 @@ public class Tuple2<T1, T2> {
 			return false;
 		}
 		final Tuple2<?, ?> other = (Tuple2<?, ?>) obj;
-		if (elem1 == null) {
-			if (other.elem1 != null) {
-				return false;
-			}
-		} else if (!elem1.equals(other.elem1)) {
+		if (!elem1.equals(other.elem1)) {
 			return false;
 		}
-		if (elem2 == null) {
-			if (other.elem2 != null) {
-				return false;
-			}
-		} else if (!elem2.equals(other.elem2)) {
+		if (!elem2.equals(other.elem2)) {
 			return false;
 		}
 		return true;
@@ -91,8 +85,8 @@ public class Tuple2<T1, T2> {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((elem1 == null) ? 0 : elem1.hashCode());
-		result = prime * result + ((elem2 == null) ? 0 : elem2.hashCode());
+		result = prime * result + elem1.hashCode();
+		result = prime * result + elem2.hashCode();
 		return result;
 	}
 

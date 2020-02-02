@@ -48,8 +48,8 @@ public class VehicleTest implements Constants {
 
 	@Test
 	public void compareTo() {
-		final SiteNode departure = SiteNode.create(0, 0);
-		final SiteNode destination = SiteNode.create(10, 10);
+		final MapNode departure = MapNode.create(0, 0);
+		final MapNode destination = MapNode.create(10, 10);
 		final Vehicle v1 = Vehicle.create(departure, destination);
 		final Vehicle v2 = Vehicle.create(departure, destination);
 
@@ -60,31 +60,13 @@ public class VehicleTest implements Constants {
 	}
 
 	@Test
-	public void getName() {
-		final SiteNode departure = SiteNode.create(0, 0);
-		final SiteNode destination = SiteNode.create(10, 10);
-		final Vehicle v = Vehicle.create(departure, destination);
-		final String result = v.getName();
-		assertNotNull(result);
-		assertThat(result, matchesPattern(".{8}-.{4}-.{4}-.{4}-.{12}"));
-	}
-
-	@Test
-	public void getShortName() {
-		final SiteNode departure = SiteNode.create(0, 0);
-		final SiteNode destination = SiteNode.create(10, 10);
-		final Vehicle v = Vehicle.create(departure, destination);
-		final String result = v.getShortName();
-		assertNotNull(result);
-		assertThat(result, matchesPattern(".{6}"));
-	}
-
-	@Test
-	public void test() {
-		final SiteNode departure = SiteNode.create(0, 0);
-		final SiteNode destination = SiteNode.create(10, 10);
+	public void create() {
+		final MapNode departure = MapNode.create(0, 0);
+		final MapNode destination = MapNode.create(10, 10);
 		final Vehicle v = Vehicle.create(departure, destination);
 		assertThat(v, notNullValue());
+		assertThat(v.getTarget(), equalTo(destination));
+		assertFalse(v.isReturning());
 		assertThat(v.getDeparture(), equalTo(departure));
 		assertThat(v.getDestination(), equalTo(destination));
 		assertThat(v.getLocation(), equalTo(0.0));
@@ -93,9 +75,39 @@ public class VehicleTest implements Constants {
 	}
 
 	@Test
+	public void getName() {
+		final MapNode departure = MapNode.create(0, 0);
+		final MapNode destination = MapNode.create(10, 10);
+		final Vehicle v = Vehicle.create(departure, destination);
+		final String result = v.getName();
+		assertNotNull(result);
+		assertThat(result, matchesPattern(".{8}-.{4}-.{4}-.{4}-.{12}"));
+	}
+
+	@Test
+	public void getShortName() {
+		final MapNode departure = MapNode.create(0, 0);
+		final MapNode destination = MapNode.create(10, 10);
+		final Vehicle v = Vehicle.create(departure, destination);
+		final String result = v.getShortName();
+		assertNotNull(result);
+		assertThat(result, matchesPattern(".{6}"));
+	}
+
+	@Test
+	public void returning() {
+		final MapNode departure = MapNode.create(0, 0);
+		final MapNode destination = MapNode.create(10, 10);
+		final Vehicle v = Vehicle.create(departure, destination).setReturning(true);
+		assertThat(v, notNullValue());
+		assertThat(v.getTarget(), equalTo(departure));
+		assertTrue(v.isReturning());
+	}
+
+	@Test
 	public void testEquals() {
-		final SiteNode departure = SiteNode.create(0, 0);
-		final SiteNode destination = SiteNode.create(10, 10);
+		final MapNode departure = MapNode.create(0, 0);
+		final MapNode destination = MapNode.create(10, 10);
 		final Vehicle v1 = Vehicle.create(departure, destination);
 		final Vehicle v11 = v1.setLocation(10);
 		final Vehicle v12 = v1.setEdgeEntryTime(10);
@@ -148,8 +160,8 @@ public class VehicleTest implements Constants {
 
 	@Test
 	public void testHashcode() {
-		final SiteNode departure = SiteNode.create(0, 0);
-		final SiteNode destination = SiteNode.create(10, 10);
+		final MapNode departure = MapNode.create(0, 0);
+		final MapNode destination = MapNode.create(10, 10);
 		final Vehicle v1 = Vehicle.create(departure, destination);
 		final Vehicle v11 = v1.setLocation(10);
 		final Vehicle v12 = v1.setEdgeEntryTime(10);
@@ -164,8 +176,8 @@ public class VehicleTest implements Constants {
 
 	@Test
 	public void testMoveFarNext() {
-		final SiteNode departure = SiteNode.create(0, 0);
-		final SiteNode destination = SiteNode.create(DISTANCE_100, 0);
+		final MapNode departure = MapNode.create(0, 0);
+		final MapNode destination = MapNode.create(DISTANCE_100, 0);
 		final MapEdge edge = MapEdge.create(departure, destination).setSpeedLimit(SPEED_10);
 		final Tuple2<Vehicle, Double> result = Vehicle.create(departure, destination).setLocation(DISTANCE_10)
 				.move(edge, INTERVAL_2, OptionalDouble.of(DISTANCE_80));
@@ -177,8 +189,8 @@ public class VehicleTest implements Constants {
 
 	@Test
 	public void testMoveFirstAfterEnd() {
-		final SiteNode departure = SiteNode.create(0, 0);
-		final SiteNode destination = SiteNode.create(DISTANCE_100, 0);
+		final MapNode departure = MapNode.create(0, 0);
+		final MapNode destination = MapNode.create(DISTANCE_100, 0);
 		final MapEdge edge = MapEdge.create(departure, destination).setSpeedLimit(SPEED_10);
 		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setLocation(DISTANCE_90).move(edge,
 				INTERVAL_2, OptionalDouble.empty());
@@ -190,8 +202,8 @@ public class VehicleTest implements Constants {
 
 	@Test
 	public void testMoveFirstBeforeEnd() {
-		final SiteNode departure = SiteNode.create(0, 0);
-		final SiteNode destination = SiteNode.create(DISTANCE_100, 0);
+		final MapNode departure = MapNode.create(0, 0);
+		final MapNode destination = MapNode.create(DISTANCE_100, 0);
 		final MapEdge edge = MapEdge.create(departure, destination).setSpeedLimit(SPEED_10);
 		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setLocation(DISTANCE_10).move(edge,
 				INTERVAL_2, OptionalDouble.empty());
@@ -204,8 +216,8 @@ public class VehicleTest implements Constants {
 	@ParameterizedTest(name = "{index} ==> location=''{0}''")
 	@MethodSource("location")
 	public void testMoveLastToEnd(final double location) {
-		final SiteNode departure = SiteNode.create(0, 0);
-		final SiteNode destination = SiteNode.create(DISTANCE_100, 0);
+		final MapNode departure = MapNode.create(0, 0);
+		final MapNode destination = MapNode.create(DISTANCE_100, 0);
 		final MapEdge edge = MapEdge.create(departure, destination).setSpeedLimit(SPEED_10);
 		final Vehicle vehicle = Vehicle.create(departure, destination).setLocation(location);
 
@@ -221,8 +233,8 @@ public class VehicleTest implements Constants {
 
 	@Test
 	public void testMoveNearNext() {
-		final SiteNode departure = SiteNode.create(0, 0);
-		final SiteNode destination = SiteNode.create(DISTANCE_100, 0);
+		final MapNode departure = MapNode.create(0, 0);
+		final MapNode destination = MapNode.create(DISTANCE_100, 0);
 		final MapEdge edge = MapEdge.create(departure, destination).setSpeedLimit(SPEED_10);
 		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setLocation(DISTANCE_10).move(edge,
 				INTERVAL_2, OptionalDouble.of(DISTANCE_10 + VEHICLE_LENGTH + DISTANCE_10));
@@ -243,8 +255,8 @@ public class VehicleTest implements Constants {
 	 */
 	@Test
 	public void testMoveOver() {
-		final SiteNode departure = SiteNode.create(0, 0);
-		final SiteNode destination = SiteNode.create(DISTANCE_100, 0);
+		final MapNode departure = MapNode.create(0, 0);
+		final MapNode destination = MapNode.create(DISTANCE_100, 0);
 		final MapEdge edge = MapEdge.create(departure, destination).setSpeedLimit(SPEED_10);
 		final Vehicle vehicle = Vehicle.create(departure, destination).setLocation(85);
 		final Tuple2<Vehicle, Double> result = vehicle.move(edge, 1, OptionalDouble.of(100.0));
@@ -257,8 +269,8 @@ public class VehicleTest implements Constants {
 	@ParameterizedTest(name = "{index} ==> edgeEntryTime=''{0}''")
 	@MethodSource("valueRange_0_10")
 	public void testSetEdgeEntryTime(final double edgeEntryTime) {
-		final SiteNode departure = SiteNode.create(0, 0);
-		final SiteNode destination = SiteNode.create(10, 10);
+		final MapNode departure = MapNode.create(0, 0);
+		final MapNode destination = MapNode.create(10, 10);
 		final Vehicle v = Vehicle.create(departure, destination).setEdgeEntryTime(edgeEntryTime);
 		assertThat(v, notNullValue());
 		assertThat(v.getDeparture(), equalTo(departure));
@@ -270,8 +282,8 @@ public class VehicleTest implements Constants {
 	@ParameterizedTest(name = "{index} ==> location=''{0}''")
 	@MethodSource("valueRange_0_10")
 	public void testSetLocation(final double location) {
-		final SiteNode departure = SiteNode.create(0, 0);
-		final SiteNode destination = SiteNode.create(10, 0);
+		final MapNode departure = MapNode.create(0, 0);
+		final MapNode destination = MapNode.create(10, 0);
 		final Vehicle v = Vehicle.create(departure, destination).setLocation(location);
 		assertThat(v, notNullValue());
 		assertThat(v.getDeparture(), equalTo(departure));
@@ -282,8 +294,8 @@ public class VehicleTest implements Constants {
 
 	@Test
 	public void testToString() {
-		final SiteNode departure = SiteNode.create(0, 0);
-		final SiteNode destination = SiteNode.create(10, 10);
+		final MapNode departure = MapNode.create(0, 0);
+		final MapNode destination = MapNode.create(10, 10);
 		final Vehicle v = Vehicle.create(departure, destination);
 		assertThat(v, notNullValue());
 		assertThat(v, hasToString(matchesPattern("Vehicle \\[.{8}-.{4}-.{4}-.{4}-.{12}\\]")));

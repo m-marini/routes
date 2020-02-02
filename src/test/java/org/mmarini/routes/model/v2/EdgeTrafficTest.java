@@ -23,6 +23,7 @@ import static org.mmarini.routes.model.v2.TestUtils.genDouble;
 import java.util.Collections;
 import java.util.List;
 import java.util.OptionalDouble;
+import java.util.Set;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -64,8 +65,8 @@ public class EdgeTrafficTest implements Constants {
 
 	@Test
 	public void compareDifferentDirection() {
-		final SiteNode s0 = SiteNode.create(0, 0);
-		final SiteNode s1 = SiteNode.create(10, 10);
+		final MapNode s0 = MapNode.create(0, 0);
+		final MapNode s1 = MapNode.create(10, 10);
 		final MapNode n = MapNode.create(10, 0);
 		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(s0, n));
 		final EdgeTraffic et2 = EdgeTraffic.create(MapEdge.create(s1, n));
@@ -80,8 +81,8 @@ public class EdgeTrafficTest implements Constants {
 	@ParameterizedTest
 	@MethodSource("prioritiesRange")
 	public void compareDifferentPriority(final int priority, final int delta) {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 10);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 10);
 		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(begin, end).setPriority(priority));
 		final EdgeTraffic et2 = EdgeTraffic.create(MapEdge.create(begin, end).setPriority(priority + delta));
 
@@ -95,8 +96,8 @@ public class EdgeTrafficTest implements Constants {
 	@ParameterizedTest
 	@MethodSource("priorityRange")
 	public void compareEqualPriority(final int priority) {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 10);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 10);
 		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(begin, end).setPriority(priority));
 		final EdgeTraffic et2 = EdgeTraffic.create(MapEdge.create(begin, end).setPriority(priority));
 
@@ -107,8 +108,8 @@ public class EdgeTrafficTest implements Constants {
 	@ParameterizedTest
 	@MethodSource("locationsRange")
 	public void compareExit(final double location1, final double location2) {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(100, 0);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(100, 0);
 		final Vehicle v1 = Vehicle.create(begin, end).setLocation(location1);
 		final Vehicle v2 = Vehicle.create(begin, end).setLocation(location2);
 		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(begin, end).setSpeedLimit(10))
@@ -135,8 +136,8 @@ public class EdgeTrafficTest implements Constants {
 
 	@Test
 	public void compareExitNoVehicles() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(100, 0);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(100, 0);
 		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(begin, end).setSpeedLimit(10));
 		final EdgeTraffic et2 = EdgeTraffic.create(MapEdge.create(end, begin).setSpeedLimit(10));
 
@@ -149,8 +150,8 @@ public class EdgeTrafficTest implements Constants {
 
 	@Test
 	public void compareExitOneNoVehicles() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(100, 0);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(100, 0);
 		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(begin, end).setSpeedLimit(10))
 				.setVehicles(List.of(Vehicle.create(begin, end)));
 		final EdgeTraffic et2 = EdgeTraffic.create(MapEdge.create(end, begin).setSpeedLimit(10));
@@ -164,8 +165,8 @@ public class EdgeTrafficTest implements Constants {
 
 	@Test
 	public void compareSameDirection() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 10);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 10);
 		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(begin, end));
 		final EdgeTraffic et2 = EdgeTraffic.create(MapEdge.create(end, begin));
 		final int result12 = et1.compareDirection(et2);
@@ -174,11 +175,35 @@ public class EdgeTrafficTest implements Constants {
 		assertThat(result21, equalTo(0));
 	}
 
+	@Test
+	public void compareTo() {
+		final MapNode node0 = MapNode.create(0, 0);
+		final MapNode node1 = MapNode.create(10, 0);
+		final EdgeTraffic traffic0 = EdgeTraffic.create(MapEdge.create(node0, node1));
+		final EdgeTraffic traffic1 = EdgeTraffic.create(MapEdge.create(node1, node0));
+
+		final int result01 = traffic0.compareTo(traffic1);
+		final int result10 = traffic1.compareTo(traffic0);
+
+		assertThat(result10, lessThan(0));
+		assertThat(result01, greaterThan(0));
+	}
+
+	@Test
+	public void create() {
+		final MapEdge edge = MapEdge.create(MapNode.create(0, 0), MapNode.create(10, 10));
+		final EdgeTraffic result = EdgeTraffic.create(edge);
+		assertThat(result, notNullValue());
+		assertFalse(result.getLastTravelTime().isPresent());
+		assertThat(result.getTravelTime(), closeTo(EXPECTED_DEFAULT_TIME, EXPECTED_DEFAULT_TIME * 1e-3));
+		assertThat(result.getEdge(), sameInstance(edge));
+	}
+
 	@ParameterizedTest
 	@MethodSource("locationRange")
 	public void getExitTime(final double location) {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(100, 0);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(100, 0);
 		final Vehicle v = Vehicle.create(begin, end).setLocation(location);
 		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(begin, end).setSpeedLimit(10))
 				.setVehicles(List.of(v));
@@ -191,8 +216,8 @@ public class EdgeTrafficTest implements Constants {
 
 	@Test
 	public void getExitTimeEmpty() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(100, 0);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(100, 0);
 		final EdgeTraffic et1 = EdgeTraffic.create(MapEdge.create(begin, end).setSpeedLimit(10));
 
 		final OptionalDouble result = et1.getExitTime();
@@ -200,11 +225,114 @@ public class EdgeTrafficTest implements Constants {
 		assertTrue(result.isEmpty());
 	}
 
+	/**
+	 * <pre>
+	 *  0 --> 1
+	 *        ^
+	 *        |
+	 *        |
+	 *        2
+	 * </pre>
+	 */
+	@Test
+	public void isAllFromLeft() {
+		final MapNode node0 = MapNode.create(0, 0);
+		final MapNode node1 = MapNode.create(10, 0);
+		final MapNode node2 = MapNode.create(0, 10);
+		final EdgeTraffic edge0 = EdgeTraffic.create(MapEdge.create(node0, node1));
+		final EdgeTraffic edge1 = EdgeTraffic.create(MapEdge.create(node2, node1));
+		final Set<EdgeTraffic> traffics = Set.of(edge0, edge1);
+
+		assertFalse(edge0.isAllFromLeft(traffics));
+		assertTrue(edge1.isAllFromLeft(traffics));
+	}
+
+	@Test
+	public void isCrossing() {
+		final MapNode node0 = MapNode.create(0, 0);
+		final MapNode node1 = MapNode.create(10, 0);
+		final MapNode node2 = MapNode.create(0, 10);
+		final EdgeTraffic edge = EdgeTraffic.create(MapEdge.create(node0, node1));
+		final EdgeTraffic other = EdgeTraffic.create(MapEdge.create(node2, node1));
+
+		final boolean result = edge.isCrossing(other);
+		assertTrue(result);
+	}
+
+	@Test
+	public void move1() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 100);
+		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(SPEED);
+		final Vehicle v1 = Vehicle.create(begin, end).setLocation(40.0);
+		final Vehicle v2 = Vehicle.create(begin, end).setLocation(10.0);
+		final List<Vehicle> list = List.of(v2, v1);
+		final EdgeTraffic traffic = EdgeTraffic.create(edge).setVehicles(list);
+
+		final EdgeTraffic result = traffic.moveVehicles(2.0);
+
+		assertThat(result, notNullValue());
+		assertThat(result.getTime(), equalTo(2.0));
+
+		final List<Vehicle> vehicles = result.getVehicles();
+		assertThat(vehicles, hasSize(2));
+
+		final Vehicle v11 = vehicles.get(1);
+		assertThat(v11.getLocation(), equalTo(60.0));
+
+		final Vehicle v21 = vehicles.get(0);
+		assertThat(v21.getLocation(), equalTo(30.0));
+
+	}
+
+	@Test
+	public void moveBeforeTime() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 100);
+		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(SPEED);
+		final Vehicle v1 = Vehicle.create(begin, end).setLocation(40.0);
+		final Vehicle v2 = Vehicle.create(begin, end).setLocation(10.0);
+		final List<Vehicle> list = List.of(v2, v1);
+		final EdgeTraffic traffic = EdgeTraffic.create(edge).setVehicles(list).setTime(2.0);
+
+		final EdgeTraffic result = traffic.moveVehicles(1.0);
+
+		assertThat(result, notNullValue());
+		assertThat(result, sameInstance(result));
+	}
+
+	@ParameterizedTest
+	@MethodSource("timeRange")
+	public void moveToTime(final double time) {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 100);
+		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(SPEED);
+		final Vehicle v1 = Vehicle.create(begin, end).setLocation(40.0);
+		final Vehicle v0 = Vehicle.create(begin, end).setLocation(10.0);
+		final List<Vehicle> list = List.of(v0, v1);
+		final EdgeTraffic traffic = EdgeTraffic.create(edge).setVehicles(list).setTime(time);
+
+		final EdgeTraffic result = traffic.moveToTime(time + 1);
+
+		assertNotNull(result);
+		assertThat(result.getTime(), equalTo(time + 1));
+
+		assertThat(result.getVehicles(), hasSize(2));
+		final Vehicle rv0 = result.getVehicles().get(0);
+		final Vehicle rv1 = result.getVehicles().get(1);
+
+		assertThat(rv0, equalTo(v0));
+		assertThat(rv0.getLocation(), closeTo(20.0, 1e-3));
+
+		assertThat(rv1, equalTo(v1));
+		assertThat(rv1.getLocation(), closeTo(50.0, 1e-3));
+	}
+
 	@ParameterizedTest
 	@MethodSource("timeRange")
 	public void moveToTimeBefore(final double time) {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 100);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 100);
 		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(SPEED);
 		final Vehicle v1 = Vehicle.create(begin, end).setLocation(40.0);
 		final Vehicle v2 = Vehicle.create(begin, end).setLocation(10.0);
@@ -221,8 +349,8 @@ public class EdgeTrafficTest implements Constants {
 	@ParameterizedTest
 	@MethodSource("timeRange")
 	public void moveToTimeEmpty(final double time) {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 100);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 100);
 		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(SPEED);
 		final EdgeTraffic traffic = EdgeTraffic.create(edge).setTime(time);
 
@@ -234,17 +362,178 @@ public class EdgeTrafficTest implements Constants {
 	}
 
 	@Test
-	public void test() {
-		final EdgeTraffic s = EdgeTraffic.create(MapEdge.create(MapNode.create(0, 0), MapNode.create(10, 10)));
+	public void removeLastNotEmpty() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 10);
+		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(10);
+		final Vehicle v = Vehicle.create(begin, end).setLocation(10);
+		final Vehicle v1 = Vehicle.create(begin, end).setLocation(0);
+		final List<Vehicle> vehicles = List.of(v1, v);
+		final EdgeTraffic result = EdgeTraffic.create(edge).setTime(5).setVehicles(vehicles).removeLast();
+		assertThat(result, notNullValue());
+		assertThat(result.getVehicles(), hasSize(1));
+		assertThat(result.getTravelTime(), equalTo(5.0));
+	}
+
+	@Test
+	public void removeLastToEmpty() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 10);
+		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(10);
+		final Vehicle v = Vehicle.create(begin, end).setLocation(10);
+		final List<Vehicle> vehicles = List.of(v);
+		final EdgeTraffic result = EdgeTraffic.create(edge).setTime(5).setVehicles(vehicles).removeLast();
+		assertThat(result, notNullValue());
+		assertThat(result.getVehicles(), empty());
+		assertThat(result.getTravelTime(), equalTo(1.0));
+	}
+
+	@Test
+	public void removeNotLast() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 10);
+		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(10);
+		final Vehicle v = Vehicle.create(begin, end).setLocation(9);
+		final List<Vehicle> vehicles = List.of(v);
+		final EdgeTraffic traffic = EdgeTraffic.create(edge).setTime(5).setVehicles(vehicles);
+
+		final EdgeTraffic result = traffic.removeLast();
+
+		assertThat(result, notNullValue());
+		assertThat(result, sameInstance(traffic));
+	}
+
+	@Test
+	public void setEdge() {
+		final MapNode node0 = MapNode.create(0, 0);
+		final MapNode node1 = MapNode.create(0, 100);
+		final MapNode node2 = MapNode.create(0, 70);
+		final MapEdge edge0 = MapEdge.create(node0, node1);
+		final MapEdge edge1 = MapEdge.create(node0, node2);
+		final Vehicle v0 = Vehicle.create(node0, node1).setLocation(10.0);
+		final Vehicle v1 = Vehicle.create(node0, node1).setLocation(60.0);
+		final List<Vehicle> list = List.of(v0, v1);
+		final EdgeTraffic traffic = EdgeTraffic.create(edge0).setVehicles(list).setTime(2.0);
+
+		final EdgeTraffic result = traffic.setEdge(edge1);
+
+		assertNotNull(result);
+		assertThat(result.getEdge(), sameInstance(edge1));
+		assertThat(result.getVehicles(), sameInstance(list));
+	}
+
+	@Test
+	public void setEdgeEmpty() {
+		final MapNode node0 = MapNode.create(0, 0);
+		final MapNode node1 = MapNode.create(0, 100);
+		final MapNode node2 = MapNode.create(0, 70);
+		final MapEdge edge0 = MapEdge.create(node0, node1);
+		final MapEdge edge1 = MapEdge.create(node0, node2);
+		final EdgeTraffic traffic = EdgeTraffic.create(edge0);
+
+		final EdgeTraffic result = traffic.setEdge(edge1);
+
+		assertNotNull(result);
+		assertThat(result.getEdge(), sameInstance(edge1));
+		assertThat(result.getVehicles(), empty());
+	}
+
+	@Test
+	public void setEdgeShrink() {
+		final MapNode node0 = MapNode.create(0, 0);
+		final MapNode node1 = MapNode.create(0, 100);
+		final MapNode node2 = MapNode.create(0, 50);
+		final MapEdge edge0 = MapEdge.create(node0, node1);
+		final MapEdge edge1 = MapEdge.create(node0, node2);
+		final Vehicle v0 = Vehicle.create(node0, node1).setLocation(10.0);
+		final Vehicle v1 = Vehicle.create(node0, node1).setLocation(60.0);
+		final List<Vehicle> list = List.of(v0, v1);
+		final EdgeTraffic traffic = EdgeTraffic.create(edge0).setVehicles(list).setTime(2.0);
+
+		final EdgeTraffic result = traffic.setEdge(edge1);
+
+		assertNotNull(result);
+		assertThat(result.getEdge(), sameInstance(edge1));
+
+		assertThat(result.getVehicles(), hasSize(2));
+		final Vehicle rv0 = result.getVehicles().get(0);
+		final Vehicle rv1 = result.getVehicles().get(1);
+
+		assertThat(rv0, equalTo(v0));
+		assertThat(rv0.getLocation(), equalTo(10.0));
+		assertThat(rv1, equalTo(v1));
+		assertThat(rv1.getLocation(), equalTo(50.0));
+	}
+
+	@Test
+	public void setEdgeShrinkAll() {
+		final MapNode node0 = MapNode.create(0, 0);
+		final MapNode node1 = MapNode.create(0, 100);
+		final MapNode node2 = MapNode.create(0, 12);
+		final MapEdge edge0 = MapEdge.create(node0, node1);
+		final MapEdge edge1 = MapEdge.create(node0, node2);
+		final Vehicle v0 = Vehicle.create(node0, node1).setLocation(10.0);
+		final Vehicle v1 = Vehicle.create(node0, node1).setLocation(60.0);
+		final List<Vehicle> list = List.of(v0, v1);
+		final EdgeTraffic traffic = EdgeTraffic.create(edge0).setVehicles(list).setTime(2.0);
+
+		final EdgeTraffic result = traffic.setEdge(edge1);
+
+		assertNotNull(result);
+		assertThat(result.getEdge(), sameInstance(edge1));
+
+		assertThat(result.getVehicles(), hasSize(2));
+		final Vehicle rv0 = result.getVehicles().get(0);
+		final Vehicle rv1 = result.getVehicles().get(1);
+
+		assertThat(rv0, equalTo(v0));
+		assertThat(rv0.getLocation(), equalTo(7.0));
+		assertThat(rv1, equalTo(v1));
+		assertThat(rv1.getLocation(), equalTo(12.0));
+	}
+
+	@Test
+	public void setEdgeShrinkAndCut() {
+		final MapNode node0 = MapNode.create(0, 0);
+		final MapNode node1 = MapNode.create(0, 100);
+		final MapNode node2 = MapNode.create(0, 9);
+		final MapEdge edge0 = MapEdge.create(node0, node1);
+		final MapEdge edge1 = MapEdge.create(node0, node2);
+		final Vehicle v0 = Vehicle.create(node0, node1).setLocation(5.0);
+		final Vehicle v1 = Vehicle.create(node0, node1).setLocation(15.0);
+		final Vehicle v2 = Vehicle.create(node0, node1).setLocation(60.0);
+		final List<Vehicle> list = List.of(v0, v1, v2);
+		final EdgeTraffic traffic = EdgeTraffic.create(edge0).setVehicles(list).setTime(2.0);
+
+		final EdgeTraffic result = traffic.setEdge(edge1);
+
+		assertNotNull(result);
+		assertThat(result.getEdge(), sameInstance(edge1));
+
+		assertThat(result.getVehicles(), hasSize(2));
+		final Vehicle rv0 = result.getVehicles().get(0);
+		final Vehicle rv1 = result.getVehicles().get(1);
+
+		assertThat(rv0, equalTo(v1));
+		assertThat(rv0.getLocation(), equalTo(4.0));
+		assertThat(rv1, equalTo(v2));
+		assertThat(rv1.getLocation(), equalTo(9.0));
+	}
+
+	@Test
+	public void setLastTravelTime() {
+		final EdgeTraffic s = EdgeTraffic.create(MapEdge.create(MapNode.create(0, 0), MapNode.create(10, 10)))
+				.setLastTravelTime(OptionalDouble.of(10.0));
 		assertThat(s, notNullValue());
-		assertFalse(s.getLastTravelTime().isPresent());
-		assertThat(s.getTravelTime(), closeTo(EXPECTED_DEFAULT_TIME, EXPECTED_DEFAULT_TIME * 1e-3));
+		assertTrue(s.getLastTravelTime().isPresent());
+		assertThat(s.getLastTravelTime().getAsDouble(), equalTo(10.0));
+		assertThat(s.getTravelTime(), equalTo(10.0));
 	}
 
 	@Test
 	public void testAddVehicle() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 100);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 100);
 		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(10);
 		final Vehicle v = Vehicle.create(begin, end);
 		final Vehicle v1 = Vehicle.create(begin, end).setLocation(6);
@@ -254,7 +543,7 @@ public class EdgeTrafficTest implements Constants {
 		final EdgeTraffic result = traffic.addVehicle(v, 5.0);
 		assertThat(result, notNullValue());
 		assertThat(result.getVehicles(), hasSize(2));
-		assertThat(result.getLast(), equalTo(v1));
+		assertThat(result.getLast().get(), equalTo(v1));
 		assertThat(result.getVehicles().get(0), equalTo(v));
 		assertThat(result.getVehicles().get(0).getLocation(), closeTo(0.833, 1e-3));
 		assertThat(result.getVehicles().get(0).getEdgeEntryTime(), equalTo(5.0));
@@ -262,21 +551,21 @@ public class EdgeTrafficTest implements Constants {
 
 	@Test
 	public void testAddVehicleEmpty() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 100);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 100);
 		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(10);
 		final Vehicle v = Vehicle.create(begin, end);
 		final EdgeTraffic result = EdgeTraffic.create(edge).setTime(10).addVehicle(v, 5.0);
 		assertThat(result, notNullValue());
 		assertThat(result.getVehicles(), hasSize(1));
-		assertThat(result.getLast(), equalTo(v));
-		assertThat(result.getLast().getLocation(), equalTo(50.0));
+		assertThat(result.getLast().get(), equalTo(v));
+		assertThat(result.getLast().get().getLocation(), equalTo(50.0));
 	}
 
 	@Test
 	public void testCreate() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 10);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 10);
 		final MapEdge edge = MapEdge.create(begin, end);
 		final EdgeTraffic result = EdgeTraffic.create(edge);
 		assertThat(result, notNullValue());
@@ -347,12 +636,12 @@ public class EdgeTrafficTest implements Constants {
 
 	@Test
 	public void testGetLast() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 10);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 10);
 		final MapEdge edge = MapEdge.create(begin, end);
 		final Vehicle v = Vehicle.create(begin, end);
 		final List<Vehicle> vehicles = List.of(v);
-		final Vehicle result = EdgeTraffic.create(edge).setVehicles(vehicles).getLast();
+		final Vehicle result = EdgeTraffic.create(edge).setVehicles(vehicles).getLast().get();
 		assertThat(result, notNullValue());
 		assertThat(result, equalTo(v));
 	}
@@ -384,8 +673,8 @@ public class EdgeTrafficTest implements Constants {
 
 	@Test
 	public void testIsBusyFalse() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 10);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 10);
 		final MapEdge edge = MapEdge.create(begin, end);
 		final Vehicle v = Vehicle.create(begin, end).setLocation(VEHICLE_LENGTH + 1e-3);
 		final List<Vehicle> vehicles = List.of(v);
@@ -395,8 +684,8 @@ public class EdgeTrafficTest implements Constants {
 
 	@Test
 	public void testIsBusyFalse1() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 10);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 10);
 		final MapEdge edge = MapEdge.create(begin, end);
 		final boolean result = EdgeTraffic.create(edge).isBusy();
 		assertFalse(result);
@@ -404,8 +693,8 @@ public class EdgeTrafficTest implements Constants {
 
 	@Test
 	public void testIsBusyTrue() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 10);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 10);
 		final MapEdge edge = MapEdge.create(begin, end);
 		final Vehicle v = Vehicle.create(begin, end);
 		final List<Vehicle> vehicles = List.of(v);
@@ -414,34 +703,9 @@ public class EdgeTrafficTest implements Constants {
 	}
 
 	@Test
-	public void testMove1() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 100);
-		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(SPEED);
-		final Vehicle v1 = Vehicle.create(begin, end).setLocation(40.0);
-		final Vehicle v2 = Vehicle.create(begin, end).setLocation(10.0);
-		final List<Vehicle> list = List.of(v2, v1);
-
-		final EdgeTraffic result = EdgeTraffic.create(edge).setVehicles(list).moveVehicles(2.0);
-
-		assertThat(result, notNullValue());
-		assertThat(result.getTime(), equalTo(2.0));
-
-		final List<Vehicle> vehicles = result.getVehicles();
-		assertThat(vehicles, hasSize(2));
-
-		final Vehicle v11 = vehicles.get(1);
-		assertThat(v11.getLocation(), equalTo(60.0));
-
-		final Vehicle v21 = vehicles.get(0);
-		assertThat(v21.getLocation(), equalTo(30.0));
-
-	}
-
-	@Test
 	public void testMove2() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 100.0);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 100.0);
 		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(SPEED);
 		final Vehicle v1 = Vehicle.create(begin, end).setLocation(5);
 		final Vehicle v2 = Vehicle.create(begin, end).setLocation(0);
@@ -465,8 +729,8 @@ public class EdgeTrafficTest implements Constants {
 
 	@Test
 	public void testmove3() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 100.0);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 100.0);
 		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(SPEED);
 		final Vehicle v1 = Vehicle.create(begin, end).setLocation(110);
 		final Vehicle v2 = Vehicle.create(begin, end).setLocation(105);
@@ -491,8 +755,8 @@ public class EdgeTrafficTest implements Constants {
 	/** test move on empty edge */
 	@Test
 	public void testMove4() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 100);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 100);
 		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(SPEED);
 
 		final EdgeTraffic result = EdgeTraffic.create(edge).moveVehicles(2.0);
@@ -506,13 +770,14 @@ public class EdgeTrafficTest implements Constants {
 
 	@Test
 	public void testMove5() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 100);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 100);
 		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(SPEED);
 		final Vehicle v1 = Vehicle.create(begin, end).setLocation(40.0);
 		final List<Vehicle> list = List.of(v1);
+		final EdgeTraffic traffic = EdgeTraffic.create(edge).setVehicles(list);
 
-		final EdgeTraffic result = EdgeTraffic.create(edge).setVehicles(list).moveVehicles(2.0);
+		final EdgeTraffic result = traffic.moveVehicles(2.0);
 
 		assertThat(result, notNullValue());
 		assertThat(result.getTime(), equalTo(2.0));
@@ -525,46 +790,9 @@ public class EdgeTrafficTest implements Constants {
 	}
 
 	@Test
-	public void testRemoveLastNotEmpty() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 10);
-		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(10);
-		final Vehicle v = Vehicle.create(begin, end).setLocation(10);
-		final Vehicle v1 = Vehicle.create(begin, end).setLocation(0);
-		final List<Vehicle> vehicles = List.of(v1, v);
-		final EdgeTraffic result = EdgeTraffic.create(edge).setTime(5).setVehicles(vehicles).removeLast();
-		assertThat(result, notNullValue());
-		assertThat(result.getVehicles(), hasSize(1));
-		assertThat(result.getTravelTime(), equalTo(5.0));
-	}
-
-	@Test
-	public void testRemoveLastToEmpty() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 10);
-		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(10);
-		final Vehicle v = Vehicle.create(begin, end).setLocation(10);
-		final List<Vehicle> vehicles = List.of(v);
-		final EdgeTraffic result = EdgeTraffic.create(edge).setTime(5).setVehicles(vehicles).removeLast();
-		assertThat(result, notNullValue());
-		assertThat(result.getVehicles(), empty());
-		assertThat(result.getTravelTime(), equalTo(1.0));
-	}
-
-	@Test
-	public void testSetLastTravelTime() {
-		final EdgeTraffic s = EdgeTraffic.create(MapEdge.create(MapNode.create(0, 0), MapNode.create(10, 10)))
-				.setLastTravelTime(OptionalDouble.of(10.0));
-		assertThat(s, notNullValue());
-		assertTrue(s.getLastTravelTime().isPresent());
-		assertThat(s.getLastTravelTime().getAsDouble(), equalTo(10.0));
-		assertThat(s.getTravelTime(), equalTo(10.0));
-	}
-
-	@Test
 	public void testSetVehicles() {
-		final SiteNode begin = SiteNode.create(0, 0);
-		final SiteNode end = SiteNode.create(0, 10);
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 10);
 		final MapEdge edge = MapEdge.create(begin, end);
 		final Vehicle v = Vehicle.create(begin, end);
 		final List<Vehicle> vehicles = List.of(v);

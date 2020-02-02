@@ -27,6 +27,7 @@ package org.mmarini.routes.model.v2;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 
 import org.mmarini.routes.model.Constants;
 
@@ -44,30 +45,21 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
  * @author mmarini
  *
  */
-public class SimulationStatusSerializer implements Constants {
+public class GeoMapSerializer implements Constants {
 
-	private final SimulationStatus status;
+	private static final String CURRENT_VERSION = "1";
+	private final GeoMap map;
 	private final ObjectMapper mapper;
 
 	/**
-	 * @param status
+	 * @param map
 	 *
 	 */
-	public SimulationStatusSerializer(final SimulationStatus status) {
+	public GeoMapSerializer(final GeoMap map) {
 		super();
 		mapper = new ObjectMapper(new YAMLFactory());
 		mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-		this.status = status;
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	private JsonNode buildDefaultNode() {
-		final ObjectNode result = mapper.createObjectNode();
-		result.put("frequence", status.getFrequence());
-		return result;
+		this.map = map;
 	}
 
 	/**
@@ -88,7 +80,7 @@ public class SimulationStatusSerializer implements Constants {
 	 */
 	private JsonNode buildEdgesNode() {
 		final ArrayNode result = mapper.createArrayNode();
-		status.getMap().getEdges().forEach(edge -> result.add(buildEdge(edge)));
+		map.getEdges().forEach(edge -> result.add(buildEdge(edge)));
 		return result;
 	}
 
@@ -109,7 +101,12 @@ public class SimulationStatusSerializer implements Constants {
 	 */
 	private JsonNode buildNodesNode() {
 		final ObjectNode result = mapper.createObjectNode();
-		status.getMap().getNodes().forEach(node -> result.set(node.getId().toString(), buildNode(node)));
+		final Set<MapNode> site = map.getSites();
+		map.getNodes().stream().filter(n -> {
+			return !site.contains(n);
+		}).forEach(node -> {
+			result.set(node.getId().toString(), buildNode(node));
+		});
 		return result;
 	}
 
@@ -119,11 +116,16 @@ public class SimulationStatusSerializer implements Constants {
 	 */
 	private JsonNode buildPathsNode() {
 		final ArrayNode result = mapper.createArrayNode();
-		status.getMap().getSites().forEach(from -> status.getMap().getSites().forEach(to -> {
-			final ObjectNode path = mapper.createObjectNode().put("departure", from.getId().toString())
-					.put("destination", to.getId().toString()).put("weight", status.getWeight(from, to));
-			result.add(path);
-		}));
+		map.getSites().forEach(from -> {
+			map.getSites().forEach(to -> {
+				final double w = map.getWeight(from, to);
+				if (w > 0.0) {
+					final ObjectNode path = mapper.createObjectNode().put("departure", from.getId().toString())
+							.put("destination", to.getId().toString()).put("weight", map.getWeight(from, to));
+					result.add(path);
+				}
+			});
+		});
 		return result;
 	}
 
@@ -133,18 +135,19 @@ public class SimulationStatusSerializer implements Constants {
 	 */
 	private JsonNode buildSitesNode() {
 		final ObjectNode result = mapper.createObjectNode();
-		status.getMap().getSites().forEach(node -> result.set(node.getId().toString(), buildNode(node)));
+		map.getSites().forEach(node -> result.set(node.getId().toString(), buildNode(node)));
 		return result;
 	}
 
 	/**
 	 *
-	 * @param status
+	 * @param map
 	 * @return
 	 */
 	JsonNode toJson() {
 		final ObjectNode result = mapper.createObjectNode();
-		result.set("default", buildDefaultNode());
+		result.put("version", CURRENT_VERSION);
+		result.put("frequence", map.getFrequence());
 		result.set("sites", buildSitesNode());
 		result.set("paths", buildPathsNode());
 		result.set("nodes", buildNodesNode());
@@ -155,13 +158,13 @@ public class SimulationStatusSerializer implements Constants {
 	/**
 	 *
 	 * @param file
-	 * @param status
+	 * @param map
 	 * @return
 	 * @throws IOException
 	 * @throws JsonMappingException
 	 * @throws JsonGenerationException
 	 */
-	public SimulationStatusSerializer writeFile(final File file)
+	public GeoMapSerializer writeFile(final File file)
 			throws JsonGenerationException, JsonMappingException, IOException {
 		mapper.writeValue(file, toJson());
 		return this;

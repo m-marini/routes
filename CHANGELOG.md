@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #55: Delete edge by keyboard and detail button
 - Issue #61: Change node and site type and remove node
 - Issue #65: Change edge property on edge panel
+- Issue #66: Mainframe file menu
 
 ## [4.2.0] - 2019-12-08
 
