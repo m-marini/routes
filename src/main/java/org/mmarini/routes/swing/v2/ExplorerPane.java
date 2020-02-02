@@ -132,17 +132,40 @@ public class ExplorerPane extends JTabbedPane {
 	 */
 	public ExplorerPane clearSelection() {
 		logger.debug("clearSelection");
-		final int siteIdx = siteJList.getSelectedIndex();
-		if (siteIdx >= 0) {
-			siteJList.removeSelectionInterval(siteIdx, siteIdx);
+		return clearSiteSelection().clearNodeSelection().clearEdgeSelection();
+	}
+
+	/**
+	 * @return
+	 * 
+	 */
+	private ExplorerPane clearEdgeSelection() {
+		final int edgeIdx = edgeJList.getSelectedIndex();
+		if (edgeIdx >= 0) {
+			edgeJList.removeSelectionInterval(edgeIdx, edgeIdx);
 		}
+		return this;
+	}
+
+	/**
+	 * @return
+	 */
+	private ExplorerPane clearNodeSelection() {
 		final int nodeIdx = nodeJList.getSelectedIndex();
 		if (nodeIdx >= 0) {
 			nodeJList.removeSelectionInterval(nodeIdx, nodeIdx);
 		}
-		final int edgeIdx = edgeJList.getSelectedIndex();
-		if (nodeIdx >= 0) {
-			edgeJList.removeSelectionInterval(edgeIdx, edgeIdx);
+		return this;
+	}
+
+	/**
+	 * @return
+	 * 
+	 */
+	private ExplorerPane clearSiteSelection() {
+		final int siteIdx = siteJList.getSelectedIndex();
+		if (siteIdx >= 0) {
+			siteJList.removeSelectionInterval(siteIdx, siteIdx);
 		}
 		return this;
 	}
@@ -224,8 +247,8 @@ public class ExplorerPane extends JTabbedPane {
 	 * @param edge the selected edge
 	 */
 	public ExplorerPane setSelectedEdge(final MapEdge edge) {
+		clearSiteSelection().clearNodeSelection();
 		if (!edge.equals(edgeJList.getSelectedValue())) {
-			clearSelection();
 			logger.debug("setSelectedEdge {}", edge);
 			edgeJList.setSelectedValue(edge, true);
 		}
@@ -239,16 +262,17 @@ public class ExplorerPane extends JTabbedPane {
 	 * @param node the selected node
 	 */
 	public ExplorerPane setSelectedNode(final MapNode node) {
+		clearEdgeSelection();
 		if (siteList.contains(node)) {
+			clearNodeSelection();
 			if (!node.equals(siteJList.getSelectedValue())) {
-				clearSelection();
 				logger.debug("setSelectedSite {}", node);
 				siteJList.setSelectedValue(node, true);
 			}
 			setSelectedIndex(SITE_TAB);
 		} else {
+			clearSiteSelection();
 			if (!node.equals(nodeJList.getSelectedValue())) {
-				clearSelection();
 				logger.debug("setSelectedNode {}", node);
 				nodeJList.setSelectedValue(node, true);
 			}

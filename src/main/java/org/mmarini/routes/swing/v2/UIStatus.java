@@ -86,9 +86,9 @@ public class UIStatus implements Constants {
 	 * @param node  site
 	 * @param point point
 	 */
-	private static boolean isInRange(final MapNode node, final Point2D point) {
+	private static boolean isInRange(final MapNode node, final Point2D point, double maxDistance) {
 		final double distance = node.getLocation().distance(point);
-		return distance <= RouteMap.SITE_SIZE / 2;
+		return distance <= maxDistance;
 	}
 
 	/** The scale of route map (pixels/m) */
@@ -165,7 +165,9 @@ public class UIStatus implements Constants {
 	 * @param pt the location
 	 */
 	private Optional<MapEdge> findEdgeAt(final Point2D pt) {
-		final Optional<MapEdge> result = status.getMap().getEdges().stream().filter(s -> isInRange(s, pt)).findAny();
+		final Optional<MapEdge> result = status.getMap().getEdges().stream().filter(s -> {
+			return isInRange(s, pt);
+		}).findAny();
 		return result;
 	}
 
@@ -187,7 +189,9 @@ public class UIStatus implements Constants {
 	 * @param pt the location
 	 */
 	private Optional<MapNode> findNodeAt(final Point2D pt) {
-		final Optional<MapNode> result = status.getMap().getNodes().stream().filter(s -> isInRange(s, pt)).findAny();
+		final Optional<MapNode> result = status.getMap().getNodes().parallelStream().filter(s -> {
+			return isInRange(s, pt, RouteMap.NODE_SIZE / 2);
+		}).findAny();
 		return result;
 	}
 
@@ -197,7 +201,9 @@ public class UIStatus implements Constants {
 	 * @param pt the location
 	 */
 	private Optional<MapNode> findSiteAt(final Point2D pt) {
-		final Optional<MapNode> result = status.getMap().getSites().stream().filter(s -> isInRange(s, pt)).findAny();
+		final Optional<MapNode> result = status.getMap().getSites().parallelStream().filter(s -> {
+			return isInRange(s, pt, RouteMap.SITE_SIZE / 2);
+		}).findAny();
 		return result;
 	}
 
