@@ -52,6 +52,15 @@ import org.mmarini.routes.model.Constants;
 public class MapEdge implements Comparable<MapEdge>, Constants {
 	/**
 	 *
+	 * @param length
+	 * @return
+	 */
+	public static double computeSpeedLimit(final double length) {
+		return length / REACTION_TIME;
+	}
+
+	/**
+	 *
 	 * @param begin
 	 * @param end
 	 * @return
@@ -65,6 +74,7 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	private final MapNode begin;
 	private final MapNode end;
 	private final double speedLimit;
+
 	private final int priority;
 
 	/**
@@ -309,6 +319,16 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	 */
 	public boolean isCrossing(final MapEdge other) {
 		return end.equals(other.end);
+	}
+
+	/**
+	 *
+	 * @param speedLimit
+	 * @return
+	 */
+	public MapEdge optimizedSpeedLimit(final double speedLimit) {
+		final double speed = Math.min(speedLimit, computeSpeedLimit(getLength()));
+		return setSpeedLimit(speed);
 	}
 
 	/**

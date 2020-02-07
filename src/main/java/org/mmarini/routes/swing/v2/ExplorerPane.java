@@ -97,6 +97,7 @@ public class ExplorerPane extends JTabbedPane {
 	private final JList<MapNode> siteJList;
 	private final JList<MapNode> nodeJList;
 	private final JList<MapEdge> edgeJList;
+	private final SiteListCellRenderer siteListCellRenderer;
 	private final Observable<MapEdge> edgeObs;
 	private final Observable<MapNode> nodeObs;
 	private final Observable<MapNode> siteObs;
@@ -106,12 +107,13 @@ public class ExplorerPane extends JTabbedPane {
 	 *
 	 */
 	public ExplorerPane() {
-		siteList = new DefaultListModel<>();
-		nodeList = new DefaultListModel<>();
-		edgeList = new DefaultListModel<>();
-		siteJList = new JList<>(siteList);
-		nodeJList = new JList<>(nodeList);
-		edgeJList = new JList<>(edgeList);
+		this.siteList = new DefaultListModel<>();
+		this.nodeList = new DefaultListModel<>();
+		this.edgeList = new DefaultListModel<>();
+		this.siteJList = new JList<>(siteList);
+		this.nodeJList = new JList<>(nodeList);
+		this.edgeJList = new JList<>(edgeList);
+		this.siteListCellRenderer = new SiteListCellRenderer();
 		edgeObs = SwingObservable.listSelection(edgeJList)
 				.filter(ev -> !ev.getValueIsAdjusting() && edgeJList.getSelectedIndex() >= 0)
 				.map(ev -> edgeJList.getSelectedValue()).doOnNext(edge -> logger.debug("Emit edge event {}", edge));
@@ -121,23 +123,15 @@ public class ExplorerPane extends JTabbedPane {
 		nodeObs = SwingObservable.listSelection(nodeJList)
 				.filter(ev -> !ev.getValueIsAdjusting() && nodeJList.getSelectedIndex() >= 0)
 				.map(ev -> nodeJList.getSelectedValue()).doOnNext(node -> logger.debug("Emit node ebent {}", node));
-		siteJList.setCellRenderer(new StringCellRenderer<>(a -> a.getShortName()));
+		siteJList.setCellRenderer(siteListCellRenderer);
 		nodeJList.setCellRenderer(new StringCellRenderer<>(a -> a.getShortName()));
 		edgeJList.setCellRenderer(new StringCellRenderer<>(a -> a.getShortName()));
 		init().createContent();
 	}
 
 	/**
-	 * Returns the explorer panel with selection cleared
-	 */
-	public ExplorerPane clearSelection() {
-		logger.debug("clearSelection");
-		return clearSiteSelection().clearNodeSelection().clearEdgeSelection();
-	}
-
-	/**
 	 * @return
-	 * 
+	 *
 	 */
 	private ExplorerPane clearEdgeSelection() {
 		final int edgeIdx = edgeJList.getSelectedIndex();
@@ -159,8 +153,16 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
+	 * Returns the explorer panel with selection cleared
+	 */
+	public ExplorerPane clearSelection() {
+		logger.debug("clearSelection");
+		return clearSiteSelection().clearNodeSelection().clearEdgeSelection();
+	}
+
+	/**
 	 * @return
-	 * 
+	 *
 	 */
 	private ExplorerPane clearSiteSelection() {
 		final int siteIdx = siteJList.getSelectedIndex();
@@ -226,6 +228,7 @@ public class ExplorerPane extends JTabbedPane {
 		if (!map.equals(this.map)) {
 			this.map = map;
 			logger.debug("setMap {}", map);
+			clearSelection();
 			final List<MapNode> sites = map.getSites().stream().sorted().collect(Collectors.toList());
 			final List<MapNode> nodes = map.getNodes().stream().filter(n -> {
 				return !sites.contains(n);
@@ -237,6 +240,8 @@ public class ExplorerPane extends JTabbedPane {
 			nodeList.addAll(nodes);
 			edgeList.removeAllElements();
 			edgeList.addAll(edges);
+			siteListCellRenderer.setColorMap(SwingUtils.buildColorMap(sites, 0.3));
+			siteListCellRenderer.setSelectionColorMap(SwingUtils.buildColorMap(sites, 1));
 		}
 		return this;
 	}

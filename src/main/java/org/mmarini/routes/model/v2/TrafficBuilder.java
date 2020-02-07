@@ -52,7 +52,7 @@ public class TrafficBuilder implements Constants {
 	 * @return
 	 */
 	public static TrafficBuilder create() {
-		return new TrafficBuilder(Traffic.create(), Collections.emptySet(), 0);
+		return new TrafficBuilder(Traffics.create(), Collections.emptySet(), 0);
 	}
 
 	/**
@@ -61,7 +61,7 @@ public class TrafficBuilder implements Constants {
 	 * @param status the status
 	 * @param time   the instant
 	 */
-	public static TrafficBuilder create(final Traffic status, final double time) {
+	public static TrafficBuilder create(final Traffics status, final double time) {
 		return new TrafficBuilder(status, status.getTraffics(), time);
 	}
 
@@ -108,7 +108,7 @@ public class TrafficBuilder implements Constants {
 
 	private final Set<EdgeTraffic> traffics;
 	private final double time;
-	private final Traffic initialStatus;
+	private final Traffics initialStatus;
 	private TrafficStats trafficStats;
 
 	/**
@@ -116,7 +116,7 @@ public class TrafficBuilder implements Constants {
 	 * @param initialStatus
 	 * @param time
 	 */
-	protected TrafficBuilder(final Traffic status, final Set<EdgeTraffic> traffics, final double time) {
+	protected TrafficBuilder(final Traffics status, final Set<EdgeTraffic> traffics, final double time) {
 		super();
 		this.initialStatus = status;
 		this.traffics = traffics;
@@ -156,7 +156,7 @@ public class TrafficBuilder implements Constants {
 	/**
 	 * Returns the simulation status at the given instant
 	 */
-	public Traffic build() {
+	public Traffics build() {
 		final TrafficBuilder finalStatus = simulationProcess(this).createVehicles();
 		return finalStatus.initialStatus.setTraffics(finalStatus.traffics);
 	}
@@ -229,7 +229,7 @@ public class TrafficBuilder implements Constants {
 	/**
 	 * Returns the initial status
 	 */
-	Traffic getInitialStatus() {
+	Traffics getInitialStatus() {
 		return initialStatus;
 	}
 
@@ -403,7 +403,7 @@ public class TrafficBuilder implements Constants {
 	 *
 	 * @param initialStatus the initial status
 	 */
-	public TrafficBuilder setInitialStatus(final Traffic initialStatus) {
+	public TrafficBuilder setInitialStatus(final Traffics initialStatus) {
 		return new TrafficBuilder(initialStatus, traffics, time);
 	}
 

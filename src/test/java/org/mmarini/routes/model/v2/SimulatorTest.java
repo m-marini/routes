@@ -23,8 +23,8 @@ public class SimulatorTest {
 		final MapNode s1 = MapNode.create(1000, 0);
 		final Set<MapEdge> edges = Set.of(MapEdge.create(s0, s1), MapEdge.create(s1, s0));
 		final GeoMap map = GeoMap.create(edges, GeoMap.buildWeights(Set.of(s0, s1), (a, b) -> 0.5));
-		final Traffic status = Traffic.create(map);
-		final Simulator s = new Simulator().setSimulationStatus(status);
+		final Traffics status = Traffics.create(map);
+		final Simulator s = new Simulator().setTraffics(status);
 		return s;
 	}
 
@@ -32,7 +32,7 @@ public class SimulatorTest {
 	public void start() {
 		final Simulator s = createSimulator();
 		s.start();
-		final Traffic result = s.getOutput().blockingFirst();
+		final Traffics result = s.getOutput().blockingFirst();
 //		s.stop();
 		assertThat(result.getTime(), equalTo(0.0));
 	}
@@ -49,15 +49,15 @@ public class SimulatorTest {
 	public void startstop() {
 		final Simulator s = createSimulator();
 		s.start().stop();
-		final Traffic result = s.getOutput().blockingFirst();
+		final Traffics result = s.getOutput().blockingFirst();
 		assertThat(result.getTime(), equalTo(0.0));
 	}
 
 	@Test
 	public void stop() {
 		final Simulator s = createSimulator();
-		final Single<Traffic> result = s.stop();
-		final Traffic x = result.blockingGet();
+		final Single<Traffics> result = s.stop();
+		final Traffics x = result.blockingGet();
 		assertNotNull(x);
 	}
 }

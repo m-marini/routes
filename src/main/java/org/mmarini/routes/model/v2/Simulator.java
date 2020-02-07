@@ -45,12 +45,12 @@ public class Simulator {
 	private static final long DEFAULT_MIN_TIME_NS = 100000000L;
 	private static final Logger logger = LoggerFactory.getLogger(Simulator.class);
 
-	private final BehaviorSubject<Traffic> output;
+	private final BehaviorSubject<Traffics> output;
 	private final long minTimeNs = DEFAULT_MIN_TIME_NS;
-	private Optional<Subject<Traffic>> stoppedSubj;
+	private Optional<Subject<Traffics>> stoppedSubj;
 	private boolean running;
 	private double speed;
-	private Traffic simulationStatus;
+	private Traffics traffics;
 	private long prevTime;
 
 	/**
@@ -67,7 +67,7 @@ public class Simulator {
 	/**
 	 * Returns the output
 	 */
-	public Subject<Traffic> getOutput() {
+	public Subject<Traffics> getOutput() {
 		return output;
 	}
 
@@ -75,12 +75,12 @@ public class Simulator {
 	 *
 	 * @param next
 	 */
-	private Simulator handleNextReady(final Traffic next) {
+	private Simulator handleNextReady(final Traffics next) {
 		final long time = System.nanoTime();
 		// Compute interval
 		final long dt = time - prevTime;
 		prevTime = time;
-		simulationStatus = next;
+		traffics = next;
 		if (running) {
 			final long waitTime = minTimeNs - dt;
 			if (waitTime >= 0) {
@@ -109,7 +109,7 @@ public class Simulator {
 	 * @param status initial status
 	 * @param dt     the real interval time
 	 */
-	private Traffic next(final Traffic status, final double dt) {
+	private Traffics next(final Traffics status, final double dt) {
 		final double time = status.getTime() + dt * speed;
 		return TrafficBuilder.create(status, time).build();
 	}
@@ -120,18 +120,19 @@ public class Simulator {
 	 * @return
 	 */
 	public Simulator setSimulationSpeed(final double speed) {
+		logger.debug("setSimulationSpeed {}", speed);
 		this.speed = speed;
 		return this;
 	}
 
 	/**
 	 *
-	 * @param status
+	 * @param traffics
 	 * @return
 	 */
-	public Simulator setSimulationStatus(final Traffic status) {
-		logger.debug("setSimulationStatus {}", status);
-		simulationStatus = status;
+	public Simulator setTraffics(final Traffics traffics) {
+		logger.debug("setSimulationStatus {}", traffics);
+		this.traffics = traffics;
 		return this;
 	}
 
@@ -143,7 +144,7 @@ public class Simulator {
 		if (!running) {
 			running = true;
 			prevTime = System.nanoTime();
-			output.onNext(simulationStatus);
+			output.onNext(traffics);
 			logger.debug("Simulator started ...");
 		}
 		return this;
@@ -153,15 +154,15 @@ public class Simulator {
 	 *
 	 * @return
 	 */
-	public Single<Traffic> stop() {
+	public Single<Traffics> stop() {
 		if (running) {
 			running = false;
 			logger.debug("Stopping simulator ...");
-			final Subject<Traffic> subj = PublishSubject.create();
+			final Subject<Traffics> subj = PublishSubject.create();
 			stoppedSubj = Optional.of(subj);
 			return subj.singleOrError();
 		} else {
-			return Single.just(simulationStatus);
+			return Single.just(traffics);
 		}
 	}
 }

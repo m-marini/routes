@@ -59,9 +59,9 @@ public class TrafficTest implements Constants {
 		final Set<MapEdge> edges = Set.of(e0, e1, e2);
 		final Map<Tuple2<MapNode, MapNode>, Double> weights = GeoMap.buildWeights(sites, (a, b) -> 1);
 		final GeoMap map = GeoMap.create(edges, weights);
-		final Traffic status = Traffic.create(map);
+		final Traffics status = Traffics.create(map);
 
-		final Traffic result = status.addEdge(e3);
+		final Traffics result = status.addEdge(e3);
 		assertNotNull(result);
 
 		final GeoMap rMap = result.getMap();
@@ -123,11 +123,11 @@ public class TrafficTest implements Constants {
 			return EdgeTraffic.create(edge).setVehicles(List.of(v0, v1, v2, v3, v4, v5));
 		}).collect(Collectors.toSet());
 		final Random random = new Random(1234);
-		final Traffic status = Traffic.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
 
 		final MapEdge e31 = e3.setPriority(1).setSpeedLimit(20);
 
-		final Traffic result = status.change(e31);
+		final Traffics result = status.change(e31);
 		assertNotNull(result);
 
 		final GeoMap rMap = result.getMap();
@@ -199,10 +199,10 @@ public class TrafficTest implements Constants {
 			return EdgeTraffic.create(edge).setVehicles(vehicles);
 		}).collect(Collectors.toSet());
 		final Random random = new Random(1234);
-		final Traffic status = Traffic.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
 		final MapNode n3 = MapNode.create(10, 10);
 
-		final Traffic result = status.changeNode(n3, (a, b) -> 1);
+		final Traffics result = status.changeNode(n3, (a, b) -> 1);
 
 		assertNotNull(result);
 		assertThat(result, sameInstance(status));
@@ -248,9 +248,9 @@ public class TrafficTest implements Constants {
 						.setVehicles(List.of(Vehicle.create(s0, s1), Vehicle.create(s1, s0).setLocation(10))))
 				.collect(Collectors.toSet());
 		final Random random = new Random(1234);
-		final Traffic status = Traffic.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
 
-		final Traffic result = status.changeNode(s1, (a, b) -> 1);
+		final Traffics result = status.changeNode(s1, (a, b) -> 1);
 		assertNotNull(result);
 
 		final GeoMap rMap = result.getMap();
@@ -314,9 +314,9 @@ public class TrafficTest implements Constants {
 			return EdgeTraffic.create(edge).setVehicles(List.of(v0, v1));
 		}).collect(Collectors.toSet());
 		final Random random = new Random(1234);
-		final Traffic status = Traffic.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
 
-		final Traffic result = status.changeNode(n2, (a, b) -> 1);
+		final Traffics result = status.changeNode(n2, (a, b) -> 1);
 		assertNotNull(result);
 
 		final GeoMap rMap = result.getMap();
@@ -393,9 +393,9 @@ public class TrafficTest implements Constants {
 			return EdgeTraffic.create(edge).setVehicles(List.of(v0, v1, v2, v3, v4, v5));
 		}).collect(Collectors.toSet());
 		final Random random = new Random(1234);
-		final Traffic status = Traffic.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
 
-		final Traffic result = status.changeNode(s1, (a, b) -> 1);
+		final Traffics result = status.changeNode(s1, (a, b) -> 1);
 		assertNotNull(result);
 
 		final GeoMap rMap = result.getMap();
@@ -423,7 +423,7 @@ public class TrafficTest implements Constants {
 
 	@Test
 	public void create() {
-		final Traffic result = Traffic.create();
+		final Traffics result = Traffics.create();
 		assertNotNull(result);
 		assertThat(result.getTraffics(), empty());
 		assertNotNull(result.getMap());
@@ -456,7 +456,7 @@ public class TrafficTest implements Constants {
 		final Map<Tuple2<MapNode, MapNode>, Double> weights = GeoMap.buildWeights(sites, (a, b) -> 1);
 		final GeoMap map = GeoMap.create(edges, weights).setFrequence(DEFAULT_FREQUENCE);
 
-		final Traffic result = Traffic.create(map);
+		final Traffics result = Traffics.create(map);
 
 		assertNotNull(result);
 		assertThat(result.getTraffics(), hasSize(4));
@@ -474,7 +474,7 @@ public class TrafficTest implements Constants {
 		final EdgeTraffic traffic = EdgeTraffic.create(edge).setVehicles(List.of(Vehicle.create(begin, end)))
 				.setTime(10);
 		final Set<EdgeTraffic> vehicles = Set.of(traffic);
-		final Traffic s = Traffic.create().setTraffics(vehicles);
+		final Traffics s = Traffics.create().setTraffics(vehicles);
 
 		final double result = s.getTime();
 
@@ -483,7 +483,7 @@ public class TrafficTest implements Constants {
 
 	@Test
 	public void nextPoisson() {
-		final Traffic s = Traffic.create().setRandom(new Random(1234));
+		final Traffics s = Traffics.create().setRandom(new Random(1234));
 		int tot = 0;
 		final int n = 100000;
 		final double lambda = 10;
@@ -510,7 +510,7 @@ public class TrafficTest implements Constants {
 		final MapProfile profile = new MapProfile(3, 100, 100, 0.5, 1);
 		final Random random = MockRandomBuilder.range(1, 3 * 2).concat(MockRandomBuilder.range(1, 6)).build();
 
-		final Traffic result = Traffic.random(profile, random);
+		final Traffics result = Traffics.random(profile, random);
 
 		assertNotNull(result);
 		assertThat(result.getTraffics(), empty());
@@ -586,9 +586,9 @@ public class TrafficTest implements Constants {
 		}).collect(Collectors.toSet());
 
 		final Random random = new Random(1234);
-		final Traffic status = Traffic.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
 
-		final Traffic result = status.removeEdge(e0);
+		final Traffics result = status.removeEdge(e0);
 		assertNotNull(result);
 
 		final GeoMap rMap = result.getMap();
@@ -645,9 +645,9 @@ public class TrafficTest implements Constants {
 			final Vehicle v1 = Vehicle.create(s1, s0).setLocation(10);
 			return EdgeTraffic.create(edge).setVehicles(List.of(v0, v1));
 		}).collect(Collectors.toSet());
-		final Traffic status = Traffic.create().setGeoMap(map).setTraffics(traffics);
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics);
 
-		final Traffic result = status.removeNode(n0);
+		final Traffics result = status.removeNode(n0);
 		assertNotNull(result);
 
 		final GeoMap rMap = result.getMap();
@@ -702,9 +702,9 @@ public class TrafficTest implements Constants {
 			final Vehicle v1 = Vehicle.create(s1, s0).setLocation(10);
 			return EdgeTraffic.create(edge).setVehicles(List.of(v0, v1));
 		}).collect(Collectors.toSet());
-		final Traffic status = Traffic.create().setGeoMap(map).setTraffics(traffics);
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics);
 
-		final Traffic result = status.removeNode(n3);
+		final Traffics result = status.removeNode(n3);
 		assertThat(result, sameInstance(status));
 	}
 
@@ -756,9 +756,9 @@ public class TrafficTest implements Constants {
 			return EdgeTraffic.create(edge).setVehicles(List.of(v0, v1, v2, v3, v4, v5));
 		}).collect(Collectors.toSet());
 		final Random random = new Random(1234);
-		final Traffic status = Traffic.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
 
-		final Traffic result = status.removeNode(s1);
+		final Traffics result = status.removeNode(s1);
 		assertNotNull(result);
 
 		final GeoMap rMap = result.getMap();
@@ -786,7 +786,7 @@ public class TrafficTest implements Constants {
 	@Test
 	public void setGeoMap() {
 		final GeoMap map = GeoMap.create(Set.of(), MapNode.create(0, 0));
-		final Traffic s = Traffic.create().setGeoMap(map);
+		final Traffics s = Traffics.create().setGeoMap(map);
 		assertNotNull(s);
 		assertThat(s.getTraffics(), empty());
 		assertThat(s.getMap(), sameInstance(map));
@@ -799,9 +799,9 @@ public class TrafficTest implements Constants {
 		final MapEdge edge = MapEdge.create(begin, end);
 		final Set<EdgeTraffic> vehicles = Set
 				.of(EdgeTraffic.create(edge).setVehicles(List.of(Vehicle.create(begin, end))));
-		final Traffic status = Traffic.create();
+		final Traffics status = Traffics.create();
 
-		final Traffic result = status.setTraffics(vehicles);
+		final Traffics result = status.setTraffics(vehicles);
 
 		assertNotNull(result);
 

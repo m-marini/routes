@@ -101,12 +101,6 @@ public class MainFrame extends JFrame {
 	private final JRadioButtonMenuItem speedx10MenuItem;
 	private final JMenuItem infosMenuItem;
 	private final JMenuItem veicleInfosMenuItem;
-	private final Observable<ActionEvent> newRandomObs;
-	private final Observable<ActionEvent> saveMapAsObs;
-	private final Observable<ActionEvent> openMapObs;
-	private final Observable<ActionEvent> saveMapObs;
-	private final Observable<ActionEvent> newMapObs;
-	private final Observable<ActionEvent> exitObs;
 	private final JMenuItem newMenuItem;
 	private final JMenuItem exitMenuItem;
 	private final JMenuItem newRandomMenuItem;
@@ -114,6 +108,18 @@ public class MainFrame extends JFrame {
 	private final JMenuItem saveAsMenuItem;
 	private final JButton newButton;
 	private final JButton openButton;
+	private final Observable<ActionEvent> newRandomObs;
+	private final Observable<ActionEvent> saveMapAsObs;
+	private final Observable<ActionEvent> openMapObs;
+	private final Observable<ActionEvent> saveMapObs;
+	private final Observable<ActionEvent> newMapObs;
+	private final Observable<ActionEvent> exitObs;
+	private final Observable<ActionEvent> optimizeObs;
+	private final Observable<ActionEvent> frequenceObs;
+	private final Observable<ActionEvent> routesObs;
+	private final Observable<ActionEvent> stopObs;
+	private final Observable<Double> speedObs;
+	private final Observable<ActionEvent> randomizeObs;
 
 	/**
 	 *
@@ -123,40 +129,54 @@ public class MainFrame extends JFrame {
 	 * @throws HeadlessException
 	 */
 	public MainFrame(final Component left, final Component top, final Component buttom) throws HeadlessException {
-		splitPane = new JSplitPane();
-		rightSplitPane = new JSplitPane();
-		saveMenuItem = createJMenuItem("MainFrame.saveAction"); //$NON-NLS-1$
+		this.splitPane = new JSplitPane();
+		this.rightSplitPane = new JSplitPane();
+		this.saveMenuItem = createJMenuItem("MainFrame.saveAction"); //$NON-NLS-1$
 
-		optimizeMenuItem = createJMenuItem("MainFrame.optimizeAction"); //$NON-NLS-1$
-		randomizeMenuItem = createJMenuItem("MainFrame.randomizeAction"); //$NON-NLS-1$
-		frequenceMenuItem = createJMenuItem("MainFrame.frequenceAction"); //$NON-NLS-1$
-		routesMenuItem = createJMenuItem("MainFrame.routesAction"); //$NON-NLS-1$
-		stopMenuItem = createJCheckBoxMenuItem("MainFrame.stopAction"); //$NON-NLS-1$
-		speedx1MenuItem = createJRadioButtonMenuItem("MainFrame.speedx1Action"); //$NON-NLS-1$
-		speedx2MenuItem = createJRadioButtonMenuItem("MainFrame.speedx2Action"); //$NON-NLS-1$
-		speedx5MenuItem = createJRadioButtonMenuItem("MainFrame.speedx5Action"); //$NON-NLS-1$
-		speedx10MenuItem = createJRadioButtonMenuItem("MainFrame.speedx10Action"); //$NON-NLS-1$
-		infosMenuItem = createJMenuItem("MainFrame.infosAction"); //$NON-NLS-1$
-		veicleInfosMenuItem = createJMenuItem("MainFrame.veicleInfosAction"); //$NON-NLS-1$
+		this.optimizeMenuItem = createJMenuItem("MainFrame.optimizeAction"); //$NON-NLS-1$
+		this.randomizeMenuItem = createJMenuItem("MainFrame.randomizeAction"); //$NON-NLS-1$
+		this.frequenceMenuItem = createJMenuItem("MainFrame.frequenceAction"); //$NON-NLS-1$
+		this.routesMenuItem = createJMenuItem("MainFrame.routesAction"); //$NON-NLS-1$
+		this.stopMenuItem = createJCheckBoxMenuItem("MainFrame.stopAction"); //$NON-NLS-1$
+		this.speedx1MenuItem = createJRadioButtonMenuItem("MainFrame.speedx1Action"); //$NON-NLS-1$
+		this.speedx2MenuItem = createJRadioButtonMenuItem("MainFrame.speedx2Action"); //$NON-NLS-1$
+		this.speedx5MenuItem = createJRadioButtonMenuItem("MainFrame.speedx5Action"); //$NON-NLS-1$
+		this.speedx10MenuItem = createJRadioButtonMenuItem("MainFrame.speedx10Action"); //$NON-NLS-1$
+		this.infosMenuItem = createJMenuItem("MainFrame.infosAction"); //$NON-NLS-1$
+		this.veicleInfosMenuItem = createJMenuItem("MainFrame.veicleInfosAction"); //$NON-NLS-1$
 
-		saveButton = createJButton("MainFrame.saveAction");
+		this.saveButton = createJButton("MainFrame.saveAction");
 
-		newMenuItem = createJMenuItem("MainFrame.newAction"); //$NON-NLS-1$
-		exitMenuItem = createJMenuItem("MainFrame.exitAction"); //$NON-NLS-1$
-		newRandomMenuItem = createJMenuItem("MainFrame.newRandomAction"); //$NON-NLS-1$
-		openMenuItem = createJMenuItem("MainFrame.openAction"); //$NON-NLS-1$
-		saveAsMenuItem = createJMenuItem("MainFrame.saveAsAction"); //$NON-NLS-1$
-		newButton = createJButton("MainFrame.newAction");
-		openButton = createJButton("MainFrame.openAction");
+		this.newMenuItem = createJMenuItem("MainFrame.newAction"); //$NON-NLS-1$
+		this.exitMenuItem = createJMenuItem("MainFrame.exitAction"); //$NON-NLS-1$
+		this.newRandomMenuItem = createJMenuItem("MainFrame.newRandomAction"); //$NON-NLS-1$
+		this.openMenuItem = createJMenuItem("MainFrame.openAction"); //$NON-NLS-1$
+		this.saveAsMenuItem = createJMenuItem("MainFrame.saveAsAction"); //$NON-NLS-1$
+		this.newButton = createJButton("MainFrame.newAction");
+		this.openButton = createJButton("MainFrame.openAction");
 
-		newRandomObs = SwingObservable.actions(newRandomMenuItem);
-		saveMapAsObs = SwingObservable.actions(saveAsMenuItem);
-		exitObs = SwingObservable.actions(exitMenuItem);
+		this.newRandomObs = SwingObservable.actions(newRandomMenuItem);
+		this.saveMapAsObs = SwingObservable.actions(saveAsMenuItem);
+		this.exitObs = SwingObservable.actions(exitMenuItem);
 
-		newMapObs = SwingObservable.actions(newButton).mergeWith(SwingObservable.actions(newMenuItem));
-		openMapObs = SwingObservable.actions(openButton).mergeWith(SwingObservable.actions(openMenuItem));
-		saveMapObs = SwingObservable.actions(saveButton).mergeWith(SwingObservable.actions(saveMenuItem));
+		this.newMapObs = SwingObservable.actions(newButton).mergeWith(SwingObservable.actions(newMenuItem));
+		this.openMapObs = SwingObservable.actions(openButton).mergeWith(SwingObservable.actions(openMenuItem));
+		this.saveMapObs = SwingObservable.actions(saveButton).mergeWith(SwingObservable.actions(saveMenuItem));
 
+		this.optimizeObs = SwingObservable.actions(optimizeMenuItem);
+		this.frequenceObs = SwingObservable.actions(frequenceMenuItem);
+		this.speedObs = SwingObservable.actions(speedx1MenuItem).map(ev -> {
+			return 1.0;
+		}).mergeWith(SwingObservable.actions(speedx2MenuItem).map(ev -> {
+			return 2.0;
+		})).mergeWith(SwingObservable.actions(speedx5MenuItem).map(ev -> {
+			return 5.0;
+		})).mergeWith(SwingObservable.actions(speedx10MenuItem).map(ev -> {
+			return 10.0;
+		}));
+		this.stopObs = SwingObservable.actions(stopMenuItem);
+		this.routesObs = SwingObservable.actions(routesMenuItem);
+		this.randomizeObs = SwingObservable.actions(randomizeMenuItem);
 		init(left, top, buttom);
 	}
 
@@ -244,6 +264,13 @@ public class MainFrame extends JFrame {
 	}
 
 	/**
+	 * @return the frequenceObs
+	 */
+	public Observable<ActionEvent> getFrequenceObs() {
+		return frequenceObs;
+	}
+
+	/**
 	 * Returns the newMapObs
 	 */
 	public Observable<ActionEvent> getNewMapObs() {
@@ -265,6 +292,27 @@ public class MainFrame extends JFrame {
 	}
 
 	/**
+	 * @return the optimizeObs
+	 */
+	public Observable<ActionEvent> getOptimizeObs() {
+		return optimizeObs;
+	}
+
+	/**
+	 * @return the randomizeObs
+	 */
+	public Observable<ActionEvent> getRandomizeObs() {
+		return randomizeObs;
+	}
+
+	/**
+	 * @return the routesObs
+	 */
+	public Observable<ActionEvent> getRoutesObs() {
+		return routesObs;
+	}
+
+	/**
 	 * Return the saveMapAsObs
 	 */
 	public Observable<ActionEvent> getSaveMapAsObs() {
@@ -276,6 +324,20 @@ public class MainFrame extends JFrame {
 	 */
 	public Observable<ActionEvent> getSaveMapObs() {
 		return saveMapObs;
+	}
+
+	/**
+	 * @return the speedObs
+	 */
+	public Observable<Double> getSpeedObs() {
+		return speedObs;
+	}
+
+	/**
+	 * @return the stopObs
+	 */
+	public Observable<ActionEvent> getStopObs() {
+		return stopObs;
 	}
 
 	/**
@@ -315,6 +377,14 @@ public class MainFrame extends JFrame {
 		size.height -= 50;
 		setSize(size);
 		return this;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public boolean isStopped() {
+		return stopMenuItem.isSelected();
 	}
 
 	/**

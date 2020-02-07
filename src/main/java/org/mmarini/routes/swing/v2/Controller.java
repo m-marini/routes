@@ -60,7 +60,7 @@ import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;
 import org.mmarini.routes.model.v2.MapProfile;
 import org.mmarini.routes.model.v2.Simulator;
-import org.mmarini.routes.model.v2.Traffic;
+import org.mmarini.routes.model.v2.Traffics;
 import org.mmarini.routes.model.v2.Tuple2;
 import org.mmarini.routes.swing.v2.UIStatus.MapMode;
 import org.slf4j.Logger;
@@ -78,24 +78,24 @@ import io.reactivex.rxjava3.subjects.PublishSubject;
 public class Controller implements Constants {
 	private static final int FPS = 25;
 	private static final double SCALE_FACTOR = Math.pow(10, 1.0 / 6);
-	private static final String INITIAL_MAP = "/test.yml"; // $NON-NLS-1$
+	private static final String INITIAL_MAP = "/test.yml"; //$NON-NLS-1$
 
 	private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
 	/**
 	 * Returns the default status
 	 */
-	private static Traffic loadDefault() {
+	private static Traffics loadDefault() {
 		final URL url = Controller.class.getResource(INITIAL_MAP);
 		if (url != null) {
 			try {
 				final GeoMap map = GeoMapDeserializer.create().parse(url);
-				return Traffic.create(map);
+				return Traffics.create(map);
 			} catch (final Exception e) {
 				logger.error(e.getMessage(), e);
 			}
 		}
-		return Traffic.create();
+		return Traffics.create();
 	}
 
 	private static Point toPoint(final Point2D point) {
@@ -113,11 +113,14 @@ public class Controller implements Constants {
 	private final Simulator simulator;
 	private final ScrollMap scrollMap;
 	private final MapViewPane mapViewPane;
+	private final OptimizePane optimizePane;
+	private final RoutePane routesPane;
 //	private final List<String> gridLegendPattern;
 	private final List<String> pointLegendPattern;
 	private final List<String> edgeLegendPattern;
 	private final BehaviorSubject<UIStatus> uiStatusSubj;
 	private final Observable<UIStatus> uiStatusObs;
+	private final FrequencePane frequencePane;
 
 	/**
 	 *
@@ -134,22 +137,25 @@ public class Controller implements Constants {
 		this.scrollMap = new ScrollMap(routeMap);
 		this.mapViewPane = new MapViewPane(scrollMap);
 		this.mainFrame = new MainFrame(mapViewPane, explorerPane, mapElementPane);
+		this.optimizePane = new OptimizePane();
+		this.frequencePane = new FrequencePane();
+		this.routesPane = new RoutePane();
 //		this.gridLegendPattern = SwingUtils.loadPatterns("ScrollMap.gridLegendPattern");
-		this.pointLegendPattern = SwingUtils.loadPatterns("ScrollMap.pointLegendPattern");
-		this.edgeLegendPattern = SwingUtils.loadPatterns("ScrollMap.edgeLegendPattern");
-		final Traffic status1 = loadDefault();
-		final UIStatus initStatus = UIStatus.create().setStatus(status1);
+		this.pointLegendPattern = SwingUtils.loadPatterns("ScrollMap.pointLegendPattern"); //$NON-NLS-1$
+		this.edgeLegendPattern = SwingUtils.loadPatterns("ScrollMap.edgeLegendPattern"); //$NON-NLS-1$
+		final Traffics status1 = loadDefault();
+		final UIStatus initStatus = UIStatus.create().setTraffics(status1);
 		this.uiStatusSubj = BehaviorSubject.createDefault(initStatus);
 		this.uiStatusObs = uiStatusSubj;
 
-		this.fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("Controller.filetype.title"), //$NON-NLS-1$
-				"yml", "rml")); //$NON-NLS-1$ //$NON-NLS-2$
+		this.fileChooser.setFileFilter(
+				new FileNameExtensionFilter(Messages.getString("Controller.filetype.title"), "yml", "rml")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 		bindAll();
 
 		mapChanged(initStatus);
-		simulator.setSimulationStatus(status1);
-		simulator.start();
+		simulator.setTraffics(status1);
+		startSimulator();
 		mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		mainFrame.setVisible(true);
 	}
@@ -162,7 +168,7 @@ public class Controller implements Constants {
 	 * @param endPoint   end point of edge
 	 */
 	private Single<UIStatus> addEdge(final UIStatus st, final Point2D startPoint, final Point2D endPoint) {
-		logger.debug("addEdge {}, {}", startPoint, endPoint);
+		logger.debug("addEdge {}, {}", startPoint, endPoint); //$NON-NLS-1$
 		return simulator.stop().map(st1 -> {
 			return st.createEdge(startPoint, endPoint);
 		});
@@ -201,16 +207,17 @@ public class Controller implements Constants {
 			}
 				break;
 			case MouseEvent.MOUSE_PRESSED: {
-				logger.debug("bindOnDragEdge addEdge status {} {}", st, st.getStatus().getTraffics().size());
+				logger.debug("bindOnDragEdge addEdge status {} {}", st, st.getTraffics().getTraffics().size()); //$NON-NLS-1$
 				addEdge(st, startPoint, endPoint).subscribe(status -> {
-					logger.debug("bindOnDragEdge addEdge {}", st);
+					logger.debug("bindOnDragEdge addEdge {}", st); //$NON-NLS-1$
 					final Optional<Tuple2<Point2D, Point2D>> dragEdge = Optional.of(new Tuple2<>(endPoint, endPoint));
 					final UIStatus newStatus = status.setDragEdge(dragEdge);
-					logger.debug("bindOnDragEdge addEdge new status {} {}", newStatus,
-							newStatus.getStatus().getTraffics().size());
+					logger.debug("bindOnDragEdge addEdge new status {} {}", newStatus, //$NON-NLS-1$
+							newStatus.getTraffics().getTraffics().size());
 					mapChanged(newStatus);
 					uiStatusSubj.onNext(newStatus);
-					simulator.setSimulationStatus(newStatus.getStatus()).start();
+					simulator.setTraffics(newStatus.getTraffics());
+					startSimulator();
 				}, this::showError);
 			}
 				break;
@@ -233,7 +240,8 @@ public class Controller implements Constants {
 			explorerPane.clearSelection();
 			routeMap.clearSelection();
 			uiStatusSubj.onNext(st);
-			simulator.setSimulationStatus(st.getStatus()).start();
+			simulator.setTraffics(st.getTraffics());
+			startSimulator();
 		}, this::showError);
 
 		edgePane.getPriorityObs().withLatestFrom(uiStatusObs, (p, st) -> {
@@ -258,7 +266,8 @@ public class Controller implements Constants {
 			routeMap.setSelectedEdge(Optional.of(edge)).repaint();
 			explorerPane.setSelectedEdge(edge);
 			uiStatusSubj.onNext(st);
-			simulator.setSimulationStatus(st.getStatus()).start();
+			simulator.setTraffics(st.getTraffics());
+			startSimulator();
 		}, this::showError);
 
 		edgePane.getSpeedLimitObs().withLatestFrom(uiStatusObs, (speed, st) -> {
@@ -283,7 +292,8 @@ public class Controller implements Constants {
 			routeMap.setSelectedEdge(Optional.of(edge)).repaint();
 			explorerPane.setSelectedEdge(edge);
 			uiStatusSubj.onNext(st);
-			simulator.setSimulationStatus(st.getStatus()).start();
+			simulator.setTraffics(st.getTraffics());
+			startSimulator();
 		}, this::showError);
 		return this;
 	}
@@ -357,7 +367,8 @@ public class Controller implements Constants {
 				}).subscribe(st -> {
 					mapChanged(st);
 					uiStatusSubj.onNext(st);
-					simulator.setSimulationStatus(st.getStatus()).start();
+					simulator.setTraffics(st.getTraffics());
+					startSimulator();
 				}, this::showError);
 
 		return this;
@@ -378,9 +389,9 @@ public class Controller implements Constants {
 						final UIStatus uiStatus = tup.getElem1();
 						mapChanged(uiStatus);
 						uiStatusSubj.onNext(uiStatus);
-						simulator.setSimulationStatus(uiStatus.getStatus());
+						simulator.setTraffics(uiStatus.getTraffics());
 					});
-					simulator.start();
+					startSimulator();
 				}, this::showError);
 
 		mainFrame.getSaveMapAsObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
@@ -389,14 +400,14 @@ public class Controller implements Constants {
 				if (choice == JFileChooser.APPROVE_OPTION) {
 					handleSaveMap(st);
 				}
-				simulator.start();
+				startSimulator();
 			}, this::showError);
 		}, this::showError);
 
 		mainFrame.getSaveMapObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
 			simulator.stop().subscribe(s -> {
 				handleSaveMap(st);
-				simulator.start();
+				startSimulator();
 			}, this::showError);
 		}, this::showError);
 
@@ -406,8 +417,8 @@ public class Controller implements Constants {
 				mapChanged(status);
 				mainFrame.resetTitle().setSaveActionEnabled(false).repaint();
 				uiStatusSubj.onNext(status);
-				simulator.setSimulationStatus(status.getStatus());
-				simulator.start();
+				simulator.setTraffics(status.getTraffics());
+				startSimulator();
 			}, this::showError);
 		}, this::showError);
 
@@ -418,20 +429,100 @@ public class Controller implements Constants {
 						Messages.getString("Controller.mapProfilePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
 				if (opt == JOptionPane.OK_OPTION) {
 					final MapProfile profile = mapProfilePane.getProfile();
-					logger.info("Selected {}", profile);
-					final Traffic status = Traffic.random(profile, new Random());
-					final UIStatus uiStatus = UIStatus.create().setStatus(status);
-					simulator.setSimulationStatus(status);
+					logger.info("Selected {}", profile); //$NON-NLS-1$
+					final Traffics status = Traffics.random(profile, new Random());
+					final UIStatus uiStatus = UIStatus.create().setTraffics(status);
+					simulator.setTraffics(status);
 					mapChanged(uiStatus);
 					mainFrame.resetTitle().setSaveActionEnabled(false).repaint();
 					uiStatusSubj.onNext(uiStatus);
 				}
-				simulator.start();
+				startSimulator();
 			}, this::showError);
 		}, this::showError);
 
 		mainFrame.getExitObs().subscribe(ev -> {
 			mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
+		}, this::showError);
+
+		mainFrame.getOptimizeObs().withLatestFrom(uiStatusObs, (ev, status) -> status).subscribe(status -> {
+			simulator.stop().subscribe(st -> {
+				optimizePane.setSpeedLimit(status.getSpeedLimit());
+				final int opt = JOptionPane.showConfirmDialog(mainFrame, optimizePane,
+						Messages.getString("Controller.optimizerPane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
+				if (opt == JOptionPane.OK_OPTION) {
+					final double speedLimit = optimizePane.getSpeedLimit();
+					if (optimizePane.isOptimizeSpeed()) {
+						final UIStatus newStatus = status.setSpeedLimit(speedLimit).optimizeSpeed();
+						simulator.setTraffics(newStatus.getTraffics());
+						mapChanged(newStatus);
+						uiStatusSubj.onNext(newStatus);
+					}
+				}
+				startSimulator();
+			}, this::showError);
+		}, this::showError);
+
+		mainFrame.getFrequenceObs().withLatestFrom(uiStatusObs, (ev, status) -> status).subscribe(status -> {
+			simulator.stop().subscribe(st -> {
+				optimizePane.setSpeedLimit(status.getSpeedLimit());
+				final double frequence = status.getTraffics().getMap().getFrequence();
+				frequencePane.setFrequence(frequence);
+				final int opt = JOptionPane.showConfirmDialog(mainFrame, frequencePane,
+						Messages.getString("Controller.frequencePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
+				if (opt == JOptionPane.OK_OPTION) {
+					final UIStatus newStatus = status.setFrequence(frequencePane.getFrequence());
+					simulator.setTraffics(newStatus.getTraffics());
+					mapChanged(newStatus);
+					uiStatusSubj.onNext(newStatus);
+				}
+				startSimulator();
+			}, this::showError);
+		}, this::showError);
+
+		mainFrame.getSpeedObs().subscribe(speed -> {
+			simulator.stop().subscribe(st -> {
+				simulator.setSimulationSpeed(speed);
+				startSimulator();
+			}, this::showError);
+		}, this::showError);
+
+		mainFrame.getStopObs().subscribe(ev -> {
+			if (mainFrame.isStopped()) {
+				simulator.stop();
+			} else {
+				simulator.start();
+			}
+		}, this::showError);
+
+		mainFrame.getRoutesObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
+			simulator.stop().subscribe(tx -> {
+				routesPane.setWeights(st.getTraffics().getMap().getWeights());
+				final int opt = JOptionPane.showConfirmDialog(mainFrame, routesPane,
+						Messages.getString("Controller.routePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
+				if (opt == JOptionPane.OK_OPTION) {
+					final UIStatus newStatus = st.setWeights(routesPane.getWeights());
+					simulator.setTraffics(newStatus.getTraffics());
+					uiStatusSubj.onNext(newStatus);
+				}
+				startSimulator();
+			}, this::showError);
+		}, this::showError);
+
+		mainFrame.getRandomizeObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
+			simulator.stop().subscribe(tx -> {
+				mapProfilePane.setDifficultyOnly(true);
+				final int opt = JOptionPane.showConfirmDialog(mainFrame, mapProfilePane,
+						Messages.getString("Controller.mapProfilePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
+				if (opt == JOptionPane.OK_OPTION) {
+					final MapProfile profile = mapProfilePane.getProfile();
+					final UIStatus newStatus = st.randomize(profile.getMinWeight())
+							.setFrequence(profile.getFrequence());
+					simulator.setTraffics(newStatus.getTraffics());
+					uiStatusSubj.onNext(newStatus);
+				}
+				startSimulator();
+			}, this::showError);
 		}, this::showError);
 
 		return this;
@@ -551,7 +642,7 @@ public class Controller implements Constants {
 			final UIStatus st = t.getElem1();
 			final MouseWheelEvent ev = t.getElem2();
 			final double newScale = st.getScale() * Math.pow(SCALE_FACTOR, -ev.getWheelRotation());
-			logger.debug("onNext scale at {}", newScale);
+			logger.debug("onNext scale at {}", newScale); //$NON-NLS-1$
 			final Point pivot = ev.getPoint();
 			final UIStatus newStatus = scaleTo(st, newScale, pivot);
 			updateHud(newStatus, newStatus.toMapPoint(pivot));
@@ -573,12 +664,13 @@ public class Controller implements Constants {
 			final UIStatus st = t.getElem1();
 			final MapNode node = t.getElem2();
 			mapChanged(st);
-			final GeoMap map = st.getStatus().getMap();
+			final GeoMap map = st.getTraffics().getMap();
 			routeMap.setSelectedSite(map.getSite(node));
 			routeMap.setSelectedNode(map.getNode(node));
 			explorerPane.setSelectedNode(node);
 			uiStatusSubj.onNext(st);
-			simulator.setSimulationStatus(st.getStatus()).start();
+			simulator.setTraffics(st.getTraffics());
+			startSimulator();
 		}, this::showError);
 
 		// delete node type
@@ -591,7 +683,8 @@ public class Controller implements Constants {
 			explorerPane.clearSelection();
 			routeMap.clearSelection();
 			uiStatusSubj.onNext(st);
-			simulator.setSimulationStatus(st.getStatus()).start();
+			simulator.setTraffics(st.getTraffics());
+			startSimulator();
 		}, this::showError);
 		return this;
 	}
@@ -629,10 +722,10 @@ public class Controller implements Constants {
 				// Add last ui status
 				.withLatestFrom(uiStatusObs, (simStat, uiStat) -> new Tuple2<>(simStat, uiStat))
 				// discard no change events
-				.filter(t -> !t.getElem2().getStatus().equals(t.getElem1()))
+				.filter(t -> !t.getElem2().getTraffics().equals(t.getElem1()))
 				// Update ui status, refresh panels and send new event
 				.compose(SwingObservable.observeOnEdt()).subscribe(t -> {
-					final UIStatus uiStatus = t.getElem2().setStatus(t.getElem1());
+					final UIStatus uiStatus = t.getElem2().setTraffics(t.getElem1());
 					trafficChanged(uiStatus);
 					uiStatusSubj.onNext(uiStatus);
 				}, this::showError);
@@ -646,7 +739,7 @@ public class Controller implements Constants {
 	 * @param center the center
 	 */
 	private Controller centerMapTo(final UIStatus status, final Point2D center) {
-		logger.debug("centerMapTo {} ", center);
+		logger.debug("centerMapTo {} ", center); //$NON-NLS-1$
 		final Point2D pt = status.toScreenPoint(center);
 		final Point vp = computeViewportPosition(pt);
 		scrollMap.getViewport().setViewPosition(vp);
@@ -662,9 +755,9 @@ public class Controller implements Constants {
 		final UIStatus uiStatus = tuple.getElem1();
 		final MapNode node = tuple.getElem2();
 		return simulator.stop().map(status -> {
-			logger.debug("changeNode {} ", node);
-			final Traffic nextSt = uiStatus.getStatus().changeNode(node, (a, b) -> 1);
-			final UIStatus nextUiStatus = uiStatus.setStatus(nextSt).setSelectedElement(MapElement.empty());
+			logger.debug("changeNode {} ", node); //$NON-NLS-1$
+			final Traffics nextSt = uiStatus.getTraffics().changeNode(node, (a, b) -> 1);
+			final UIStatus nextUiStatus = uiStatus.setTraffics(nextSt).setSelectedElement(MapElement.empty());
 			return new Tuple2<>(nextUiStatus, node);
 		});
 	}
@@ -679,9 +772,9 @@ public class Controller implements Constants {
 	private Single<Tuple2<UIStatus, MapEdge>> changePriority(final UIStatus uiStatus, final MapEdge edge,
 			final int priority) {
 		return simulator.stop().map(s -> {
-			logger.debug("changePriority {} {}", edge.getShortName(), priority);
+			logger.debug("changePriority {} {}", edge.getShortName(), priority); //$NON-NLS-1$
 			final MapEdge newEdge = edge.setPriority(priority);
-			final UIStatus newStatus = uiStatus.setStatus(uiStatus.getStatus().change(newEdge));
+			final UIStatus newStatus = uiStatus.setTraffics(uiStatus.getTraffics().change(newEdge));
 			return new Tuple2<>(newStatus, newEdge);
 		});
 	}
@@ -696,9 +789,9 @@ public class Controller implements Constants {
 	private Single<Tuple2<UIStatus, MapEdge>> changeSpeedLimit(final UIStatus uiStatus, final MapEdge edge,
 			final double speed) {
 		return simulator.stop().map(s -> {
-			logger.debug("changeSpeedLimit {} {}", edge.getShortName(), speed);
+			logger.debug("changeSpeedLimit {} {}", edge.getShortName(), speed); //$NON-NLS-1$
 			final MapEdge newEdge = edge.setSpeedLimit(speed);
-			final UIStatus newStatus = uiStatus.setStatus(uiStatus.getStatus().change(newEdge));
+			final UIStatus newStatus = uiStatus.setTraffics(uiStatus.getTraffics().change(newEdge));
 			return new Tuple2<>(newStatus, newEdge);
 		});
 	}
@@ -710,13 +803,17 @@ public class Controller implements Constants {
 	 * @param gridSize
 	 * @param point
 	 * @param dragEdge
-	 * @return
+	 * @param maxSpeed
 	 */
 	private List<String> computeHud(final List<String> patterns, final double gridSize, final Point2D point,
-			final Optional<Tuple2<Point2D, Point2D>> dragEdge) {
+			final Optional<Tuple2<Point2D, Point2D>> dragEdge, final double maxSpeed) {
+		final Optional<Double> lengthOpt = dragEdge.map(t -> t.getElem1().distance(t.getElem2()));
 		final Double length = dragEdge.map(t -> t.getElem1().distance(t.getElem2())).orElse(null);
+		final Double speed = lengthOpt.map(l -> {
+			return Math.min(MapEdge.computeSpeedLimit(l), maxSpeed) * MPS_TO_KMH;
+		}).orElse(null);
 		final List<String> texts = patterns.stream()
-				.map(pattern -> String.format(pattern, gridSize, point.getX(), point.getY(), length))
+				.map(pattern -> String.format(pattern, gridSize, point.getX(), point.getY(), length, speed))
 				.collect(Collectors.toList());
 		return texts;
 	}
@@ -732,9 +829,11 @@ public class Controller implements Constants {
 		switch (status.getMode()) {
 		case START_EDGE:
 		case DRAG_EDGE:
-			return computeHud(edgeLegendPattern, status.getGridSize(), point, status.getDragEdge());
+			return computeHud(edgeLegendPattern, status.getGridSize(), point, status.getDragEdge(),
+					status.getSpeedLimit());
 		default:
-			return computeHud(pointLegendPattern, status.getGridSize(), point, status.getDragEdge());
+			return computeHud(pointLegendPattern, status.getGridSize(), point, status.getDragEdge(),
+					status.getSpeedLimit());
 		}
 	}
 
@@ -758,9 +857,9 @@ public class Controller implements Constants {
 	 */
 	private Single<UIStatus> deleteEdge(final UIStatus uiStatus, final MapEdge edge) {
 		return simulator.stop().map(status -> {
-			logger.debug("deleteEdge {} ", edge);
-			final Traffic nextSt = uiStatus.getStatus().removeEdge(edge);
-			return uiStatus.setStatus(nextSt).setSelectedElement(MapElement.empty());
+			logger.debug("deleteEdge {} ", edge); //$NON-NLS-1$
+			final Traffics nextSt = uiStatus.getTraffics().removeEdge(edge);
+			return uiStatus.setTraffics(nextSt).setSelectedElement(MapElement.empty());
 		});
 	}
 
@@ -771,9 +870,9 @@ public class Controller implements Constants {
 	 */
 	private Single<UIStatus> deleteNode(final UIStatus uiStatus, final MapNode node) {
 		return simulator.stop().map(status -> {
-			logger.debug("deleteNode {} ", node);
-			final Traffic nextSt = uiStatus.getStatus().removeNode(node);
-			return uiStatus.setStatus(nextSt).setSelectedElement(MapElement.empty());
+			logger.debug("deleteNode {} ", node); //$NON-NLS-1$
+			final Traffics nextSt = uiStatus.getTraffics().removeNode(node);
+			return uiStatus.setTraffics(nextSt).setSelectedElement(MapElement.empty());
 		});
 	}
 
@@ -809,8 +908,8 @@ public class Controller implements Constants {
 			showError(Messages.getString("Controller.writeError.message"), new Object[] { file }); //$NON-NLS-1$
 		} else {
 			try {
-				logger.info("Saving {} ...", file);
-				new GeoMapSerializer(status.getStatus().getMap()).writeFile(file);
+				logger.info("Saving {} ...", file); //$NON-NLS-1$
+				new GeoMapSerializer(status.getTraffics().getMap()).writeFile(file);
 				mainFrame.setSaveActionEnabled(true);
 				mainFrame.setTitle(file.getPath());
 			} catch (final Throwable e) {
@@ -836,10 +935,10 @@ public class Controller implements Constants {
 					return Optional.empty();
 				} else {
 					try {
-						logger.debug("loadProcess {}", file);
+						logger.debug("loadProcess {}", file); //$NON-NLS-1$
 						final GeoMap map = GeoMapDeserializer.create().parse(file);
-						final Traffic newStatus = Traffic.create(map);
-						return Optional.of(new Tuple2<>(status.setStatus(newStatus), file));
+						final Traffics newStatus = Traffics.create(map);
+						return Optional.of(new Tuple2<>(status.setTraffics(newStatus), file));
 					} catch (final Throwable ex) {
 						showError(ex);
 						return Optional.empty();
@@ -857,10 +956,11 @@ public class Controller implements Constants {
 	 * @return
 	 */
 	private Controller mapChanged(final UIStatus uiStatus) {
-		routeMap.setStatus(uiStatus.getStatus()).setGridSize(uiStatus.getGridSize())
+		routeMap.setStatus(uiStatus.getTraffics()).setGridSize(uiStatus.getGridSize()).clearSelection()
 				.setTransform(uiStatus.getTransform()).setPreferredSize(uiStatus.getScreenMapSize());
 		scrollMap.repaint();
-		explorerPane.setMap(uiStatus.getStatus().getMap());
+		explorerPane.setMap(uiStatus.getTraffics().getMap());
+		mapElementPane.clearSelection();
 		return this;
 	}
 
@@ -891,8 +991,7 @@ public class Controller implements Constants {
 	 */
 	private Controller showError(final String pattern, final Object... arguments) {
 		JOptionPane.showMessageDialog(mainFrame, MessageFormat.format(pattern, arguments),
-				Messages.getString("RouteMediator.error.title"), //$NON-NLS-1$
-				JOptionPane.ERROR_MESSAGE);
+				Messages.getString("Controller.error.title"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
 		return this;
 	}
 
@@ -903,21 +1002,31 @@ public class Controller implements Constants {
 	 */
 	private Controller showError(final Throwable e) {
 		logger.error(e.getMessage(), e);
-		return showError("{0}", new Object[] { e.getMessage(), //$NON-NLS-1$
-				e.getMessage() });
+		return showError("{0}", new Object[] { e.getMessage(), e.getMessage() }); //$NON-NLS-1$
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	private Controller startSimulator() {
+		if (!mainFrame.isStopped()) {
+			simulator.start();
+		}
+		return this;
 	}
 
 	/**
 	 * @return
 	 */
-	Traffic testMap() {
+	Traffics testMap() {
 		final MapNode s0 = MapNode.create(15, 15);
 		final MapNode s1 = MapNode.create(1000, 1000);
 		final Set<MapNode> sites = Set.of(s0, s1);
 		final Set<MapEdge> edges = Set.of(MapEdge.create(s0, s1), MapEdge.create(s1, s0));
 		final Map<Tuple2<MapNode, MapNode>, Double> weights = GeoMap.buildWeights(sites, (a, b) -> 1);
 		final GeoMap map = GeoMap.create(edges, weights);
-		final Traffic status = Traffic.create(map);
+		final Traffics status = Traffics.create(map);
 		return status;
 	}
 
@@ -927,7 +1036,7 @@ public class Controller implements Constants {
 	 * @return
 	 */
 	private Controller trafficChanged(final UIStatus uiStatus) {
-		routeMap.setStatus(uiStatus.getStatus());
+		routeMap.setStatus(uiStatus.getTraffics());
 		scrollMap.repaint();
 		return this;
 	}
