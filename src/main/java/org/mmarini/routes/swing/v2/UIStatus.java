@@ -33,6 +33,7 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
@@ -41,7 +42,7 @@ import org.mmarini.routes.model.Constants;
 import org.mmarini.routes.model.v2.GeoMap;
 import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;
-import org.mmarini.routes.model.v2.Traffic;
+import org.mmarini.routes.model.v2.Traffics;
 import org.mmarini.routes.model.v2.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +67,8 @@ public class UIStatus implements Constants {
 	 * Returns default status
 	 */
 	public static UIStatus create() {
-		return new UIStatus(DEFAULT_SCALE, Traffic.create(), MapMode.SELECTION, Optional.empty(), MapElement.empty());
+		return new UIStatus(DEFAULT_SCALE, Traffics.create(), MapMode.SELECTION, Optional.empty(), MapElement.empty(),
+				DEFAULT_SPEED_LIMIT_KMH * KMH_TO_MPS);
 	}
 
 	/**
@@ -86,14 +88,14 @@ public class UIStatus implements Constants {
 	 * @param node  site
 	 * @param point point
 	 */
-	private static boolean isInRange(final MapNode node, final Point2D point, double maxDistance) {
+	private static boolean isInRange(final MapNode node, final Point2D point, final double maxDistance) {
 		final double distance = node.getLocation().distance(point);
 		return distance <= maxDistance;
 	}
 
 	/** The scale of route map (pixels/m) */
 	private final double scale;
-	private final Traffic status;
+	private final Traffics traffics;
 	private final MapMode mode;
 	private final Optional<Tuple2<Point2D, Point2D>> dragEdge;
 	private final MapElement selectedElement;
@@ -102,20 +104,22 @@ public class UIStatus implements Constants {
 
 	/**
 	 * @param scale
-	 * @param status
+	 * @param traffics
 	 * @param mode
 	 * @param dragEdge
 	 * @param selectedElement
+	 * @param speedLimit      TODO
 	 */
-	public UIStatus(final double scale, final Traffic status, final MapMode mode,
-			final Optional<Tuple2<Point2D, Point2D>> dragEdge, final MapElement selectedElement) {
+	protected UIStatus(final double scale, final Traffics traffics, final MapMode mode,
+			final Optional<Tuple2<Point2D, Point2D>> dragEdge, final MapElement selectedElement,
+			final double speedLimit) {
 		this.scale = scale;
-		this.status = status;
+		this.traffics = traffics;
 		this.mode = mode;
 		this.dragEdge = dragEdge;
 		this.selectedElement = selectedElement;
 		this.priority = DEFAULT_PRIORITY;
-		this.speedLimit = DEFAULT_SPEED_LIMIT_KMH * KMH_TO_MPS;
+		this.speedLimit = speedLimit;
 	}
 
 	/**
@@ -145,9 +149,9 @@ public class UIStatus implements Constants {
 		logger.debug("createEdge {}, {}", startPoint, endPoint);
 		final MapNode startNode = findAnyNodeAt(startPoint).orElseGet(() -> MapNode.create(startPoint));
 		final MapNode endNode = findAnyNodeAt(endPoint).orElseGet(() -> MapNode.create(endPoint));
-		final MapEdge edge = MapEdge.create(startNode, endNode).setPriority(priority).setSpeedLimit(speedLimit);
-		final Traffic newStatus = status.addEdge(edge);
-		return setStatus(newStatus);
+		final MapEdge edge = MapEdge.create(startNode, endNode).setPriority(priority).optimizedSpeedLimit(speedLimit);
+		final Traffics newStatus = traffics.addEdge(edge);
+		return setTraffics(newStatus);
 	}
 
 	/**
@@ -165,7 +169,7 @@ public class UIStatus implements Constants {
 	 * @param pt the location
 	 */
 	private Optional<MapEdge> findEdgeAt(final Point2D pt) {
-		final Optional<MapEdge> result = status.getMap().getEdges().stream().filter(s -> {
+		final Optional<MapEdge> result = traffics.getMap().getEdges().stream().filter(s -> {
 			return isInRange(s, pt);
 		}).findAny();
 		return result;
@@ -189,7 +193,7 @@ public class UIStatus implements Constants {
 	 * @param pt the location
 	 */
 	private Optional<MapNode> findNodeAt(final Point2D pt) {
-		final Optional<MapNode> result = status.getMap().getNodes().parallelStream().filter(s -> {
+		final Optional<MapNode> result = traffics.getMap().getNodes().parallelStream().filter(s -> {
 			return isInRange(s, pt, RouteMap.NODE_SIZE / 2);
 		}).findAny();
 		return result;
@@ -201,7 +205,7 @@ public class UIStatus implements Constants {
 	 * @param pt the location
 	 */
 	private Optional<MapNode> findSiteAt(final Point2D pt) {
-		final Optional<MapNode> result = status.getMap().getSites().parallelStream().filter(s -> {
+		final Optional<MapNode> result = traffics.getMap().getSites().parallelStream().filter(s -> {
 			return isInRange(s, pt, RouteMap.SITE_SIZE / 2);
 		}).findAny();
 		return result;
@@ -246,7 +250,7 @@ public class UIStatus implements Constants {
 	 * @param map the map
 	 */
 	public Rectangle2D getMapBound() {
-		final GeoMap map = status.getMap();
+		final GeoMap map = traffics.getMap();
 		final Set<MapNode> all = new HashSet<>(map.getSites());
 		all.addAll(map.getNodes());
 		final OptionalDouble x0 = all.parallelStream().mapToDouble(n -> n.getX()).min();
@@ -266,6 +270,13 @@ public class UIStatus implements Constants {
 	 */
 	public MapMode getMode() {
 		return mode;
+	}
+
+	/**
+	 * @return the priority
+	 */
+	public int getPriority() {
+		return priority;
 	}
 
 	/**
@@ -294,10 +305,17 @@ public class UIStatus implements Constants {
 	}
 
 	/**
+	 * @return the speedLimit
+	 */
+	public double getSpeedLimit() {
+		return speedLimit;
+	}
+
+	/**
 	 * @return the status
 	 */
-	public Traffic getStatus() {
-		return status;
+	public Traffics getTraffics() {
+		return traffics;
 	}
 
 	/**
@@ -321,12 +339,41 @@ public class UIStatus implements Constants {
 	}
 
 	/**
+	 *
+	 * @param speedLimit
+	 * @return
+	 */
+	public UIStatus optimizeSpeed() {
+		return setTraffics(traffics.optimizeSpeed(speedLimit));
+	}
+
+	/**
+	 *
+	 * @param minWeight
+	 * @return
+	 */
+	public UIStatus randomize(final double minWeight) {
+		return setTraffics(traffics.randomize(minWeight));
+	}
+
+	/**
 	 * Returns the UIStatus with a new drage edge
 	 *
 	 * @param dragEdge
 	 */
 	public UIStatus setDragEdge(final Optional<Tuple2<Point2D, Point2D>> dragEdge) {
-		return new UIStatus(scale, status, mode, dragEdge, selectedElement);
+		return new UIStatus(scale, traffics, mode, dragEdge, selectedElement, speedLimit);
+	}
+
+	/**
+	 * Returns the status with new frequence of traffics
+	 *
+	 * @param frequence frequence
+	 */
+	public UIStatus setFrequence(final double frequence) {
+		final Traffics newTraffics = traffics.setFrequence(frequence);
+		final UIStatus result = setTraffics(newTraffics);
+		return result;
 	}
 
 	/**
@@ -335,7 +382,7 @@ public class UIStatus implements Constants {
 	 * @param mode the mode
 	 */
 	public UIStatus setMode(final MapMode mode) {
-		return new UIStatus(scale, status, mode, dragEdge, selectedElement);
+		return new UIStatus(scale, traffics, mode, dragEdge, selectedElement, speedLimit);
 	}
 
 	/**
@@ -344,7 +391,7 @@ public class UIStatus implements Constants {
 	 * @param scale the scale
 	 */
 	public UIStatus setScale(final double scale) {
-		return new UIStatus(scale, status, mode, dragEdge, selectedElement);
+		return new UIStatus(scale, traffics, mode, dragEdge, selectedElement, speedLimit);
 	}
 
 	/**
@@ -353,16 +400,34 @@ public class UIStatus implements Constants {
 	 * @param selectedElement the selected element
 	 */
 	public UIStatus setSelectedElement(final MapElement selectedElement) {
-		return new UIStatus(scale, status, mode, dragEdge, selectedElement);
+		return new UIStatus(scale, traffics, mode, dragEdge, selectedElement, speedLimit);
+	}
+
+	/**
+	 *
+	 * @param speedLimit
+	 * @return
+	 */
+	public UIStatus setSpeedLimit(final double speedLimit) {
+		return new UIStatus(scale, traffics, mode, dragEdge, selectedElement, speedLimit);
 	}
 
 	/**
 	 * Returns the UIStatus with a new Simulation status
 	 *
-	 * @param status the status
+	 * @param traffics the status
 	 */
-	public UIStatus setStatus(final Traffic status) {
-		return new UIStatus(scale, status, mode, dragEdge, selectedElement);
+	public UIStatus setTraffics(final Traffics traffics) {
+		return new UIStatus(scale, traffics, mode, dragEdge, selectedElement, speedLimit);
+	}
+
+	/**
+	 *
+	 * @param weights
+	 * @return
+	 */
+	public UIStatus setWeights(final Map<Tuple2<MapNode, MapNode>, Double> weights) {
+		return setTraffics(traffics.setWeights(weights));
 	}
 
 	/**
@@ -372,7 +437,7 @@ public class UIStatus implements Constants {
 	 */
 	public Point2D snapToNode(final Point2D point) {
 		final double precision = CURSOR_SELECTION_PRECISION / scale;
-		final Optional<MapNode> node = status.getMap().findNearst(point, precision);
+		final Optional<MapNode> node = traffics.getMap().findNearst(point, precision);
 		final Point2D result = node.map(MapNode::getLocation).orElse(point);
 		return result;
 	}

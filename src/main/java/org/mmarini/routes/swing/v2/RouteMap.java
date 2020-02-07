@@ -42,11 +42,8 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import javax.swing.JComponent;
 
@@ -54,7 +51,7 @@ import org.mmarini.routes.model.Constants;
 import org.mmarini.routes.model.v2.EdgeTraffic;
 import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;
-import org.mmarini.routes.model.v2.Traffic;
+import org.mmarini.routes.model.v2.Traffics;
 import org.mmarini.routes.model.v2.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,20 +89,7 @@ public class RouteMap extends JComponent implements Constants {
 		 */
 		private Painter computeSiteColorMap() {
 			final Map<MapNode, Color> map = status.map(s -> {
-				final List<MapNode> sites = s.getMap().getSites().stream().sorted().collect(Collectors.toList());
-				final int n = sites.size();
-				if (n > 1) {
-					final Map<MapNode, Color> map1 = IntStream.range(0, n).mapToObj(i -> {
-						final double value = (double) i / (n - 1);
-						final Color color = SwingUtils.computeColor(value, NODE_SATURATION);
-						return new Tuple2<MapNode, Color>(sites.get(i), color);
-					}).collect(Collectors.toMap(Tuple2::getElem1, Tuple2::getElem2));
-					return map1;
-				} else if (n == 1) {
-					return Map.of(sites.get(0), SwingUtils.computeColor(0, NODE_SATURATION));
-				} else {
-					return Map.<MapNode, Color>of();
-				}
+				return SwingUtils.buildColorMap(s.getMap().getSites());
 			}).orElseGet(() -> Collections.emptyMap());
 			return new Painter(graphics, bound, map, borderPainted);
 		}
@@ -347,7 +331,6 @@ public class RouteMap extends JComponent implements Constants {
 	private static final Color MINOR_GRID_REVERSED_COLOR = new Color(0x101010);
 	private static final Color SELECTED_NODE_COLOR = Color.RED;
 	private static final Color SELECTED_EDGE_COLOR = Color.YELLOW;
-	private static final double NODE_SATURATION = 1;
 	private static final BasicStroke STROKE = new BasicStroke((float) EDGE_WIDTH, BasicStroke.CAP_ROUND,
 			BasicStroke.JOIN_ROUND);
 	private static final BasicStroke THIN_STROKE = new BasicStroke(0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
@@ -362,7 +345,7 @@ public class RouteMap extends JComponent implements Constants {
 	private final Observable<MouseWheelEvent> mouseWheelObs;
 	private final Observable<KeyEvent> keyboardObs;
 	private boolean trafficView;
-	private Optional<Traffic> status;
+	private Optional<Traffics> status;
 	private AffineTransform transform;
 	private double gridSize;
 	private Optional<MapNode> selectedNode;
@@ -536,7 +519,7 @@ public class RouteMap extends JComponent implements Constants {
 	/**
 	 * @param status the status to set
 	 */
-	public RouteMap setStatus(final Traffic status) {
+	public RouteMap setStatus(final Traffics status) {
 		this.status = Optional.ofNullable(status);
 		return this;
 	}

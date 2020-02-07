@@ -49,7 +49,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 		final TrafficBuilder builder = builder1
 				.setInitialStatus(builder1.getInitialStatus().setRandom(new Random(12345)));
 
-		final Traffic result = builder.build();
+		final Traffics result = builder.build();
 		assertNotNull(result);
 
 		final Set<EdgeTraffic> traffics1 = result.getTraffics();
@@ -101,7 +101,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 
 	@Test
 	public void getMinimumTimeEmpty() {
-		final TrafficBuilder builder = TrafficBuilder.create(Traffic.create(), 10);
+		final TrafficBuilder builder = TrafficBuilder.create(Traffics.create(), 10);
 		final double result = builder.getMinimumTime();
 		assertThat(result, closeTo(10.0, 1e-3));
 	}
@@ -140,7 +140,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 
 	@Test
 	public void getNextMinimumTimeEmpty() {
-		final TrafficBuilder builder = TrafficBuilder.create(Traffic.create(), 10);
+		final TrafficBuilder builder = TrafficBuilder.create(Traffics.create(), 10);
 		final double result = builder.getNextMinimumTime();
 		assertThat(result, closeTo(10.0, 1e-3));
 	}

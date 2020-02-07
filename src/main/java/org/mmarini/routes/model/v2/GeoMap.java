@@ -203,7 +203,6 @@ public class GeoMap implements Constants {
 	}
 
 	private final Set<MapEdge> edges;
-
 	private final Map<Tuple2<MapNode, MapNode>, Double> weights;
 	private final Set<MapNode> sites;
 	private final Set<MapNode> nodes;
@@ -395,6 +394,28 @@ public class GeoMap implements Constants {
 	 */
 	public Map<Tuple2<MapNode, MapNode>, Double> getWeights() {
 		return weights;
+	}
+
+	/**
+	 *
+	 * @param speedLimit
+	 * @return
+	 */
+	public GeoMap optimizeSpeedLimit(final double speedLimit) {
+		final Set<MapEdge> newEdges = edges.parallelStream().map(edge -> {
+			return edge.optimizedSpeedLimit(speedLimit);
+		}).collect(Collectors.toSet());
+		return setEdges(newEdges);
+	}
+
+	/**
+	 *
+	 * @param minWeight
+	 * @param random
+	 * @return
+	 */
+	public GeoMap randomize(final double minWeight, final Random random) {
+		return setWeights(buildWeights(sites, randomWeight(minWeight, random)));
 	}
 
 	/**

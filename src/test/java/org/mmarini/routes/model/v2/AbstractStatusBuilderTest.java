@@ -68,7 +68,7 @@ public abstract class AbstractStatusBuilderTest {
 			return result;
 		}).collect(Collectors.toList());
 
-		final Traffic status = Traffic.create().setGeoMap(map).setTraffics(Set.copyOf(traffics));
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(Set.copyOf(traffics));
 		return TrafficBuilder.create(status, limitTime);
 	}
 

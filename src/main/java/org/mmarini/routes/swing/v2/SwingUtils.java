@@ -19,7 +19,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.swing.AbstractButton;
 import javax.swing.ImageIcon;
@@ -32,6 +36,7 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 
+import org.mmarini.routes.model.v2.MapNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -375,6 +380,8 @@ public class SwingUtils {
 
 	private static final double HUE_ONE = 0;
 
+	private static final double NODE_SATURATION = 1;
+
 	/**
 	 *
 	 * @param field
@@ -385,6 +392,37 @@ public class SwingUtils {
 			logger.debug("register listener on {}", field);
 			field.addActionListener(ev -> emitter.onNext(ev));
 		});
+	}
+
+	/**
+	 * Returns the color map for sites
+	 *
+	 * @param sites the sites
+	 */
+	public static Map<MapNode, Color> buildColorMap(final Collection<MapNode> sites) {
+		return buildColorMap(sites, NODE_SATURATION);
+	}
+
+	/**
+	 * Returns the color map for sites
+	 *
+	 * @param sites      the sites
+	 * @param saturation saturation
+	 */
+	public static Map<MapNode, Color> buildColorMap(final Collection<MapNode> sites, final double saturation) {
+		final int n = sites.size();
+		if (n == 0) {
+			return Map.of();
+		} else if (n == 1) {
+			return Map.of(sites.stream().findAny().get(), computeColor(0, saturation));
+		} else {
+			final List<MapNode> sorted = sites.stream().sorted().collect(Collectors.toList());
+			final Map<MapNode, Color> result = IntStream.range(0, n).mapToObj(i -> i)
+					.collect(Collectors.toMap(sorted::get, i -> {
+						return computeColor((double) (n - i - 1) / (n - 1), saturation);
+					}));
+			return result;
+		}
 	}
 
 	/**
