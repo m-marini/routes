@@ -9,6 +9,9 @@
  */
 package org.mmarini.routes.swing.v2;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -435,24 +438,40 @@ public class SwingUtils {
 	 * @param saturation the saturation of result color
 	 */
 	public static Color computeColor(final double value, final double saturation) {
-		final double b = interpolate(value, BRIGHTNESS_ZERO, BRIGHTNESS_ONE);
-		final double h = interpolate(value, HUE_ZERO, HUE_ONE);
+		final double b = min(max(0, interpolate(value, BRIGHTNESS_ZERO, BRIGHTNESS_ONE)), 1);
+		final double h = min(max(0, interpolate(value, HUE_ZERO, HUE_ONE)), 1);
 		final Color color = Color.getHSBColor((float) h, (float) saturation, (float) b);
 		return color;
 	}
 
+	/**
+	 * Returns the GridBagConstraintsBuilder for a field. The field is left aligned
+	 * e horizontal filled
+	 *
+	 * @param x horizontal position
+	 * @param y vertical position
+	 * @param w width
+	 * @param h height
+	 */
 	public static GridBagConstraintsBuilder createFieldConstraints(final int x, final int y, final int w, final int h) {
 		return createGridConstraints(x, y, w, h).west().horizontal().inset(2);
 	}
 
 	/**
-	 *
-	 * @return
+	 * Returns the default GridBagConstraintsBuilder
 	 */
 	public static GridBagConstraintsBuilder createGridConstraints() {
 		return new GridBagConstraintsBuilder(new GridBagConstraints());
 	}
 
+	/**
+	 * Returns the default GridBagConstraintsBuilder for a cell
+	 *
+	 * @param x horizontal position
+	 * @param y vertical position
+	 * @param w width
+	 * @param h height
+	 */
 	public static GridBagConstraintsBuilder createGridConstraints(final int x, final int y, final int w, final int h) {
 		return new GridBagConstraintsBuilder(new GridBagConstraints()).grid(x, y, w, h);
 	}
@@ -502,6 +521,14 @@ public class SwingUtils {
 		return setButtonProperties(new JToggleButton(), key);
 	}
 
+	/**
+	 * Returns the GridBagConstraintsBuilder for a field. The field is right aligned
+	 *
+	 * @param x horizontal position
+	 * @param y vertical position
+	 * @param w width
+	 * @param h height
+	 */
 	public static GridBagConstraintsBuilder createLabelConstraints(final int x, final int y, final int w, final int h) {
 		return createGridConstraints(x, y, w, h).east().inset(2);
 	}

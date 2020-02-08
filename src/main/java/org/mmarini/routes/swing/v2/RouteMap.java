@@ -87,7 +87,7 @@ public class RouteMap extends JComponent implements Constants {
 		/**
 		 * Returns the painter with map of colors of sites
 		 */
-		private Painter computeSiteColorMap() {
+		protected Painter computeSiteColorMap() {
 			final Map<MapNode, Color> map = status.map(s -> {
 				return SwingUtils.buildColorMap(s.getMap().getSites());
 			}).orElseGet(() -> Collections.emptyMap());
@@ -131,8 +131,12 @@ public class RouteMap extends JComponent implements Constants {
 		 */
 		private Painter paintEdges() {
 			status.ifPresent(s -> {
-				graphics.setColor(EDGE_COLOR);
-				s.getMap().getEdges().forEach(this::paintEdge);
+				if (trafficView) {
+					s.getTraffics().forEach(this::paintTraffic);
+				} else {
+					graphics.setColor(EDGE_COLOR);
+					s.getMap().getEdges().forEach(this::paintEdge);
+				}
 			});
 			return this;
 		}
@@ -247,6 +251,14 @@ public class RouteMap extends JComponent implements Constants {
 				graphics.setColor(trafficView ? Color.WHITE : Color.BLACK);
 				graphics.draw(shape);
 			}
+			return this;
+		}
+
+		private Painter paintTraffic(final EdgeTraffic traffic) {
+			final double tc = traffic.getTrafficCongestion();
+			final Color trafficColor = SwingUtils.computeColor(tc, 1.0);
+			graphics.setColor(trafficColor);
+			paintEdge(traffic.getEdge());
 			return this;
 		}
 
@@ -442,6 +454,7 @@ public class RouteMap extends JComponent implements Constants {
 	@Override
 	protected void paintComponent(final Graphics g) {
 		final Dimension size = getPreferredSize();
+		final Dimension rsize = getSize();
 		Color bg;
 		if (trafficView) {
 			bg = Color.BLACK;
@@ -449,7 +462,7 @@ public class RouteMap extends JComponent implements Constants {
 			bg = getBackground();
 		}
 		g.setColor(bg);
-		g.fillRect(0, 0, size.width, size.height);
+		g.fillRect(0, 0, rsize.width, rsize.height);
 		try {
 			final Rectangle2D bound = new Rectangle2D.Double(0, 0, size.width, size.height);
 			final Rectangle2D realBound = transform.createInverse().createTransformedShape(bound).getBounds2D();

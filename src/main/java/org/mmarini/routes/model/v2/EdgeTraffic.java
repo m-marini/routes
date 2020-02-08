@@ -237,6 +237,21 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 	}
 
 	/**
+	 *
+	 * @return
+	 */
+	public double getTrafficCongestion() {
+		final int n = getVehicles().size();
+		final double length = edge.getLength();
+		final double max = length / VEHICLE_LENGTH;
+		final double mid = length / edge.getSpeedLimit() / REACTION_TIME;
+		final double optim = Math.min(n / mid, 1);
+		final double over = Math.max((n - mid) / (max - mid), 0);
+		final double congestion = (over > 0 ? Math.pow(over, 0.25) + 1 : optim) * 0.5;
+		return congestion;
+	}
+
+	/**
 	 * Returns the estimated travel time in the edge.
 	 * <p>
 	 * The estimation is the travel time of last exited vehicle or the minimum
