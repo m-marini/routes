@@ -576,6 +576,14 @@ public class Controller implements Constants {
 			final UIStatus newStatus = scaleTo(st, newScale, new Point());
 			uiStatusSubj.onNext(newStatus);
 		}, this::showError);
+
+		mapViewPane.getTrafficViewObs().subscribe(ev -> {
+			routeMap.setTrafficView(true);
+		}, this::showError);
+
+		mapViewPane.getNormalViewObs().subscribe(ev -> {
+			routeMap.setTrafficView(false);
+		}, this::showError);
 		return this;
 	}
 

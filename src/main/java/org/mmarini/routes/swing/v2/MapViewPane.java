@@ -75,6 +75,8 @@ public class MapViewPane extends JPanel {
 	private final Observable<ActionEvent> zoomDefaultObs;
 	private final Observable<ActionEvent> selectModeObs;
 	private final Observable<ActionEvent> edgeModeObs;
+	private final Observable<ActionEvent> normalViewObs;
+	private final Observable<ActionEvent> trafficViewObs;
 
 	/**
 	 * Create the component
@@ -91,6 +93,7 @@ public class MapViewPane extends JPanel {
 		trafficViewButton = createJToggleButton("MapViewPane.trafficViewAction"); //$NON-NLS-1$
 		toolGroup = new ButtonGroup();
 		viewGroup = new ButtonGroup();
+		normalViewButton.setSelected(true);
 
 		zoomDefaultObs = SwingObservable.actions(zoomDefaultButton);
 		zoomInObs = SwingObservable.actions(zoomInButton);
@@ -98,7 +101,8 @@ public class MapViewPane extends JPanel {
 		fitInWindowObs = SwingObservable.actions(fitInWindowAction);
 		selectModeObs = SwingObservable.actions(selectButton);
 		edgeModeObs = SwingObservable.actions(edgeButton);
-
+		normalViewObs = SwingObservable.actions(normalViewButton);
+		trafficViewObs = SwingObservable.actions(trafficViewButton);
 		init(content);
 		setOpaque(false);
 	}
@@ -153,10 +157,24 @@ public class MapViewPane extends JPanel {
 	}
 
 	/**
+	 * @return the normalViewObs
+	 */
+	public Observable<ActionEvent> getNormalViewObs() {
+		return normalViewObs;
+	}
+
+	/**
 	 * @return the selectModeObs
 	 */
 	public Observable<ActionEvent> getSelectModeObs() {
 		return selectModeObs;
+	}
+
+	/**
+	 * @return the trafficViewObs
+	 */
+	public Observable<ActionEvent> getTrafficViewObs() {
+		return trafficViewObs;
 	}
 
 	/**
