@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #67: Mainframe options menu
 - Issue #68: Weight panel
 - Issue #71: Model semplification
+- Issue #76: Information menu items
 - Issue #77: Traffics view
 
 ## [4.2.0] - 2019-12-08

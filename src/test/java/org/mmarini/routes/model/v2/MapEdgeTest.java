@@ -48,6 +48,15 @@ public class MapEdgeTest implements Constants {
 		assertThat(result12, greaterThan(0));
 	}
 
+	@ParameterizedTest
+	@MethodSource("distanceRange")
+	public void computeSpeedLimit(final double length) {
+
+		final double result = MapEdge.computeSpeedLimit(length);
+
+		assertThat(result, closeTo(length / REACTION_TIME, 1e-3));
+	}
+
 	@Test
 	public void create() {
 		final MapNode begin = MapNode.create(0, 0);
@@ -212,6 +221,30 @@ public class MapEdgeTest implements Constants {
 		final MapEdge other = MapEdge.create(MapNode.create(0, 10), end);
 		final boolean result = edge.isCrossing(other);
 		assertTrue(result);
+	}
+
+	@Test
+	public void optimizedSpeedLimit10() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(10, 0);
+		final MapEdge edge = MapEdge.create(begin, end);
+
+		final MapEdge result = edge.optimizedSpeedLimit(20);
+
+		assertNotNull(result);
+		assertThat(result.getSpeedLimit(), closeTo(10, 1e-3));
+	}
+
+	@Test
+	public void optimizedSpeedLimit100() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(100, 0);
+		final MapEdge edge = MapEdge.create(begin, end);
+
+		final MapEdge result = edge.optimizedSpeedLimit(20);
+
+		assertNotNull(result);
+		assertThat(result.getSpeedLimit(), closeTo(20, 1e-3));
 	}
 
 	/**

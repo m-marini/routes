@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -113,14 +114,11 @@ public class Controller implements Constants {
 	private final Simulator simulator;
 	private final ScrollMap scrollMap;
 	private final MapViewPane mapViewPane;
-	private final OptimizePane optimizePane;
-	private final RoutePane routesPane;
 //	private final List<String> gridLegendPattern;
 	private final List<String> pointLegendPattern;
 	private final List<String> edgeLegendPattern;
 	private final BehaviorSubject<UIStatus> uiStatusSubj;
 	private final Observable<UIStatus> uiStatusObs;
-	private final FrequencePane frequencePane;
 
 	/**
 	 *
@@ -137,10 +135,6 @@ public class Controller implements Constants {
 		this.scrollMap = new ScrollMap(routeMap);
 		this.mapViewPane = new MapViewPane(scrollMap);
 		this.mainFrame = new MainFrame(mapViewPane, explorerPane, mapElementPane);
-		this.optimizePane = new OptimizePane();
-		this.frequencePane = new FrequencePane();
-		this.routesPane = new RoutePane();
-//		this.gridLegendPattern = SwingUtils.loadPatterns("ScrollMap.gridLegendPattern");
 		this.pointLegendPattern = SwingUtils.loadPatterns("ScrollMap.pointLegendPattern"); //$NON-NLS-1$
 		this.edgeLegendPattern = SwingUtils.loadPatterns("ScrollMap.edgeLegendPattern"); //$NON-NLS-1$
 		final Traffics status1 = loadDefault();
@@ -447,6 +441,7 @@ public class Controller implements Constants {
 
 		mainFrame.getOptimizeObs().withLatestFrom(uiStatusObs, (ev, status) -> status).subscribe(status -> {
 			simulator.stop().subscribe(st -> {
+				final OptimizePane optimizePane = new OptimizePane();
 				optimizePane.setSpeedLimit(status.getSpeedLimit());
 				final int opt = JOptionPane.showConfirmDialog(mainFrame, optimizePane,
 						Messages.getString("Controller.optimizerPane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
@@ -465,7 +460,7 @@ public class Controller implements Constants {
 
 		mainFrame.getFrequenceObs().withLatestFrom(uiStatusObs, (ev, status) -> status).subscribe(status -> {
 			simulator.stop().subscribe(st -> {
-				optimizePane.setSpeedLimit(status.getSpeedLimit());
+				final FrequencePane frequencePane = new FrequencePane();
 				final double frequence = status.getTraffics().getMap().getFrequence();
 				frequencePane.setFrequence(frequence);
 				final int opt = JOptionPane.showConfirmDialog(mainFrame, frequencePane,
@@ -497,11 +492,13 @@ public class Controller implements Constants {
 
 		mainFrame.getRoutesObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
 			simulator.stop().subscribe(tx -> {
-				routesPane.setWeights(st.getTraffics().getMap().getWeights());
-				final int opt = JOptionPane.showConfirmDialog(mainFrame, routesPane,
+				final WeightsTable table = new WeightsTable();
+				table.setWeights(st.getTraffics().getMap().getWeights());
+				final JScrollPane pane = new JScrollPane(table);
+				final int opt = JOptionPane.showConfirmDialog(mainFrame, pane,
 						Messages.getString("Controller.routePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
 				if (opt == JOptionPane.OK_OPTION) {
-					final UIStatus newStatus = st.setWeights(routesPane.getWeights());
+					final UIStatus newStatus = st.setWeights(table.getWeights());
 					simulator.setTraffics(newStatus.getTraffics());
 					uiStatusSubj.onNext(newStatus);
 				}
@@ -521,6 +518,17 @@ public class Controller implements Constants {
 					simulator.setTraffics(newStatus.getTraffics());
 					uiStatusSubj.onNext(newStatus);
 				}
+				startSimulator();
+			}, this::showError);
+		}, this::showError);
+
+		mainFrame.getVehicleInfoObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
+			simulator.stop().subscribe(tx -> {
+				final Traffics traffics = st.getTraffics();
+				final TrafficsTable table = new TrafficsTable(traffics);
+				final JScrollPane pane = new JScrollPane(table);
+				JOptionPane.showMessageDialog(mainFrame, pane, Messages.getString("Controller.trafficsPane.title"), //$NON-NLS-1$
+						JOptionPane.INFORMATION_MESSAGE);
 				startSimulator();
 			}, this::showError);
 		}, this::showError);

@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,6 +51,7 @@ public class TrafficStats {
 	private final List<MapNode> nodes;
 	private final int[][] connectionMatrix;
 	private final double[][] timeMatrix;
+	private final double[][] minTimeMatrix;
 
 	/**
 	 *
@@ -61,6 +63,7 @@ public class TrafficStats {
 		final int n = nodes.size();
 		this.connectionMatrix = new int[n][n];
 		this.timeMatrix = new double[n][n];
+		this.minTimeMatrix = new double[n][n];
 		createMatrices();
 	}
 
@@ -72,7 +75,9 @@ public class TrafficStats {
 		final int n = nodes.size();
 		for (int i = 0; i < n; i++) {
 			Arrays.fill(timeMatrix[i], Double.POSITIVE_INFINITY);
+			Arrays.fill(minTimeMatrix[i], Double.POSITIVE_INFINITY);
 			timeMatrix[i][i] = 0;
+			minTimeMatrix[i][i] = 0;
 		}
 		for (int i = 0; i < n; i++) {
 			Arrays.fill(connectionMatrix[i], -1);
@@ -83,6 +88,7 @@ public class TrafficStats {
 			final int i = nodes.indexOf(s.getEdge().getBegin());
 			final int j = nodes.indexOf(s.getEdge().getEnd());
 			timeMatrix[i][j] = s.getTravelTime();
+			minTimeMatrix[i][j] = s.getEdge().getTransitTime();
 			connectionMatrix[i][j] = i;
 		}
 
@@ -96,6 +102,10 @@ public class TrafficStats {
 					if (t < timeMatrix[i][j]) {
 						timeMatrix[i][j] = t;
 						connectionMatrix[i][j] = connectionMatrix[k][j];
+					}
+					final double mt = minTimeMatrix[i][k] + minTimeMatrix[k][j];
+					if (mt < minTimeMatrix[i][j]) {
+						minTimeMatrix[i][j] = mt;
 					}
 				}
 			}
@@ -136,10 +146,38 @@ public class TrafficStats {
 
 	/**
 	 *
+	 * @param from
+	 * @param to
+	 * @return
+	 */
+	public OptionalDouble getMinTime(final MapNode from, final MapNode to) {
+		final int i = nodes.indexOf(from);
+		final int j = nodes.indexOf(to);
+		return i >= 0 && j >= 0 && i != j && minTimeMatrix[i][j] != Double.POSITIVE_INFINITY
+				? OptionalDouble.of(minTimeMatrix[i][j])
+				: OptionalDouble.empty();
+	}
+
+	/**
+	 *
 	 * @return
 	 */
 	public List<MapNode> getNodes() {
 		return nodes;
+	}
+
+	/**
+	 *
+	 * @param from
+	 * @param to
+	 * @return
+	 */
+	public OptionalDouble getTime(final MapNode from, final MapNode to) {
+		final int i = nodes.indexOf(from);
+		final int j = nodes.indexOf(to);
+		return i >= 0 && j >= 0 && i != j && timeMatrix[i][j] != Double.POSITIVE_INFINITY
+				? OptionalDouble.of(timeMatrix[i][j])
+				: OptionalDouble.empty();
 	}
 
 	/**

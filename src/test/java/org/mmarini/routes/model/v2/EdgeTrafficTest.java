@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.OptionalDouble;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -223,6 +224,76 @@ public class EdgeTrafficTest implements Constants {
 		final OptionalDouble result = et1.getExitTime();
 		assertNotNull(result);
 		assertTrue(result.isEmpty());
+	}
+
+	@Test
+	public void getTrafficCongestion0() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 60);
+		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(10);
+		final EdgeTraffic et = EdgeTraffic.create(edge);
+
+		final double result = et.getTrafficCongestion();
+
+		assertThat(result, closeTo(0, 1e-3));
+	}
+
+	@Test
+	public void getTrafficCongestion03() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 60);
+		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(10);
+		final List<Vehicle> vehicles = IntStream.range(0, 3)
+				.mapToObj(i -> Vehicle.create(begin, end).setLocation(i * 5)).collect(Collectors.toList());
+		final EdgeTraffic et = EdgeTraffic.create(edge).setVehicles(vehicles);
+
+		final double result = et.getTrafficCongestion();
+
+		assertThat(result, closeTo(0.3, 1e-3));
+	}
+
+	@Test
+	public void getTrafficCongestion05() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 60);
+		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(10);
+		final List<Vehicle> vehicles = IntStream.range(0, 5)
+				.mapToObj(i -> Vehicle.create(begin, end).setLocation(i * 5)).collect(Collectors.toList());
+		final EdgeTraffic et = EdgeTraffic.create(edge).setVehicles(vehicles);
+
+		final double result = et.getTrafficCongestion();
+
+		assertThat(result, closeTo(0.5, 1e-3));
+	}
+
+	@Test
+	public void getTrafficCongestion075() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 60);
+		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(10);
+		final List<Vehicle> vehicles = IntStream.range(0, 9)
+				.mapToObj(i -> Vehicle.create(begin, end).setLocation(i * 5)).collect(Collectors.toList());
+		final EdgeTraffic et = EdgeTraffic.create(edge).setVehicles(vehicles);
+
+		final double result = et.getTrafficCongestion();
+
+		final double expected = Math.pow(0.5, 0.25) * 0.5 + 0.5;
+
+		assertThat(result, closeTo(expected, 1e-3));
+	}
+
+	@Test
+	public void getTrafficCongestion1() {
+		final MapNode begin = MapNode.create(0, 0);
+		final MapNode end = MapNode.create(0, 60);
+		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(10);
+		final List<Vehicle> vehicles = IntStream.range(0, 13)
+				.mapToObj(i -> Vehicle.create(begin, end).setLocation(i * 5)).collect(Collectors.toList());
+		final EdgeTraffic et = EdgeTraffic.create(edge).setVehicles(vehicles);
+
+		final double result = et.getTrafficCongestion();
+
+		assertThat(result, closeTo(1, 1e-3));
 	}
 
 	/**

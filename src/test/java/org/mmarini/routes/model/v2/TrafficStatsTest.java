@@ -5,12 +5,14 @@ import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,6 +24,136 @@ public class TrafficStatsTest implements Constants {
 	private static final double TIME_10M = 10.0 / DEFAULT_SPEED_LIMIT_KMH / KMH_TO_MPS;
 	private static final double TIME_20M = TIME_10M * 2;
 	private static final double TIME_30M = TIME_10M * 3;
+
+	/**
+	 * <pre>
+	 * 1 <--> 2
+	 *        ^
+	 *        |
+	 *        v
+	 * 3 <--> 4
+	 * </pre>
+	 *
+	 */
+	@Test
+	public void getMinTime11() {
+		final MapNode node1 = MapNode.create(0, 0);
+		final MapNode node2 = MapNode.create(10, 0);
+		final MapNode node3 = MapNode.create(0, 10);
+		final MapNode node4 = MapNode.create(10, 10);
+		final MapEdge edge12 = MapEdge.create(node1, node2);
+		final MapEdge edge21 = MapEdge.create(node2, node1);
+		final MapEdge edge24 = MapEdge.create(node2, node4);
+		final MapEdge edge34 = MapEdge.create(node3, node4);
+		final MapEdge edge42 = MapEdge.create(node4, node2);
+		final MapEdge edge43 = MapEdge.create(node4, node3);
+		final Set<MapEdge> edges = Set.of(edge12, edge21, edge24, edge34, edge42, edge43);
+
+		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
+
+		final TrafficStats s = new TrafficStats(stats);
+
+		final OptionalDouble t13 = s.getMinTime(node1, node1);
+		assertFalse(t13.isPresent());
+	}
+
+	/**
+	 * <pre>
+	 * 1 <--> 2
+	 *        ^
+	 *        |
+	 *        v
+	 * 3 <--> 4
+	 * </pre>
+	 *
+	 */
+	@Test
+	public void getMinTime13() {
+		final MapNode node1 = MapNode.create(0, 0);
+		final MapNode node2 = MapNode.create(10, 0);
+		final MapNode node3 = MapNode.create(0, 10);
+		final MapNode node4 = MapNode.create(10, 10);
+		final MapEdge edge12 = MapEdge.create(node1, node2);
+		final MapEdge edge21 = MapEdge.create(node2, node1);
+		final MapEdge edge24 = MapEdge.create(node2, node4);
+		final MapEdge edge34 = MapEdge.create(node3, node4);
+		final MapEdge edge42 = MapEdge.create(node4, node2);
+		final MapEdge edge43 = MapEdge.create(node4, node3);
+		final Set<MapEdge> edges = Set.of(edge12, edge21, edge24, edge34, edge42, edge43);
+
+		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
+
+		final TrafficStats s = new TrafficStats(stats);
+
+		final OptionalDouble t13 = s.getMinTime(node1, node3);
+		assertTrue(t13.isPresent());
+		assertThat(t13.getAsDouble(), closeTo(30 / (DEFAULT_SPEED_LIMIT_KMH * KMH_TO_MPS), 1e-3));
+	}
+
+	/**
+	 * <pre>
+	 * 1 <--> 2
+	 *        ^
+	 *        |
+	 *        v
+	 * 3 <--> 4
+	 * </pre>
+	 *
+	 */
+	@Test
+	public void getTime11() {
+		final MapNode node1 = MapNode.create(0, 0);
+		final MapNode node2 = MapNode.create(10, 0);
+		final MapNode node3 = MapNode.create(0, 10);
+		final MapNode node4 = MapNode.create(10, 10);
+		final MapEdge edge12 = MapEdge.create(node1, node2);
+		final MapEdge edge21 = MapEdge.create(node2, node1);
+		final MapEdge edge24 = MapEdge.create(node2, node4);
+		final MapEdge edge34 = MapEdge.create(node3, node4);
+		final MapEdge edge42 = MapEdge.create(node4, node2);
+		final MapEdge edge43 = MapEdge.create(node4, node3);
+		final Set<MapEdge> edges = Set.of(edge12, edge21, edge24, edge34, edge42, edge43);
+
+		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
+
+		final TrafficStats s = new TrafficStats(stats);
+
+		final OptionalDouble t13 = s.getTime(node1, node1);
+		assertFalse(t13.isPresent());
+	}
+
+	/**
+	 * <pre>
+	 * 1 <--> 2
+	 *        ^
+	 *        |
+	 *        v
+	 * 3 <--> 4
+	 * </pre>
+	 *
+	 */
+	@Test
+	public void getTime13() {
+		final MapNode node1 = MapNode.create(0, 0);
+		final MapNode node2 = MapNode.create(10, 0);
+		final MapNode node3 = MapNode.create(0, 10);
+		final MapNode node4 = MapNode.create(10, 10);
+		final MapEdge edge12 = MapEdge.create(node1, node2);
+		final MapEdge edge21 = MapEdge.create(node2, node1);
+		final MapEdge edge24 = MapEdge.create(node2, node4);
+		final MapEdge edge34 = MapEdge.create(node3, node4);
+		final MapEdge edge42 = MapEdge.create(node4, node2);
+		final MapEdge edge43 = MapEdge.create(node4, node3);
+		final Set<MapEdge> edges = Set.of(edge12, edge21, edge24, edge34, edge42, edge43);
+
+		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
+
+		final TrafficStats s = new TrafficStats(stats);
+
+		final OptionalDouble t13 = s.getTime(node1, node3);
+		assertTrue(t13.isPresent());
+		assertThat(t13.getAsDouble(), closeTo(30 / (DEFAULT_SPEED_LIMIT_KMH * KMH_TO_MPS), 1e-3));
+	}
 
 	@Test
 	public void test() {

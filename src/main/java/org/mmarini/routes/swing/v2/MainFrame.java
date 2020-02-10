@@ -87,39 +87,44 @@ public class MainFrame extends JFrame {
 
 	private final JSplitPane splitPane;
 	private final JSplitPane rightSplitPane;
+
+	private final JMenuItem newMenuItem;
+	private final JMenuItem newRandomMenuItem;
+	private final JMenuItem openMenuItem;
 	private final JMenuItem saveMenuItem;
-	private final JButton saveButton;
+	private final JMenuItem saveAsMenuItem;
+	private final JMenuItem exitMenuItem;
+
+	private final JMenuItem veicleInfosMenuItem;
 
 	private final JMenuItem optimizeMenuItem;
 	private final JMenuItem randomizeMenuItem;
 	private final JMenuItem frequenceMenuItem;
 	private final JMenuItem routesMenuItem;
+
 	private final JCheckBoxMenuItem stopMenuItem;
 	private final JRadioButtonMenuItem speedx1MenuItem;
 	private final JRadioButtonMenuItem speedx2MenuItem;
 	private final JRadioButtonMenuItem speedx5MenuItem;
 	private final JRadioButtonMenuItem speedx10MenuItem;
-	private final JMenuItem infosMenuItem;
-	private final JMenuItem veicleInfosMenuItem;
-	private final JMenuItem newMenuItem;
-	private final JMenuItem exitMenuItem;
-	private final JMenuItem newRandomMenuItem;
-	private final JMenuItem openMenuItem;
-	private final JMenuItem saveAsMenuItem;
+
 	private final JButton newButton;
 	private final JButton openButton;
+	private final JButton saveButton;
+
+	private final Observable<ActionEvent> newMapObs;
 	private final Observable<ActionEvent> newRandomObs;
-	private final Observable<ActionEvent> saveMapAsObs;
 	private final Observable<ActionEvent> openMapObs;
 	private final Observable<ActionEvent> saveMapObs;
-	private final Observable<ActionEvent> newMapObs;
+	private final Observable<ActionEvent> saveMapAsObs;
 	private final Observable<ActionEvent> exitObs;
+	private final Observable<ActionEvent> vehicleInfoObs;
 	private final Observable<ActionEvent> optimizeObs;
+	private final Observable<ActionEvent> randomizeObs;
 	private final Observable<ActionEvent> frequenceObs;
 	private final Observable<ActionEvent> routesObs;
 	private final Observable<ActionEvent> stopObs;
 	private final Observable<Double> speedObs;
-	private final Observable<ActionEvent> randomizeObs;
 
 	/**
 	 *
@@ -142,7 +147,6 @@ public class MainFrame extends JFrame {
 		this.speedx2MenuItem = createJRadioButtonMenuItem("MainFrame.speedx2Action"); //$NON-NLS-1$
 		this.speedx5MenuItem = createJRadioButtonMenuItem("MainFrame.speedx5Action"); //$NON-NLS-1$
 		this.speedx10MenuItem = createJRadioButtonMenuItem("MainFrame.speedx10Action"); //$NON-NLS-1$
-		this.infosMenuItem = createJMenuItem("MainFrame.infosAction"); //$NON-NLS-1$
 		this.veicleInfosMenuItem = createJMenuItem("MainFrame.veicleInfosAction"); //$NON-NLS-1$
 
 		this.saveButton = createJButton("MainFrame.saveAction");
@@ -177,6 +181,8 @@ public class MainFrame extends JFrame {
 		this.stopObs = SwingObservable.actions(stopMenuItem);
 		this.routesObs = SwingObservable.actions(routesMenuItem);
 		this.randomizeObs = SwingObservable.actions(randomizeMenuItem);
+		this.vehicleInfoObs = SwingObservable.actions(veicleInfosMenuItem);
+
 		init(left, top, buttom);
 	}
 
@@ -214,7 +220,6 @@ public class MainFrame extends JFrame {
 
 		final JMenu viewMenu = new JMenu(Messages.getString("MainFrame.viewMenu.text")); //$NON-NLS-1$
 		viewMenu.setMnemonic(Integer.valueOf(Messages.getString("MainFrame.viewMenu.mnemonic").charAt(0))); //$NON-NLS-1$
-		viewMenu.add(infosMenuItem);
 		viewMenu.add(veicleInfosMenuItem);
 
 		final JMenu optionMenu = new JMenu(Messages.getString("MainFrame.optionMenu.text")); //$NON-NLS-1$
@@ -338,6 +343,13 @@ public class MainFrame extends JFrame {
 	 */
 	public Observable<ActionEvent> getStopObs() {
 		return stopObs;
+	}
+
+	/**
+	 * @return the vehicleInfoObs
+	 */
+	public Observable<ActionEvent> getVehicleInfoObs() {
+		return vehicleInfoObs;
 	}
 
 	/**

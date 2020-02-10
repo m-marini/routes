@@ -243,8 +243,8 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 	public double getTrafficCongestion() {
 		final int n = getVehicles().size();
 		final double length = edge.getLength();
-		final double max = length / VEHICLE_LENGTH;
-		final double mid = length / edge.getSpeedLimit() / REACTION_TIME;
+		final double max = length / VEHICLE_LENGTH + 1;
+		final double mid = length / (VEHICLE_LENGTH + edge.getSpeedLimit() * REACTION_TIME) + 1;
 		final double optim = Math.min(n / mid, 1);
 		final double over = Math.max((n - mid) / (max - mid), 0);
 		final double congestion = (over > 0 ? Math.pow(over, 0.25) + 1 : optim) * 0.5;
