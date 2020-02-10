@@ -145,7 +145,7 @@ public class TrafficStats {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param from
 	 * @param to
 	 * @return
@@ -167,7 +167,7 @@ public class TrafficStats {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param from
 	 * @param to
 	 * @return

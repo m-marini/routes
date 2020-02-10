@@ -295,7 +295,7 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	/**
 	 * Computes the transite time.
 	 * <p>
-	 * The best transtit time is the distance / speedLimit
+	 * The best transit time is the distance / speedLimit
 	 * </p>
 	 *
 	 * @return the transit time
