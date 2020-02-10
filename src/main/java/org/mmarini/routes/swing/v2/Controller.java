@@ -119,7 +119,6 @@ public class Controller implements Constants {
 	private final List<String> edgeLegendPattern;
 	private final BehaviorSubject<UIStatus> uiStatusSubj;
 	private final Observable<UIStatus> uiStatusObs;
-//	private final FrequencePane frequencePane;
 
 	/**
 	 *
@@ -523,11 +522,17 @@ public class Controller implements Constants {
 			}, this::showError);
 		}, this::showError);
 
-		mainFrame.getVehicleInfoObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(ev -> {
+		mainFrame.getVehicleInfoObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
 			simulator.stop().subscribe(tx -> {
+				final Traffics traffics = st.getTraffics();
+				final TrafficsTable table = new TrafficsTable(traffics);
+				final JScrollPane pane = new JScrollPane(table);
+				JOptionPane.showMessageDialog(mainFrame, pane, Messages.getString("Controller.trafficsPane.title"), //$NON-NLS-1$
+						JOptionPane.INFORMATION_MESSAGE);
 				startSimulator();
 			}, this::showError);
 		}, this::showError);
+
 		return this;
 	}
 

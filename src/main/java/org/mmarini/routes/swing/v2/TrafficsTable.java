@@ -26,30 +26,33 @@
 
 package org.mmarini.routes.swing.v2;
 
+import static java.lang.String.format;
+
 import java.awt.Color;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
 import org.mmarini.routes.model.v2.MapNode;
-import org.mmarini.routes.model.v2.Tuple2;
+import org.mmarini.routes.model.v2.TrafficStats;
+import org.mmarini.routes.model.v2.Traffics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  *
  */
-public class WeightsTable extends JTable {
-	private class WeightsTableModel extends AbstractTableModel {
+public class TrafficsTable extends JTable {
+	private class TrafficsTableModel extends AbstractTableModel {
 		private static final long serialVersionUID = 1L;
 
 		@Override
 		public Class<?> getColumnClass(final int columnIndex) {
-			return columnIndex == 0 ? MapNode.class : Double.class;
+			return columnIndex == 0 ? MapNode.class : String.class;
 		}
 
 		@Override
@@ -74,76 +77,40 @@ public class WeightsTable extends JTable {
 				return from;
 			} else {
 				final MapNode to = nodes.get(columnIndex - 1);
-				return weights.getOrDefault(new Tuple2<>(from, to), 0.0);
+				final Optional<String> timeStr = stats.getTime(from, to).stream().mapToObj(t -> {
+					return format("%.0f", t);
+				}).findAny();
+				final Optional<String> minTimeStr = stats.getMinTime(from, to).stream().mapToObj(t -> {
+					return format("%.0f", t);
+				}).findAny();
+				return format("%s / %s", timeStr.orElse("-"), minTimeStr.orElse("-"));
 			}
 		}
-
-		@Override
-		public boolean isCellEditable(final int rowIndex, final int columnIndex) {
-			return columnIndex > 0 && columnIndex - 1 != rowIndex;
-		}
-
-		@Override
-		public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
-			if (columnIndex > 0 && columnIndex - 1 != rowIndex) {
-				final MapNode from = nodes.get(rowIndex);
-				final MapNode to = nodes.get(columnIndex - 1);
-				final Tuple2<MapNode, MapNode> key = new Tuple2<>(from, to);
-				final Map<Tuple2<MapNode, MapNode>, Double> newWeights = weights.entrySet().parallelStream().map(e -> {
-					final Tuple2<MapNode, MapNode> k = e.getKey();
-					return new Tuple2<>(k, k.equals(key) ? (Double) aValue : e.getValue());
-				}).collect(Collectors.toMap(Tuple2::getElem1, Tuple2::getElem2));
-				weights = newWeights;
-			}
-		}
-
 	}
 
 	private static final long serialVersionUID = 1L;
 
-	private final static Logger logger = LoggerFactory.getLogger(WeightsTable.class);
+	private final static Logger logger = LoggerFactory.getLogger(TrafficsTable.class);
 
 	private final MapNodeTableCellRenderer cellRenderer;
 	private final MapNodeHeaderTableCellRenderer headerRenderer;
-	private Map<Tuple2<MapNode, MapNode>, Double> weights;
-	private List<MapNode> nodes;
+	private final List<MapNode> nodes;
+	private final TrafficStats stats;
 
 	/**
-	 *
+	 * @param traffics
 	 */
-	public WeightsTable() {
-		logger.debug("WeightTable");
-		this.weights = Map.of();
+	public TrafficsTable(final Traffics traffics) {
+		logger.debug("TrafficsTable");
 		this.cellRenderer = new MapNodeTableCellRenderer();
 		this.headerRenderer = new MapNodeHeaderTableCellRenderer();
-		this.nodes = List.of();
-		setModel(new WeightsTableModel());
-		setDefaultRenderer(MapNode.class, cellRenderer);
-		getTableHeader().setDefaultRenderer(headerRenderer);
-	}
-
-	/**
-	 * @return the weights
-	 */
-	public Map<Tuple2<MapNode, MapNode>, Double> getWeights() {
-		return weights;
-	}
-
-	/**
-	 *
-	 * @param weights
-	 * @return
-	 */
-	public WeightsTable setWeights(final Map<Tuple2<MapNode, MapNode>, Double> weights) {
-		this.weights = weights;
-		nodes = weights.keySet().stream().flatMap(k -> {
-			return Stream.of(k.getElem1(), k.getElem2());
-		}).collect(Collectors.toSet()).stream().sorted().collect(Collectors.toList());
+		this.nodes = traffics.getMap().getSites().stream().sorted().collect(Collectors.toList());
 		final Map<MapNode, Color> colorMap = SwingUtils.buildColorMap(nodes);
 		cellRenderer.setColorMap(colorMap);
-		final List<Color> cm = nodes.stream().map(colorMap::get).collect(Collectors.toList());
-		headerRenderer.setColorMap(cm);
-		((WeightsTableModel) getModel()).fireTableStructureChanged();
-		return this;
+		headerRenderer.setColorMap(nodes.stream().map(colorMap::get).collect(Collectors.toList()));
+		stats = TrafficStats.create().setEdgeStats(traffics.getTraffics());
+		setModel(new TrafficsTableModel());
+		setDefaultRenderer(MapNode.class, cellRenderer);
+		getTableHeader().setDefaultRenderer(headerRenderer);
 	}
 }
