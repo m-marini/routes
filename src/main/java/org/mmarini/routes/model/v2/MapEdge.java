@@ -66,8 +66,17 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	 * @return
 	 */
 	public static MapEdge create(final MapNode begin, final MapNode end) {
-		final UUID id = UUID.nameUUIDFromBytes((begin.getId().toString() + end.getId().toString()).getBytes());
+		final UUID id = createUUID(begin, end);
 		return new MapEdge(id, begin, end, DEFAULT_SPEED_LIMIT_KMH * KMH_TO_MPS, DEFAULT_PRIORITY);
+	}
+
+	/**
+	 * @param begin
+	 * @param end
+	 * @return
+	 */
+	private static UUID createUUID(final MapNode begin, final MapNode end) {
+		return UUID.nameUUIDFromBytes((begin.getId().toString() + end.getId().toString()).getBytes());
 	}
 
 	private final UUID id;
@@ -329,6 +338,16 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	public MapEdge optimizedSpeedLimit(final double speedLimit) {
 		final double speed = Math.min(speedLimit, computeSpeedLimit(getLength()));
 		return setSpeedLimit(speed);
+	}
+
+	/**
+	 *
+	 * @param begin
+	 * @param end
+	 * @return
+	 */
+	public MapEdge setEnds(final MapNode begin, final MapNode end) {
+		return new MapEdge(createUUID(begin, end), begin, end, speedLimit, priority);
 	}
 
 	/**

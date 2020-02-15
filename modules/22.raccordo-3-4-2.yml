@@ -1,6 +1,6 @@
 
 ---
-speedLimit: 130.0
+version : 1
 nodes:
     Node_0:
         x: -3.0
@@ -75,72 +75,99 @@ edges:
     -   start: Node_0
         end: Node_1
         priority: 1
+        speedLimit: 130.0
     -   start: Node_1
         end: Node_2
+        speedLimit: 130.0
     -   start: Node_10
         end: Node_11
+        speedLimit: 130.0
     -   start: Node_11
         end: Node_17
+        speedLimit: 130.0
     -   start: Node_6
         end: Node_7
+        speedLimit: 130.0
     -   start: Node_0
         end: Node_3
+        speedLimit: 130.0
     -   start: Node_4
         end: Node_1
+        speedLimit: 130.0
     -   start: Node_8
         end: Node_5
+        speedLimit: 130.0
     -   start: Node_11
         end: Node_9
+        speedLimit: 130.0
     -   start: Node_2
         end: Node_10
+        speedLimit: 130.0
     -   start: Node_13
         end: Node_14
         priority: 1
+        speedLimit: 130.0
     -   start: Node_3
         end: Node_15
+        speedLimit: 130.0
     -   start: Node_19
         end: Node_20
         priority: 1
+        speedLimit: 130.0
     -   start: Node_21
         end: Node_6
+        speedLimit: 130.0
     -   start: Node_12
         end: Node_14
+        speedLimit: 130.0
     -   start: Node_14
         end: Node_22
         priority: 1
+        speedLimit: 130.0
     -   start: Node_3
         end: Node_16
+        speedLimit: 130.0
     -   start: Node_20
         end: Node_16
         priority: 1
+        speedLimit: 130.0
     -   start: Node_21
         end: Node_20
+        speedLimit: 130.0
     -   start: Node_12
         end: Node_10
         priority: 1
+        speedLimit: 130.0
     -   start: Node_10
         end: Node_22
+        speedLimit: 130.0
     -   start: Node_22
         end: Node_18
+        speedLimit: 130.0
     -   start: Node_6
         end: Node_5
         priority: 1
+        speedLimit: 130.0
     -   start: Node_5
         end: Node_4
+        speedLimit: 130.0
     -   start: Node_4
         end: Node_3
         priority: 1
+        speedLimit: 130.0
     -   start: Node_9
         end: Node_8
+        speedLimit: 130.0
     -   start: Node_8
         end: Node_7
         priority: 1
+        speedLimit: 130.0
     -   start: Node_14
         end: Node_11
-        speedLimit: 130.000151528343
+        speedLimit: 130.0
     -   start: Node_19
         end: Node_6
-        speedLimit: 130.00016185982736
+        speedLimit: 130.0
     -   start: Node_20
         end: Node_4
-        speedLimit: 130.00017219131254
+        speedLimit: 130.0

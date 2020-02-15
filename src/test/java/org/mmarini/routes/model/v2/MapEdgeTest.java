@@ -247,6 +247,25 @@ public class MapEdgeTest implements Constants {
 		assertThat(result.getSpeedLimit(), closeTo(20, 1e-3));
 	}
 
+	@Test
+	public void setEnds() {
+		final MapNode s0 = MapNode.create(0, 0);
+		final MapNode s1 = MapNode.create(10, 10);
+		final MapNode s2 = MapNode.create(5, 5);
+		final MapNode s3 = MapNode.create(15, 15);
+		final MapEdge edge = MapEdge.create(s2, s3).setSpeedLimit(10);
+
+		final MapEdge result = edge.setEnds(s0, s1);
+		assertNotNull(edge);
+		assertThat(result, hasToString("MapEdge [590864a2-f026-3db9-9edc-cfc9b60fe90b]"));
+		assertThat(result.getPriority(), equalTo(DEFAULT_PRIORITY));
+		assertThat(result.getSpeedLimit(), equalTo(10.0));
+		assertThat(result.getBegin(), equalTo(s0));
+		assertThat(result.getBeginLocation(), equalTo(s0.getLocation()));
+		assertThat(result.getEnd(), equalTo(s1));
+		assertThat(result.getEndLocation(), equalTo(s1.getLocation()));
+	}
+
 	/**
 	 * <pre>
 	 *  -- e1 ->O
@@ -387,7 +406,7 @@ public class MapEdgeTest implements Constants {
 		final MapNode end = MapNode.create(10, 10);
 		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(10);
 
-		assertThat(edge, notNullValue());
+		assertNotNull(edge);
 		assertThat(edge.getBegin(), equalTo(begin));
 		assertThat(edge.getEnd(), equalTo(end));
 		assertThat(edge.getPriority(), equalTo(DEFAULT_PRIORITY));
@@ -400,7 +419,7 @@ public class MapEdgeTest implements Constants {
 		final MapNode begin = MapNode.create(0, 0);
 		final MapNode end = MapNode.create(10, 10);
 		final MapEdge edge = MapEdge.create(begin, end).setSpeedLimit(10);
-		assertThat(edge, notNullValue());
+		assertNotNull(edge);
 		assertThat(edge, hasToString("MapEdge [590864a2-f026-3db9-9edc-cfc9b60fe90b]"));
 	}
 }

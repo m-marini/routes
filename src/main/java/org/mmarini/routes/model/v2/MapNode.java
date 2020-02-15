@@ -26,6 +26,7 @@
 
 package org.mmarini.routes.model.v2;
 
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.nio.ByteBuffer;
 import java.util.UUID;
@@ -151,5 +152,16 @@ public class MapNode implements Comparable<MapNode> {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("MapNode [").append(id).append(", ").append(getX()).append(", ").append(getY()).append("]");
 		return builder.toString();
+	}
+
+	/**
+	 * Returns the node by applying the transformation
+	 *
+	 * @param trans the transformation
+	 */
+	public MapNode transform(final AffineTransform trans) {
+		final Point2D newPt = trans.transform(location, new Point2D.Double());
+		final MapNode result = create(newPt);
+		return result;
 	}
 }

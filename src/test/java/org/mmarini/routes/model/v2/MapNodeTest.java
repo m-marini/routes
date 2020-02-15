@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 
 import org.junit.jupiter.api.Test;
@@ -104,5 +105,17 @@ public class MapNodeTest {
 		final MapNode node = MapNode.create(0, 0);
 		assertThat(node, notNullValue());
 		assertThat(node, hasToString("MapNode [4ae71336-e44b-39bf-b9d2-752e234818a5, 0.0, 0.0]"));
+	}
+
+	@Test
+	public void transform() {
+		final MapNode node = MapNode.create(10, 0);
+		final AffineTransform trans = AffineTransform.getTranslateInstance(10, 10);
+		trans.rotate(Math.toRadians(60));
+
+		final MapNode result = node.transform(trans);
+
+		assertThat(result, notNullValue());
+		assertThat(result.getLocation(), equalTo((Point2D) new Point2D.Double(5 + 10, 10 * Math.sqrt(3) / 2 + 10)));
 	}
 }

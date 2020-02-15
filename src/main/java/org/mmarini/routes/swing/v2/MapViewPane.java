@@ -32,14 +32,18 @@ import static org.mmarini.routes.swing.v2.SwingUtils.createJToggleButton;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.util.Optional;
 
 import javax.swing.ButtonGroup;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
+
+import org.mmarini.routes.model.v2.MapModule;
 
 import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
@@ -61,6 +65,7 @@ public class MapViewPane extends JPanel {
 	private final JToggleButton selectButton;
 	private final JToggleButton edgeButton;
 	private final JToggleButton moduleButton;
+	private final JButton moduleSelector;
 	private final ButtonGroup toolGroup;
 	private final JToggleButton normalViewButton;
 	private final JToggleButton trafficViewButton;
@@ -77,11 +82,15 @@ public class MapViewPane extends JPanel {
 	private final Observable<ActionEvent> edgeModeObs;
 	private final Observable<ActionEvent> normalViewObs;
 	private final Observable<ActionEvent> trafficViewObs;
+	private final Observable<MapModule> moduleModeObs;
+	private Optional<MapModule> module;
 
 	/**
 	 * Create the component
+	 *
+	 * @param moduleSelector
 	 */
-	public MapViewPane(final Component content) {
+	public MapViewPane(final Component content, final JButton moduleSelector) {
 		selectButton = createJToggleButton("MapViewPane.selectAction"); //$NON-NLS-1$
 		edgeButton = createJToggleButton("MapViewPane.edgeAction"); //$NON-NLS-1$
 		moduleButton = createJToggleButton("MapViewPane.moduleAction"); //$NON-NLS-1$
@@ -91,9 +100,11 @@ public class MapViewPane extends JPanel {
 		fitInWindowAction = createJButton("MapViewPane.fitInWindowAction"); //$NON-NLS-1$
 		normalViewButton = createJToggleButton("MapViewPane.normalViewAction"); //$NON-NLS-1$
 		trafficViewButton = createJToggleButton("MapViewPane.trafficViewAction"); //$NON-NLS-1$
+		this.moduleSelector = moduleSelector;
 		toolGroup = new ButtonGroup();
 		viewGroup = new ButtonGroup();
 		normalViewButton.setSelected(true);
+		module = Optional.empty();
 
 		zoomDefaultObs = SwingObservable.actions(zoomDefaultButton);
 		zoomInObs = SwingObservable.actions(zoomInButton);
@@ -101,10 +112,16 @@ public class MapViewPane extends JPanel {
 		fitInWindowObs = SwingObservable.actions(fitInWindowAction);
 		selectModeObs = SwingObservable.actions(selectButton);
 		edgeModeObs = SwingObservable.actions(edgeButton);
+		moduleModeObs = SwingObservable.actions(moduleButton).map(ev -> {
+			return module;
+		}).filter(m -> {
+			return m.isPresent();
+		}).map(m -> {
+			return m.get();
+		});
 		normalViewObs = SwingObservable.actions(normalViewButton);
 		trafficViewObs = SwingObservable.actions(trafficViewButton);
-		init(content);
-		setOpaque(false);
+		init(content).setOpaque(false);
 	}
 
 	/**
@@ -129,6 +146,7 @@ public class MapViewPane extends JPanel {
 		bar.add(selectButton);
 		bar.add(edgeButton);
 		bar.add(moduleButton);
+		bar.add(moduleSelector);
 		bar.add(new JSeparator(SwingConstants.VERTICAL));
 
 		bar.add(zoomDefaultButton);
@@ -154,6 +172,13 @@ public class MapViewPane extends JPanel {
 	 */
 	public Observable<ActionEvent> getFitInWindowObs() {
 		return fitInWindowObs;
+	}
+
+	/**
+	 * @return the moduleModeObs
+	 */
+	public Observable<MapModule> getModuleModeObs() {
+		return moduleModeObs;
 	}
 
 	/**
@@ -213,6 +238,35 @@ public class MapViewPane extends JPanel {
 		viewGroup.add(trafficViewButton);
 
 		createContent(content);
+		return this;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public MapViewPane selectModuleMode() {
+		moduleButton.doClick();
+		return this;
+	}
+
+	/**
+	 *
+	 * @param module
+	 * @return
+	 */
+	public MapViewPane setModule(final MapModule module) {
+		this.module = Optional.of(module);
+		return this;
+	}
+
+	/**
+	 *
+	 * @param icon
+	 * @return
+	 */
+	public MapViewPane setModuleIcon(final Icon icon) {
+		moduleButton.setIcon(icon);
 		return this;
 	}
 }

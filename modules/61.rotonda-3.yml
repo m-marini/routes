@@ -1,5 +1,5 @@
 ---
-speedLimit: 130.0
+version: 1
 nodes:
     Node_0:
         x: -32.0
@@ -40,49 +40,52 @@ nodes:
 edges:
     -   start: Node_7
         end: Node_3
-        speedLimit: 130.00002755059464
+        speedLimit: 130.0
     -   start: Node_4
         end: Node_8
         priority: 1
-        speedLimit: 130.00002755059464
+        speedLimit: 130.0
     -   start: Node_3
         end: Node_2
-        speedLimit: 130.0000068876481
+        speedLimit: 130.0
     -   start: Node_4
         end: Node_3
         priority: 1
-        speedLimit: 130.0000137752966
+        speedLimit: 130.0
     -   start: Node_2
         end: Node_1
         priority: 1
+        speedLimit: 130.0
     -   start: Node_1
         end: Node_0
+        speedLimit: 130.0
     -   start: Node_0
         end: Node_5
         priority: 1
+        speedLimit: 130.0
     -   start: Node_5
         end: Node_4
-        speedLimit: 130.0000068876481
+        speedLimit: 130.0
     -   start: Node_0
         end: Node_9
         priority: 1
-        speedLimit: 124.96723873202022
+        speedLimit: 130.0
     -   start: Node_2
         end: Node_10
         priority: 1
-        speedLimit: 124.96725859502975
+        speedLimit: 130.0
     -   start: Node_11
         end: Node_5
-        speedLimit: 124.96724535302302
+        speedLimit: 130.0
     -   start: Node_6
         end: Node_1
-        speedLimit: 130.00005165736977
+        speedLimit: 130.0
     -   start: Node_11
         end: Node_8
-        speedLimit: 90.00000953674382
+        speedLimit: 130.0
     -   start: Node_7
         end: Node_10
-        speedLimit: 90.00002145767498
+        speedLimit: 130.0
     -   start: Node_6
         end: Node_9
-        speedLimit: 90.00001907348862
+        speedLimit: 130.0

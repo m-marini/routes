@@ -29,7 +29,6 @@ package org.mmarini.routes.model.v2;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -40,6 +39,7 @@ import java.util.function.Function;
 import java.util.function.ToDoubleBiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.mmarini.routes.model.Constants;
 
@@ -49,16 +49,6 @@ import org.mmarini.routes.model.Constants;
 public class GeoMap implements Constants {
 	private final static GeoMap EMPTY = new GeoMap(Set.of(), Map.of(), Set.of(), Set.of(), DEFAULT_FREQUENCE);
 
-	/*
-	 *
-	 * @param sites the sites
-	 *
-	 * @param minWeight the minimum weight
-	 *
-	 * @param random the random generator
-	 *
-	 * @return
-	 */
 	/**
 	 * Returns random weight for a given set of sites
 	 *
@@ -91,7 +81,7 @@ public class GeoMap implements Constants {
 	 * @param edges the edges
 	 */
 	public static GeoMap create(final Set<MapEdge> edges) {
-		final Set<MapNode> nodes = retrieveNodes(edges);
+		final Set<MapNode> nodes = retrieveNodeStream(edges).collect(Collectors.toSet());
 		return new GeoMap(edges, Map.of(), Set.of(), nodes, DEFAULT_FREQUENCE);
 	}
 
@@ -103,8 +93,8 @@ public class GeoMap implements Constants {
 	 */
 	public static GeoMap create(final Set<MapEdge> edges, final Map<Tuple2<MapNode, MapNode>, Double> weights) {
 		final Set<MapNode> sites = retrieveSites(weights);
-		final Set<MapNode> nodes = new HashSet<>(retrieveNodes(edges));
-		nodes.addAll(sites);
+		final Set<MapNode> nodes = Stream.concat(retrieveNodeStream(edges), sites.parallelStream())
+				.collect(Collectors.toSet());
 		return new GeoMap(edges, weights, sites, nodes, DEFAULT_FREQUENCE);
 	}
 
@@ -115,8 +105,8 @@ public class GeoMap implements Constants {
 	 * @param site  the site
 	 */
 	public static GeoMap create(final Set<MapEdge> edges, final MapNode site) {
-		final Set<MapNode> nodes = new HashSet<>(retrieveNodes(edges));
-		nodes.add(site);
+		final Set<MapNode> nodes = Stream.concat(retrieveNodeStream(edges), Stream.of(site))
+				.collect(Collectors.toSet());
 		return new GeoMap(edges, Map.of(), Set.of(site), nodes, DEFAULT_FREQUENCE);
 	}
 
@@ -179,15 +169,13 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the nodes for a give set of edges
-	 *
-	 * @param edges the edges
+	 * @param edges
+	 * @return
 	 */
-	private static Set<MapNode> retrieveNodes(final Set<MapEdge> edges) {
-		final Set<MapNode> result = edges.parallelStream().flatMap(edge -> {
-			return Set.of(edge.getBegin(), edge.getEnd()).stream();
-		}).collect(Collectors.toSet());
-		return result;
+	private static Stream<MapNode> retrieveNodeStream(final Set<MapEdge> edges) {
+		return edges.parallelStream().flatMap(edge -> {
+			return Stream.of(edge.getBegin(), edge.getEnd());
+		}).distinct();
 	}
 
 	/**
@@ -248,10 +236,26 @@ public class GeoMap implements Constants {
 			return setEdges(newEdges);
 		} else {
 			// Add edge
-			final Set<MapEdge> edges = new HashSet<>(this.edges);
-			edges.add(edge);
+			final Set<MapEdge> edges = Stream.concat(this.edges.parallelStream(), Stream.of(edge))
+					.collect(Collectors.toSet());
 			return setEdges(edges);
 		}
+	}
+
+	/**
+	 *
+	 * @param edges
+	 * @return
+	 */
+	public GeoMap addEdges(final Set<MapEdge> edges) {
+		final Stream<MapEdge> newEdgesStrem = edges.parallelStream().map(edge -> {
+			final MapNode begin = getNode(edge.getBegin()).orElse(edge.getBegin());
+			final MapNode end = getNode(edge.getEnd()).orElse(edge.getEnd());
+			return edge.setEnds(begin, end);
+		});
+		final Set<MapEdge> newEdges = Stream.concat(this.edges.parallelStream(), newEdgesStrem)
+				.collect(Collectors.toSet());
+		return setEdges(newEdges);
 	}
 
 	/**
@@ -481,8 +485,8 @@ public class GeoMap implements Constants {
 	 * @param edges the edges
 	 */
 	public GeoMap setEdges(final Set<MapEdge> edges) {
-		final Set<MapNode> nodes = new HashSet<>(sites);
-		nodes.addAll(retrieveNodes(edges));
+		final Set<MapNode> nodes = Stream.concat(sites.parallelStream(), retrieveNodeStream(edges))
+				.collect(Collectors.toSet());
 		return new GeoMap(edges, weights, sites, nodes, frequence);
 	}
 
@@ -501,8 +505,8 @@ public class GeoMap implements Constants {
 	 * @param site the site
 	 */
 	public GeoMap setSite(final MapNode site) {
-		final Set<MapNode> nodes = new HashSet<>(retrieveNodes(edges));
-		nodes.add(site);
+		final Set<MapNode> nodes = Stream.concat(retrieveNodeStream(edges), Stream.of(site))
+				.collect(Collectors.toSet());
 		return new GeoMap(edges, Map.of(), Set.of(site), nodes, frequence);
 	}
 
@@ -536,8 +540,8 @@ public class GeoMap implements Constants {
 	 */
 	public GeoMap setWeights(final Map<Tuple2<MapNode, MapNode>, Double> weights) {
 		final Set<MapNode> sites = retrieveSites(weights);
-		final Set<MapNode> nodes = new HashSet<>(retrieveNodes(edges));
-		nodes.addAll(sites);
+		final Set<MapNode> nodes = Stream.concat(retrieveNodeStream(edges), sites.parallelStream())
+				.collect(Collectors.toSet());
 		return new GeoMap(edges, weights, sites, nodes, frequence);
 	}
 }

@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #30: Explorer panel
 - Issue #31: Detail info panel
 - Issue #32: Scroll panel
+- Issue #33: Load modules
 - Issue #35: Center map to cursor
 - Issue #36: Select node with cursor
 - Issue #37: Select edge with cursor

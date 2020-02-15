@@ -59,6 +59,7 @@ import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
+import java.util.stream.Stream;
 
 import org.mmarini.routes.model.Constants;
 
@@ -110,8 +111,7 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 				: OptionalDouble.of(vehicles.get(0).getLocation());
 		final Vehicle v = vehicle.setLocation(0).move(edge, this.time - time, nextDistance).getElem1()
 				.setEdgeEntryTime(time);
-		final List<Vehicle> newVehicles = new ArrayList<>(vehicles);
-		newVehicles.add(0, v);
+		final List<Vehicle> newVehicles = Stream.concat(Stream.of(v), vehicles.stream()).collect(Collectors.toList());
 		final EdgeTraffic result = setVehicles(newVehicles);
 		return result;
 	}
