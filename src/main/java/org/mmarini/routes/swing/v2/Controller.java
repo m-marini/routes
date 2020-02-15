@@ -34,13 +34,14 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.WindowEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
@@ -48,6 +49,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.swing.JFileChooser;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.WindowConstants;
@@ -58,6 +60,7 @@ import org.mmarini.routes.model.v2.GeoMap;
 import org.mmarini.routes.model.v2.GeoMapDeserializer;
 import org.mmarini.routes.model.v2.GeoMapSerializer;
 import org.mmarini.routes.model.v2.MapEdge;
+import org.mmarini.routes.model.v2.MapModule;
 import org.mmarini.routes.model.v2.MapNode;
 import org.mmarini.routes.model.v2.MapProfile;
 import org.mmarini.routes.model.v2.Simulator;
@@ -114,6 +117,7 @@ public class Controller implements Constants {
 	private final Simulator simulator;
 	private final ScrollMap scrollMap;
 	private final MapViewPane mapViewPane;
+	private final ModuleSelector moduleSelector;
 //	private final List<String> gridLegendPattern;
 	private final List<String> pointLegendPattern;
 	private final List<String> edgeLegendPattern;
@@ -133,7 +137,9 @@ public class Controller implements Constants {
 		this.nodePane = new MapNodePane();
 		this.mapElementPane = new MapElementPane(nodePane, edgePane);
 		this.scrollMap = new ScrollMap(routeMap);
-		this.mapViewPane = new MapViewPane(scrollMap);
+		final List<MapModule> modules = loadModules();
+		this.moduleSelector = new ModuleSelector(modules);
+		this.mapViewPane = new MapViewPane(scrollMap, moduleSelector.getDropDownButton());
 		this.mainFrame = new MainFrame(mapViewPane, explorerPane, mapElementPane);
 		this.pointLegendPattern = SwingUtils.loadPatterns("ScrollMap.pointLegendPattern"); //$NON-NLS-1$
 		this.edgeLegendPattern = SwingUtils.loadPatterns("ScrollMap.edgeLegendPattern"); //$NON-NLS-1$
@@ -146,7 +152,10 @@ public class Controller implements Constants {
 				new FileNameExtensionFilter(Messages.getString("Controller.filetype.title"), "yml", "rml")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 		bindAll();
-
+		if (!moduleSelector.getItems().isEmpty()) {
+			mapViewPane.setModuleIcon(moduleSelector.getItems().get(0).getIcon());
+			mapViewPane.setModule(modules.get(0));
+		}
 		mapChanged(initStatus);
 		simulator.setTraffics(status1);
 		startSimulator();
@@ -173,7 +182,7 @@ public class Controller implements Constants {
 	 */
 	private Controller bindAll() {
 		return bindOnStatus().bindOnMouse().bindOnMouseWheel().bindOnExplorerPane().bindOnMapViewPane().bindOnEdgePane()
-				.bindOnNodePane().bindOnKey().bindOnMainframe();
+				.bindOnNodePane().bindOnKey().bindOnMainframe().bindOnModuleSelector();
 	}
 
 	/**
@@ -215,6 +224,36 @@ public class Controller implements Constants {
 				}, this::showError);
 			}
 				break;
+			}
+		}, this::showError);
+		return this;
+	}
+
+	/**
+	 *
+	 * @param withPointObs
+	 * @return
+	 */
+	private Controller bindOnDragModule(final Observable<Tuple2<UIStatus, Tuple2<Point2D, MouseEvent>>> withPointObs) {
+		withPointObs.filter(t -> {
+			final UIStatus st = t.getElem1();
+			return st.getMode().equals(MapMode.DRAG_MODULE);
+		}).subscribe(t -> {
+			final UIStatus st = t.getElem1();
+			final MouseEvent ev = t.getElem2().getElem2();
+			final Point2D pivot = t.getElem2().getElem1();
+			switch (ev.getID()) {
+			case MouseEvent.MOUSE_ENTERED:
+			case MouseEvent.MOUSE_EXITED:
+			case MouseEvent.MOUSE_DRAGGED:
+			case MouseEvent.MOUSE_MOVED:
+				routeMap.setPivot(Optional.of(pivot));
+				scrollMap.repaint();
+				break;
+			case MouseEvent.MOUSE_PRESSED:
+				routeMap.setPivot(Optional.of(pivot)).setAngle(0.0);
+				scrollMap.repaint();
+				uiStatusSubj.onNext(st.setMode(MapMode.ROTATE_MODULE));
 			}
 		}, this::showError);
 		return this;
@@ -541,14 +580,27 @@ public class Controller implements Constants {
 	 */
 	private Controller bindOnMapViewPane() {
 		mapViewPane.getEdgeModeObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			routeMap.setDragEdge(Optional.empty()).setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+			routeMap.setModule(Optional.empty()).setDragEdge(Optional.empty())
+					.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 			final UIStatus newStatus = st.setMode(MapMode.START_EDGE).setDragEdge(Optional.empty());
 			uiStatusSubj.onNext(newStatus);
 		}, this::showError);
 
 		mapViewPane.getSelectModeObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			routeMap.setDragEdge(Optional.empty()).setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+			routeMap.setModule(Optional.empty()).setDragEdge(Optional.empty())
+					.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 			final UIStatus newStatus = st.setMode(MapMode.SELECTION).setDragEdge(Optional.empty());
+			uiStatusSubj.onNext(newStatus);
+		}, this::showError);
+
+		mapViewPane.getModuleModeObs().withLatestFrom(uiStatusObs, (m, st) -> {
+			return new Tuple2<>(st, m);
+		}).subscribe(t -> {
+			final UIStatus st = t.getElem1();
+			final MapModule module = t.getElem2();
+			final UIStatus newStatus = st.setMode(MapMode.DRAG_MODULE);
+			final Optional<MapModule> moduleOpt = Optional.of(module);
+			routeMap.setDragEdge(Optional.empty()).setModule(moduleOpt);
 			uiStatusSubj.onNext(newStatus);
 		}, this::showError);
 
@@ -596,6 +648,18 @@ public class Controller implements Constants {
 	}
 
 	/**
+	 * @return
+	 */
+	private Controller bindOnModuleSelector() {
+		moduleSelector.getModuleObs().subscribe(t -> {
+			final JMenuItem menuItem = (JMenuItem) t.getElem1().getSource();
+			final MapModule module = t.getElem2();
+			mapViewPane.setModuleIcon(menuItem.getIcon()).setModule(module).selectModuleMode();
+		}, this::showError);
+		return this;
+	}
+
+	/**
 	 *
 	 * @return
 	 */
@@ -607,7 +671,7 @@ public class Controller implements Constants {
 		}).subscribe(withPointObs1);
 		final Observable<Tuple2<UIStatus, Tuple2<Point2D, MouseEvent>>> withPointObs = withPointObs1;
 		return bindOnMouseForHud(withPointObs).bindOnMouseSelection(withPointObs).bindOnStartEdge(withPointObs)
-				.bindOnDragEdge(withPointObs);
+				.bindOnRotateModule(withPointObs).bindOnDragModule(withPointObs).bindOnDragEdge(withPointObs);
 	}
 
 	/**
@@ -701,6 +765,51 @@ public class Controller implements Constants {
 			uiStatusSubj.onNext(st);
 			simulator.setTraffics(st.getTraffics());
 			startSimulator();
+		}, this::showError);
+		return this;
+	}
+
+	/**
+	 *
+	 * @param withPointObs
+	 * @return
+	 */
+	private Controller bindOnRotateModule(
+			final Observable<Tuple2<UIStatus, Tuple2<Point2D, MouseEvent>>> withPointObs) {
+		withPointObs.filter(t -> {
+			final UIStatus st = t.getElem1();
+			return st.getMode().equals(MapMode.ROTATE_MODULE);
+		}).subscribe(t -> {
+			final UIStatus st = t.getElem1();
+			final MouseEvent ev = t.getElem2().getElem2();
+			final Point2D pt = t.getElem2().getElem1();
+			final Point2D pivot = routeMap.getPivot().get();
+			final double angle = Math.atan2(pt.getY() - pivot.getY(), pt.getX() - pivot.getX());
+			switch (ev.getID()) {
+			case MouseEvent.MOUSE_ENTERED:
+			case MouseEvent.MOUSE_EXITED:
+			case MouseEvent.MOUSE_DRAGGED:
+			case MouseEvent.MOUSE_MOVED:
+				routeMap.setAngle(angle);
+				scrollMap.repaint();
+				break;
+			case MouseEvent.MOUSE_PRESSED:
+				simulator.stop().subscribe(x -> {
+					final Optional<MapModule> module = routeMap.getModule().map(m -> {
+						final AffineTransform tr = AffineTransform.getTranslateInstance(pivot.getX(), pivot.getY());
+						tr.rotate(angle);
+						return m.transform(tr);
+					});
+					final Traffics newTraffics = st.getTraffics()
+							.addEdges(module.map(MapModule::getEdges).orElse(Set.of()));
+					final UIStatus newStatus = st.setMode(MapMode.DRAG_MODULE).setTraffics(newTraffics);
+					routeMap.setPivot(Optional.of(pt)).setAngle(0.0);
+					mapChanged(newStatus);
+					uiStatusSubj.onNext(newStatus);
+					simulator.setTraffics(newStatus.getTraffics());
+					startSimulator();
+				});
+			}
 		}, this::showError);
 		return this;
 	}
@@ -936,6 +1045,33 @@ public class Controller implements Constants {
 		return this;
 	}
 
+	private List<MapModule> loadModules() {
+		final File path = new File("modules");
+		if (path.isDirectory()) {
+			final List<MapModule> modules = Arrays.stream(path.listFiles()).filter(file -> {
+				return file.isFile() && file.canRead() && file.getName().endsWith(".yml");
+			}).sorted((a, b) -> {
+				return a.getName().compareTo(b.getName());
+			}).map(file -> {
+				GeoMap map;
+				try {
+					logger.debug("Loading {} ...", file);
+					map = GeoMapDeserializer.create().parse(file);
+					final MapModule module = MapModule.create(map);
+					return module;
+				} catch (final Exception e) {
+					logger.error(e.getMessage(), e);
+					return MapModule.create();
+				}
+			}).filter(m -> {
+				return !m.getEdges().isEmpty();
+			}).collect(Collectors.toList());
+			return modules;
+		} else {
+			return List.of();
+		}
+	}
+
 	/**
 	 *
 	 * @param status
@@ -1030,20 +1166,6 @@ public class Controller implements Constants {
 			simulator.start();
 		}
 		return this;
-	}
-
-	/**
-	 * @return
-	 */
-	Traffics testMap() {
-		final MapNode s0 = MapNode.create(15, 15);
-		final MapNode s1 = MapNode.create(1000, 1000);
-		final Set<MapNode> sites = Set.of(s0, s1);
-		final Set<MapEdge> edges = Set.of(MapEdge.create(s0, s1), MapEdge.create(s1, s0));
-		final Map<Tuple2<MapNode, MapNode>, Double> weights = GeoMap.buildWeights(sites, (a, b) -> 1);
-		final GeoMap map = GeoMap.create(edges, weights);
-		final Traffics status = Traffics.create(map);
-		return status;
 	}
 
 	/**

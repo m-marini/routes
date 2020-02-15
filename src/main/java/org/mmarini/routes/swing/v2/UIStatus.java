@@ -32,11 +32,12 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.mmarini.routes.model.Constants;
 import org.mmarini.routes.model.v2.GeoMap;
@@ -52,7 +53,7 @@ import org.slf4j.LoggerFactory;
  */
 public class UIStatus implements Constants {
 	static enum MapMode {
-		SELECTION, START_EDGE, DRAG_EDGE, MODULE
+		SELECTION, START_EDGE, DRAG_EDGE, DRAG_MODULE, ROTATE_MODULE
 	}
 
 	public static final int MAP_INSETS = 60;
@@ -108,7 +109,7 @@ public class UIStatus implements Constants {
 	 * @param mode
 	 * @param dragEdge
 	 * @param selectedElement
-	 * @param speedLimit      TODO
+	 * @param speedLimit
 	 */
 	protected UIStatus(final double scale, final Traffics traffics, final MapMode mode,
 			final Optional<Tuple2<Point2D, Point2D>> dragEdge, final MapElement selectedElement,
@@ -251,8 +252,8 @@ public class UIStatus implements Constants {
 	 */
 	public Rectangle2D getMapBound() {
 		final GeoMap map = traffics.getMap();
-		final Set<MapNode> all = new HashSet<>(map.getSites());
-		all.addAll(map.getNodes());
+		final Set<MapNode> all = Stream.concat(map.getSites().parallelStream(), map.getNodes().parallelStream())
+				.collect(Collectors.toSet());
 		final OptionalDouble x0 = all.parallelStream().mapToDouble(n -> n.getX()).min();
 		final OptionalDouble x1 = all.parallelStream().mapToDouble(n -> n.getX()).max();
 		final OptionalDouble y0 = all.parallelStream().mapToDouble(n -> n.getY()).min();

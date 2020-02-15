@@ -26,13 +26,14 @@
 
 package org.mmarini.routes.model.v2;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.ToDoubleBiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.mmarini.routes.model.Constants;
 import org.slf4j.Logger;
@@ -103,9 +104,27 @@ public class Traffics implements Constants {
 		logger.debug("addEdge {}", edge);
 		final GeoMap newMap = map.add(edge);
 		final EdgeTraffic traffic = EdgeTraffic.create(edge).setTime(getTime());
-		final Set<EdgeTraffic> newTraffics = new HashSet<>(traffics);
-		newTraffics.add(traffic);
+		final Set<EdgeTraffic> newTraffics = Stream.concat(traffics.parallelStream(), Stream.of(traffic))
+				.collect(Collectors.toSet());
 		return new Traffics(newMap, newTraffics, random);
+	}
+
+	/**
+	 *
+	 * @param orElse
+	 * @return
+	 */
+	public Traffics addEdges(final Set<MapEdge> edges) {
+		final GeoMap newMap = map.addEdges(edges);
+		final double time = getTime();
+		final Set<EdgeTraffic> newTraffics = newMap.getEdges().parallelStream().map(edge -> {
+			final Optional<EdgeTraffic> traffic = traffics.parallelStream().filter(tr -> {
+				return tr.getEdge().equals(edge);
+			}).findAny();
+			final EdgeTraffic tr = traffic.orElseGet(() -> EdgeTraffic.create(edge).setTime(time));
+			return tr;
+		}).collect(Collectors.toSet());
+		return setGeoMap(newMap).setTraffics(newTraffics);
 	}
 
 	/**

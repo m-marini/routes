@@ -50,6 +50,7 @@ import javax.swing.JComponent;
 import org.mmarini.routes.model.Constants;
 import org.mmarini.routes.model.v2.EdgeTraffic;
 import org.mmarini.routes.model.v2.MapEdge;
+import org.mmarini.routes.model.v2.MapModule;
 import org.mmarini.routes.model.v2.MapNode;
 import org.mmarini.routes.model.v2.Traffics;
 import org.mmarini.routes.model.v2.Tuple2;
@@ -99,7 +100,7 @@ public class RouteMap extends JComponent implements Constants {
 		 */
 		public Painter paint() {
 			return computeSiteColorMap().paintGrid().paintEdges().paintSites().paintSelectedEdge().paintVehicles()
-					.paintSelectedNode().paintSelectedSite().paintDragEdge();
+					.paintSelectedNode().paintSelectedSite().paintModule().paintDragEdge();
 		}
 
 		/**
@@ -170,6 +171,22 @@ public class RouteMap extends JComponent implements Constants {
 				graphics.draw(new Line2D.Double(x0, y, x1, y));
 
 			}
+			return this;
+		}
+
+		private Painter paintModule() {
+			module.ifPresent(m -> {
+				pivot.ifPresent(p -> {
+					final AffineTransform temp = graphics.getTransform();
+					final AffineTransform tran = new AffineTransform(temp);
+					tran.translate(p.getX(), p.getY());
+					tran.rotate(angle);
+					graphics.setTransform(tran);
+					graphics.setColor(EDGE_COLOR);
+					m.getEdges().forEach(this::paintEdge);
+					graphics.setTransform(temp);
+				});
+			});
 			return this;
 		}
 
@@ -364,6 +381,9 @@ public class RouteMap extends JComponent implements Constants {
 	private Optional<MapEdge> selectedEdge;
 	private Optional<MapNode> selectedSite;
 	private Optional<Tuple2<Point2D, Point2D>> dragEdge;
+	private Optional<MapModule> module;
+	private Optional<Point2D> pivot;
+	private double angle;
 
 	/**
 	 *
@@ -376,6 +396,9 @@ public class RouteMap extends JComponent implements Constants {
 		this.mouseWheelObs = SwingObservable.mouseWheel(this);
 		this.keyboardObs = SwingObservable.keyboard(this);
 		this.dragEdge = Optional.empty();
+		this.module = Optional.empty();
+		this.pivot = Optional.empty();
+		this.angle = 0;
 		setFocusable(true);
 		setRequestFocusEnabled(true);
 		requestFocus();
@@ -398,10 +421,24 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
+	 * @return the angle
+	 */
+	public double getAngle() {
+		return angle;
+	}
+
+	/**
 	 * @return the keyboardObs
 	 */
 	public Observable<KeyEvent> getKeyboardObs() {
 		return keyboardObs;
+	}
+
+	/**
+	 * @return the module
+	 */
+	public Optional<MapModule> getModule() {
+		return module;
 	}
 
 	/**
@@ -416,6 +453,13 @@ public class RouteMap extends JComponent implements Constants {
 	 */
 	public Observable<MouseWheelEvent> getMouseWheelObs() {
 		return mouseWheelObs;
+	}
+
+	/**
+	 * @return the pivot
+	 */
+	public Optional<Point2D> getPivot() {
+		return pivot;
 	}
 
 	/**
@@ -475,6 +519,16 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
+	 *
+	 * @param angle
+	 * @return
+	 */
+	public RouteMap setAngle(final double angle) {
+		this.angle = angle;
+		return this;
+	}
+
+	/**
 	 * Returns the route map with drag edge
 	 *
 	 * @param edge the edge
@@ -493,6 +547,25 @@ public class RouteMap extends JComponent implements Constants {
 	public RouteMap setGridSize(final double gridSize) {
 		logger.debug("setGridSize {}", gridSize);
 		this.gridSize = gridSize;
+		return this;
+	}
+
+	/**
+	 *
+	 * @param module
+	 */
+	public RouteMap setModule(final Optional<MapModule> module) {
+		this.module = module;
+		return this;
+	}
+
+	/**
+	 *
+	 * @param pivot
+	 * @return
+	 */
+	public RouteMap setPivot(final Optional<Point2D> pivot) {
+		this.pivot = pivot;
 		return this;
 	}
 

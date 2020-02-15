@@ -1,6 +1,6 @@
 
 ---
-speedLimit: 130.0
+version: 1
 nodes:
     Node_0:
         x: -3.0
@@ -48,37 +48,53 @@ edges:
     -   start: Node_0
         end: Node_1
         priority: 1
+        speedLimit: 130.0
     -   start: Node_1
         end: Node_2
+        speedLimit: 130.0
     -   start: Node_10
         end: Node_11
         priority: 1
+        speedLimit: 130.0
     -   start: Node_11
         end: Node_12
+        speedLimit: 130.0
     -   start: Node_12
         end: Node_13
+        speedLimit: 130.0
     -   start: Node_6
         end: Node_7
+        speedLimit: 130.0
     -   start: Node_0
         end: Node_3
+        speedLimit: 130.0
     -   start: Node_4
         end: Node_1
+        speedLimit: 130.0
     -   start: Node_8
         end: Node_5
+        speedLimit: 130.0
     -   start: Node_12
         end: Node_9
+        speedLimit: 130.0
     -   start: Node_2
         end: Node_11
+        speedLimit: 130.0
     -   start: Node_5
         end: Node_4
+        speedLimit: 130.0
     -   start: Node_6
         end: Node_5
         priority: 1
+        speedLimit: 130.0
     -   start: Node_4
         end: Node_3
         priority: 1
+        speedLimit: 130.0
     -   start: Node_9
         end: Node_8
+        speedLimit: 130.0
     -   start: Node_8
         end: Node_7
         priority: 1
+        speedLimit: 130.0

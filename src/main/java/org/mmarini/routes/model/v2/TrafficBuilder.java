@@ -144,12 +144,12 @@ public class TrafficBuilder implements Constants {
 
 	/**
 	 *
-	 * @param egde
+	 * @param edge
 	 */
-	private TrafficBuilder addTraffics(final EdgeTraffic egde) {
-		final Set<EdgeTraffic> newTraffics = new HashSet<>(this.traffics);
-		newTraffics.remove(egde);
-		newTraffics.add(egde);
+	private TrafficBuilder addTraffics(final EdgeTraffic edge) {
+		final Set<EdgeTraffic> newTraffics = this.traffics.parallelStream().map(traffic -> {
+			return edge.equals(traffic) ? edge : traffic;
+		}).collect(Collectors.toSet());
 		return setTraffics(newTraffics);
 	}
 
