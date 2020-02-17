@@ -35,7 +35,6 @@ import java.util.function.ToDoubleBiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.mmarini.routes.model.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

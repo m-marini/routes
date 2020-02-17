@@ -41,8 +41,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.mmarini.routes.model.Constants;
-
 /**
  *
  */
@@ -62,7 +60,7 @@ public class GeoMap implements Constants {
 				return new Tuple2<>(from, to);
 			});
 		}).collect(Collectors.toMap(Function.identity(), t -> {
-			final double w = weightSupplier.applyAsDouble(t.getElem1(), t.getElem2());
+			final double w = weightSupplier.applyAsDouble(t.get1(), t.get2());
 			return w;
 		}));
 		return result;
@@ -185,7 +183,7 @@ public class GeoMap implements Constants {
 	 */
 	private static Set<MapNode> retrieveSites(final Map<Tuple2<MapNode, MapNode>, Double> weights) {
 		final Set<MapNode> result = weights.keySet().parallelStream().flatMap(t -> {
-			return Set.of(t.getElem1(), t.getElem2()).stream();
+			return Set.of(t.get1(), t.get2()).stream();
 		}).collect(Collectors.toSet());
 		return result;
 	}
@@ -282,7 +280,7 @@ public class GeoMap implements Constants {
 				final Map<Tuple2<MapNode, MapNode>, Double> newWeights = weights.entrySet().parallelStream()
 						.filter(entry -> {
 							final Tuple2<MapNode, MapNode> k = entry.getKey();
-							return !(k.getElem1().equals(node) || k.getElem2().equals(node));
+							return !(k.get1().equals(node) || k.get2().equals(node));
 						}).collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
 				return setWeights(newWeights);
 			}
@@ -294,7 +292,7 @@ public class GeoMap implements Constants {
 			final Map<Tuple2<MapNode, MapNode>, Double> addWeights = sites.parallelStream().flatMap(s -> {
 				return Set.of(new Tuple2<>(s, node), new Tuple2<>(node, s)).stream();
 			}).collect(Collectors.toMap(Function.identity(), k -> {
-				return toDoubleBiFunction.applyAsDouble(k.getElem1(), k.getElem2());
+				return toDoubleBiFunction.applyAsDouble(k.get1(), k.get2());
 			}));
 			final Map<Tuple2<MapNode, MapNode>, Double> newWeights = new HashMap<>(weights);
 			newWeights.putAll(addWeights);
@@ -457,7 +455,7 @@ public class GeoMap implements Constants {
 				final Map<Tuple2<MapNode, MapNode>, Double> newWeights = weights.entrySet().parallelStream()
 						.filter(entry -> {
 							final Tuple2<MapNode, MapNode> k = entry.getKey();
-							return !(k.getElem1().equals(node) || k.getElem2().equals(node));
+							return !(k.get1().equals(node) || k.get2().equals(node));
 						}).collect(Collectors.toMap(e -> {
 							return e.getKey();
 						}, e -> {

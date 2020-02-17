@@ -61,8 +61,6 @@ import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
-import org.mmarini.routes.model.Constants;
-
 /**
  * A traffic information for a given edge
  */
@@ -109,7 +107,7 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 		assert !isBusy();
 		final OptionalDouble nextDistance = vehicles.isEmpty() ? OptionalDouble.empty()
 				: OptionalDouble.of(vehicles.get(0).getLocation());
-		final Vehicle v = vehicle.setLocation(0).move(edge, this.time - time, nextDistance).getElem1()
+		final Vehicle v = vehicle.setLocation(0).move(edge, this.time - time, nextDistance).get1()
 				.setEdgeEntryTime(time);
 		final List<Vehicle> newVehicles = Stream.concat(Stream.of(v), vehicles.stream()).collect(Collectors.toList());
 		final EdgeTraffic result = setVehicles(newVehicles);
@@ -328,7 +326,7 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 		final double dt = time - this.time;
 		for (final Vehicle v : reversed) {
 			final Tuple2<Vehicle, Double> tuple = v.move(edge, dt, nextLocation);
-			final Vehicle movedVehicle = tuple.getElem1();
+			final Vehicle movedVehicle = tuple.get1();
 			nextLocation = OptionalDouble.of(movedVehicle.getLocation());
 			newVehicles.add(0, movedVehicle);
 		}
@@ -364,10 +362,10 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 		for (final Vehicle v : reversed) {
 			final double dt1 = dt.orElse(dtMax);
 			final Tuple2<Vehicle, Double> tuple = v.move(edge, dt1, nextLocation);
-			final Vehicle movedVehicle = tuple.getElem1();
+			final Vehicle movedVehicle = tuple.get1();
 			nextLocation = OptionalDouble.of(movedVehicle.getLocation());
 			if (dt.isEmpty()) {
-				dt = OptionalDouble.of(tuple.getElem2());
+				dt = OptionalDouble.of(tuple.get2());
 			}
 			newVehicles.add(0, movedVehicle);
 		}

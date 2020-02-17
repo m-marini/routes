@@ -17,7 +17,7 @@ import javax.swing.JLabel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
-import org.mmarini.routes.model.Constants;
+import org.mmarini.routes.model.v2.Constants;
 
 /**
  * @author marco.marini@mmarini.org

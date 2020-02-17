@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mmarini.routes.model.Constants;
 
 public class VehicleTest implements Constants {
 
@@ -182,9 +181,9 @@ public class VehicleTest implements Constants {
 		final Tuple2<Vehicle, Double> result = Vehicle.create(departure, destination).setLocation(DISTANCE_10)
 				.move(edge, INTERVAL_2, OptionalDouble.of(DISTANCE_80));
 		assertThat(result, notNullValue());
-		assertThat(result.getElem1(), notNullValue());
-		assertThat(result.getElem2().doubleValue(), equalTo(INTERVAL_2));
-		assertThat(result.getElem1().getLocation(), equalTo(DISTANCE_30));
+		assertThat(result.get1(), notNullValue());
+		assertThat(result.get2().doubleValue(), equalTo(INTERVAL_2));
+		assertThat(result.get1().getLocation(), equalTo(DISTANCE_30));
 	}
 
 	@Test
@@ -195,9 +194,9 @@ public class VehicleTest implements Constants {
 		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setLocation(DISTANCE_90).move(edge,
 				INTERVAL_2, OptionalDouble.empty());
 		assertThat(m, notNullValue());
-		assertThat(m.getElem1(), notNullValue());
-		assertThat(m.getElem2().doubleValue(), equalTo(INTERVAL_1));
-		assertThat(m.getElem1().getLocation(), equalTo(DISTANCE_100));
+		assertThat(m.get1(), notNullValue());
+		assertThat(m.get2().doubleValue(), equalTo(INTERVAL_1));
+		assertThat(m.get1().getLocation(), equalTo(DISTANCE_100));
 	}
 
 	@Test
@@ -208,9 +207,9 @@ public class VehicleTest implements Constants {
 		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setLocation(DISTANCE_10).move(edge,
 				INTERVAL_2, OptionalDouble.empty());
 		assertThat(m, notNullValue());
-		assertThat(m.getElem1(), notNullValue());
-		assertThat(m.getElem2().doubleValue(), equalTo(INTERVAL_2));
-		assertThat(m.getElem1().getLocation(), equalTo(DISTANCE_30));
+		assertThat(m.get1(), notNullValue());
+		assertThat(m.get2().doubleValue(), equalTo(INTERVAL_2));
+		assertThat(m.get1().getLocation(), equalTo(DISTANCE_30));
 	}
 
 	@ParameterizedTest(name = "{index} ==> location=''{0}''")
@@ -225,10 +224,10 @@ public class VehicleTest implements Constants {
 		final Tuple2<Vehicle, Double> m = vehicle.move(edge, time, OptionalDouble.empty());
 
 		assertThat(m, notNullValue());
-		final Vehicle elem1 = m.getElem1();
+		final Vehicle elem1 = m.get1();
 		assertThat(elem1, notNullValue());
 		assertThat(elem1.getLocation(), equalTo(DISTANCE_100));
-		assertThat(m.getElem2().doubleValue(), equalTo(time));
+		assertThat(m.get2().doubleValue(), equalTo(time));
 	}
 
 	@Test
@@ -239,9 +238,9 @@ public class VehicleTest implements Constants {
 		final Tuple2<Vehicle, Double> m = Vehicle.create(departure, destination).setLocation(DISTANCE_10).move(edge,
 				INTERVAL_2, OptionalDouble.of(DISTANCE_10 + VEHICLE_LENGTH + DISTANCE_10));
 		assertThat(m, notNullValue());
-		assertThat(m.getElem1(), notNullValue());
-		assertThat(m.getElem2().doubleValue(), equalTo(INTERVAL_2));
-		assertThat(m.getElem1().getLocation(), equalTo(DISTANCE_SAFE));
+		assertThat(m.get1(), notNullValue());
+		assertThat(m.get2().doubleValue(), equalTo(INTERVAL_2));
+		assertThat(m.get1().getLocation(), equalTo(DISTANCE_SAFE));
 	}
 
 	/**
@@ -261,9 +260,9 @@ public class VehicleTest implements Constants {
 		final Vehicle vehicle = Vehicle.create(departure, destination).setLocation(85);
 		final Tuple2<Vehicle, Double> result = vehicle.move(edge, 1, OptionalDouble.of(100.0));
 		assertThat(result, notNullValue());
-		assertThat(result.getElem1(), notNullValue());
-		assertThat(result.getElem2().doubleValue(), equalTo(1.0));
-		assertThat(result.getElem1().getLocation(), equalTo(90.0));
+		assertThat(result.get1(), notNullValue());
+		assertThat(result.get2().doubleValue(), equalTo(1.0));
+		assertThat(result.get1().getLocation(), equalTo(90.0));
 	}
 
 	@ParameterizedTest(name = "{index} ==> edgeEntryTime=''{0}''")

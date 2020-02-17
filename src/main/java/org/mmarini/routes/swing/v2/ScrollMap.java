@@ -26,6 +26,8 @@
 
 package org.mmarini.routes.swing.v2;
 
+import static java.lang.Math.min;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.FontMetrics;
@@ -34,12 +36,19 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.geom.Point2D;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ChangeEvent;
+
+import org.mmarini.routes.model.v2.Constants;
+import org.mmarini.routes.model.v2.MapEdge;
+import org.mmarini.routes.model.v2.Tuple2;
 
 import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
@@ -47,7 +56,7 @@ import io.reactivex.rxjava3.core.Observable;
 /**
  *
  */
-public class ScrollMap extends JScrollPane {
+public class ScrollMap extends JScrollPane implements Constants {
 	private static final long serialVersionUID = 1L;
 
 	private static final Point LEGEND_LOCATION = new Point(5, 5);
@@ -55,6 +64,8 @@ public class ScrollMap extends JScrollPane {
 
 	private final Observable<ActionEvent> scaleToObs;
 	private final Observable<ChangeEvent> changeObs;
+	private final List<String> pointLegendPattern;
+	private final List<String> edgeLegendPattern;
 	private List<String> hud;
 
 	/**
@@ -62,6 +73,8 @@ public class ScrollMap extends JScrollPane {
 	 */
 	public ScrollMap(final Component content) {
 		hud = List.of("Head Up", "Display");
+		this.pointLegendPattern = SwingUtils.loadPatterns("ScrollMap.pointLegendPattern"); //$NON-NLS-1$
+		this.edgeLegendPattern = SwingUtils.loadPatterns("ScrollMap.edgeLegendPattern"); //$NON-NLS-1$
 		setViewportView(content);
 		setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 		setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -73,6 +86,28 @@ public class ScrollMap extends JScrollPane {
 
 		setDoubleBuffered(false);
 		setOpaque(false);
+	}
+
+	/**
+	 * Returns the head up display text
+	 *
+	 * @param patterns
+	 * @param gridSize
+	 * @param point
+	 * @param dragEdge
+	 * @param maxSpeed
+	 */
+	private List<String> computeHud(final List<String> patterns, final double gridSize, final Point2D point,
+			final Optional<Tuple2<Point2D, Point2D>> dragEdge, final double maxSpeed) {
+		final Optional<Double> lengthOpt = dragEdge.map(t -> t.get1().distance(t.get2()));
+		final Double length = dragEdge.map(t -> t.get1().distance(t.get2())).orElse(null);
+		final Double speed = lengthOpt.map(l -> {
+			return min(MapEdge.computeSpeedLimit(l), maxSpeed) * MPS_TO_KMH;
+		}).orElse(null);
+		final List<String> texts = patterns.stream()
+				.map(pattern -> String.format(pattern, gridSize, point.getX(), point.getY(), length, speed))
+				.collect(Collectors.toList());
+		return texts;
 	}
 
 	/**
@@ -137,6 +172,19 @@ public class ScrollMap extends JScrollPane {
 	}
 
 	/**
+	 * Set hud for edge
+	 *
+	 * @param gridSize grid size
+	 * @param point    mouse position
+	 * @param dragEdge drag edge
+	 * @param maxSpeed max speed
+	 */
+	public ScrollMap setEdgeHud(final double gridSize, final Point2D point,
+			final Optional<Tuple2<Point2D, Point2D>> dragEdge, final double maxSpeed) {
+		return setHud(computeHud(edgeLegendPattern, gridSize, point, dragEdge, maxSpeed));
+	}
+
+	/**
 	 * Returns the scroll map with changed head up display
 	 *
 	 * @param hud the head up display
@@ -145,5 +193,17 @@ public class ScrollMap extends JScrollPane {
 		this.hud = hud;
 		repaint();
 		return this;
+	}
+
+	/**
+	 * Set hud for edge
+	 *
+	 * @param gridSize grid size
+	 * @param point    mouse position
+	 * @param dragEdge drag edge
+	 * @param maxSpeed max speed
+	 */
+	public ScrollMap setPointHud(final double gridSize, final Point2D point) {
+		return setHud(computeHud(pointLegendPattern, gridSize, point, Optional.empty(), 0));
 	}
 }

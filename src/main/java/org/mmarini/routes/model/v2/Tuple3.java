@@ -29,21 +29,24 @@ package org.mmarini.routes.model.v2;
 /**
  *
  */
-public class Tuple2<T1, T2> {
+public class Tuple3<T1, T2, T3> {
 	private final T1 elem1;
 	private final T2 elem2;
+	private final T3 elem3;
 
 	/**
-	 *
 	 * @param elem1
 	 * @param elem2
+	 * @param elem3
 	 */
-	public Tuple2(final T1 elem1, final T2 elem2) {
+	public Tuple3(final T1 elem1, final T2 elem2, final T3 elem3) {
 		super();
 		assert elem1 != null;
 		assert elem2 != null;
+		assert elem3 != null;
 		this.elem1 = elem1;
 		this.elem2 = elem2;
+		this.elem3 = elem3;
 	}
 
 	@Override
@@ -57,28 +60,39 @@ public class Tuple2<T1, T2> {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		final Tuple2<?, ?> other = (Tuple2<?, ?>) obj;
+		@SuppressWarnings("rawtypes")
+		final Tuple3 other = (Tuple3) obj;
 		if (!elem1.equals(other.elem1)) {
 			return false;
 		}
 		if (!elem2.equals(other.elem2)) {
 			return false;
 		}
+		if (!elem3.equals(other.elem3)) {
+			return false;
+		}
 		return true;
 	}
 
 	/**
-	 * @return the element 1
+	 * @return the elem1
 	 */
 	public T1 get1() {
 		return elem1;
 	}
 
 	/**
-	 * @return the element 2
+	 * @return the elem2
 	 */
 	public T2 get2() {
 		return elem2;
+	}
+
+	/**
+	 * @return the elem3
+	 */
+	public T3 get3() {
+		return elem3;
 	}
 
 	@Override
@@ -87,13 +101,16 @@ public class Tuple2<T1, T2> {
 		int result = 1;
 		result = prime * result + elem1.hashCode();
 		result = prime * result + elem2.hashCode();
+		result = prime * result + elem3.hashCode();
 		return result;
 	}
 
 	@Override
 	public String toString() {
 		final StringBuilder builder = new StringBuilder();
-		builder.append("(").append(elem1).append(", ").append(elem2).append(")");
+		builder.append("Tuple3 [elem1=").append(elem1).append(", elem2=").append(elem2).append(", elem3=").append(elem3)
+				.append("]");
 		return builder.toString();
 	}
+
 }

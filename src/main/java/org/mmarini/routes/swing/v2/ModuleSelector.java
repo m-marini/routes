@@ -83,12 +83,12 @@ public class ModuleSelector {
 			item.setIcon(createIcon(m));
 			return new Tuple2<>(item, m);
 		}).collect(Collectors.toList());
-		items = list.stream().map(t -> t.getElem1()).collect(Collectors.toList());
+		items = list.stream().map(t -> t.get1()).collect(Collectors.toList());
 		items.forEach(popupMenu::add);
 
 		final List<Observable<Tuple2<ActionEvent, MapModule>>> obs = list.stream().map(t -> {
-			final JMenuItem menu = t.getElem1();
-			final MapModule module = t.getElem2();
+			final JMenuItem menu = t.get1();
+			final MapModule module = t.get2();
 			return SwingObservable.actions(menu).map(ev -> {
 				return new Tuple2<>(ev, module);
 			});

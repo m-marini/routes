@@ -24,7 +24,7 @@
 //
 //   END OF TERMS AND CONDITIONS
 
-package org.mmarini.routes.model;
+package org.mmarini.routes.model.v2;
 
 import java.util.Iterator;
 import java.util.List;

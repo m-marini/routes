@@ -53,7 +53,6 @@ import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 
-import org.mmarini.routes.swing.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -39,7 +39,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.mmarini.routes.model.Constants;
+import org.mmarini.routes.model.v2.Constants;
 import org.mmarini.routes.model.v2.GeoMap;
 import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;

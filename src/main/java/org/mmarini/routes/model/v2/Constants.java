@@ -7,7 +7,7 @@
  *
  * Copyright notice
  */
-package org.mmarini.routes.model;
+package org.mmarini.routes.model.v2;
 
 /**
  * @author marco.marini@mmarini.org

@@ -29,8 +29,6 @@ package org.mmarini.routes.model.v2;
 import java.util.OptionalDouble;
 import java.util.UUID;
 
-import org.mmarini.routes.model.Constants;
-
 /**
  * A vehicle in the simulation model
  */

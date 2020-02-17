@@ -29,8 +29,6 @@ package org.mmarini.routes.model.v2;
 import java.awt.geom.Point2D;
 import java.util.UUID;
 
-import org.mmarini.routes.model.Constants;
-
 /**
  * Al tratto di strada associamo la velocità corrente dei veicoli. La velocità
  * corrente è determinanata dal primo veicolo entrato nel tratto di strada. Se

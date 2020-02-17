@@ -92,7 +92,7 @@ public class WeightsTable extends JTable {
 				final Map<Tuple2<MapNode, MapNode>, Double> newWeights = weights.entrySet().parallelStream().map(e -> {
 					final Tuple2<MapNode, MapNode> k = e.getKey();
 					return new Tuple2<>(k, k.equals(key) ? (Double) aValue : e.getValue());
-				}).collect(Collectors.toMap(Tuple2::getElem1, Tuple2::getElem2));
+				}).collect(Collectors.toMap(Tuple2::get1, Tuple2::get2));
 				weights = newWeights;
 			}
 		}
@@ -137,7 +137,7 @@ public class WeightsTable extends JTable {
 	public WeightsTable setWeights(final Map<Tuple2<MapNode, MapNode>, Double> weights) {
 		this.weights = weights;
 		nodes = weights.keySet().stream().flatMap(k -> {
-			return Stream.of(k.getElem1(), k.getElem2());
+			return Stream.of(k.get1(), k.get2());
 		}).collect(Collectors.toSet()).stream().sorted().collect(Collectors.toList());
 		final Map<MapNode, Color> colorMap = SwingUtils.buildColorMap(nodes);
 		cellRenderer.setColorMap(colorMap);

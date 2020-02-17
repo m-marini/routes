@@ -13,8 +13,8 @@ public class Tuple2Test {
 	@Test
 	public void create() {
 		final Tuple2<String, String> t1 = new Tuple2<>("a", "b");
-		assertThat(t1.getElem1(), equalTo("a"));
-		assertThat(t1.getElem2(), equalTo("b"));
+		assertThat(t1.get1(), equalTo("a"));
+		assertThat(t1.get2(), equalTo("b"));
 	}
 
 	@Test
