@@ -47,7 +47,7 @@ import java.util.Optional;
 
 import javax.swing.JComponent;
 
-import org.mmarini.routes.model.Constants;
+import org.mmarini.routes.model.v2.Constants;
 import org.mmarini.routes.model.v2.EdgeTraffic;
 import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapModule;
@@ -111,7 +111,7 @@ public class RouteMap extends JComponent implements Constants {
 			dragEdge.ifPresent(line -> {
 				graphics.setColor(EDGE_DRAGING_COLOR);
 				graphics.setStroke(STROKE);
-				graphics.draw(new Line2D.Double(line.getElem1(), line.getElem2()));
+				graphics.draw(new Line2D.Double(line.get1(), line.get2()));
 			});
 			return this;
 		}

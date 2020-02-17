@@ -391,6 +391,7 @@ public class SwingUtils {
 	 * @return
 	 */
 	public static Observable<ActionEvent> action(final JTextField field) {
+		assert field != null;
 		return Observable.<ActionEvent>create(emitter -> {
 			logger.debug("register listener on {}", field);
 			field.addActionListener(ev -> emitter.onNext(ev));

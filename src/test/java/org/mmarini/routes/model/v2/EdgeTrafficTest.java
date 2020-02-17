@@ -33,7 +33,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mmarini.routes.model.Constants;
 
 public class EdgeTrafficTest implements Constants {
 	private static final double SPEED = 10.0;

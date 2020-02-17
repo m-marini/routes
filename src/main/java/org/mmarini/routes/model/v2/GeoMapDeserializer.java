@@ -38,9 +38,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.mmarini.routes.model.Constants;
-import org.mmarini.routes.model.YamlUtils;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -251,9 +248,9 @@ public class GeoMapDeserializer implements Constants {
 	 */
 	private GeoMapDeserializer parsePaths(final JsonNode jsonNode) {
 		final Map<Tuple2<MapNode, MapNode>, Double> weights = YamlUtils.toStream(jsonNode.elements())
-				.map(this::parsePath).collect(Collectors.toMap(Tuple2::getElem1, Tuple2::getElem2));
+				.map(this::parsePath).collect(Collectors.toMap(Tuple2::get1, Tuple2::get2));
 		final Set<MapNode> wsites = weights.keySet().stream().flatMap(t -> {
-			return Set.of(t.getElem1(), t.getElem2()).stream();
+			return Set.of(t.get1(), t.get2()).stream();
 		}).collect(Collectors.toSet());
 		final Set<MapNode> sites = new HashSet<>(this.sites);
 		sites.addAll(wsites);

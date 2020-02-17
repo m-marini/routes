@@ -36,8 +36,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.mmarini.routes.model.Constants;
-
 /**
  * A builder of simulation status
  * <p>
@@ -175,8 +173,8 @@ public class TrafficBuilder implements Constants {
 			final TrafficStats ts = getTrafficStats();
 			TrafficBuilder result = this;
 			for (final Entry<Tuple2<MapNode, MapNode>, Double> entry : initialStatus.getMap().getWeights().entrySet()) {
-				final MapNode from = entry.getKey().getElem1();
-				final MapNode to = entry.getKey().getElem2();
+				final MapNode from = entry.getKey().get1();
+				final MapNode to = entry.getKey().get2();
 				if (!from.equals(to)) {
 					final Optional<EdgeTraffic> edge = ts.nextEdge(from, to);
 					final double weight = entry.getValue();

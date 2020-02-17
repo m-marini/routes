@@ -23,7 +23,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
-import org.mmarini.routes.model.Constants;
 
 public class TrafficTest implements Constants {
 

@@ -29,8 +29,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
-import org.mmarini.routes.model.Constants;
-
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;

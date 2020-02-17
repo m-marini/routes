@@ -17,7 +17,6 @@ import java.net.URL;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
-import org.mmarini.routes.model.Constants;
 
 public class GeoMapDeserializerTest implements Constants {
 

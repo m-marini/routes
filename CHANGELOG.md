@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Issue #17: Change model rendering
 - Issue #18: Load immutable model
+- Issue #19: Remove old model 
 - Issue #21: Create main frame
 - Issue #22: Create reactive simulation
 - Issue #28: Zoom in / out
@@ -44,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #71: Model semplification
 - Issue #76: Information menu items
 - Issue #77: Traffics view
+- Issue #81: split control logic 
 
 ## [4.2.0] - 2019-12-08
 
