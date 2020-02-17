@@ -32,6 +32,7 @@ import java.text.MessageFormat;
 import java.util.Optional;
 import java.util.Random;
 
+import javax.swing.BorderFactory;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -230,7 +231,10 @@ public class MainFrameController {
 				final Traffics traffics = st.getTraffics();
 				final TrafficsTable table = new TrafficsTable(traffics);
 				final JScrollPane pane = new JScrollPane(table);
-				JOptionPane.showMessageDialog(mainFrame, pane, Messages.getString("Controller.trafficsPane.title"), //$NON-NLS-1$
+				pane.setBorder(BorderFactory
+						.createTitledBorder(Messages.getString("MainFrameController.trafficsPane.description")));
+				JOptionPane.showMessageDialog(mainFrame, pane,
+						Messages.getString("MainFrameController.trafficsPane.title"), //$NON-NLS-1$
 						JOptionPane.INFORMATION_MESSAGE);
 				return st;
 			});
