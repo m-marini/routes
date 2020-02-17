@@ -9,8 +9,10 @@
  */
 package org.mmarini.routes.swing.v2;
 
+import static java.lang.Math.floor;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.lang.String.format;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -532,6 +534,24 @@ public class SwingUtils {
 	 */
 	public static GridBagConstraintsBuilder createLabelConstraints(final int x, final int y, final int w, final int h) {
 		return createGridConstraints(x, y, w, h).east().inset(2);
+	}
+
+	/**
+	 * @param t
+	 * @return
+	 */
+	public static String formatTime(final double t) {
+		final double h = floor(t / 3600);
+		final double tm = t - h * 3600;
+		final double m = floor(tm / 60);
+		final double s = tm - m * 60;
+		if (h > 0) {
+			return format("%02.0f:%02.0f:%02.0f", h, m, s);
+		} else if (m > 0) {
+			return format("%02.0f:%02.0f", m, s);
+		} else {
+			return format("%02.0f", s);
+		}
 	}
 
 	/**

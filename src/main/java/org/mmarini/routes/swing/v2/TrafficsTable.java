@@ -31,7 +31,6 @@ import static java.lang.String.format;
 import java.awt.Color;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.swing.JTable;
@@ -77,13 +76,11 @@ public class TrafficsTable extends JTable {
 				return from;
 			} else {
 				final MapNode to = nodes.get(columnIndex - 1);
-				final Optional<String> timeStr = stats.getTime(from, to).stream().mapToObj(t -> {
-					return format("%.0f", t);
-				}).findAny();
-				final Optional<String> minTimeStr = stats.getMinTime(from, to).stream().mapToObj(t -> {
-					return format("%.0f", t);
-				}).findAny();
-				return format("%s / %s", timeStr.orElse("-"), minTimeStr.orElse("-"));
+				final String timeStr = stats.getTime(from, to).stream().mapToObj(SwingUtils::formatTime).findAny()
+						.orElse("-");
+				final String minTimeStr = stats.getMinTime(from, to).stream().mapToObj(SwingUtils::formatTime).findAny()
+						.orElse("-");
+				return format("%s / %s", timeStr, minTimeStr);
 			}
 		}
 	}
