@@ -57,7 +57,7 @@ public class MapNodePaneController implements Constants {
 				final MapNode node = t.get2();
 				logger.debug("changeNode {} ", node); //$NON-NLS-1$
 				final Traffics nextSt = st.getTraffics().changeNode(node, (a, b) -> 1);
-				final UIStatus nextUiStatus = st.setTraffics(nextSt).setSelectedElement(MapElement.empty());
+				final UIStatus nextUiStatus = st.setTraffics(nextSt);
 				controller.mapChanged(nextUiStatus);
 				final GeoMap map = nextUiStatus.getTraffics().getMap();
 				routeMap.setSelectedSite(map.getSite(node));

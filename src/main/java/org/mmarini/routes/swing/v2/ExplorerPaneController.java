@@ -55,11 +55,10 @@ public class ExplorerPaneController implements Constants {
 		}).subscribe(t -> {
 			final UIStatus st = t.get1();
 			final MapNode site = t.get2();
-			final UIStatus newStatus = st.setSelectedElement(MapElement.create(site));
 			mapElementPane.setNode(site);
 			routeMap.setSelectedSite(Optional.of(site));
-			controller.centerMapTo(newStatus, site.getLocation());
-			uiStatusSubj.onNext(newStatus);
+			controller.centerMapTo(st, site.getLocation());
+			uiStatusSubj.onNext(st);
 		}, controller::showError);
 
 		explorerPane.getNodeObs().withLatestFrom(uiStatusObs, (node, st) -> {
@@ -67,11 +66,10 @@ public class ExplorerPaneController implements Constants {
 		}).subscribe(t -> {
 			final UIStatus st = t.get1();
 			final MapNode node = t.get2();
-			final UIStatus newStatus = st.setSelectedElement(MapElement.create(node));
 			mapElementPane.setNode(node);
 			routeMap.setSelectedNode(Optional.of(node));
-			controller.centerMapTo(newStatus, node.getLocation());
-			uiStatusSubj.onNext(newStatus);
+			controller.centerMapTo(st, node.getLocation());
+			uiStatusSubj.onNext(st);
 		}, controller::showError);
 
 		explorerPane.getEdgeObs().withLatestFrom(uiStatusObs, (edge, st) -> {
@@ -79,11 +77,10 @@ public class ExplorerPaneController implements Constants {
 		}).subscribe(t -> {
 			final UIStatus st = t.get1();
 			final MapEdge edge = t.get2();
-			final UIStatus newStatus = st.setSelectedElement(MapElement.create(edge));
 			mapElementPane.setEdge(edge);
 			routeMap.setSelectedEdge(Optional.of(edge));
-			controller.centerMapTo(newStatus, edge.getBeginLocation());
-			uiStatusSubj.onNext(newStatus);
+			controller.centerMapTo(st, edge.getBeginLocation());
+			uiStatusSubj.onNext(st);
 		}, controller::showError);
 		return this;
 	}

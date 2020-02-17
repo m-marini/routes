@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #58: Priority on element type in selection by mouse
 - Issue #64: Synchronization problem
 - Issue #73: Mouse selection does not work
+- Issue #84: Clear selection bug
 - Issue #88: Missing title on info panel
 
 ### Changed
