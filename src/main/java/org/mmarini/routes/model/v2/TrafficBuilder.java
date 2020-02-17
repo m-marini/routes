@@ -36,6 +36,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A builder of simulation status
  * <p>
@@ -44,6 +47,7 @@ import java.util.stream.Stream;
  * </p>
  */
 public class TrafficBuilder implements Constants {
+	private static final Logger logger = LoggerFactory.getLogger(TrafficBuilder.class);
 
 	/**
 	 *
@@ -156,7 +160,8 @@ public class TrafficBuilder implements Constants {
 	 */
 	public Traffics build() {
 		final TrafficBuilder finalStatus = simulationProcess(this).createVehicles();
-		return finalStatus.initialStatus.setTraffics(finalStatus.traffics);
+		final Traffics resut = finalStatus.initialStatus.setTraffics(finalStatus.traffics);
+		return resut;
 	}
 
 	/**
@@ -180,7 +185,12 @@ public class TrafficBuilder implements Constants {
 					final double weight = entry.getValue();
 					final int n = initialStatus.nextPoison(lambda0 * weight);
 					final TrafficBuilder builder = result;
-					result = edge.map(ed -> builder.createVehicles(n, from, to, ed, t0)).orElseGet(() -> this);
+					result = edge.map(ed -> {
+						final TrafficBuilder res1 = builder.createVehicles(n, from, to, ed, t0);
+						return res1;
+					}).orElseGet(() -> {
+						return builder;
+					});
 				}
 			}
 			return result;
@@ -207,7 +217,8 @@ public class TrafficBuilder implements Constants {
 				final Vehicle v = Vehicle.create(from, to);
 				newEdge = newEdge.addVehicle(v, t0);
 			}
-			return addTraffics(newEdge);
+			final TrafficBuilder result = addTraffics(newEdge);
+			return result;
 		}
 	}
 
