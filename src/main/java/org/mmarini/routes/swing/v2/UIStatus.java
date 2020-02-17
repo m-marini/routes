@@ -68,7 +68,7 @@ public class UIStatus implements Constants {
 	 * Returns default status
 	 */
 	public static UIStatus create() {
-		return new UIStatus(DEFAULT_SCALE, Traffics.create(), MapMode.SELECTION, Optional.empty(), MapElement.empty(),
+		return new UIStatus(DEFAULT_SCALE, Traffics.create(), MapMode.SELECTION, Optional.empty(),
 				DEFAULT_SPEED_LIMIT_KMH * KMH_TO_MPS);
 	}
 
@@ -99,7 +99,6 @@ public class UIStatus implements Constants {
 	private final Traffics traffics;
 	private final MapMode mode;
 	private final Optional<Tuple2<Point2D, Point2D>> dragEdge;
-	private final MapElement selectedElement;
 	private final int priority;
 	private final double speedLimit;
 
@@ -108,17 +107,14 @@ public class UIStatus implements Constants {
 	 * @param traffics
 	 * @param mode
 	 * @param dragEdge
-	 * @param selectedElement
 	 * @param speedLimit
 	 */
 	protected UIStatus(final double scale, final Traffics traffics, final MapMode mode,
-			final Optional<Tuple2<Point2D, Point2D>> dragEdge, final MapElement selectedElement,
-			final double speedLimit) {
+			final Optional<Tuple2<Point2D, Point2D>> dragEdge, final double speedLimit) {
 		this.scale = scale;
 		this.traffics = traffics;
 		this.mode = mode;
 		this.dragEdge = dragEdge;
-		this.selectedElement = selectedElement;
 		this.priority = DEFAULT_PRIORITY;
 		this.speedLimit = speedLimit;
 	}
@@ -299,13 +295,6 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * @return the selectedElement
-	 */
-	public MapElement getSelectedElement() {
-		return selectedElement;
-	}
-
-	/**
 	 * @return the speedLimit
 	 */
 	public double getSpeedLimit() {
@@ -363,7 +352,7 @@ public class UIStatus implements Constants {
 	 * @param dragEdge
 	 */
 	public UIStatus setDragEdge(final Optional<Tuple2<Point2D, Point2D>> dragEdge) {
-		return new UIStatus(scale, traffics, mode, dragEdge, selectedElement, speedLimit);
+		return new UIStatus(scale, traffics, mode, dragEdge, speedLimit);
 	}
 
 	/**
@@ -383,7 +372,7 @@ public class UIStatus implements Constants {
 	 * @param mode the mode
 	 */
 	public UIStatus setMode(final MapMode mode) {
-		return new UIStatus(scale, traffics, mode, dragEdge, selectedElement, speedLimit);
+		return new UIStatus(scale, traffics, mode, dragEdge, speedLimit);
 	}
 
 	/**
@@ -392,16 +381,7 @@ public class UIStatus implements Constants {
 	 * @param scale the scale
 	 */
 	public UIStatus setScale(final double scale) {
-		return new UIStatus(scale, traffics, mode, dragEdge, selectedElement, speedLimit);
-	}
-
-	/**
-	 * Returns the UIStatus with a new selected element
-	 *
-	 * @param selectedElement the selected element
-	 */
-	public UIStatus setSelectedElement(final MapElement selectedElement) {
-		return new UIStatus(scale, traffics, mode, dragEdge, selectedElement, speedLimit);
+		return new UIStatus(scale, traffics, mode, dragEdge, speedLimit);
 	}
 
 	/**
@@ -410,7 +390,7 @@ public class UIStatus implements Constants {
 	 * @return
 	 */
 	public UIStatus setSpeedLimit(final double speedLimit) {
-		return new UIStatus(scale, traffics, mode, dragEdge, selectedElement, speedLimit);
+		return new UIStatus(scale, traffics, mode, dragEdge, speedLimit);
 	}
 
 	/**
@@ -419,7 +399,7 @@ public class UIStatus implements Constants {
 	 * @param traffics the status
 	 */
 	public UIStatus setTraffics(final Traffics traffics) {
-		return new UIStatus(scale, traffics, mode, dragEdge, selectedElement, speedLimit);
+		return new UIStatus(scale, traffics, mode, dragEdge, speedLimit);
 	}
 
 	/**

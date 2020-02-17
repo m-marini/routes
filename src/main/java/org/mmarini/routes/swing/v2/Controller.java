@@ -141,7 +141,7 @@ public class Controller implements Constants, ControllerFunctions {
 	 *
 	 */
 	private Controller bindAll() {
-		new MouseController(scrollMap, routeMap, explorerPane, uiStatusSubj, uiStatusObs, this).build();
+		new MouseController(scrollMap, routeMap, mapElementPane, explorerPane, uiStatusSubj, uiStatusObs, this).build();
 		new MainFrameController(mainFrame, fileChooser, uiStatusObs, simulator, this).build();
 		new MapViewPaneController(mapViewPane, scrollMap, routeMap, uiStatusSubj, uiStatusObs, this).build();
 		new EdgePaneController(edgePane, routeMap, explorerPane, uiStatusObs, this).build();
@@ -240,7 +240,7 @@ public class Controller implements Constants, ControllerFunctions {
 	public UIStatus deleteEdge(final UIStatus uiStatus, final MapEdge edge) {
 		logger.debug("deleteEdge {} ", edge); //$NON-NLS-1$
 		final Traffics nextSt = uiStatus.getTraffics().removeEdge(edge);
-		return uiStatus.setTraffics(nextSt).setSelectedElement(MapElement.empty());
+		return uiStatus.setTraffics(nextSt);
 	}
 
 	/**
@@ -252,7 +252,7 @@ public class Controller implements Constants, ControllerFunctions {
 	public UIStatus deleteNode(final UIStatus uiStatus, final MapNode node) {
 		logger.debug("deleteNode {} ", node); //$NON-NLS-1$
 		final Traffics nextSt = uiStatus.getTraffics().removeNode(node);
-		return uiStatus.setTraffics(nextSt).setSelectedElement(MapElement.empty());
+		return uiStatus.setTraffics(nextSt);
 	}
 
 	/**

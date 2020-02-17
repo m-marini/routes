@@ -53,6 +53,7 @@ public class MouseController implements Constants {
 
 	private final ScrollMap scrollMap;
 	private final RouteMap routeMap;
+	private final MapElementPane mapElementPane;
 	private final ExplorerPane explorerPane;
 	private final BehaviorSubject<UIStatus> uiStatusSubj;
 	private final Observable<UIStatus> uiStatusObs;
@@ -61,20 +62,22 @@ public class MouseController implements Constants {
 	/**
 	 * @param scrollMap
 	 * @param routeMap
+	 * @param mapElementPane
 	 * @param explorerPane
 	 * @param uiStatusSubj
 	 * @param uiStatusObs
 	 * @param controller
 	 */
-	public MouseController(final ScrollMap scrollMap, final RouteMap routeMap, final ExplorerPane explorerPane,
-			final BehaviorSubject<UIStatus> uiStatusSubj, final Observable<UIStatus> uiStatusObs,
-			final ControllerFunctions controller) {
+	public MouseController(final ScrollMap scrollMap, final RouteMap routeMap, final MapElementPane mapElementPane,
+			final ExplorerPane explorerPane, final BehaviorSubject<UIStatus> uiStatusSubj,
+			final Observable<UIStatus> uiStatusObs, final ControllerFunctions controller) {
 		this.scrollMap = scrollMap;
 		this.routeMap = routeMap;
 		this.explorerPane = explorerPane;
 		this.uiStatusSubj = uiStatusSubj;
 		this.uiStatusObs = uiStatusObs;
 		this.controller = controller;
+		this.mapElementPane = mapElementPane;
 	}
 
 	/**
@@ -175,11 +178,10 @@ public class MouseController implements Constants {
 			elem.getNode().ifPresent(explorerPane::setSelectedNode);
 			elem.getEdge().ifPresent(explorerPane::setSelectedEdge);
 			if (elem.isEmpty()) {
+				routeMap.clearSelection();
 				explorerPane.clearSelection();
 				controller.centerMapTo(st, t.get2());
-			}
-			if (!st.getSelectedElement().equals(elem)) {
-				uiStatusSubj.onNext(st.setSelectedElement(elem));
+				mapElementPane.clearSelection();
 			}
 		}, controller::showError);
 		return this;
