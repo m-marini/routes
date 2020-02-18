@@ -131,8 +131,9 @@ public class Simulator {
 	 * @return
 	 */
 	public Simulator setTraffics(final Traffics traffics) {
-		logger.debug("setSimulationStatus {}", traffics);
+		logger.debug("setTraffics {}", traffics);
 		this.traffics = traffics;
+		output.onNext(traffics);
 		return this;
 	}
 
