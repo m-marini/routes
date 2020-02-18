@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #84: Clear selection bug
 - Issue #87: No vehicle Bug
 - Issue #88: Missing title on info panel
+- Issue #92: Missing refresh on edge delete
 
 ### Changed
 

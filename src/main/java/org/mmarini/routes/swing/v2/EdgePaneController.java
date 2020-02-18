@@ -52,11 +52,14 @@ public class EdgePaneController implements Constants {
 			return new Tuple2<>(st, edge);
 		}).subscribe(t -> {
 			controller.withStopSimulator(st1 -> {
-				final UIStatus st = controller.deleteEdge(t.get1(), t.get2());
-				controller.mapChanged(st);
+				final UIStatus status = t.get1();
+				final MapEdge edge = t.get2();
+				logger.debug("delete edge {}", edge.getShortName());
+				final UIStatus nextStatus = controller.deleteEdge(status, edge);
+				controller.mapChanged(nextStatus);
 				explorerPane.clearSelection();
 				routeMap.clearSelection();
-				return st;
+				return nextStatus;
 			});
 		});
 
@@ -70,11 +73,11 @@ public class EdgePaneController implements Constants {
 			}).orElse(false);
 		}).subscribe(t -> {
 			controller.withStopSimulator(tr -> {
-				final UIStatus status = t.get1();
 				final MapEdge edge = edgePane.getEdge().get();
 				final int priority = t.get2();
 				logger.debug("changePriority {} {}", edge.getShortName(), priority); //$NON-NLS-1$
 				final MapEdge newEdge = edge.setPriority(priority);
+				final UIStatus status = t.get1();
 				final UIStatus newStatus = status.setTraffics(status.getTraffics().change(newEdge));
 				controller.mapChanged(newStatus);
 				routeMap.setSelectedEdge(Optional.of(newEdge)).repaint();

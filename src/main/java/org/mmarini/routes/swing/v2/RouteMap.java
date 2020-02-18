@@ -89,7 +89,7 @@ public class RouteMap extends JComponent implements Constants {
 		 * Returns the painter with map of colors of sites
 		 */
 		protected Painter computeSiteColorMap() {
-			final Map<MapNode, Color> map = status.map(s -> {
+			final Map<MapNode, Color> map = traffics.map(s -> {
 				return SwingUtils.buildColorMap(s.getMap().getSites());
 			}).orElseGet(() -> Collections.emptyMap());
 			return new Painter(graphics, bound, map, borderPainted);
@@ -131,7 +131,7 @@ public class RouteMap extends JComponent implements Constants {
 		 * Returns the painter with painted edges
 		 */
 		private Painter paintEdges() {
-			status.ifPresent(s -> {
+			traffics.ifPresent(s -> {
 				if (trafficView) {
 					s.getTraffics().forEach(this::paintTraffic);
 				} else {
@@ -248,7 +248,7 @@ public class RouteMap extends JComponent implements Constants {
 		 * Returns the painter with painted sites
 		 */
 		private Painter paintSites() {
-			status.ifPresent(st -> {
+			traffics.ifPresent(st -> {
 				st.getMap().getSites().forEach(this::paintSite);
 			});
 			return this;
@@ -305,7 +305,7 @@ public class RouteMap extends JComponent implements Constants {
 		 */
 		private Painter paintVehicles() {
 			if (!trafficView) {
-				status.stream().<EdgeTraffic>flatMap(st -> st.getTraffics().stream())
+				traffics.stream().<EdgeTraffic>flatMap(st -> st.getTraffics().stream())
 						.<VehicleInfo>flatMap(te -> te.getVehicles().stream().map(v -> {
 							final Point2D location = te.getEdge().getLocation(v.getLocation());
 							final Point2D direction = te.getEdge().getDirection();
@@ -374,7 +374,7 @@ public class RouteMap extends JComponent implements Constants {
 	private final Observable<MouseWheelEvent> mouseWheelObs;
 	private final Observable<KeyEvent> keyboardObs;
 	private boolean trafficView;
-	private Optional<Traffics> status;
+	private Optional<Traffics> traffics;
 	private AffineTransform transform;
 	private double gridSize;
 	private Optional<MapNode> selectedNode;
@@ -403,7 +403,7 @@ public class RouteMap extends JComponent implements Constants {
 		setRequestFocusEnabled(true);
 		requestFocus();
 
-		this.status = Optional.empty();
+		this.traffics = Optional.empty();
 		this.selectedNode = Optional.empty();
 		this.selectedSite = Optional.empty();
 		this.selectedEdge = Optional.empty();
@@ -603,10 +603,10 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * @param status the status to set
+	 * @param traffics the status to set
 	 */
-	public RouteMap setStatus(final Traffics status) {
-		this.status = Optional.ofNullable(status);
+	public RouteMap setTraffics(final Traffics traffics) {
+		this.traffics = Optional.ofNullable(traffics);
 		return this;
 	}
 

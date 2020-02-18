@@ -310,7 +310,7 @@ public class Controller implements Constants, ControllerFunctions {
 	 */
 	@Override
 	public Controller mapChanged(final UIStatus uiStatus) {
-		routeMap.setStatus(uiStatus.getTraffics()).setGridSize(uiStatus.getGridSize()).clearSelection()
+		routeMap.setTraffics(uiStatus.getTraffics()).setGridSize(uiStatus.getGridSize()).clearSelection()
 				.setTransform(uiStatus.getTransform()).setPreferredSize(uiStatus.getScreenMapSize());
 		scrollMap.repaint();
 		explorerPane.setMap(uiStatus.getTraffics().getMap());
@@ -378,7 +378,7 @@ public class Controller implements Constants, ControllerFunctions {
 	 * @return
 	 */
 	private Controller trafficChanged(final UIStatus uiStatus) {
-		routeMap.setStatus(uiStatus.getTraffics());
+		routeMap.setTraffics(uiStatus.getTraffics());
 		scrollMap.repaint();
 		return this;
 	}

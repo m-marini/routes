@@ -36,9 +36,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * A builder of simulation status
  * <p>
@@ -47,7 +44,6 @@ import org.slf4j.LoggerFactory;
  * </p>
  */
 public class TrafficBuilder implements Constants {
-	private static final Logger logger = LoggerFactory.getLogger(TrafficBuilder.class);
 
 	/**
 	 *
