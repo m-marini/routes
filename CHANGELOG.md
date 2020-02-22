@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #64: Synchronization problem
 - Issue #73: Mouse selection does not work
 - Issue #84: Clear selection bug
+- Issue #85: City exit edge bug
 - Issue #87: No vehicle Bug
 - Issue #88: Missing title on info panel
 - Issue #91: Delete key Bug
