@@ -15,7 +15,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TrafficBuilderTest {
+public class TrafficsBuilderTest {
 
 	private MapNode n1;
 	private MapNode n2;
@@ -30,11 +30,11 @@ public class TrafficBuilderTest {
 	private EdgeTraffic t34;
 	private EdgeTraffic t42;
 	private Set<EdgeTraffic> traffics;
-	private TrafficBuilder builder;
+	private TrafficsBuilder builder;
 
 	@Test
 	public void create() {
-		final TrafficBuilder result = TrafficBuilder.create();
+		final TrafficsBuilder result = TrafficsBuilder.create();
 		assertThat(result, notNullValue());
 		assertThat(result.getTraffics(), empty());
 	}
@@ -67,7 +67,7 @@ public class TrafficBuilderTest {
 		t34 = EdgeTraffic.create(e34).setTime(50.0).setVehicles(v34);
 		t42 = EdgeTraffic.create(e42).setTime(55);
 		traffics = Set.of(t14, t34, t42);
-		builder = TrafficBuilder.create().setTraffics(traffics);
+		builder = TrafficsBuilder.create().setTraffics(traffics);
 	}
 
 	@Test
@@ -85,7 +85,7 @@ public class TrafficBuilderTest {
 		final MapEdge edge = MapEdge.create(MapNode.create(0, 0), MapNode.create(10, 10));
 		final EdgeTraffic et = EdgeTraffic.create(edge);
 		final Set<EdgeTraffic> traffics = Set.of(et);
-		final TrafficBuilder result = TrafficBuilder.create().setTraffics(traffics);
+		final TrafficsBuilder result = TrafficsBuilder.create().setTraffics(traffics);
 		assertThat(result, notNullValue());
 		assertThat(result.getTraffics(), sameInstance(traffics));
 	}

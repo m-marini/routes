@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
+public class TrafficsBuilderTest1 extends AbstractTrafficsBuilderTest {
 
 	static DoubleStream timeRange() {
 		return genArguments(3).mapToDouble(i -> genDouble(i, 10, 20));
@@ -45,8 +45,8 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@ParameterizedTest
 	@MethodSource("timeRange")
 	public void build(final double time) {
-		final TrafficBuilder builder1 = createDefaultBuilder(time, time + 5, (traffic, i) -> traffic);
-		final TrafficBuilder builder = builder1
+		final TrafficsBuilder builder1 = createDefaultBuilder(time, time + 5, (traffic, i) -> traffic);
+		final TrafficsBuilder builder = builder1
 				.setInitialStatus(builder1.getInitialStatus().setRandom(new Random(12345)));
 
 		final Traffics result = builder.build();
@@ -73,7 +73,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	public void findCandidate() {
 		final double time = 10;
 		final double limitTime = time + 1;
-		final TrafficBuilder builder = createDefaultBuilder(time, limitTime, (edge, i) -> {
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime, (edge, i) -> {
 			switch (i) {
 			case 1:
 			case 3:
@@ -93,7 +93,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	public void getMinimumTime() {
 		final double time = 10;
 		final double limitTime = time + 1;
-		final TrafficBuilder builder = createDefaultBuilder(time, limitTime,
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime,
 				(edge, i) -> edge.setTime(edge.getTime() + i * 0.1));
 		final double result = builder.getMinimumTime();
 		assertThat(result, closeTo(time, 1e-3));
@@ -101,7 +101,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 
 	@Test
 	public void getMinimumTimeEmpty() {
-		final TrafficBuilder builder = TrafficBuilder.create(Traffics.create(), 10);
+		final TrafficsBuilder builder = TrafficsBuilder.create(Traffics.create(), 10);
 		final double result = builder.getMinimumTime();
 		assertThat(result, closeTo(10.0, 1e-3));
 	}
@@ -110,7 +110,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	public void getNextEdge() {
 		final double time = 10;
 		final double limitTime = time + 1;
-		final TrafficBuilder builder = createDefaultBuilder(time, limitTime,
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime,
 				(edge, i) -> i == 0 ? edge.setVehicles(List.of(Vehicle.create(node(0), node(1)))) : edge);
 		final Optional<EdgeTraffic> result = builder.getNextTraffic(traffic(0));
 		assertNotNull(result);
@@ -122,7 +122,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	public void getNextEdgeEmpty() {
 		final double time = 10;
 		final double limitTime = time + 1;
-		final TrafficBuilder builder = createDefaultBuilder(time, limitTime, (a, b) -> a);
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime, (a, b) -> a);
 		final Optional<EdgeTraffic> result = builder.getNextTraffic(traffics.get(0));
 		assertNotNull(result);
 		assertTrue(result.isEmpty());
@@ -132,7 +132,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	public void getNextMinimumTime() {
 		final double time = 10;
 		final double limitTime = time + 1;
-		final TrafficBuilder builder = createDefaultBuilder(time, limitTime,
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime,
 				(edge, i) -> edge.setTime(edge.getTime() + i * 0.1));
 		final double result = builder.getNextMinimumTime();
 		assertThat(result, closeTo(time + 0.1, 1e-3));
@@ -140,7 +140,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 
 	@Test
 	public void getNextMinimumTimeEmpty() {
-		final TrafficBuilder builder = TrafficBuilder.create(Traffics.create(), 10);
+		final TrafficsBuilder builder = TrafficsBuilder.create(Traffics.create(), 10);
 		final double result = builder.getNextMinimumTime();
 		assertThat(result, closeTo(10.0, 1e-3));
 	}
@@ -157,7 +157,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void isCompletedFalse(final double time) {
 		final double limitTime = time + 1;
-		final TrafficBuilder builder = createDefaultBuilder(time, limitTime,
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime,
 				(edge, i) -> i == 0 ? edge : edge.setTime(limitTime));
 		final boolean result = builder.isCompleted();
 		assertFalse(result);
@@ -174,7 +174,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void isCompletedTrue(final double time) {
 		final double limitTime = time + 1;
-		final TrafficBuilder builder = createDefaultBuilder(time, limitTime, (edge, i) -> edge.setTime(limitTime));
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime, (edge, i) -> edge.setTime(limitTime));
 		final boolean result = builder.isCompleted();
 		assertTrue(result);
 	}
@@ -206,7 +206,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void isPriorByArrival(final double time) {
 		final double limitTime = time + 10;
-		final TrafficBuilder builder = createBuilder(time, limitTime, () -> {
+		final TrafficsBuilder builder = createBuilder(time, limitTime, () -> {
 			return createDefaultNodes().map(node -> {
 				return node.getLocation().equals(new Point2D.Double()) ? MapNode.create(0, -500) : node;
 			});
@@ -270,7 +270,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void isPriorById(final double time) {
 		final double limitTime = time + 10;
-		final TrafficBuilder builder = createBuilder(time, limitTime, () -> {
+		final TrafficsBuilder builder = createBuilder(time, limitTime, () -> {
 			return createDefaultNodes().map(node -> {
 				return node.getLocation().equals(new Point2D.Double()) ? MapNode.create(0, -500) : node;
 			});
@@ -322,7 +322,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void isPriorByPriotrity(final double time) {
 		final double limitTime = time + 10;
-		final TrafficBuilder builder = createBuilder(time, limitTime, this::createDefaultNodes,
+		final TrafficsBuilder builder = createBuilder(time, limitTime, this::createDefaultNodes,
 				this::createDefaultSites,
 				// Creates edges with modified priority
 				() -> {
@@ -373,7 +373,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void isPriorDirection(final double time) {
 		final double limitTime = time + 10;
-		final TrafficBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
 			switch (i) {
 			case 0:
 				return traffic.setTime(time).setVehicles(
@@ -412,7 +412,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void isPriorTimeNoConflict(final double time) {
 		final double limitTime = time + 10;
-		final TrafficBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
 			switch (i) {
 			case 0:
 				return traffic
@@ -446,11 +446,11 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void moveVehicleDeparture(final double time) {
 
-		final TrafficBuilder builder = createDefaultBuilder(time, time,
+		final TrafficsBuilder builder = createDefaultBuilder(time, time,
 				(traffic, i) -> i == 3 ? traffic.setVehicles(List.of(
 						Vehicle.create(node(0), node(1)).setLocation(traffic.getEdge().getLength()).setReturning(true)))
 						: traffic);
-		final TrafficBuilder result = builder.moveLastVehicleAt(traffic(3));
+		final TrafficsBuilder result = builder.moveLastVehicleAt(traffic(3));
 		assertNotNull(result);
 
 		result.getTraffics().forEach(traffic -> {
@@ -473,12 +473,12 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void moveVehicleDestination(final double time) {
 
-		final TrafficBuilder builder = createDefaultBuilder(time, time,
+		final TrafficsBuilder builder = createDefaultBuilder(time, time,
 				(traffic, i) -> i == 4
 						? traffic.setVehicles(
 								List.of(Vehicle.create(node(0), node(1)).setLocation(traffic.getEdge().getLength())))
 						: traffic);
-		final TrafficBuilder result = builder.moveLastVehicleAt(traffic(4));
+		final TrafficsBuilder result = builder.moveLastVehicleAt(traffic(4));
 		assertNotNull(result);
 
 		final Optional<EdgeTraffic> traffic4 = traffic(result, 4);
@@ -497,6 +497,45 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	}
 
 	/**
+	 * Given a returning vehicle arrived at destination<br>
+	 * When move the vehicle to next edge<br>
+	 * Than the vehicle should be in the next edge returning<br>
+	 *
+	 * <pre>
+	 * s0 <--3--  n3 <--1--  s1
+	 * s0         n3  --4--> s1
+	 *                 t=0
+	 * </pre>
+	 */
+//	@ParameterizedTest
+//	@MethodSource("timeRange")
+//	public void moveVehicleDestinationBusy(final double time) {
+//
+//		final TrafficsBuilder builder = createDefaultBuilder(time, time, (traffic, i) -> {
+//			switch (i) {
+//			case 1:
+//				return traffic.setVehicles(List.of(Vehicle.create(node(0), node(1)).setLocation(4)));
+//			case 4:
+//				return traffic.setVehicles(
+//						List.of(Vehicle.create(node(0), node(1)).setLocation(traffic.getEdge().getLength())));
+//			default:
+//				return traffic;
+//			}
+//		});
+//		final TrafficsBuilder result = builder.moveLastVehicleAt(traffic(4));
+//		assertNotNull(result);
+//
+//		final Optional<EdgeTraffic> traffic4 = traffic(result, 4);
+//		assertTrue(traffic4.isPresent());
+//		assertThat(traffic4.get().getVehicles(), hasSize(1));
+//		final Vehicle v4 = traffic4.get().getLast().get();
+//		assertNotNull(v4);
+//		assertFalse(v4.isReturning());
+//		assertThat(v4.getLocation(), equalTo(500.0));
+//		assertThat(v4.getEdgeEntryTime(), equalTo(time));
+//	}
+
+	/**
 	 * Given a vehicle at end of edge at end simulation time<br>
 	 * When move the vehicle to next edge<br>
 	 * Than the vehicle should be at begin of the next edge<br>
@@ -511,12 +550,12 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void moveVehicleEndInstant(final double time) {
 
-		final TrafficBuilder builder = createDefaultBuilder(time, time,
+		final TrafficsBuilder builder = createDefaultBuilder(time, time,
 				(traffic, i) -> i == 0
 						? traffic.setVehicles(
 								List.of(Vehicle.create(node(0), node(1)).setLocation(traffic.getEdge().getLength())))
 						: traffic);
-		final TrafficBuilder result = builder.moveLastVehicleAt(traffic(0));
+		final TrafficsBuilder result = builder.moveLastVehicleAt(traffic(0));
 		assertNotNull(result);
 
 		final Optional<EdgeTraffic> traffic0 = traffic(result, 0);
@@ -550,7 +589,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void moveVehicleMidInstant(final double time) {
 		final double limitTime = time + 2;
-		final TrafficBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
 			switch (i) {
 			case 0:
 				return traffic
@@ -563,7 +602,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 				return traffic;
 			}
 		});
-		final TrafficBuilder result = builder.moveLastVehicleAt(traffic(0));
+		final TrafficsBuilder result = builder.moveLastVehicleAt(traffic(0));
 		assertNotNull(result);
 
 		final Optional<EdgeTraffic> traffic0 = traffic(result, 0);
@@ -597,7 +636,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void moveVehicleMidInstantWithNextVehicle(final double time) {
 		final double limitTime = time + 6;
-		final TrafficBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
 			switch (i) {
 			case 0:
 				return traffic
@@ -611,7 +650,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 				return traffic;
 			}
 		});
-		final TrafficBuilder result = builder.moveLastVehicleAt(traffic(0));
+		final TrafficsBuilder result = builder.moveLastVehicleAt(traffic(0));
 		assertNotNull(result);
 
 		final Optional<EdgeTraffic> traffic0 = traffic(result, 0);
@@ -643,7 +682,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void moveVehicleNoWay(final double time) {
 		final double limitTime = time + 6;
-		final TrafficBuilder builder = createBuilder(time, limitTime, this::createDefaultNodes,
+		final TrafficsBuilder builder = createBuilder(time, limitTime, this::createDefaultNodes,
 				this::createDefaultSites, () -> {
 					return createDefaultEdges().filter(edge -> {
 						return !(edge.getBegin().equals(node(3)) && edge.getEnd().equals(node(1)));
@@ -657,7 +696,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 						return traffic;
 					}
 				});
-		final TrafficBuilder result = builder.moveLastVehicleAt(traffic(0));
+		final TrafficsBuilder result = builder.moveLastVehicleAt(traffic(0));
 		assertNotNull(result);
 
 		result.getTraffics().forEach(traffic -> {
@@ -688,7 +727,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void moveVehicleNoWayAtDestination(final double time) {
 		final double limitTime = time + 6;
-		final TrafficBuilder builder = createBuilder(time, limitTime, this::createDefaultNodes,
+		final TrafficsBuilder builder = createBuilder(time, limitTime, this::createDefaultNodes,
 				this::createDefaultSites, () -> {
 					return createDefaultEdges().filter(edge -> {
 						return !(edge.getBegin().equals(node(1)) && edge.getEnd().equals(node(3)));
@@ -702,7 +741,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 						return traffic;
 					}
 				});
-		final TrafficBuilder result = builder.moveLastVehicleAt(traffic(3));
+		final TrafficsBuilder result = builder.moveLastVehicleAt(traffic(3));
 		assertNotNull(result);
 
 		result.getTraffics().forEach(traffic -> {
@@ -725,7 +764,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void simulationProcess(final double time) {
 		final double limitTime = time + 0.4;
-		final TrafficBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
 			switch (i) {
 			case 0:
 				return traffic.setVehicles(List.of(Vehicle.create(node(0), node(1)).setLocation(498)));
@@ -736,7 +775,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 			}
 		});
 
-		final TrafficBuilder result = TrafficBuilder.simulationProcess(builder);
+		final TrafficsBuilder result = TrafficsBuilder.simulationProcess(builder);
 
 		assertNotNull(result);
 
@@ -775,7 +814,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	public void simulationProcess7(final double time) {
 		final double limitTime = time + 1;
 
-		final TrafficBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
 			switch (i) {
 			case 4:
 				return traffic.setVehicles(List.of(Vehicle.create(node(0), node(1)).setLocation(495)));
@@ -784,7 +823,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 			}
 		});
 
-		final TrafficBuilder result = TrafficBuilder.simulationProcess(builder);
+		final TrafficsBuilder result = TrafficsBuilder.simulationProcess(builder);
 
 		assertNotNull(result);
 		final Set<EdgeTraffic> tr = result.getTraffics();
@@ -814,37 +853,72 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	}
 
 	/**
-	 * <pre>
-	 * Given an initial status at time t
-	 * And a vehicle from 0 to 1 in edge 4 at 495 m
-	 * And busy traffic on edge 1
-	 * And a builder to time t + 10 s
-	 * When simulationProcess
+	 * Given an initial status at time t<br>
+	 * And a vehicle from 0 to 1 in edge 4 at 495 m (at the end of edge)<br>
+	 * And busy traffic on edge 1<br>
+	 * And a builder to time t + 10s<br>
+	 * When simulationProcess<br>
 	 * Than the vehicle should be at edge 4 at 500 m
-	 * </pre>
 	 */
 	@ParameterizedTest
 	@MethodSource("timeRange")
 	public void simulationProcessBusyDestination(final double time) {
-		final double limitTime = time + 0.5;
-		final TrafficBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
+		final double limitTime = time + 0.2;
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
 			switch (i) {
-			case 1: {
-				final List<Vehicle> vs = IntStream.range(0, 995)
-						.mapToObj(j -> Vehicle.create(node(0), node(1)).setReturning(true).setLocation(j + 5))
+			case 1:
+				final List<Vehicle> vs = IntStream.range(0, 95)
+						.mapToObj(j -> Vehicle.create(node(0), node(1)).setReturning(false).setLocation(j * 5 + 1))
 						.collect(Collectors.toList());
 				return traffic.setVehicles(vs).setTime(limitTime);
-			}
-			case 4: {
-				final List<Vehicle> vs = List.of(Vehicle.create(node(0), node(1)).setLocation(495));
-				return traffic.setVehicles(vs);
-			}
+			case 4:
+				final Vehicle v1 = Vehicle.create(node(0), node(1)).setLocation(499).setReturning(false);
+				return traffic.setVehicles(List.of(v1));
 			default:
 				return traffic;
 			}
 		});
 
-		final TrafficBuilder result = TrafficBuilder.simulationProcess(builder);
+		final TrafficsBuilder result = TrafficsBuilder.simulationProcess(builder);
+		assertNotNull(result);
+
+		final EdgeTraffic nt4 = traffic(result, 4).get();
+		assertThat(nt4.getTime(), equalTo(limitTime));
+		assertThat(nt4.getVehicles(), hasSize(1));
+
+		final Vehicle v = nt4.getLast().get();
+		assertThat(v, equalTo(traffic(4).getLast().get()));
+		assertThat(v.getLocation(), equalTo(500.0));
+	}
+
+	/**
+	 * Given an initial status at time t<br>
+	 * And a vehicle from 0 to 1 in edge 4 at 495 m (at the end of edge)<br>
+	 * And busy traffic on edge 1<br>
+	 * And a builder to time t + 10s<br>
+	 * When simulationProcess<br>
+	 * Than the vehicle should be at edge 4 at 500 m
+	 */
+	@ParameterizedTest
+	@MethodSource("timeRange")
+	public void simulationProcessBusyRetDestination(final double time) {
+		final double limitTime = time + 0.1;
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
+			switch (i) {
+			case 1:
+				final List<Vehicle> vs = IntStream.range(0, 95)
+						.mapToObj(j -> Vehicle.create(node(0), node(1)).setReturning(false).setLocation(j * 5 + 1))
+						.collect(Collectors.toList());
+				return traffic.setVehicles(vs).setTime(limitTime);
+			case 4:
+				final Vehicle v1 = Vehicle.create(node(0), node(1)).setLocation(500).setReturning(true);
+				return traffic.setVehicles(List.of(v1));
+			default:
+				return traffic;
+			}
+		});
+
+		final TrafficsBuilder result = TrafficsBuilder.simulationProcess(builder);
 		assertNotNull(result);
 
 		final EdgeTraffic nt4 = traffic(result, 4).get();
@@ -865,9 +939,9 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void simulationProcessEmpty(final double time) {
 		final double limitTime = time + 1;
-		final TrafficBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> traffic);
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> traffic);
 
-		final TrafficBuilder result = TrafficBuilder.simulationProcess(builder);
+		final TrafficsBuilder result = TrafficsBuilder.simulationProcess(builder);
 		assertNotNull(result);
 
 		final Set<EdgeTraffic> traffics = result.getTraffics();
@@ -891,7 +965,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 	@MethodSource("timeRange")
 	public void simulationProcessStale(final double time) {
 		final double limitTime = time + 0.5;
-		final TrafficBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
+		final TrafficsBuilder builder = createDefaultBuilder(time, limitTime, (traffic, i) -> {
 			switch (i) {
 			case 0: {
 				final List<Vehicle> vs = IntStream.range(0, 995)
@@ -910,7 +984,7 @@ public class TrafficBuilderTest1 extends AbstractStatusBuilderTest {
 			}
 		});
 
-		final TrafficBuilder result = TrafficBuilder.simulationProcess(builder);
+		final TrafficsBuilder result = TrafficsBuilder.simulationProcess(builder);
 		assertNotNull(result);
 
 		final Set<EdgeTraffic> traffics = result.getTraffics();

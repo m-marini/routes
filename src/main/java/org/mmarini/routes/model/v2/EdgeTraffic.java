@@ -292,7 +292,7 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 	 * @return
 	 */
 	public boolean isBusy() {
-		return !getVehicles().isEmpty() && getVehicles().get(0).getLocation() <= VEHICLE_LENGTH;
+		return !vehicles.isEmpty() && vehicles.get(0).getLocation() <= VEHICLE_LENGTH;
 	}
 
 	/**
