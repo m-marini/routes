@@ -148,6 +148,7 @@ public class MouseController implements Constants {
 				scrollMap.repaint();
 				uiStatusSubj.onNext(st.setMode(MapMode.ROTATE_MODULE));
 			}
+			routeMap.requestFocus();
 		}, controller::showError);
 		return this;
 	}
@@ -183,6 +184,7 @@ public class MouseController implements Constants {
 				controller.centerMapTo(st, t.get2());
 				mapElementPane.clearSelection();
 			}
+			routeMap.requestFocus();
 		}, controller::showError);
 		return this;
 	}
@@ -225,6 +227,7 @@ public class MouseController implements Constants {
 					return newStatus;
 				});
 			}
+			routeMap.requestFocus();
 		}, controller::showError);
 		return this;
 	}
@@ -248,6 +251,7 @@ public class MouseController implements Constants {
 					.setSelectedSite(Optional.empty()).setDragEdge(dragEdge);
 			scrollMap.repaint();
 			uiStatusSubj.onNext(st.setDragEdge(dragEdge).setMode(MapMode.DRAG_EDGE));
+			routeMap.requestFocus();
 		}, controller::showError);
 		return this;
 	}
