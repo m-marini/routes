@@ -378,7 +378,7 @@ public class Controller implements Constants, ControllerFunctions {
 	 * @return
 	 */
 	private Controller trafficChanged(final UIStatus uiStatus) {
-		routeMap.setTraffics(uiStatus.getTraffics());//.requestFocus();
+		routeMap.setTraffics(uiStatus.getTraffics());// .requestFocus();
 		scrollMap.repaint();
 		return this;
 	}

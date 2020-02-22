@@ -43,14 +43,14 @@ import java.util.stream.Stream;
  * simulation process for a given time interval
  * </p>
  */
-public class TrafficBuilder implements Constants {
+public class TrafficsBuilder implements Constants {
 
 	/**
 	 *
 	 * @return
 	 */
-	public static TrafficBuilder create() {
-		return new TrafficBuilder(Traffics.create(), Collections.emptySet(), 0);
+	public static TrafficsBuilder create() {
+		return new TrafficsBuilder(Traffics.create(), Collections.emptySet(), 0);
 	}
 
 	/**
@@ -59,8 +59,8 @@ public class TrafficBuilder implements Constants {
 	 * @param status the status
 	 * @param time   the instant
 	 */
-	public static TrafficBuilder create(final Traffics status, final double time) {
-		return new TrafficBuilder(status, status.getTraffics(), time);
+	public static TrafficsBuilder create(final Traffics status, final double time) {
+		return new TrafficsBuilder(status, status.getTraffics(), time);
 	}
 
 	/**
@@ -68,8 +68,8 @@ public class TrafficBuilder implements Constants {
 	 * @param builder
 	 * @return
 	 */
-	static TrafficBuilder simulationProcess(final TrafficBuilder builder) {
-		TrafficBuilder st = builder;
+	static TrafficsBuilder simulationProcess(final TrafficsBuilder builder) {
+		TrafficsBuilder st = builder;
 		for (;;) {
 			// Move all vehicles in the edges
 			st = st.moveVehiclesInAllEdges();
@@ -83,22 +83,26 @@ public class TrafficBuilder implements Constants {
 
 			// Filter the priority and the next free to move vehicles
 			st.getTrafficStats();
-			final TrafficBuilder st1 = st;
-			final Set<EdgeTraffic> toMove = earliests.parallelStream()
-					.filter(ed -> st1.getNextTraffic(ed).map(next -> !next.isBusy() && st1.isPrior(ed)).orElse(true))
-					.collect(Collectors.toSet());
-			if (toMove.isEmpty()) {
+			final TrafficsBuilder st1 = st;
+
+			final Optional<EdgeTraffic> edg = earliests.parallelStream().filter(ed -> {
+				final Optional<EdgeTraffic> next1 = st1.getNextTraffic(ed);
+				return next1.map(next -> {
+					return !next.isBusy() && st1.isPrior(ed);
+				}).orElse(true);
+			}).findAny();
+
+			st = edg.map(edge -> {
+				// at least an edge with priority and free next edge
+				return st1.moveLastVehicleAt(edge);
+			}).orElseGet(() -> {
 				// no edge with priority and free next edge
 				// stop vehicles to next instant
-				final double nextTime = st.getNextMinimumTime();
+				final double nextTime = st1.getNextMinimumTime();
 				final Set<EdgeTraffic> nextTraffics = earliests.parallelStream().map(ed -> ed.moveToTime(nextTime))
 						.collect(Collectors.toSet());
-				st = st.addTraffics(nextTraffics);
-			} else {
-				// at least an edge with priority and free next edge
-				final EdgeTraffic edge = toMove.parallelStream().findAny().get();
-				st = st.moveLastVehicleAt(edge);
-			}
+				return st1.addTraffics(nextTraffics);
+			});
 		}
 		return st;
 
@@ -114,7 +118,7 @@ public class TrafficBuilder implements Constants {
 	 * @param initialStatus
 	 * @param time
 	 */
-	protected TrafficBuilder(final Traffics status, final Set<EdgeTraffic> traffics, final double time) {
+	protected TrafficsBuilder(final Traffics status, final Set<EdgeTraffic> traffics, final double time) {
 		super();
 		this.initialStatus = status;
 		this.traffics = traffics;
@@ -127,7 +131,7 @@ public class TrafficBuilder implements Constants {
 	 * @param traffics the added traffics
 	 * @return the status builder with new traffics added
 	 */
-	private TrafficBuilder addTraffics(final Collection<EdgeTraffic> traffics) {
+	private TrafficsBuilder addTraffics(final Collection<EdgeTraffic> traffics) {
 		if (traffics.isEmpty()) {
 			return this;
 		} else {
@@ -144,7 +148,7 @@ public class TrafficBuilder implements Constants {
 	 *
 	 * @param edge
 	 */
-	private TrafficBuilder addTraffics(final EdgeTraffic edge) {
+	private TrafficsBuilder addTraffics(final EdgeTraffic edge) {
 		final Set<EdgeTraffic> newTraffics = this.traffics.parallelStream().map(traffic -> {
 			return edge.equals(traffic) ? edge : traffic;
 		}).collect(Collectors.toSet());
@@ -155,7 +159,7 @@ public class TrafficBuilder implements Constants {
 	 * Returns the simulation status at the given instant
 	 */
 	public Traffics build() {
-		final TrafficBuilder finalStatus = simulationProcess(this).createVehicles();
+		final TrafficsBuilder finalStatus = simulationProcess(this).createVehicles();
 		final Traffics resut = finalStatus.initialStatus.setTraffics(finalStatus.traffics);
 		return resut;
 	}
@@ -164,15 +168,15 @@ public class TrafficBuilder implements Constants {
 	 *
 	 * @return
 	 */
-	TrafficBuilder createVehicles() {
+	TrafficsBuilder createVehicles() {
 		final double frequence = initialStatus.getMap().getFrequence();
 		final Optional<Double> t0o = initialStatus.getTraffics().parallelStream().findAny().map(EdgeTraffic::getTime);
-		final TrafficBuilder result1 = t0o.map(t0 -> {
+		final TrafficsBuilder result1 = t0o.map(t0 -> {
 			final double dt = time - t0;
 			final int noSites = initialStatus.getMap().getSites().size();
 			final double lambda0 = frequence * dt / (noSites - 1) / 2;
 			final TrafficStats ts = getTrafficStats();
-			TrafficBuilder result = this;
+			TrafficsBuilder result = this;
 			for (final Entry<Tuple2<MapNode, MapNode>, Double> entry : initialStatus.getMap().getWeights().entrySet()) {
 				final MapNode from = entry.getKey().get1();
 				final MapNode to = entry.getKey().get2();
@@ -180,9 +184,9 @@ public class TrafficBuilder implements Constants {
 					final Optional<EdgeTraffic> edge = ts.nextEdge(from, to);
 					final double weight = entry.getValue();
 					final int n = initialStatus.nextPoison(lambda0 * weight);
-					final TrafficBuilder builder = result;
+					final TrafficsBuilder builder = result;
 					result = edge.map(ed -> {
-						final TrafficBuilder res1 = builder.createVehicles(n, from, to, ed, t0);
+						final TrafficsBuilder res1 = builder.createVehicles(n, from, to, ed, t0);
 						return res1;
 					}).orElseGet(() -> {
 						return builder;
@@ -203,7 +207,7 @@ public class TrafficBuilder implements Constants {
 	 * @param ed   the edge
 	 * @param t0   the insertion time
 	 */
-	TrafficBuilder createVehicles(final int n, final MapNode from, final MapNode to, final EdgeTraffic ed,
+	TrafficsBuilder createVehicles(final int n, final MapNode from, final MapNode to, final EdgeTraffic ed,
 			final double t0) {
 		if (n <= 0) {
 			return this;
@@ -213,7 +217,7 @@ public class TrafficBuilder implements Constants {
 				final Vehicle v = Vehicle.create(from, to);
 				newEdge = newEdge.addVehicle(v, t0);
 			}
-			final TrafficBuilder result = addTraffics(newEdge);
+			final TrafficsBuilder result = addTraffics(newEdge);
 			return result;
 		}
 	}
@@ -262,8 +266,8 @@ public class TrafficBuilder implements Constants {
 	 * @param edge edge
 	 */
 	Optional<EdgeTraffic> getNextTraffic(final EdgeTraffic edge) {
+		final TrafficStats stats = getTrafficStats();
 		final Optional<EdgeTraffic> result1 = edge.getLast().flatMap(vehicle -> {
-			final TrafficStats stats = getTrafficStats();
 			final MapNode to = vehicle.getTarget();
 			final Optional<EdgeTraffic> result = stats.nextEdge(edge.getEdge().getEnd(), to);
 			return result;
@@ -362,10 +366,10 @@ public class TrafficBuilder implements Constants {
 	 *
 	 * @param traffic the edge
 	 */
-	TrafficBuilder moveLastVehicleAt(final EdgeTraffic traffic) {
-		final TrafficBuilder result = traffic.getLast().map(vehicle -> {
-			final EdgeTraffic newTraffic = traffic.removeLast();
+	TrafficsBuilder moveLastVehicleAt(final EdgeTraffic traffic) {
+		final TrafficsBuilder result = traffic.getLast().map(vehicle -> {
 			if (!vehicle.getTarget().equals(traffic.getEdge().getEnd())) {
+				final EdgeTraffic newTraffic = traffic.removeLast();
 				// Vehicle not at target
 				return getNextTraffic(traffic).map(nextTraffic -> {
 					// Move vehicle
@@ -376,18 +380,26 @@ public class TrafficBuilder implements Constants {
 				});
 			} else if (vehicle.isReturning()) {
 				// Vehicle arrived at departure => remove vehicle
-				return addTraffics(newTraffic);
+				return addTraffics(traffic.removeLast());
 			} else {
 				// Vehicle arrived at destination => returning
 				final Optional<EdgeTraffic> nextTraffic = getTrafficStats().nextEdge(vehicle.getDestination(),
 						vehicle.getDeparture());
 				return nextTraffic.map(traffic1 -> {
-					// Move vehicle
-					final EdgeTraffic newNext = traffic1.addVehicle(vehicle.setReturning(true), traffic.getTime());
-					return addTraffics(List.of(newTraffic, newNext));
+					if (traffic1.isBusy()) {
+						final List<Vehicle> newVehicles = traffic.getVehicles().stream().map(v -> {
+							return v.equals(vehicle) ? vehicle.setReturning(true) : v;
+						}).collect(Collectors.toList());
+						return addTraffics(traffic.setVehicles(newVehicles));
+					} else {
+						// Move vehicle
+						final EdgeTraffic newTraffic = traffic.removeLast();
+						final EdgeTraffic newNext = traffic1.addVehicle(vehicle.setReturning(true), traffic.getTime());
+						return addTraffics(List.of(newTraffic, newNext));
+					}
 				}).orElseGet(() -> {
 					// No way => remove vehicle
-					return addTraffics(newTraffic);
+					return addTraffics(traffic.removeLast());
 				});
 			}
 		}).orElse(this);
@@ -397,7 +409,7 @@ public class TrafficBuilder implements Constants {
 	/**
 	 * Returns the status builder with all vehicles moved in the edges
 	 */
-	TrafficBuilder moveVehiclesInAllEdges() {
+	TrafficsBuilder moveVehiclesInAllEdges() {
 		final Set<EdgeTraffic> newTraffics = traffics.parallelStream().map(et -> et.moveVehicles(time))
 				.collect(Collectors.toSet());
 		return setTraffics(newTraffics);
@@ -408,8 +420,8 @@ public class TrafficBuilder implements Constants {
 	 *
 	 * @param initialStatus the initial status
 	 */
-	public TrafficBuilder setInitialStatus(final Traffics initialStatus) {
-		return new TrafficBuilder(initialStatus, traffics, time);
+	public TrafficsBuilder setInitialStatus(final Traffics initialStatus) {
+		return new TrafficsBuilder(initialStatus, traffics, time);
 	}
 
 	/**
@@ -417,7 +429,7 @@ public class TrafficBuilder implements Constants {
 	 * @param traffics
 	 * @return
 	 */
-	public TrafficBuilder setTraffics(final Set<EdgeTraffic> traffics) {
-		return new TrafficBuilder(initialStatus, traffics, time);
+	public TrafficsBuilder setTraffics(final Set<EdgeTraffic> traffics) {
+		return new TrafficsBuilder(initialStatus, traffics, time);
 	}
 }

@@ -111,7 +111,7 @@ public class Simulator {
 	 */
 	private Traffics next(final Traffics status, final double dt) {
 		final double time = status.getTime() + dt * speed;
-		return TrafficBuilder.create(status, time).build();
+		return TrafficsBuilder.create(status, time).build();
 	}
 
 	/**

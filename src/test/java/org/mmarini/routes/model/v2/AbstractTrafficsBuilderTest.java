@@ -28,7 +28,7 @@ import java.util.stream.Stream;
  *            s2
  * </pre>
  */
-public abstract class AbstractStatusBuilderTest {
+public abstract class AbstractTrafficsBuilderTest {
 	List<MapNode> nodes;
 	List<MapEdge> edges;
 	List<EdgeTraffic> traffics;
@@ -46,7 +46,7 @@ public abstract class AbstractStatusBuilderTest {
 	 * @param trafficTransformer
 	 * @return
 	 */
-	TrafficBuilder createBuilder(final double time, final double limitTime,
+	TrafficsBuilder createBuilder(final double time, final double limitTime,
 			final Supplier<Stream<MapNode>> nodesBuilder, final Supplier<IntStream> siteBuilder,
 			final Supplier<Stream<MapEdge>> edgesBuilder, final ToDoubleBiFunction<MapNode, MapNode> weightBuilder,
 			final BiFunction<EdgeTraffic, Integer, EdgeTraffic> trafficTransformer) {
@@ -69,7 +69,7 @@ public abstract class AbstractStatusBuilderTest {
 		}).collect(Collectors.toList());
 
 		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(Set.copyOf(traffics));
-		return TrafficBuilder.create(status, limitTime);
+		return TrafficsBuilder.create(status, limitTime);
 	}
 
 	/**
@@ -79,7 +79,7 @@ public abstract class AbstractStatusBuilderTest {
 	 * @param trafficTransformer
 	 * @return
 	 */
-	TrafficBuilder createDefaultBuilder(final double time, final double limitTime,
+	TrafficsBuilder createDefaultBuilder(final double time, final double limitTime,
 			final BiFunction<EdgeTraffic, Integer, EdgeTraffic> trafficTransformer) {
 		return createBuilder(time, limitTime, this::createDefaultNodes, this::createDefaultSites,
 				this::createDefaultEdges, this::createDefaultWeight, trafficTransformer);
@@ -134,7 +134,7 @@ public abstract class AbstractStatusBuilderTest {
 		return result;
 	}
 
-	Optional<EdgeTraffic> traffic(final TrafficBuilder builder, final int idx) {
+	Optional<EdgeTraffic> traffic(final TrafficsBuilder builder, final int idx) {
 		return traffic(builder.getTraffics(), idx);
 	}
 
