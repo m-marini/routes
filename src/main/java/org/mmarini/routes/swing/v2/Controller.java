@@ -147,7 +147,7 @@ public class Controller implements Constants, ControllerFunctions {
 		new EdgePaneController(edgePane, routeMap, explorerPane, uiStatusObs, this).build();
 		new MapNodePaneController(nodePane, routeMap, explorerPane, uiStatusObs, this).build();
 		new ExplorerPaneController(explorerPane, routeMap, mapElementPane, uiStatusSubj, uiStatusObs, this).build();
-		new KeyController(routeMap, uiStatusObs, this);
+		new KeyController(routeMap, uiStatusObs, this).build();
 		return bindOnStatus().bindOnMouseWheel().bindOnModuleSelector();
 	}
 
@@ -378,7 +378,7 @@ public class Controller implements Constants, ControllerFunctions {
 	 * @return
 	 */
 	private Controller trafficChanged(final UIStatus uiStatus) {
-		routeMap.setTraffics(uiStatus.getTraffics());
+		routeMap.setTraffics(uiStatus.getTraffics());//.requestFocus();
 		scrollMap.repaint();
 		return this;
 	}
