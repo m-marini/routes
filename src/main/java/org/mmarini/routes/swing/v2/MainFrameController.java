@@ -56,7 +56,7 @@ public class MainFrameController {
 	private final JFileChooser fileChooser;
 	private final MapProfilePane mapProfilePane;
 	private final Observable<UIStatus> uiStatusObs;
-	private final Simulator simulator;
+	private final Simulator<Traffics> simulator;
 	private final ControllerFunctions controller;
 
 	/**
@@ -67,7 +67,8 @@ public class MainFrameController {
 	 * @param controller
 	 */
 	public MainFrameController(final MainFrame mainFrame, final JFileChooser fileChooser,
-			final Observable<UIStatus> uiStatusObs, final Simulator simulator, final ControllerFunctions controller) {
+			final Observable<UIStatus> uiStatusObs, final Simulator<Traffics> simulator,
+			final ControllerFunctions controller) {
 		this.mainFrame = mainFrame;
 		this.fileChooser = fileChooser;
 		this.mapProfilePane = new MapProfilePane();
@@ -182,10 +183,11 @@ public class MainFrameController {
 		mainFrame.getSpeedObs().withLatestFrom(uiStatusObs, (speed, status) -> {
 			return new Tuple2<>(status, speed);
 		}).subscribe(t -> {
-			controller.withStopSimulator(tr -> {
-				simulator.setSimulationSpeed(t.get2());
-				return t.get1();
-			});
+			simulator.setSpeed(t.get2());
+//			controller.withStopSimulator(tr -> {
+//				simulator.setSimulationSpeed();
+//				return t.get1();
+//			});
 		}, controller::showError);
 
 		mainFrame.getStopObs().subscribe(ev -> {

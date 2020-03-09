@@ -146,6 +146,7 @@ public class MouseController implements Constants {
 			case MouseEvent.MOUSE_PRESSED:
 				routeMap.setPivot(Optional.of(pivot)).setAngle(0.0);
 				scrollMap.repaint();
+				logger.debug("bindOnRotateModule drop pivot={}", pivot);
 				uiStatusSubj.onNext(st.setMode(MapMode.ROTATE_MODULE));
 			}
 			routeMap.requestFocus();
@@ -221,6 +222,7 @@ public class MouseController implements Constants {
 					});
 					final Traffics newTraffics = st.getTraffics()
 							.addEdges(module.map(MapModule::getEdges).orElse(Set.of()));
+					logger.debug("bindOnRotateModule drop angle={}", angle);
 					final UIStatus newStatus = st.setMode(MapMode.DRAG_MODULE).setTraffics(newTraffics);
 					routeMap.setPivot(Optional.of(pt)).setAngle(0.0);
 					controller.mapChanged(newStatus);

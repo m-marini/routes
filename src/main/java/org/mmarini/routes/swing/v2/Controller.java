@@ -53,7 +53,10 @@ import org.mmarini.routes.model.v2.MapModule;
 import org.mmarini.routes.model.v2.MapNode;
 import org.mmarini.routes.model.v2.Simulator;
 import org.mmarini.routes.model.v2.Traffics;
+import org.mmarini.routes.model.v2.TrafficsBuilder;
 import org.mmarini.routes.model.v2.Tuple2;
+import org.mmarini.routes.model.v2.Tuple3;
+import org.mmarini.routes.swing.v2.UIStatus.MapMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,7 +97,7 @@ public class Controller implements Constants, ControllerFunctions {
 	private final EdgePane edgePane;
 	private final MapElementPane mapElementPane;
 	private final MainFrame mainFrame;
-	private final Simulator simulator;
+	private final Simulator<Traffics> simulator;
 	private final ScrollMap scrollMap;
 	private final MapViewPane mapViewPane;
 	private final ModuleSelector moduleSelector;
@@ -105,7 +108,11 @@ public class Controller implements Constants, ControllerFunctions {
 	 *
 	 */
 	public Controller() {
-		this.simulator = new Simulator();
+		this.simulator = Simulator.create((tr, t) -> {
+			return TrafficsBuilder.create(tr, t).build();
+		}, tr -> {
+			return tr.getTime();
+		});
 		this.routeMap = new RouteMap();
 		this.fileChooser = new JFileChooser();
 		this.explorerPane = new ExplorerPane();
@@ -131,7 +138,7 @@ public class Controller implements Constants, ControllerFunctions {
 			mapViewPane.setModule(modules.get(0));
 		}
 		mapChanged(initStatus);
-		simulator.setTraffics(status1);
+		simulator.setEvent(status1);
 		startSimulator();
 		mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		mainFrame.setVisible(true);
@@ -155,10 +162,18 @@ public class Controller implements Constants, ControllerFunctions {
 	 * @return
 	 */
 	private Controller bindOnModuleSelector() {
-		moduleSelector.getModuleObs().subscribe(t -> {
-			final JMenuItem menuItem = (JMenuItem) t.get1().getSource();
-			final MapModule module = t.get2();
-			mapViewPane.setModuleIcon(menuItem.getIcon()).setModule(module).selectModuleMode();
+		moduleSelector.getModuleObs().withLatestFrom(uiStatusObs, (t, s) -> {
+			return new Tuple3<>(s, t.get1(), t.get2());
+		}).subscribe(t -> {
+			withStopSimulator(tr -> {
+				final UIStatus st = t.get1();
+				final JMenuItem menuItem = (JMenuItem) t.get2().getSource();
+				final MapModule module = t.get3();
+				logger.debug("bindOnModuleSelector module={}", module);
+				mapViewPane.setModuleIcon(menuItem.getIcon()).setModule(module).selectModuleMode();
+				final UIStatus newSt = st.setMode(MapMode.DRAG_MODULE);
+				return newSt;
+			});
 		}, this::showError);
 		return this;
 	}
@@ -189,7 +204,7 @@ public class Controller implements Constants, ControllerFunctions {
 	private Controller bindOnStatus() {
 		Observable.interval(1000 / FPS, TimeUnit.MILLISECONDS)
 				// Add last simulator status
-				.withLatestFrom(simulator.getOutput(), (t, status) -> status)
+				.withLatestFrom(simulator.getEvents().toObservable(), (t, status) -> status)
 				// Add last ui status
 				.withLatestFrom(uiStatusObs, (simStat, uiStat) -> new Tuple2<>(simStat, uiStat))
 				// discard no change events
@@ -408,12 +423,11 @@ public class Controller implements Constants, ControllerFunctions {
 	 */
 	@Override
 	public Controller withStopSimulator(final Function<Traffics, UIStatus> changeStatus) {
-		simulator.stop().subscribe(traffics -> {
+		simulator.request(traffics -> {
 			final UIStatus status = changeStatus.apply(traffics);
 			uiStatusSubj.onNext(status);
-			simulator.setTraffics(status.getTraffics());
-			startSimulator();
-		}, this::showError);
+			return status.getTraffics();
+		});
 		return this;
 	}
 

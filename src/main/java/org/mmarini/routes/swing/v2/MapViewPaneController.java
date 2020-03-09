@@ -77,28 +77,34 @@ public class MapViewPaneController {
 	 */
 	public MapViewPaneController build() {
 		mapViewPane.getEdgeModeObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			routeMap.setModule(Optional.empty()).setDragEdge(Optional.empty())
-					.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-			final UIStatus newStatus = st.setMode(MapMode.START_EDGE).setDragEdge(Optional.empty());
-			uiStatusSubj.onNext(newStatus);
+			controller.withStopSimulator(tr -> {
+				routeMap.setModule(Optional.empty()).setDragEdge(Optional.empty())
+						.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+				final UIStatus newStatus = st.setMode(MapMode.START_EDGE).setDragEdge(Optional.empty());
+				return newStatus;
+			});
 		}, controller::showError);
 
 		mapViewPane.getSelectModeObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			routeMap.setModule(Optional.empty()).setDragEdge(Optional.empty())
-					.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-			final UIStatus newStatus = st.setMode(MapMode.SELECTION).setDragEdge(Optional.empty());
-			uiStatusSubj.onNext(newStatus);
+			controller.withStopSimulator(tr -> {
+				routeMap.setModule(Optional.empty()).setDragEdge(Optional.empty())
+						.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+				final UIStatus newStatus = st.setMode(MapMode.SELECTION).setDragEdge(Optional.empty());
+				return newStatus;
+			});
 		}, controller::showError);
 
 		mapViewPane.getModuleModeObs().withLatestFrom(uiStatusObs, (m, st) -> {
 			return new Tuple2<>(st, m);
 		}).subscribe(t -> {
-			final UIStatus st = t.get1();
-			final MapModule module = t.get2();
-			final UIStatus newStatus = st.setMode(MapMode.DRAG_MODULE);
-			final Optional<MapModule> moduleOpt = Optional.of(module);
-			routeMap.setDragEdge(Optional.empty()).setModule(moduleOpt);
-			uiStatusSubj.onNext(newStatus);
+			controller.withStopSimulator(tr -> {
+				final UIStatus st = t.get1();
+				final MapModule module = t.get2();
+				final UIStatus newStatus = st.setMode(MapMode.DRAG_MODULE);
+				final Optional<MapModule> moduleOpt = Optional.of(module);
+				routeMap.setDragEdge(Optional.empty()).setModule(moduleOpt);
+				return newStatus;
+			});
 		}, controller::showError);
 
 		mapViewPane.getZoomDefaultObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
