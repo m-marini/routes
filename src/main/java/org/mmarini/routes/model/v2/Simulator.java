@@ -27,143 +27,299 @@
 package org.mmarini.routes.model.v2;
 
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Scheduler.Worker;
+import io.reactivex.rxjava3.functions.BiFunction;
+import io.reactivex.rxjava3.functions.Function;
+import io.reactivex.rxjava3.processors.MulticastProcessor;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import io.reactivex.rxjava3.subjects.BehaviorSubject;
-import io.reactivex.rxjava3.subjects.PublishSubject;
-import io.reactivex.rxjava3.subjects.Subject;
 
 /**
- *
+ * 
+ * @param <T>
  */
-public class Simulator {
-	private static final long DEFAULT_MIN_TIME_NS = 100000000L;
+public class Simulator<T> {
+	public class Seed {
+
+		private final long time;
+		private final T event;
+
+		/**
+		 * @param time
+		 * @param event
+		 */
+		public Seed(final long time, final T event) {
+			this.time = time;
+			this.event = event;
+		}
+
+		/**
+		 * @param time
+		 * @param event
+		 */
+		public Seed(final T event) {
+			this(System.nanoTime(), event);
+		}
+
+		/**
+		 * 
+		 * @param event
+		 * @return
+		 */
+		public Seed event(final T event) {
+			return new Seed(time, event);
+		}
+
+		/**
+		 * @return the traffics
+		 */
+		public T getEvent() {
+			return event;
+		}
+
+		/**
+		 *
+		 * @return
+		 * @throws Throwable
+		 */
+		public Seed next() throws Throwable {
+			final long t = System.nanoTime();
+			final double dt = (t - time) * 1e-9;
+			final double time = toTime.apply(event) + dt * speed;
+			final T newEvent = builder.apply(event, time);
+			return new Seed(t, newEvent);
+		}
+
+		/**
+		 * 
+		 * @return
+		 */
+		public Seed now() {
+			return new Seed(System.nanoTime(), event);
+		}
+	}
+
+	enum Status {
+		IDLE, ACTIVE, FAILED
+	}
+
 	private static final Logger logger = LoggerFactory.getLogger(Simulator.class);
 
-	private final BehaviorSubject<Traffics> output;
-	private final long minTimeNs = DEFAULT_MIN_TIME_NS;
-	private Optional<Subject<Traffics>> stoppedSubj;
-	private boolean running;
+	/**
+	 * 
+	 * @param <T>
+	 * @param event0
+	 * @param builder
+	 * @param toTime
+	 * @return
+	 */
+	public static <T> Simulator<T> create(final BiFunction<T, Double, T> builder, final Function<T, Double> toTime) {
+		return new Simulator<T>(Schedulers.newThread().createWorker(), Optional.empty(), builder, toTime);
+	}
+
+	private final Worker worker;
+	private final MulticastProcessor<T> events;
+	private final BiFunction<T, Double, T> builder;
+	private final Function<T, Double> toTime;
 	private double speed;
-	private Traffics traffics;
-	private long prevTime;
+	private Status status;
+	private Optional<Seed> seed;
 
 	/**
-	 *
+	 * 
+	 * @param worker
+	 * @param event
+	 * @param builder
+	 * @param toTime
 	 */
-	public Simulator() {
-		super();
-		speed = 1;
-		output = BehaviorSubject.create();
-		output.subscribe(this::handleNextReady);
-		stoppedSubj = Optional.empty();
+	protected Simulator(final Worker worker, final Optional<Seed> seed, final BiFunction<T, Double, T> builder,
+			final Function<T, Double> toTime) {
+		this.worker = worker;
+		this.seed = seed;
+		this.builder = builder;
+		this.toTime = toTime;
+		this.speed = 1;
+		status = Status.IDLE;
+		events = MulticastProcessor.create();
+		events.start();
 	}
 
 	/**
-	 * Returns the output
+	 * @return the events
 	 */
-	public Subject<Traffics> getOutput() {
-		return output;
+	public Flowable<T> getEvents() {
+		return events;
 	}
 
 	/**
-	 *
-	 * @param next
+	 * @return the seed
 	 */
-	private Simulator handleNextReady(final Traffics next) {
-		final long time = System.nanoTime();
-		// Compute interval
-		final long dt = time - prevTime;
-		prevTime = time;
-		traffics = next;
-		if (running) {
-			final long waitTime = minTimeNs - dt;
-			if (waitTime >= 0) {
-				// Reschedule for next status
-				Single.fromSupplier(() -> this.next(next, dt * 1e-9)).delay(waitTime, TimeUnit.NANOSECONDS)
-						.subscribe(output::onNext, ex -> logger.error(ex.getMessage(), ex));
-			} else {
-				// Reschedule for next status
-				Single.fromSupplier(() -> this.next(next, dt * 1e-9)).subscribeOn(Schedulers.computation())
-						.subscribe(output::onNext, ex -> logger.error(ex.getMessage(), ex));
-			}
-		} else {
-			stoppedSubj.ifPresent(subj -> {
-				logger.debug("Simulator stopped.");
-				subj.onNext(next);
-				subj.onComplete();
+	Optional<Seed> getSeed() {
+		return seed;
+	}
+
+	/**
+	 * @return the speed
+	 */
+	double getSpeed() {
+		return speed;
+	}
+
+	/**
+	 * @return the status
+	 */
+	Status getStatus() {
+		return status;
+	}
+
+	/**
+	 * 
+	 * @param event
+	 * @return
+	 */
+	private Simulator<T> processEvent(final T event) {
+		logger.debug("processEvent({})", event);
+		events.onNext(event);
+		seed = Optional.of(new Seed(event));
+		return this;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	private Simulator<T> processNext() {
+		if (status == Status.ACTIVE) {
+			seed.ifPresent(s -> {
+				try {
+					final Simulator<T>.Seed next = s.next();
+					events.onNext(next.getEvent());
+					seed = Optional.of(next);
+					worker.schedule(this::processNext);
+				} catch (final Throwable e) {
+					status = Status.FAILED;
+					events.onError(e);
+				}
 			});
-			stoppedSubj = Optional.empty();
 		}
 		return this;
 	}
 
 	/**
-	 * Returns the next simulation status
-	 *
-	 * @param status initial status
-	 * @param dt     the real interval time
+	 * 
+	 * @param transition
+	 * @return
 	 */
-	private Traffics next(final Traffics status, final double dt) {
-		final double time = status.getTime() + dt * speed;
-		return TrafficsBuilder.create(status, time).build();
+	private Simulator<T> processRequest(final Function<T, T> transition) {
+		logger.debug("processRequest(...)");
+		seed.ifPresent(s -> {
+			try {
+				final T newEvent = transition.apply(s.getEvent());
+				seed = Optional.of(s.event(newEvent));
+				events.onNext(newEvent);
+			} catch (final Throwable e) {
+				status = Status.FAILED;
+				events.onError(e);
+			}
+		});
+		return this;
 	}
 
 	/**
-	 *
+	 * 
 	 * @param speed
 	 * @return
 	 */
-	public Simulator setSimulationSpeed(final double speed) {
-		logger.debug("setSimulationSpeed {}", speed);
+	private Simulator<T> processSpeed(final double speed) {
+		logger.debug("processSpeed({})", speed);
 		this.speed = speed;
 		return this;
 	}
 
 	/**
-	 *
-	 * @param traffics
+	 * 
 	 * @return
 	 */
-	public Simulator setTraffics(final Traffics traffics) {
-		logger.debug("setTraffics {}", traffics);
-		this.traffics = traffics;
-		output.onNext(traffics);
-		return this;
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	public Simulator start() {
-		if (!running) {
-			running = true;
-			prevTime = System.nanoTime();
-			output.onNext(traffics);
-			logger.debug("Simulator started ...");
+	private Simulator<T> processStart() {
+		logger.debug("processStart()");
+		if (status == Status.IDLE) {
+			status = Status.ACTIVE;
+			processNext();
 		}
 		return this;
 	}
 
 	/**
-	 *
+	 * 
 	 * @return
 	 */
-	public Single<Traffics> stop() {
-		if (running) {
-			running = false;
-			logger.debug("Stopping simulator ...");
-			final Subject<Traffics> subj = PublishSubject.create();
-			stoppedSubj = Optional.of(subj);
-			return subj.singleOrError();
-		} else {
-			return Single.just(traffics);
-		}
+	private Simulator<T> processStop() {
+		logger.debug("processStart()");
+		status = Status.IDLE;
+		return this;
 	}
+
+	/**
+	 * 
+	 * @param transition
+	 * @return
+	 */
+	public Simulator<T> request(final Function<T, T> transition) {
+		logger.debug("request(...)");
+		worker.schedule(() -> {
+			processRequest(transition);
+		});
+		return this;
+	}
+
+	/**
+	 * 
+	 * @param event
+	 * @return
+	 */
+	public Simulator<T> setEvent(final T event) {
+		logger.debug("setEvent({})", event);
+		worker.schedule(() -> {
+			processEvent(event);
+		});
+		return this;
+	}
+
+	/**
+	 * 
+	 * @param speed
+	 * @return
+	 */
+	public Simulator<T> setSpeed(final double speed) {
+		logger.debug("setSpeed({})", speed);
+		worker.schedule(() -> {
+			processSpeed(speed);
+		});
+		return this;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public Simulator<T> start() {
+		logger.debug("start()");
+		worker.schedule(this::processStart);
+		return this;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public Simulator<T> stop() {
+		logger.debug("stop()");
+		worker.schedule(this::processStop);
+		return this;
+	}
+
 }
