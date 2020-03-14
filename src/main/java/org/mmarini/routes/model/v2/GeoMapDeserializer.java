@@ -44,17 +44,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 /**
- *
- * @author mmarini
- *
+ * Deserializer of map that converts a json object to a GeoMap.
  */
 public class GeoMapDeserializer implements Constants {
 
 	private static final String CURRENT_VERSION = "1";
 
-	/**
-	 * Returns a new simulation status deserializer
-	 */
+	/** Returns a new simulation status deserializer. */
 	public static GeoMapDeserializer create() {
 		return new GeoMapDeserializer(new ObjectMapper(new YAMLFactory()), Map.of(), Set.of(), Map.of(), Set.of(),
 				DEFAULT_FREQUENCE);
@@ -65,16 +61,18 @@ public class GeoMapDeserializer implements Constants {
 	private final Set<MapNode> sites;
 	private final Map<Tuple2<MapNode, MapNode>, Double> weights;
 	private final Set<MapEdge> edges;
-
 	private final double frequence;
 
 	/**
-	 * @param mapper
-	 * @param names
-	 * @param sites
-	 * @param weights
-	 * @param edges
-	 * @param frequence
+	 * Create a deserializer.
+	 *
+	 * @param mapper    the json object mapper
+	 * @param names     map between name and map node
+	 * @param sites     the sites
+	 * @param weights   the map between pairs of departure and destination and the
+	 *                  weights
+	 * @param edges     the edges
+	 * @param frequence the frequency
 	 */
 	protected GeoMapDeserializer(final ObjectMapper mapper, final Map<String, MapNode> names, final Set<MapNode> sites,
 			final Map<Tuple2<MapNode, MapNode>, Double> weights, final Set<MapEdge> edges, final double frequence) {
@@ -87,10 +85,7 @@ public class GeoMapDeserializer implements Constants {
 		this.edges = edges;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns the built map. */
 	private GeoMap build() {
 		if (sites.size() == 1) {
 			final MapNode site = sites.stream().findAny().get();
@@ -101,11 +96,11 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
+	 * Returns the map by parsing yaml file.
 	 *
-	 * @param file
-	 * @return
-	 * @throws IOException
-	 * @throws JsonProcessingException
+	 * @param file the file
+	 * @throws IOException             in case of error
+	 * @throws JsonProcessingException in case of error
 	 */
 	public GeoMap parse(final File file) throws JsonProcessingException, IOException {
 		final JsonNode tree = mapper.readTree(file);
@@ -114,9 +109,9 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
+	 * Returns the map by parsing json object.
 	 *
-	 * @param tree
-	 * @return
+	 * @param tree the json object
 	 */
 	private GeoMap parse(final JsonNode tree) {
 		final String version = tree.path("version").asText();
@@ -129,10 +124,10 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
+	 * Returns the map by parsing yaml resource url.
 	 *
-	 * @param resource
-	 * @return
-	 * @throws IOException
+	 * @param resource the resource url
+	 * @throws IOException in case of error
 	 */
 	public GeoMap parse(final URL resource) throws IOException {
 		final JsonNode tree = mapper.readTree(resource);
@@ -141,9 +136,9 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
+	 * Returns the edge parsing a json node.
 	 *
-	 * @param jsonNode
-	 * @return
+	 * @param jsonNode the json node
 	 */
 	private MapEdge parseEdge(final JsonNode jsonNode) {
 		final String startId = jsonNode.path("start").asText();
@@ -162,28 +157,29 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
+	 * Returns the changed deserializer parsing json tree with edges.
 	 *
-	 * @param tree
-	 * @return
+	 * @param tree the json tree
 	 */
 	private GeoMapDeserializer parseEdges(final JsonNode tree) {
-		final Set<MapEdge> edges = YamlUtils.toStream(tree.elements()).map(this::parseEdge).collect(Collectors.toSet());
+		final Set<MapEdge> edges = YamlUtils.streamFrom(tree.elements()).map(this::parseEdge)
+				.collect(Collectors.toSet());
 		return new GeoMapDeserializer(mapper, names, sites, weights, edges, frequence);
 	}
 
 	/**
+	 * Returns the changed deserializer parsing json frequency node.
 	 *
-	 * @param jsonNode
-	 * @return
+	 * @param jsonNode the frequency node
 	 */
 	private GeoMapDeserializer parseFrequence(final JsonNode jsonNode) {
 		return new GeoMapDeserializer(mapper, names, sites, weights, edges, jsonNode.asDouble());
 	}
 
 	/**
+	 * Returns the node parsing the json node.
 	 *
-	 * @param path
-	 * @return
+	 * @param jsonNode the node
 	 */
 	private MapNode parseMapNode(final JsonNode jsonNode) {
 		final double x = jsonNode.path("x").asDouble();
@@ -193,19 +189,22 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
+	 * Returns the changed deserializer parsing json tree with nodes and sites.
+	 * <p>
+	 * The result deserializer has the names and sites properties updated with
+	 * definition of json tree
+	 * </p>
 	 *
-	 * @param tree
-	 * @return
+	 * @param tree the json tree
 	 */
 	private GeoMapDeserializer parseNodesAndSites(final JsonNode tree) {
 		// Parse nodes
 		final JsonNode nodesJson = tree.path("nodes");
-		final List<String> nodeNames = YamlUtils.toList(nodesJson.fieldNames());
-		final Map<String, MapNode> nodesMap = nodeNames.stream()
+		final Map<String, MapNode> nodesMap = YamlUtils.streamFrom(nodesJson.fieldNames())
 				.collect(Collectors.toMap(Function.identity(), name -> parseMapNode(nodesJson.path(name))));
 		// Parse sites
 		final JsonNode sitesJson = tree.path("sites");
-		final List<String> siteNames = YamlUtils.toList(sitesJson.fieldNames());
+		final List<String> siteNames = YamlUtils.listFrom(sitesJson.fieldNames());
 		final Map<String, MapNode> sitesMap = siteNames.stream()
 				.collect(Collectors.toMap(Function.identity(), name -> parseMapNode(sitesJson.path(name))));
 
@@ -219,9 +218,9 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
+	 * Returns the path data parsing the path json node.
 	 *
-	 * @param json
-	 * @return
+	 * @param json the json node
 	 */
 	private Tuple2<Tuple2<MapNode, MapNode>, Double> parsePath(final JsonNode jsonNode) {
 		final String depId = jsonNode.path("departure").asText();
@@ -235,19 +234,21 @@ public class GeoMapDeserializer implements Constants {
 			throw new IllegalArgumentException(String.format("Destination site \"%s\" not found", destId));
 		}
 		final double weight = YamlUtils.jsonDouble(jsonNode.path("weight"), DEFAULT_WEIGHT);
-		final Tuple2<Tuple2<MapNode, MapNode>, Double> result = new Tuple2<>(new Tuple2<>(departure, destination),
-				weight);
+		final Tuple2<Tuple2<MapNode, MapNode>, Double> result = Tuple.of(Tuple.of(departure, destination), weight);
 		return result;
 	}
 
 	/**
+	 * Returns the deserializer parsing the paths json node.
+	 * <p>
+	 * The result deserializer has the sites and weights properties updated with the
+	 * defnition on json node
+	 * </p>
 	 *
-	 * @param path
-	 * @param sites
-	 * @return
+	 * @param jsonNode the json node
 	 */
 	private GeoMapDeserializer parsePaths(final JsonNode jsonNode) {
-		final Map<Tuple2<MapNode, MapNode>, Double> weights = YamlUtils.toStream(jsonNode.elements())
+		final Map<Tuple2<MapNode, MapNode>, Double> weights = YamlUtils.streamFrom(jsonNode.elements())
 				.map(this::parsePath).collect(Collectors.toMap(Tuple2::get1, Tuple2::get2));
 		final Set<MapNode> wsites = weights.keySet().stream().flatMap(t -> {
 			return Set.of(t.get1(), t.get2()).stream();

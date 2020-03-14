@@ -21,6 +21,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 import org.mmarini.routes.model.v2.MapModule;
+import org.mmarini.routes.model.v2.Tuple;
 import org.mmarini.routes.model.v2.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +30,7 @@ import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
 
 /**
- * @author Marco
- *
+ * Selector of modules.
  */
 public class ModuleSelector {
 	private static final int ICON_HEIGHT = 20;
@@ -42,15 +42,15 @@ public class ModuleSelector {
 	private static final Logger logger = LoggerFactory.getLogger(ModuleSelector.class);
 
 	/**
+	 * Returns the icon for a given module.
 	 *
-	 * @param m
-	 * @return
+	 * @param module the module
 	 */
-	private static Icon createIcon(final MapModule m) {
+	private static Icon createIcon(final MapModule module) {
 		final BufferedImage image = new BufferedImage(ICON_WIDTH, ICON_HEIGHT, BufferedImage.TYPE_INT_ARGB);
 		final Graphics2D gr = image.createGraphics();
 		Rectangle2D bound = new Rectangle2D.Double(0, 0, ICON_WIDTH, ICON_HEIGHT);
-		bound = m.getBound();
+		bound = module.getBound();
 		final double scale = Math.min(ICON_WIDTH / bound.getWidth(), ICON_HEIGHT / bound.getHeight());
 		gr.translate(ICON_WIDTH * 0.5, ICON_HEIGHT * 0.5);
 		gr.scale(scale, scale);
@@ -58,7 +58,7 @@ public class ModuleSelector {
 		gr.setColor(Color.WHITE);
 		gr.fill(bound);
 		gr.setColor(Color.GRAY);
-		m.getEdges().forEach(edge -> {
+		module.getEdges().forEach(edge -> {
 			gr.setStroke(STROKE);
 			gr.draw(new Line2D.Double(edge.getBeginLocation(), edge.getEndLocation()));
 		});
@@ -72,8 +72,9 @@ public class ModuleSelector {
 	private final Observable<Tuple2<ActionEvent, MapModule>> moduleObs;
 
 	/**
+	 * Creates the selector.
 	 *
-	 * @param modules
+	 * @param modules the list of modules
 	 */
 	public ModuleSelector(final List<MapModule> modules) {
 		popupMenu = new JPopupMenu();
@@ -81,7 +82,7 @@ public class ModuleSelector {
 		final List<Tuple2<JMenuItem, MapModule>> list = modules.stream().map(m -> {
 			final JMenuItem item = new JMenuItem();
 			item.setIcon(createIcon(m));
-			return new Tuple2<>(item, m);
+			return Tuple.of(item, m);
 		}).collect(Collectors.toList());
 		items = list.stream().map(t -> t.get1()).collect(Collectors.toList());
 		items.forEach(popupMenu::add);
@@ -90,7 +91,7 @@ public class ModuleSelector {
 			final JMenuItem menu = t.get1();
 			final MapModule module = t.get2();
 			return SwingObservable.actions(menu).map(ev -> {
-				return new Tuple2<>(ev, module);
+				return Tuple.of(ev, module);
 			});
 		}).collect(Collectors.toList());
 
@@ -104,23 +105,17 @@ public class ModuleSelector {
 		});
 	}
 
-	/**
-	 * @return the dropDownButton
-	 */
+	/** Returns the drop down button. */
 	public JButton getDropDownButton() {
 		return dropDownButton;
 	}
 
-	/**
-	 * @return the items
-	 */
+	/** Returns the items. */
 	public List<JMenuItem> getItems() {
 		return items;
 	}
 
-	/**
-	 * @return the moduleObs
-	 */
+	/** Returns the observable of selected module. */
 	public Observable<Tuple2<ActionEvent, MapModule>> getModuleObs() {
 		return moduleObs;
 	}

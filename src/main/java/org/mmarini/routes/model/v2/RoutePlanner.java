@@ -35,16 +35,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- *
+ * Planner of route computes the fastest route from a node source to a target
+ * node and information about travel time.
  */
-public class TrafficStats {
+public class RoutePlanner {
 
-	/**
-	 *
-	 * @return
-	 */
-	public static TrafficStats create() {
-		return new TrafficStats(Collections.emptySet());
+	/** Returns an empty planner. */
+	public static RoutePlanner create() {
+		return new RoutePlanner(Collections.emptySet());
 	}
 
 	private final Set<EdgeTraffic> edgeTraffics;
@@ -54,10 +52,11 @@ public class TrafficStats {
 	private final double[][] minTimeMatrix;
 
 	/**
+	 * Creates a planner for the edge traffic.
 	 *
-	 * @param edgeStats
+	 * @param edgeStats the edge traffic
 	 */
-	public TrafficStats(final Set<EdgeTraffic> edgeStats) {
+	public RoutePlanner(final Set<EdgeTraffic> edgeStats) {
 		this.edgeTraffics = edgeStats;
 		this.nodes = createNodes();
 		final int n = nodes.size();
@@ -68,10 +67,12 @@ public class TrafficStats {
 	}
 
 	/**
+	 * Creates the travel time matrix and the route matrix with Floyd-Warshall
+	 * algorithm.
 	 *
-	 * @return
+	 * @return the route planner
 	 */
-	private TrafficStats createMatrices() {
+	private RoutePlanner createMatrices() {
 		final int n = nodes.size();
 		for (int i = 0; i < n; i++) {
 			Arrays.fill(timeMatrix[i], Double.POSITIVE_INFINITY);
@@ -114,10 +115,7 @@ public class TrafficStats {
 		return this;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns the list of nodes. */
 	List<MapNode> createNodes() {
 		final Set<MapNode> begins = edgeTraffics.parallelStream().map(s -> s.getEdge().getBegin())
 				.collect(Collectors.toSet());
@@ -128,27 +126,25 @@ public class TrafficStats {
 		return result;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns the connection matrix. */
 	int[][] getConnectionMatrix() {
 		return connectionMatrix;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns the edge traffic. */
 	public Set<EdgeTraffic> getEdgeTraffics() {
 		return edgeTraffics;
 	}
 
 	/**
+	 * Returns the minimum travel time between two nodes.
+	 * <p>
+	 * The time is computed considering only the limit speed of edges. Returns an
+	 * empty value if no connection exists between the two nodes
+	 * <p/>
 	 *
-	 * @param from
-	 * @param to
-	 * @return
+	 * @param from the starting node
+	 * @param to   the destination node
 	 */
 	public OptionalDouble getMinTime(final MapNode from, final MapNode to) {
 		final int i = nodes.indexOf(from);
@@ -158,19 +154,20 @@ public class TrafficStats {
 				: OptionalDouble.empty();
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns the list of nodes. */
 	public List<MapNode> getNodes() {
 		return nodes;
 	}
 
 	/**
+	 * Returns the expected travel time between two nodes.
+	 * <p>
+	 * The time is computed considering the current traffics in the edge. Returns an
+	 * empty value if no connection exists between the two nodes
+	 * <p/>
 	 *
-	 * @param from
-	 * @param to
-	 * @return
+	 * @param from the starting node
+	 * @param to   the destination node
 	 */
 	public OptionalDouble getTime(final MapNode from, final MapNode to) {
 		final int i = nodes.indexOf(from);
@@ -180,16 +177,16 @@ public class TrafficStats {
 				: OptionalDouble.empty();
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns the tme matrix. */
 	double[][] getTimeMatrix() {
 		return timeMatrix;
 	}
 
 	/**
-	 * Returns the next edge from a node to a given node
+	 * Returns the next edge from a node to a given node.
+	 * <p>
+	 * Returns an empty edge if no connection exists between the two node
+	 * </p>
 	 *
 	 * @param from from node
 	 * @param to   to node
@@ -218,10 +215,13 @@ public class TrafficStats {
 	}
 
 	/**
+	 * Returns the previous node in the route from a node to a given node.
+	 * <p>
+	 * Returns an empty node if no connection exists between the two node
+	 * </p>
 	 *
-	 * @param node2
-	 * @param node4
-	 * @return
+	 * @param from source node
+	 * @param to   destination node
 	 */
 	public Optional<MapNode> prevNode(final MapNode from, final MapNode to) {
 		final int i = nodes.indexOf(from);
@@ -236,11 +236,11 @@ public class TrafficStats {
 	}
 
 	/**
+	 * Returns the planner with a given edge traffic.
 	 *
-	 * @param edgeStats
-	 * @return
+	 * @param edgeStats the edge traffics
 	 */
-	public TrafficStats setEdgeStats(final Set<EdgeTraffic> edgeStats) {
-		return new TrafficStats(edgeStats);
+	public RoutePlanner setEdgeStats(final Set<EdgeTraffic> edgeStats) {
+		return new RoutePlanner(edgeStats);
 	}
 }

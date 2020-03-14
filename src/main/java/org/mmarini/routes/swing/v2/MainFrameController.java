@@ -43,12 +43,20 @@ import org.mmarini.routes.model.v2.GeoMapSerializer;
 import org.mmarini.routes.model.v2.MapProfile;
 import org.mmarini.routes.model.v2.Simulator;
 import org.mmarini.routes.model.v2.Traffics;
+import org.mmarini.routes.model.v2.Tuple;
 import org.mmarini.routes.model.v2.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.reactivex.rxjava3.core.Observable;
 
+/**
+ * Controller for the main frame.
+ * <p>
+ * The controller manages all the user interactions from the main frame to the
+ * main controller and other components
+ * </p>
+ */
 public class MainFrameController {
 	private static final Logger logger = LoggerFactory.getLogger(MainFrameController.class);
 
@@ -60,11 +68,13 @@ public class MainFrameController {
 	private final ControllerFunctions controller;
 
 	/**
-	 * @param mainFrame
-	 * @param fileChooser
-	 * @param uiStatusObs
-	 * @param simulator
-	 * @param controller
+	 * Creates the main frame controller.
+	 *
+	 * @param mainFrame   the main frame
+	 * @param fileChooser the file chooser
+	 * @param uiStatusObs the observable of ui status
+	 * @param simulator   the simulator
+	 * @param controller  the main controller
 	 */
 	public MainFrameController(final MainFrame mainFrame, final JFileChooser fileChooser,
 			final Observable<UIStatus> uiStatusObs, final Simulator<Traffics> simulator,
@@ -78,13 +88,15 @@ public class MainFrameController {
 	}
 
 	/**
+	 * Builds the subscriptions for actions.
 	 *
-	 * @return
+	 * @param random the random generator
+	 * @return the controller
 	 */
-	public MainFrameController build() {
+	public MainFrameController build(final Random random) {
 
 		mainFrame.getOpenMapObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			controller.withStopSimulator(st1 -> {
+			controller.request(st1 -> {
 				final Optional<Tuple2<UIStatus, File>> t = loadProcess(st);
 				final UIStatus s = t.map(tup -> {
 					mainFrame.setSaveActionEnabled(true);
@@ -98,7 +110,7 @@ public class MainFrameController {
 		});
 
 		mainFrame.getSaveMapAsObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			controller.withStopSimulator(st1 -> {
+			controller.request(st1 -> {
 				final int choice = fileChooser.showSaveDialog(mainFrame);
 				if (choice == JFileChooser.APPROVE_OPTION) {
 					handleSaveMap(st);
@@ -108,14 +120,14 @@ public class MainFrameController {
 		}, controller::showError);
 
 		mainFrame.getSaveMapObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			controller.withStopSimulator(st1 -> {
+			controller.request(st1 -> {
 				handleSaveMap(st);
 				return st;
 			});
 		}, controller::showError);
 
 		mainFrame.getNewMapObs().subscribe(ev -> {
-			controller.withStopSimulator(st -> {
+			controller.request(st -> {
 				final UIStatus status = UIStatus.create();
 				controller.mapChanged(status);
 				mainFrame.resetTitle().setSaveActionEnabled(false).repaint();
@@ -124,7 +136,7 @@ public class MainFrameController {
 		}, controller::showError);
 
 		mainFrame.getNewRandomObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			controller.withStopSimulator(st1 -> {
+			controller.request(st1 -> {
 				mapProfilePane.setDifficultyOnly(false);
 				final int opt = JOptionPane.showConfirmDialog(mainFrame, mapProfilePane,
 						Messages.getString("Controller.mapProfilePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
@@ -147,7 +159,7 @@ public class MainFrameController {
 		}, controller::showError);
 
 		mainFrame.getOptimizeObs().withLatestFrom(uiStatusObs, (ev, status) -> status).subscribe(status -> {
-			controller.withStopSimulator(st -> {
+			controller.request(st -> {
 				final OptimizePane optimizePane = new OptimizePane();
 				optimizePane.setSpeedLimit(status.getSpeedLimit());
 				final int opt = JOptionPane.showConfirmDialog(mainFrame, optimizePane,
@@ -165,7 +177,7 @@ public class MainFrameController {
 		}, controller::showError);
 
 		mainFrame.getFrequenceObs().withLatestFrom(uiStatusObs, (ev, status) -> status).subscribe(status -> {
-			controller.withStopSimulator(st -> {
+			controller.request(st -> {
 				final FrequencePane frequencePane = new FrequencePane();
 				final double frequence = status.getTraffics().getMap().getFrequence();
 				frequencePane.setFrequence(frequence);
@@ -181,13 +193,9 @@ public class MainFrameController {
 		}, controller::showError);
 
 		mainFrame.getSpeedObs().withLatestFrom(uiStatusObs, (speed, status) -> {
-			return new Tuple2<>(status, speed);
+			return Tuple.of(status, speed);
 		}).subscribe(t -> {
 			simulator.setSpeed(t.get2());
-//			controller.withStopSimulator(tr -> {
-//				simulator.setSimulationSpeed();
-//				return t.get1();
-//			});
 		}, controller::showError);
 
 		mainFrame.getStopObs().subscribe(ev -> {
@@ -199,7 +207,7 @@ public class MainFrameController {
 		}, controller::showError);
 
 		mainFrame.getRoutesObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			controller.withStopSimulator(st1 -> {
+			controller.request(st1 -> {
 				final WeightsTable table = new WeightsTable();
 				table.setWeights(st.getTraffics().getMap().getWeights());
 				final JScrollPane pane = new JScrollPane(table);
@@ -214,13 +222,13 @@ public class MainFrameController {
 		}, controller::showError);
 
 		mainFrame.getRandomizeObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			controller.withStopSimulator(st1 -> {
+			controller.request(st1 -> {
 				mapProfilePane.setDifficultyOnly(true);
 				final int opt = JOptionPane.showConfirmDialog(mainFrame, mapProfilePane,
 						Messages.getString("Controller.mapProfilePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
 				if (opt == JOptionPane.OK_OPTION) {
 					final MapProfile profile = mapProfilePane.getProfile();
-					final UIStatus newStatus = st.randomize(profile.getMinWeight())
+					final UIStatus newStatus = st.randomize(profile.getMinWeight(), random)
 							.setFrequence(profile.getFrequence());
 					return newStatus;
 				}
@@ -229,7 +237,7 @@ public class MainFrameController {
 		}, controller::showError);
 
 		mainFrame.getVehicleInfoObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			controller.withStopSimulator(st1 -> {
+			controller.request(st1 -> {
 				final Traffics traffics = st.getTraffics();
 				final TrafficsTable table = new TrafficsTable(traffics);
 				final JScrollPane pane = new JScrollPane(table);
@@ -246,9 +254,10 @@ public class MainFrameController {
 	}
 
 	/**
-	 * Returns the controller after status saved
+	 * Handles of save action.
 	 *
 	 * @param status the status
+	 * @return the controller
 	 */
 	private MainFrameController handleSaveMap(final UIStatus status) {
 		final File file = fileChooser.getSelectedFile();
@@ -272,9 +281,9 @@ public class MainFrameController {
 	}
 
 	/**
+	 * Returns the new ui status and selected file of the load process.
 	 *
-	 * @param status
-	 * @return
+	 * @param status the initial uistatus
 	 */
 	private Optional<Tuple2<UIStatus, File>> loadProcess(final UIStatus status) {
 		final int choice = fileChooser.showOpenDialog(mainFrame);
@@ -288,7 +297,7 @@ public class MainFrameController {
 					logger.debug("loadProcess {}", file); //$NON-NLS-1$
 					final GeoMap map = GeoMapDeserializer.create().parse(file);
 					final Traffics newStatus = Traffics.create(map);
-					return Optional.of(new Tuple2<>(status.setTraffics(newStatus), file));
+					return Optional.of(Tuple.of(status.setTraffics(newStatus), file));
 				} catch (final Throwable ex) {
 					controller.showError(ex);
 					return Optional.empty();
@@ -298,5 +307,4 @@ public class MainFrameController {
 			return Optional.empty();
 		}
 	}
-
 }

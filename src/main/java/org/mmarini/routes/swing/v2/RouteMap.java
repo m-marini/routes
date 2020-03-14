@@ -61,6 +61,7 @@ import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
 
 /**
+ * Component that renders the traffics map.
  */
 public class RouteMap extends JComponent implements Constants {
 
@@ -71,10 +72,12 @@ public class RouteMap extends JComponent implements Constants {
 		private final boolean borderPainted;
 
 		/**
-		 * @param graphics
-		 * @param bound
-		 * @param colorMap
-		 * @param borderPainted
+		 * Creates the painter.
+		 *
+		 * @param graphics      the graphics context
+		 * @param bound         the map bound
+		 * @param colorMap      the site color map
+		 * @param borderPainted true id border painted
 		 */
 		public Painter(final Graphics2D graphics, final Rectangle2D bound, final Map<MapNode, Color> colorMap,
 				final boolean borderPainted) {
@@ -86,7 +89,9 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Returns the painter with map of colors of sites
+		 * Sets the site color map.
+		 *
+		 * @return the painter
 		 */
 		protected Painter computeSiteColorMap() {
 			final Map<MapNode, Color> map = traffics.map(s -> {
@@ -96,7 +101,9 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Returns the painter with painted canvas
+		 * Paints the whole map.
+		 *
+		 * @return the painter
 		 */
 		public Painter paint() {
 			return computeSiteColorMap().paintGrid().paintEdges().paintSites().paintSelectedEdge().paintVehicles()
@@ -104,8 +111,9 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
+		 * Paints the drag edge.
 		 *
-		 * @return
+		 * @return the painter
 		 */
 		private Painter paintDragEdge() {
 			dragEdge.ifPresent(line -> {
@@ -117,9 +125,10 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Returns the painter with painted edge
+		 * Paints the edge.
 		 *
 		 * @param edge the edge
+		 * @return the painter
 		 */
 		private Painter paintEdge(final MapEdge edge) {
 			graphics.setStroke(STROKE);
@@ -128,7 +137,9 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Returns the painter with painted edges
+		 * Paints the edges.
+		 *
+		 * @return the painter
 		 */
 		private Painter paintEdges() {
 			traffics.ifPresent(s -> {
@@ -143,7 +154,9 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Returns the painter with painted grid
+		 * Paints the grid.
+		 *
+		 * @return the painter
 		 */
 		private Painter paintGrid() {
 			final Color minorColor = trafficView ? MINOR_GRID_REVERSED_COLOR : MINOR_GRID_COLOR;
@@ -174,6 +187,11 @@ public class RouteMap extends JComponent implements Constants {
 			return this;
 		}
 
+		/**
+		 * Paints the module.
+		 *
+		 * @return the painter
+		 */
 		private Painter paintModule() {
 			module.ifPresent(m -> {
 				pivot.ifPresent(p -> {
@@ -191,9 +209,10 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
+		 * Paints the shape of node.
 		 *
-		 * @param node
-		 * @return
+		 * @param node the node
+		 * @return the painter
 		 */
 		private Painter paintNodeShape(final MapNode node) {
 			final Ellipse2D shape = new Ellipse2D.Double(-NODE_SIZE * 0.5 + node.getX(), -NODE_SIZE * 0.5 + node.getY(),
@@ -207,6 +226,11 @@ public class RouteMap extends JComponent implements Constants {
 			return this;
 		}
 
+		/**
+		 * Paints the selected edge.
+		 *
+		 * @return the painter
+		 */
 		private Painter paintSelectedEdge() {
 			selectedEdge.filter(s -> isBlink()).ifPresent(edge -> {
 				graphics.setColor(SELECTED_EDGE_COLOR);
@@ -219,6 +243,11 @@ public class RouteMap extends JComponent implements Constants {
 			return this;
 		}
 
+		/**
+		 * Paints the selected node.
+		 *
+		 * @return the painter
+		 */
 		private Painter paintSelectedNode() {
 			selectedNode.filter(s -> isBlink()).ifPresent(node -> {
 				graphics.setColor(SELECTED_NODE_COLOR);
@@ -227,6 +256,11 @@ public class RouteMap extends JComponent implements Constants {
 			return this;
 		}
 
+		/**
+		 * Paints the selected site.
+		 *
+		 * @return the painter
+		 */
 		private Painter paintSelectedSite() {
 			selectedSite.filter(s -> isBlink()).ifPresent(site -> {
 				graphics.setColor(SELECTED_SITE_COLOR);
@@ -236,7 +270,10 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * @param site
+		 * Paints the site.
+		 *
+		 * @param site the site
+		 * @return the painter
 		 */
 		private Painter paintSite(final MapNode site) {
 			final Color color = colorMap.getOrDefault(site, DEFAULT_SITE_COLOR);
@@ -245,7 +282,9 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Returns the painter with painted sites
+		 * Paints the sites.
+		 *
+		 * @return the painter
 		 */
 		private Painter paintSites() {
 			traffics.ifPresent(st -> {
@@ -255,9 +294,10 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Returns the painter with a painted node
+		 * Paints the node.
 		 *
 		 * @param node the node
+		 * @return the painter
 		 */
 		private Painter paintSiteShape(final MapNode node) {
 			final Ellipse2D shape = new Ellipse2D.Double(-SITE_SIZE * 0.5 + node.getX(), -SITE_SIZE * 0.5 + node.getY(),
@@ -271,6 +311,12 @@ public class RouteMap extends JComponent implements Constants {
 			return this;
 		}
 
+		/**
+		 * Paints the edge traffics.
+		 *
+		 * @param traffic the edge traffic
+		 * @return the painter
+		 */
 		private Painter paintTraffic(final EdgeTraffic traffic) {
 			final double tc = traffic.getTrafficCongestion();
 			final Color trafficColor = SwingUtils.computeColor(tc, 1.0);
@@ -280,9 +326,10 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Returns the painter with the painted vehicle
+		 * Paints the vehicle.
 		 *
 		 * @param v the vehicle
+		 * @return the painter
 		 */
 		private Painter paintVehicle(final VehicleInfo v) {
 			graphics.setColor(v.color);
@@ -301,7 +348,9 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Returns the painter with painted vehicles
+		 * Paints the vehicles.
+		 *
+		 * @return the painter
 		 */
 		private Painter paintVehicles() {
 			if (!trafficView) {
@@ -318,15 +367,18 @@ public class RouteMap extends JComponent implements Constants {
 		}
 	}
 
+	/** The vehicle information. */
 	static class VehicleInfo {
 		public final Color color;
 		public final Point2D location;
 		public final Point2D direction;
 
 		/**
-		 * @param location
-		 * @param direction
-		 * @param color
+		 * Creates the vehicle information.
+		 *
+		 * @param location  the location point
+		 * @param direction the vehicle direction
+		 * @param color     the vehicle color
 		 */
 		public VehicleInfo(final Point2D location, final Point2D direction, final Color color) {
 			super();
@@ -366,6 +418,7 @@ public class RouteMap extends JComponent implements Constants {
 	private static final Rectangle2D VEHICLE_SHAPE = new Rectangle2D.Double(-VEHICLE_LENGTH, -VEHICLE_WIDTH / 2,
 			VEHICLE_LENGTH, VEHICLE_WIDTH);
 
+	/** Returns true if blinking component is visible. */
 	static boolean isBlink() {
 		return System.currentTimeMillis() % BLINKING_TIME >= BLINKING_ON_TIME;
 	}
@@ -385,9 +438,7 @@ public class RouteMap extends JComponent implements Constants {
 	private Optional<Point2D> pivot;
 	private double angle;
 
-	/**
-	 *
-	 */
+	/** Creates the component. */
 	public RouteMap() {
 		super();
 		this.transform = new AffineTransform();
@@ -413,6 +464,11 @@ public class RouteMap extends JComponent implements Constants {
 		logger.debug("RouteMap created");
 	}
 
+	/**
+	 * Clear all selected elements.
+	 *
+	 * @return the map component
+	 */
 	public RouteMap clearSelection() {
 		this.selectedSite = Optional.empty();
 		this.selectedNode = Optional.empty();
@@ -420,81 +476,58 @@ public class RouteMap extends JComponent implements Constants {
 		return this;
 	}
 
-	/**
-	 * @return the angle
-	 */
+	/** Returns the angle of module rotation. */
 	public double getAngle() {
 		return angle;
 	}
 
-	/**
-	 * @return the keyboardObs
-	 */
+	/** Returns the observable of keyboard. */
 	public Observable<KeyEvent> getKeyboardObs() {
 		return keyboardObs;
 	}
 
-	/**
-	 * @return the module
-	 */
+	/** Returns the selected module. */
 	public Optional<MapModule> getModule() {
 		return module;
 	}
 
-	/**
-	 * @return the mouseObs
-	 */
+	/** Returns the observable of mouse. */
 	public Observable<MouseEvent> getMouseObs() {
 		return mouseObs;
 	}
 
-	/**
-	 * @return the mouseWeelObs
-	 */
+	/** Returns the observable of mouse wheel. */
 	public Observable<MouseWheelEvent> getMouseWheelObs() {
 		return mouseWheelObs;
 	}
 
-	/**
-	 * @return the pivot
-	 */
+	/** Returns the pivot point for the module. */
 	public Optional<Point2D> getPivot() {
 		return pivot;
 	}
 
-	/**
-	 * @return the selectedEdge
-	 */
+	/** Returns the selected edge. */
 	Optional<MapEdge> getSelectedEdge() {
 		return selectedEdge;
 	}
 
-	/**
-	 * @return the selectedNode
-	 */
+	/** Returns the selected node. */
 	Optional<MapNode> getSelectedNode() {
 		return selectedNode;
 	}
 
-	/**
-	 * @return the selectedSite
-	 */
+	/** Returns the selected site. */
 	Optional<MapNode> getSelectedSite() {
 		return selectedSite;
 	}
 
-	/**
-	 * Returns true if border is painted
-	 */
+	/** Returns true if border is painted. */
 	boolean isBorderPainted() {
 		final double scale = Math.max(transform.getScaleX(), transform.getScaleY());
 		final boolean borderPainted = scale >= BORDER_SCALE;
 		return borderPainted;
 	}
 
-	/**
-	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
-	 */
 	@Override
 	protected void paintComponent(final Graphics g) {
 		final Dimension size = getPreferredSize();
@@ -519,9 +552,10 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
+	 * Sets the module rotation angle.
 	 *
-	 * @param angle
-	 * @return
+	 * @param angle the angle
+	 * @return the map component
 	 */
 	public RouteMap setAngle(final double angle) {
 		this.angle = angle;
@@ -529,9 +563,10 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Returns the route map with drag edge
+	 * Set drag edge.
 	 *
 	 * @param edge the edge
+	 * @return the map component
 	 */
 	public RouteMap setDragEdge(final Optional<Tuple2<Point2D, Point2D>> edge) {
 		this.dragEdge = edge;
@@ -540,9 +575,10 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Returns the route map with grid size set
+	 * Sets the grid size.
 	 *
 	 * @param gridSize the grid size in meters
+	 * @return the map component
 	 */
 	public RouteMap setGridSize(final double gridSize) {
 		logger.debug("setGridSize {}", gridSize);
@@ -551,8 +587,10 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
+	 * Sets the module.
 	 *
-	 * @param module
+	 * @param module the module
+	 * @return the map component
 	 */
 	public RouteMap setModule(final Optional<MapModule> module) {
 		this.module = module;
@@ -560,9 +598,10 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
+	 * Sets the pivot point for the module.
 	 *
-	 * @param pivot
-	 * @return
+	 * @param pivot the pivot point
+	 * @return the map component
 	 */
 	public RouteMap setPivot(final Optional<Point2D> pivot) {
 		this.pivot = pivot;
@@ -570,9 +609,10 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Returns the route map with selected edge
+	 * Sets the selected edge.
 	 *
 	 * @param edge the edge
+	 * @return the map component
 	 */
 	public RouteMap setSelectedEdge(final Optional<MapEdge> edge) {
 		clearSelection();
@@ -581,9 +621,10 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Returns the route map with selected node
+	 * Sets the deleted node.
 	 *
 	 * @param node the selected node
+	 * @return the map component
 	 */
 	public RouteMap setSelectedNode(final Optional<MapNode> node) {
 		clearSelection();
@@ -592,9 +633,10 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Returns the route map with selected site
+	 * Sets the selected site.
 	 *
 	 * @param site the selected site
+	 * @return the map component
 	 */
 	public RouteMap setSelectedSite(final Optional<MapNode> site) {
 		clearSelection();
@@ -603,7 +645,10 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * @param traffics the status to set
+	 * Sets the traffics.
+	 *
+	 * @param traffics the traffics
+	 * @return the map component
 	 */
 	public RouteMap setTraffics(final Traffics traffics) {
 		this.traffics = Optional.ofNullable(traffics);
@@ -611,8 +656,10 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * @param trafficView the trafficView to set
-	 * @return
+	 * Sets the traffics view.
+	 *
+	 * @param trafficView true if showing traffics congestion
+	 * @return the map component
 	 */
 	public RouteMap setTrafficView(final boolean trafficView) {
 		this.trafficView = trafficView;
@@ -620,9 +667,10 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Returns the route map with set transform
+	 * Sets the map affine transform.
 	 *
 	 * @param transform the transform from map coordinate to screen coordinate
+	 * @return the map component
 	 */
 	public RouteMap setTransform(final AffineTransform transform) {
 		this.transform = transform;

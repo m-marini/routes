@@ -1,3 +1,29 @@
+//
+// Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+//
+//   END OF TERMS AND CONDITIONS
+
 package org.mmarini.routes.model.v2;
 
 import static java.lang.Math.max;
@@ -12,19 +38,20 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Module consisting of a set of edges the can be dropped during editing of map.
+ */
 public class MapModule {
 
 	private static final MapModule EMPTY = new MapModule(Set.of());
 
-	/**
-	 * Returns empty module
-	 */
+	/** Returns empty module. */
 	public static MapModule create() {
 		return EMPTY;
 	}
 
 	/**
-	 * Returns the module from the edges of map
+	 * Returns the module from the edges of map.
 	 *
 	 * @param map the map
 	 */
@@ -35,7 +62,9 @@ public class MapModule {
 	private final Set<MapEdge> edges;
 
 	/**
-	 * @param edges
+	 * Creates the map module.
+	 *
+	 * @param edges the edges of module
 	 */
 	public MapModule(final Set<MapEdge> edges) {
 		assert edges != null;
@@ -60,10 +89,7 @@ public class MapModule {
 		return true;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns the bound rectangle of the module. */
 	public Rectangle2D getBound() {
 		if (edges.isEmpty()) {
 			return new Rectangle2D.Double();
@@ -89,9 +115,7 @@ public class MapModule {
 		}
 	}
 
-	/**
-	 * Returns the edges of module
-	 */
+	/** Returns the edges of module. */
 	public Set<MapEdge> getEdges() {
 		return edges;
 	}
@@ -112,9 +136,9 @@ public class MapModule {
 	}
 
 	/**
+	 * Returns the module applying the affine transformation.
 	 *
-	 * @param trans
-	 * @return
+	 * @param trans the affine transformation
 	 */
 	public MapModule transform(final AffineTransform trans) {
 		final Map<MapNode, MapNode> nodeMap = edges.parallelStream().flatMap(edge -> {

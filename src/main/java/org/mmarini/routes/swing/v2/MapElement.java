@@ -32,17 +32,20 @@ import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;
 
 /**
- * Keeps the information about the selected element on map
+ * Element of map.
  */
 public interface MapElement {
 
+	/** Edge element. */
 	public static class EdgeElement extends Empty {
 		private final Optional<MapEdge> edge;
 
 		/**
-		 * @param edge
+		 * Create the edge element.
+		 *
+		 * @param edge the edge
 		 */
-		public EdgeElement(final MapEdge edge) {
+		protected EdgeElement(final MapEdge edge) {
 			this.edge = Optional.of(edge);
 		}
 
@@ -92,11 +95,12 @@ public interface MapElement {
 		}
 	}
 
+	/** Empty element */
 	public static class Empty implements MapElement {
 		static final MapElement EMPTY_ELEMENT = new Empty();
 
+		/** Create the empty element. */
 		protected Empty() {
-			super();
 		}
 
 		@Override
@@ -125,13 +129,16 @@ public interface MapElement {
 		}
 	}
 
+	/** Node element. */
 	public static class NodeElement extends Empty {
 		private final Optional<MapNode> node;
 
 		/**
-		 * @param node
+		 * Creates the node element.
+		 *
+		 * @param node the node
 		 */
-		public NodeElement(final MapNode node) {
+		protected NodeElement(final MapNode node) {
 			this.node = Optional.of(node);
 		}
 
@@ -183,7 +190,7 @@ public interface MapElement {
 	}
 
 	/**
-	 * Returns the element selection for an edge
+	 * Returns the element selection for an edge.
 	 *
 	 * @param edge the edge
 	 */
@@ -192,7 +199,7 @@ public interface MapElement {
 	}
 
 	/**
-	 * Returns the element selection for a node
+	 * Returns the element selection for a node.
 	 *
 	 * @param node the node
 	 */
@@ -200,34 +207,23 @@ public interface MapElement {
 		return new NodeElement(node);
 	}
 
-	/**
-	 * Returns the element selection for an edge
-	 *
-	 * @param edge the edge
-	 */
+	/** Returns the empty element selection. */
 	public static MapElement empty() {
 		return Empty.EMPTY_ELEMENT;
 	}
 
+	/** Returns the edge element. */
 	public Optional<MapEdge> getEdge();
 
-	/**
-	 * Returns the selected node
-	 */
+	/** Returns the selected node. */
 	public Optional<MapNode> getNode();
 
-	/**
-	 * Returns true if the element is a edge
-	 */
+	/** Returns true if the element is a edge. */
 	public boolean isEdge();
 
-	/**
-	 * Returns true id there is no element
-	 */
+	/** Returns true if there is no element. */
 	public boolean isEmpty();
 
-	/**
-	 * Returns true if the element is a node
-	 */
+	/** Returns true if the element is a node. */
 	public boolean isNode();
 }

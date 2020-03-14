@@ -1,6 +1,7 @@
 package org.mmarini.routes.model.v2;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
@@ -10,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -72,12 +74,24 @@ public class TrafficsBuilderTest {
 
 	@Test
 	public void getTrafficStats() {
-		final TrafficStats result = builder.getTrafficStats();
+		final RoutePlanner result = builder.getRoutePlanner();
 		assertNotNull(result);
 
 		final Optional<MapNode> n = result.prevNode(n1, n2);
 		assertTrue(n.isPresent());
 		assertThat(n.get(), equalTo(n4));
+	}
+
+	@Test
+	public void nextPoisson() {
+		final Random random = new Random(1234);
+		int tot = 0;
+		final int n = 100000;
+		final double lambda = 10;
+		for (int i = 0; i < n; i++) {
+			tot += TrafficsBuilder.nextPoison(lambda, random);
+		}
+		assertThat((double) tot / n, closeTo(lambda, lambda * 0.01));
 	}
 
 	@Test

@@ -39,65 +39,69 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author us00852
- *
+ * Traffics information for a map.
+ * <p>
+ * It includes
+ * <ul>
+ * <li>the map</li>
+ * <li>the traffics information of each edge</li>
+ * </ul>
+ * </p>
+ * <p>
+ * Several map and traffics manipulation methods are available
+ * </p>
  */
 public class Traffics implements Constants {
-	private static final Traffics EMPTY = new Traffics(GeoMap.create(), Set.of(), new Random());
+	private static final Traffics EMPTY = new Traffics(GeoMap.create(), Set.of());
 	private static final Logger logger = LoggerFactory.getLogger(Traffics.class);
 
-	/**
-	 * Returns an empty simulation status
-	 */
+	/** Returns an empty simulation status. */
 	public static Traffics create() {
 		return EMPTY;
 	}
 
 	/**
+	 * Returns the traffics information for a given map.
 	 *
-	 * @param map
-	 * @return
+	 * @param map the map
 	 */
 	public static Traffics create(final GeoMap map) {
 		final Set<EdgeTraffic> traffics = map.getEdges().parallelStream().map(edge -> {
 			return EdgeTraffic.create(edge);
 		}).collect(Collectors.toSet());
-		return new Traffics(map, traffics, new Random());
+		return new Traffics(map, traffics);
 	}
 
 	/**
+	 * Returns a traffics information generating a random map with a given profile.
 	 *
-	 * @param profile
-	 * @param random
-	 * @return
+	 * @param profile the generation map profile
+	 * @param random  the random generator
 	 */
 	public static Traffics random(final MapProfile profile, final Random random) {
 		final GeoMap map = GeoMap.random(profile, random);
-		return new Traffics(map, Set.of(), random);
+		return new Traffics(map, Set.of());
 	}
 
 	private final GeoMap map;
 	private final Set<EdgeTraffic> traffics;
-	private final Random random;
 
 	/**
+	 * Create the traffics information for a map and traffics edges.
 	 *
-	 * @param map
-	 * @param traffics
-	 * @param weights
-	 * @param frequence
+	 * @param map      the map
+	 * @param traffics the traffic edges
 	 */
-	protected Traffics(final GeoMap map, final Set<EdgeTraffic> traffics, final Random random) {
+	protected Traffics(final GeoMap map, final Set<EdgeTraffic> traffics) {
 		super();
 		this.map = map;
 		this.traffics = traffics;
-		this.random = random;
 	}
 
 	/**
+	 * Returns the traffics information adding a new edge to the map.
 	 *
-	 * @param edge
-	 * @return
+	 * @param edge the edge
 	 */
 	public Traffics addEdge(final MapEdge edge) {
 		logger.debug("addEdge {}", edge);
@@ -105,13 +109,13 @@ public class Traffics implements Constants {
 		final EdgeTraffic traffic = EdgeTraffic.create(edge).setTime(getTime());
 		final Set<EdgeTraffic> newTraffics = Stream.concat(traffics.parallelStream(), Stream.of(traffic))
 				.collect(Collectors.toSet());
-		return new Traffics(newMap, newTraffics, random);
+		return new Traffics(newMap, newTraffics);
 	}
 
 	/**
+	 * Returns the traffics information adding a set of edges to the map.
 	 *
-	 * @param orElse
-	 * @return
+	 * @param edges the edges
 	 */
 	public Traffics addEdges(final Set<MapEdge> edges) {
 		final GeoMap newMap = map.addEdges(edges);
@@ -128,7 +132,7 @@ public class Traffics implements Constants {
 
 	/**
 	 * Returns the simulation status with an edge properties changed the traffic do
-	 * still not change
+	 * still not change.
 	 *
 	 * @param edge new edge with changed properties
 	 */
@@ -144,7 +148,7 @@ public class Traffics implements Constants {
 	}
 
 	/**
-	 * Returns the simulation status with given node changed in type
+	 * Returns the simulation status with given node changed in type.
 	 *
 	 * @param node           the changing node
 	 * @param weightFunction the weight generation function
@@ -163,49 +167,25 @@ public class Traffics implements Constants {
 		return newMap != map ? setGeoMap(newMap).setTraffics(newTraffics) : this;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns the map. */
 	public GeoMap getMap() {
 		return map;
 	}
 
-	/**
-	 * Returns the instant
-	 */
+	/** Returns traffics instant. */
 	public double getTime() {
 		return traffics.stream().findAny().map(t -> t.getTime()).orElse(0.0);
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns the edges' traffic. */
 	public Set<EdgeTraffic> getTraffics() {
 		return traffics;
 	}
 
 	/**
-	 * Returns a random integer number with Poisson distribution and a given
-	 * average.
+	 * Returns the traffic information with edges optimized for a given speed limit.
 	 *
-	 * @param lambda the average
-	 */
-	int nextPoison(final double lambda) {
-		int k = -1;
-		double p = 1;
-		final double l = Math.exp(-lambda);
-		do {
-			++k;
-			p *= random.nextDouble();
-		} while (p > l);
-		return k;
-	}
-
-	/**
-	 * @param speedLimit
-	 * @return
+	 * @param speedLimit the speed limit
 	 */
 	public Traffics optimizeSpeed(final double speedLimit) {
 		final GeoMap newMap = map.optimizeSpeedLimit(speedLimit);
@@ -217,16 +197,17 @@ public class Traffics implements Constants {
 	}
 
 	/**
+	 * Returns the traffic information with random vehicle generation weights.
 	 *
-	 * @param minWeight
-	 * @return
+	 * @param minWeight the minimum weight
+	 * @param random    the random generator
 	 */
-	public Traffics randomize(final double minWeight) {
+	public Traffics randomize(final double minWeight, final Random random) {
 		return setGeoMap(map.randomize(minWeight, random));
 	}
 
 	/**
-	 * Returns the simulation status without edge
+	 * Returns the simulation status without edge.
 	 *
 	 * @param edge the removing edge
 	 */
@@ -240,7 +221,7 @@ public class Traffics implements Constants {
 	}
 
 	/**
-	 * Returns simulation status with a removed node
+	 * Returns simulation status with a removed node.
 	 *
 	 * @param node the node
 	 */
@@ -263,42 +244,38 @@ public class Traffics implements Constants {
 		return setGeoMap(newMap).setTraffics(newTraffics);
 	}
 
+	/**
+	 * Returns the traffic with a given frequency of vehicle generation.
+	 *
+	 * @param frequence the frequency
+	 */
 	public Traffics setFrequence(final double frequence) {
 		final Traffics result = setGeoMap(map.setFrequence(frequence));
 		return result;
 	}
 
 	/**
+	 * Returns the traffic with a given map.
 	 *
-	 * @param map
-	 * @return
+	 * @param map the map
 	 */
 	public Traffics setGeoMap(final GeoMap map) {
-		return new Traffics(map, traffics, random);
+		return new Traffics(map, traffics);
 	}
 
 	/**
+	 * Returns the traffic with a given set of traffic edges.
 	 *
-	 * @param newWeights
-	 * @return
-	 */
-	public Traffics setRandom(final Random random) {
-		return new Traffics(map, traffics, random);
-	}
-
-	/**
-	 *
-	 * @param traffics
-	 * @return
+	 * @param traffics the traffics edges
 	 */
 	public Traffics setTraffics(final Set<EdgeTraffic> traffics) {
-		return new Traffics(map, traffics, random);
+		return new Traffics(map, traffics);
 	}
 
 	/**
+	 * Returns the traffic with a given vehicle generation weights.
 	 *
-	 * @param weights
-	 * @return
+	 * @param weights the weights
 	 */
 	public Traffics setWeights(final Map<Tuple2<MapNode, MapNode>, Double> weights) {
 		return setGeoMap(map.setWeights(weights));

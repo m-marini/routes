@@ -37,13 +37,17 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
 import org.mmarini.routes.model.v2.MapNode;
-import org.mmarini.routes.model.v2.TrafficStats;
+import org.mmarini.routes.model.v2.RoutePlanner;
 import org.mmarini.routes.model.v2.Traffics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Table with traffics information.
+ * <p>
+ * The each cell contains the expected and the minimum travel time from a
+ * departure site to a destination site
+ * </p>
  */
 public class TrafficsTable extends JTable {
 	private class TrafficsTableModel extends AbstractTableModel {
@@ -76,10 +80,10 @@ public class TrafficsTable extends JTable {
 				return from;
 			} else {
 				final MapNode to = nodes.get(columnIndex - 1);
-				final String timeStr = stats.getTime(from, to).stream().mapToObj(SwingUtils::formatTime).findAny()
+				final String timeStr = planner.getTime(from, to).stream().mapToObj(SwingUtils::formatTime).findAny()
 						.orElse("-");
-				final String minTimeStr = stats.getMinTime(from, to).stream().mapToObj(SwingUtils::formatTime).findAny()
-						.orElse("-");
+				final String minTimeStr = planner.getMinTime(from, to).stream().mapToObj(SwingUtils::formatTime)
+						.findAny().orElse("-");
 				return format("%s / %s", timeStr, minTimeStr);
 			}
 		}
@@ -92,20 +96,24 @@ public class TrafficsTable extends JTable {
 	private final MapNodeTableCellRenderer cellRenderer;
 	private final MapNodeHeaderTableCellRenderer headerRenderer;
 	private final List<MapNode> nodes;
-	private final TrafficStats stats;
+	private final RoutePlanner planner;
 
 	/**
-	 * @param traffics
+	 * Creates the traffics table.
+	 *
+	 * @param traffics the traffic information
 	 */
 	public TrafficsTable(final Traffics traffics) {
 		logger.debug("TrafficsTable");
 		this.cellRenderer = new MapNodeTableCellRenderer();
 		this.headerRenderer = new MapNodeHeaderTableCellRenderer();
 		this.nodes = traffics.getMap().getSites().stream().sorted().collect(Collectors.toList());
+		this.planner = RoutePlanner.create().setEdgeStats(traffics.getTraffics());
+
 		final Map<MapNode, Color> colorMap = SwingUtils.buildColorMap(nodes);
 		cellRenderer.setColorMap(colorMap);
 		headerRenderer.setColorMap(nodes.stream().map(colorMap::get).collect(Collectors.toList()));
-		stats = TrafficStats.create().setEdgeStats(traffics.getTraffics());
+
 		setModel(new TrafficsTableModel());
 		setDefaultRenderer(MapNode.class, cellRenderer);
 		getTableHeader().setDefaultRenderer(headerRenderer);

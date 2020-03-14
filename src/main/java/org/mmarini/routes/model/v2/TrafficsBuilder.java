@@ -32,29 +32,27 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A builder of simulation status
+ * Builder of simulation status.
  * <p>
- * Builds the simulation status starting from an initial status applying the
- * simulation process for a given time interval
+ * Builds the simulation status starting from an status applying the simulation
+ * process for a given time interval
  * </p>
  */
 public class TrafficsBuilder implements Constants {
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns an empty traffics builders. */
 	public static TrafficsBuilder create() {
 		return new TrafficsBuilder(Traffics.create(), Collections.emptySet(), 0);
 	}
 
 	/**
-	 * Returns a builder from an initial status for a given instant
+	 * Returns a builder from an initial status for a given instant.
 	 *
 	 * @param status the status
 	 * @param time   the instant
@@ -64,9 +62,27 @@ public class TrafficsBuilder implements Constants {
 	}
 
 	/**
+	 * Returns a random integer number with Poisson distribution and a given
+	 * average.
 	 *
-	 * @param builder
-	 * @return
+	 * @param lambda the average of generated number
+	 * @param random the random generator
+	 */
+	static int nextPoison(final double lambda, final Random random) {
+		int k = -1;
+		double p = 1;
+		final double l = Math.exp(-lambda);
+		do {
+			++k;
+			p *= random.nextDouble();
+		} while (p > l);
+		return k;
+	}
+
+	/**
+	 * Returns the new traffic builder applying the simulation process.
+	 *
+	 * @param builder the initial builder
 	 */
 	static TrafficsBuilder simulationProcess(final TrafficsBuilder builder) {
 		TrafficsBuilder st = builder;
@@ -82,7 +98,7 @@ public class TrafficsBuilder implements Constants {
 			final Set<EdgeTraffic> earliests = st.findCandidates();
 
 			// Filter the priority and the next free to move vehicles
-			st.getTrafficStats();
+			st.getRoutePlanner();
 			final TrafficsBuilder st1 = st;
 
 			final Optional<EdgeTraffic> edg = earliests.parallelStream().filter(ed -> {
@@ -111,12 +127,15 @@ public class TrafficsBuilder implements Constants {
 	private final Set<EdgeTraffic> traffics;
 	private final double time;
 	private final Traffics initialStatus;
-	private TrafficStats trafficStats;
+
+	private RoutePlanner routePlanner;
 
 	/**
-	 * @param status
-	 * @param initialStatus
-	 * @param time
+	 * Creates a traffic builder.
+	 *
+	 * @param status   the current traffic information
+	 * @param traffics the current edges traffic
+	 * @param time     the target simulation instant
 	 */
 	protected TrafficsBuilder(final Traffics status, final Set<EdgeTraffic> traffics, final double time) {
 		super();
@@ -126,10 +145,9 @@ public class TrafficsBuilder implements Constants {
 	}
 
 	/**
-	 * Returns the status builder with new traffics added
+	 * Returns the status builder with new traffics added.
 	 *
 	 * @param traffics the added traffics
-	 * @return the status builder with new traffics added
 	 */
 	private TrafficsBuilder addTraffics(final Collection<EdgeTraffic> traffics) {
 		if (traffics.isEmpty()) {
@@ -145,8 +163,9 @@ public class TrafficsBuilder implements Constants {
 	}
 
 	/**
+	 * Returns the builder with a given edge traffic.
 	 *
-	 * @param edge
+	 * @param edge the edge traffic
 	 */
 	private TrafficsBuilder addTraffics(final EdgeTraffic edge) {
 		final Set<EdgeTraffic> newTraffics = this.traffics.parallelStream().map(traffic -> {
@@ -155,51 +174,15 @@ public class TrafficsBuilder implements Constants {
 		return setTraffics(newTraffics);
 	}
 
-	/**
-	 * Returns the simulation status at the given instant
-	 */
-	public Traffics build() {
-		final TrafficsBuilder finalStatus = simulationProcess(this).createVehicles();
+	/** Returns the simulation status at the target instant. */
+	public Traffics build(final Random random) {
+		final TrafficsBuilder finalStatus = simulationProcess(this).createVehicles(random);
 		final Traffics resut = finalStatus.initialStatus.setTraffics(finalStatus.traffics);
 		return resut;
 	}
 
 	/**
-	 *
-	 * @return
-	 */
-	TrafficsBuilder createVehicles() {
-		final double frequence = initialStatus.getMap().getFrequence();
-		final Optional<Double> t0o = initialStatus.getTraffics().parallelStream().findAny().map(EdgeTraffic::getTime);
-		final TrafficsBuilder result1 = t0o.map(t0 -> {
-			final double dt = time - t0;
-			final int noSites = initialStatus.getMap().getSites().size();
-			final double lambda0 = frequence * dt / (noSites - 1) / 2;
-			final TrafficStats ts = getTrafficStats();
-			TrafficsBuilder result = this;
-			for (final Entry<Tuple2<MapNode, MapNode>, Double> entry : initialStatus.getMap().getWeights().entrySet()) {
-				final MapNode from = entry.getKey().get1();
-				final MapNode to = entry.getKey().get2();
-				if (!from.equals(to)) {
-					final Optional<EdgeTraffic> edge = ts.nextEdge(from, to);
-					final double weight = entry.getValue();
-					final int n = initialStatus.nextPoison(lambda0 * weight);
-					final TrafficsBuilder builder = result;
-					result = edge.map(ed -> {
-						final TrafficsBuilder res1 = builder.createVehicles(n, from, to, ed, t0);
-						return res1;
-					}).orElseGet(() -> {
-						return builder;
-					});
-				}
-			}
-			return result;
-		}).orElse(this);
-		return result1;
-	}
-
-	/**
-	 * Returns the status builder with n new vehicles
+	 * Returns the status builder with n new vehicles.
 	 *
 	 * @param n    number of vehicles
 	 * @param from departure
@@ -223,6 +206,41 @@ public class TrafficsBuilder implements Constants {
 	}
 
 	/**
+	 * Returns the traffic builder generating random new vehicles.
+	 *
+	 * @param random the random generator
+	 */
+	TrafficsBuilder createVehicles(final Random random) {
+		final double frequence = initialStatus.getMap().getFrequence();
+		final Optional<Double> t0o = initialStatus.getTraffics().parallelStream().findAny().map(EdgeTraffic::getTime);
+		final TrafficsBuilder result1 = t0o.map(t0 -> {
+			final double dt = time - t0;
+			final int noSites = initialStatus.getMap().getSites().size();
+			final double lambda0 = frequence * dt / (noSites - 1) / 2;
+			final RoutePlanner planner = getRoutePlanner();
+			TrafficsBuilder result = this;
+			for (final Entry<Tuple2<MapNode, MapNode>, Double> entry : initialStatus.getMap().getWeights().entrySet()) {
+				final MapNode from = entry.getKey().get1();
+				final MapNode to = entry.getKey().get2();
+				if (!from.equals(to)) {
+					final Optional<EdgeTraffic> edge = planner.nextEdge(from, to);
+					final double weight = entry.getValue();
+					final int n = nextPoison(lambda0 * weight, random);
+					final TrafficsBuilder builder = result;
+					result = edge.map(ed -> {
+						final TrafficsBuilder res1 = builder.createVehicles(n, from, to, ed, t0);
+						return res1;
+					}).orElseGet(() -> {
+						return builder;
+					});
+				}
+			}
+			return result;
+		}).orElse(this);
+		return result1;
+	}
+
+	/**
 	 * Returns the edge candidate of vehicle movement.
 	 * <p>
 	 * The candidates are the edges with the lowest simulation time
@@ -235,24 +253,18 @@ public class TrafficsBuilder implements Constants {
 		return result;
 	}
 
-	/**
-	 * Returns the initial status
-	 */
+	/** Returns the initial status. */
 	Traffics getInitialStatus() {
 		return initialStatus;
 	}
 
-	/**
-	 * Returns the minimum simulation time
-	 */
+	/** Returns the minimum simulation time. */
 	double getMinimumTime() {
 		final double result = traffics.parallelStream().mapToDouble(EdgeTraffic::getTime).min().orElseGet(() -> time);
 		return result;
 	}
 
-	/**
-	 * Returns the next minimum simulation time
-	 */
+	/** Returns the next minimum simulation time. */
 	double getNextMinimumTime() {
 		final double min = getMinimumTime();
 		final double result = traffics.parallelStream().mapToDouble(EdgeTraffic::getTime).filter(t -> t != min).min()
@@ -261,52 +273,49 @@ public class TrafficsBuilder implements Constants {
 	}
 
 	/**
-	 * Returns the next edge for a give edge
+	 * Returns the next edge for a give edge.
 	 *
 	 * @param edge edge
 	 */
 	Optional<EdgeTraffic> getNextTraffic(final EdgeTraffic edge) {
-		final TrafficStats stats = getTrafficStats();
+		final RoutePlanner planner = getRoutePlanner();
 		final Optional<EdgeTraffic> result1 = edge.getLast().flatMap(vehicle -> {
 			final MapNode to = vehicle.getTarget();
-			final Optional<EdgeTraffic> result = stats.nextEdge(edge.getEdge().getEnd(), to);
+			final Optional<EdgeTraffic> result = planner.nextEdge(edge.getEdge().getEnd(), to);
 			return result;
 		});
 		return result1;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns the route planner with lazy creation. */
+	RoutePlanner getRoutePlanner() {
+		if (routePlanner == null) {
+			routePlanner = RoutePlanner.create().setEdgeStats(traffics);
+		}
+		return routePlanner;
+	}
+
+	/** Returns the current traffic information. */
 	Set<EdgeTraffic> getTraffics() {
 		return traffics;
 	}
 
 	/**
+	 * Returns the incoming edges traffics stream for a given edge.
 	 *
-	 * @return
+	 * @param trafficEdge the edge
 	 */
-	TrafficStats getTrafficStats() {
-		if (trafficStats == null) {
-			trafficStats = TrafficStats.create().setEdgeStats(traffics);
-		}
-		return trafficStats;
-	}
-
 	private Stream<EdgeTraffic> incomingTrafficStream(final EdgeTraffic trafficEdge) {
 		return traffics.parallelStream().filter(te -> !te.getVehicles().isEmpty() && te.isCrossing(trafficEdge));
 	}
 
-	/**
-	 * Returns true if not any edge has not completed the simulation
-	 */
+	/** Returns true if not any edge has not completed the simulation. */
 	boolean isCompleted() {
 		return !traffics.parallelStream().anyMatch(edge -> edge.getTime() < time);
 	}
 
 	/**
-	 * Returns true if the traffic edge is has priority
+	 * Returns true if the traffic edge is has priority.
 	 *
 	 * @param trafficEdge edge
 	 */
@@ -362,7 +371,7 @@ public class TrafficsBuilder implements Constants {
 
 	/**
 	 * Returns the status builder with last vehicle of the given edge moved to next
-	 * edge
+	 * edge.
 	 *
 	 * @param traffic the edge
 	 */
@@ -383,7 +392,7 @@ public class TrafficsBuilder implements Constants {
 				return addTraffics(traffic.removeLast());
 			} else {
 				// Vehicle arrived at destination => returning
-				final Optional<EdgeTraffic> nextTraffic = getTrafficStats().nextEdge(vehicle.getDestination(),
+				final Optional<EdgeTraffic> nextTraffic = getRoutePlanner().nextEdge(vehicle.getDestination(),
 						vehicle.getDeparture());
 				return nextTraffic.map(traffic1 -> {
 					if (traffic1.isBusy()) {
@@ -406,9 +415,7 @@ public class TrafficsBuilder implements Constants {
 		return result;
 	}
 
-	/**
-	 * Returns the status builder with all vehicles moved in the edges
-	 */
+	/** Returns the status builder with all vehicles moved in the edges. */
 	TrafficsBuilder moveVehiclesInAllEdges() {
 		final Set<EdgeTraffic> newTraffics = traffics.parallelStream().map(et -> et.moveVehicles(time))
 				.collect(Collectors.toSet());
@@ -416,7 +423,7 @@ public class TrafficsBuilder implements Constants {
 	}
 
 	/**
-	 * Returns the status builder for an initial status
+	 * Returns the status builder for an initial status.
 	 *
 	 * @param initialStatus the initial status
 	 */
@@ -425,9 +432,9 @@ public class TrafficsBuilder implements Constants {
 	}
 
 	/**
+	 * Returns the traffic builder with a given set of edge traffic.
 	 *
-	 * @param traffics
-	 * @return
+	 * @param traffics the edge traffics
 	 */
 	public TrafficsBuilder setTraffics(final Set<EdgeTraffic> traffics) {
 		return new TrafficsBuilder(initialStatus, traffics, time);

@@ -36,12 +36,13 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
 import org.mmarini.routes.model.v2.MapNode;
+import org.mmarini.routes.model.v2.Tuple;
 import org.mmarini.routes.model.v2.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Table with the weights from a departure node to a destination node.
  */
 public class WeightsTable extends JTable {
 	private class WeightsTableModel extends AbstractTableModel {
@@ -74,7 +75,7 @@ public class WeightsTable extends JTable {
 				return from;
 			} else {
 				final MapNode to = nodes.get(columnIndex - 1);
-				return weights.getOrDefault(new Tuple2<>(from, to), 0.0);
+				return weights.getOrDefault(Tuple.of(from, to), 0.0);
 			}
 		}
 
@@ -88,10 +89,10 @@ public class WeightsTable extends JTable {
 			if (columnIndex > 0 && columnIndex - 1 != rowIndex) {
 				final MapNode from = nodes.get(rowIndex);
 				final MapNode to = nodes.get(columnIndex - 1);
-				final Tuple2<MapNode, MapNode> key = new Tuple2<>(from, to);
+				final Tuple2<MapNode, MapNode> key = Tuple.of(from, to);
 				final Map<Tuple2<MapNode, MapNode>, Double> newWeights = weights.entrySet().parallelStream().map(e -> {
 					final Tuple2<MapNode, MapNode> k = e.getKey();
-					return new Tuple2<>(k, k.equals(key) ? (Double) aValue : e.getValue());
+					return Tuple.of(k, k.equals(key) ? (Double) aValue : e.getValue());
 				}).collect(Collectors.toMap(Tuple2::get1, Tuple2::get2));
 				weights = newWeights;
 			}
@@ -108,9 +109,7 @@ public class WeightsTable extends JTable {
 	private Map<Tuple2<MapNode, MapNode>, Double> weights;
 	private List<MapNode> nodes;
 
-	/**
-	 *
-	 */
+	/** Creates the table. */
 	public WeightsTable() {
 		logger.debug("WeightTable");
 		this.weights = Map.of();
@@ -122,17 +121,16 @@ public class WeightsTable extends JTable {
 		getTableHeader().setDefaultRenderer(headerRenderer);
 	}
 
-	/**
-	 * @return the weights
-	 */
+	/** Return the weights. */
 	public Map<Tuple2<MapNode, MapNode>, Double> getWeights() {
 		return weights;
 	}
 
 	/**
+	 * Sets the weights.
 	 *
-	 * @param weights
-	 * @return
+	 * @param weights the weights
+	 * @return the table
 	 */
 	public WeightsTable setWeights(final Map<Tuple2<MapNode, MapNode>, Double> weights) {
 		this.weights = weights;

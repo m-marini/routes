@@ -2,7 +2,6 @@ package org.mmarini.routes.model.v2;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
@@ -121,8 +120,7 @@ public class TrafficTest implements Constants {
 			final Vehicle v5 = Vehicle.create(s2, s1).setLocation(50);
 			return EdgeTraffic.create(edge).setVehicles(List.of(v0, v1, v2, v3, v4, v5));
 		}).collect(Collectors.toSet());
-		final Random random = new Random(1234);
-		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics);
 
 		final MapEdge e31 = e3.setPriority(1).setSpeedLimit(20);
 
@@ -197,8 +195,7 @@ public class TrafficTest implements Constants {
 			final List<Vehicle> vehicles = List.of(Vehicle.create(s0, s1), Vehicle.create(s1, s0).setLocation(10));
 			return EdgeTraffic.create(edge).setVehicles(vehicles);
 		}).collect(Collectors.toSet());
-		final Random random = new Random(1234);
-		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics);
 		final MapNode n3 = MapNode.create(10, 10);
 
 		final Traffics result = status.changeNode(n3, (a, b) -> 1);
@@ -246,8 +243,7 @@ public class TrafficTest implements Constants {
 				.map(edge -> EdgeTraffic.create(edge)
 						.setVehicles(List.of(Vehicle.create(s0, s1), Vehicle.create(s1, s0).setLocation(10))))
 				.collect(Collectors.toSet());
-		final Random random = new Random(1234);
-		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics);
 
 		final Traffics result = status.changeNode(s1, (a, b) -> 1);
 		assertNotNull(result);
@@ -312,8 +308,7 @@ public class TrafficTest implements Constants {
 			final Vehicle v1 = Vehicle.create(s1, s0).setLocation(10);
 			return EdgeTraffic.create(edge).setVehicles(List.of(v0, v1));
 		}).collect(Collectors.toSet());
-		final Random random = new Random(1234);
-		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics);
 
 		final Traffics result = status.changeNode(n2, (a, b) -> 1);
 		assertNotNull(result);
@@ -391,8 +386,7 @@ public class TrafficTest implements Constants {
 			final Vehicle v5 = Vehicle.create(s2, s1).setLocation(50);
 			return EdgeTraffic.create(edge).setVehicles(List.of(v0, v1, v2, v3, v4, v5));
 		}).collect(Collectors.toSet());
-		final Random random = new Random(1234);
-		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics);
 
 		final Traffics result = status.changeNode(s1, (a, b) -> 1);
 		assertNotNull(result);
@@ -478,18 +472,6 @@ public class TrafficTest implements Constants {
 		final double result = s.getTime();
 
 		assertThat(result, equalTo(10.0));
-	}
-
-	@Test
-	public void nextPoisson() {
-		final Traffics s = Traffics.create().setRandom(new Random(1234));
-		int tot = 0;
-		final int n = 100000;
-		final double lambda = 10;
-		for (int i = 0; i < n; i++) {
-			tot += s.nextPoison(lambda);
-		}
-		assertThat((double) tot / n, closeTo(lambda, lambda * 0.01));
 	}
 
 	/**
@@ -584,8 +566,7 @@ public class TrafficTest implements Constants {
 			return EdgeTraffic.create(edge).setVehicles(List.of(v0, v1, v2, v3, v4, v5));
 		}).collect(Collectors.toSet());
 
-		final Random random = new Random(1234);
-		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics);
 
 		final Traffics result = status.removeEdge(e0);
 		assertNotNull(result);
@@ -754,8 +735,7 @@ public class TrafficTest implements Constants {
 			final Vehicle v5 = Vehicle.create(s2, s1).setLocation(50);
 			return EdgeTraffic.create(edge).setVehicles(List.of(v0, v1, v2, v3, v4, v5));
 		}).collect(Collectors.toSet());
-		final Random random = new Random(1234);
-		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics).setRandom(random);
+		final Traffics status = Traffics.create().setGeoMap(map).setTraffics(traffics);
 
 		final Traffics result = status.removeNode(s1);
 		assertNotNull(result);

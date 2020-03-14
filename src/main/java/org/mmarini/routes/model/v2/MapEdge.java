@@ -30,38 +30,34 @@ import java.awt.geom.Point2D;
 import java.util.UUID;
 
 /**
- * Al tratto di strada associamo la velocità corrente dei veicoli. La velocità
- * corrente è determinanata dal primo veicolo entrato nel tratto di strada. Se
- * il veicolo è in prossimità dell'uscita la velocità è limitata dalla velocità
- * del tratto sucessivo. Il veicolo è in prossimità se alla velocità corrente il
- * veicolo per il dato intervallo il veicolo esce dal tratto stradale. Se il
- * veicolo non è in prossimità la velocità è il limite del tratto stradale.
+ * Edge in the map connecting a begin node to an end node.
  * <p>
- * Durante la simulazione vengono dapprima calcolate le velocità correnti di
- * ogni tratto stradale, poi vengono calcolate le posizioni dei veicoli per ogni
- * tratto stradale.
- * </p>
- * <p>
- * Il numero massimo di veicoli presenti nel tratto è dato da<br>
- * n = Sl / Vl<br>
- * dove Vl = 5 è la lunghezza del veicolo.<br>
+ * The edge includes
+ * <ul>
+ * <li>the edge unique identifier</li>
+ * <li>the begin node</li>
+ * <li>the end node</li>
+ * <li>the speed limit in the edge</li>
+ * <li>the priority of edge</li>
+ * </ul>
  * </p>
  */
 public class MapEdge implements Comparable<MapEdge>, Constants {
 	/**
+	 * Returns the speed limit for a length.
 	 *
-	 * @param length
-	 * @return
+	 * @param length the edge length
+	 * @return the speed in meter/second
 	 */
 	public static double computeSpeedLimit(final double length) {
 		return length / REACTION_TIME;
 	}
 
 	/**
+	 * Returns an edge from a begin node to an end node.
 	 *
-	 * @param begin
-	 * @param end
-	 * @return
+	 * @param begin the begin node
+	 * @param end   the end node
 	 */
 	public static MapEdge create(final MapNode begin, final MapNode end) {
 		final UUID id = createUUID(begin, end);
@@ -69,9 +65,10 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	}
 
 	/**
-	 * @param begin
-	 * @param end
-	 * @return
+	 * Returns the unique identifier for an edge from a begin node to an end node.
+	 *
+	 * @param begin the begin node
+	 * @param end   the end node
 	 */
 	private static UUID createUUID(final MapNode begin, final MapNode end) {
 		return UUID.nameUUIDFromBytes((begin.getId().toString() + end.getId().toString()).getBytes());
@@ -81,15 +78,16 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	private final MapNode begin;
 	private final MapNode end;
 	private final double speedLimit;
-
 	private final int priority;
 
 	/**
+	 * Creates a map edge.
 	 *
-	 * @param begin
-	 * @param end
-	 * @param speedLimit
-	 * @param priority
+	 * @param id         the unique edge identifier
+	 * @param begin      the being node
+	 * @param end        the end node
+	 * @param speedLimit the speed limit
+	 * @param priority   the priority
 	 */
 	protected MapEdge(final UUID id, final MapNode begin, final MapNode end, final double speedLimit,
 			final int priority) {
@@ -111,7 +109,7 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	}
 
 	/**
-	 * Returns ka for a given edge
+	 * Returns ka for a given edge.
 	 * <p>
 	 * The ka is distance from the begin node along the edge direction.<br>
 	 * It is computed as the ratio between the scalar product of edge direction and
@@ -141,11 +139,13 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 
 	/**
 	 * Returns the sign of cross product of direction by other edge direction.
+	 * <p>
 	 * <ul>
-	 * <li>>0 if the other edge direction is coming from left</li>
-	 * <li>0 if the other edge has the same direction of the edge</li>
-	 * <li>&lt;0 if the other edge direction is coming from right</li>
+	 * <li>positive if the other edge direction is coming from left</li>
+	 * <li>negative if the other edge direction is coming from right</li>
+	 * <li>zero if the other edge has the same direction of the edge</li>
 	 * </ul>
+	 * </p>
 	 *
 	 * @param edge the other edge
 	 */
@@ -178,25 +178,20 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 		return true;
 	}
 
-	/**
-	 * @return the begin
-	 */
+	/** Returns the begin node. */
 	public MapNode getBegin() {
 		return begin;
 	}
 
-	/**
-	 * @return
-	 */
+	/** Returns the begin location point. */
 	public Point2D getBeginLocation() {
 		return begin.getLocation();
 	}
 
 	/**
-	 * Returns the closest edge point from a given point
+	 * Returns the closest edge point from a given point.
 	 *
-	 * @param point
-	 * @return
+	 * @param point the point
 	 */
 	Point2D getClosest(final Point2D point) {
 		final double ka = computeKa(point);
@@ -209,9 +204,7 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 		}
 	}
 
-	/**
-	 * Returns the direction of the edge
-	 */
+	/** Returns the direction of the edge. */
 	public Point2D getDirection() {
 		final double dx = getEnd().getX() - getBegin().getX();
 		final double dy = getEnd().getY() - getBegin().getY();
@@ -219,7 +212,7 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	}
 
 	/**
-	 * Returns the distance of a point from the edge
+	 * Returns the distance of a point from the edge.
 	 *
 	 * @param point the point
 	 */
@@ -229,36 +222,28 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 		return result;
 	}
 
-	/**
-	 * Returns the end node
-	 */
+	/** Returns the end node. */
 	public MapNode getEnd() {
 		return end;
 	}
 
-	/**
-	 * Returns the end point
-	 */
+	/** Returns the end location point. */
 	public Point2D getEndLocation() {
 		return end.getLocation();
 	}
 
-	/**
-	 * Returns the id og edge
-	 */
+	/** Returns the id og edge. */
 	public UUID getId() {
 		return id;
 	}
 
-	/**
-	 * Returns the length of edge
-	 */
+	/** Returns the length of edge. */
 	public double getLength() {
 		return begin.getLocation().distance(end.getLocation());
 	}
 
 	/**
-	 * Returns the location in the edge from a give distance of origin
+	 * Returns the location in the edge from a give distance of origin.
 	 *
 	 * @param distance the distance
 	 */
@@ -271,41 +256,31 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 		return result;
 	}
 
-	/**
-	 * Return the name (the uuid)
-	 */
+	/** Returns the name (the uuid). */
 	private String getName() {
 		return id.toString();
 	}
 
-	/**
-	 * @return the priority
-	 */
+	/** Returns the priority. */
 	public int getPriority() {
 		return priority;
 	}
 
-	/**
-	 * Returns the short name (first 6 characters of uuid)
-	 */
+	/** Returns the short name (first 6 characters of uuid). */
 	public String getShortName() {
 		return getName().substring(0, 6);
 	}
 
-	/**
-	 * @return the speedLimit
-	 */
+	/** Returns the speed limit in meter/second. */
 	public double getSpeedLimit() {
 		return speedLimit;
 	}
 
 	/**
-	 * Computes the transite time.
+	 * Returns the travel time.
 	 * <p>
 	 * The best transit time is the distance / speedLimit
 	 * </p>
-	 *
-	 * @return the transit time
 	 */
 	public double getTransitTime() {
 		return getLength() / speedLimit;
@@ -320,7 +295,7 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	}
 
 	/**
-	 * Returns true if the edge is crossing with other
+	 * Returns true if the edge is crossing with other.
 	 *
 	 * @param other the other edge
 	 */
@@ -329,9 +304,13 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	}
 
 	/**
+	 * Returns the edge with optimal speed limit.
+	 * <p>
+	 * The optimal speed limit is the minimum between the maximum speed limit and
+	 * the max speed limit for the given edge length
+	 * </p>
 	 *
-	 * @param speedLimit
-	 * @return
+	 * @param speedLimit the maximum speed limit
 	 */
 	public MapEdge optimizedSpeedLimit(final double speedLimit) {
 		final double speed = Math.min(speedLimit, computeSpeedLimit(getLength()));
@@ -339,28 +318,28 @@ public class MapEdge implements Comparable<MapEdge>, Constants {
 	}
 
 	/**
+	 * Returns the edge with the modified ends.
 	 *
-	 * @param begin
-	 * @param end
-	 * @return
+	 * @param begin the begin node
+	 * @param end   the end node
 	 */
 	public MapEdge setEnds(final MapNode begin, final MapNode end) {
 		return new MapEdge(createUUID(begin, end), begin, end, speedLimit, priority);
 	}
 
 	/**
+	 * Returns the edge with the modified priority.
 	 *
-	 * @param priority
-	 * @return
+	 * @param priority the priority
 	 */
 	public MapEdge setPriority(final int priority) {
 		return new MapEdge(id, begin, end, speedLimit, priority);
 	}
 
 	/**
+	 * Returns the edge with the modified speed limit.
 	 *
-	 * @param priority
-	 * @return
+	 * @param speedLimit the speed limit
 	 */
 	public MapEdge setSpeedLimit(final double speedLimit) {
 		return new MapEdge(id, begin, end, speedLimit, priority);

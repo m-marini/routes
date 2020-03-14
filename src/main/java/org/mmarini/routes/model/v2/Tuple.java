@@ -26,31 +26,34 @@
 
 package org.mmarini.routes.model.v2;
 
-import java.util.UUID;
-
 /**
- * UUID comparator.
+ * Tuple of variable elements.
  */
-public interface UUIDComparator {
+public interface Tuple {
+
 	/**
-	 * Returns an integer indicating the order of two uuids.
-	 * <p>
-	 * <ul>
-	 * <li>a positive number if first UUID is after the second</li>
-	 * <li>a negative number if first UUID is before the second</li>
-	 * <li>zeroif first UUID is equal to the second</li>
-	 * </ul>
-	 * </p>
+	 * Returns a tuple of two elements.
 	 *
-	 * @param a first uuid
-	 * @param b second uuid
+	 * @param <T1> the type of first element
+	 * @param <T2> the type of second element
+	 * @param t1   the first element
+	 * @param t2   the second element
 	 */
-	public static int compareTo(final UUID a, final UUID b) {
-		final int msl = Long.compareUnsigned(a.getMostSignificantBits(), b.getMostSignificantBits());
-		if (msl != 0) {
-			return msl;
-		}
-		final int lsl = Long.compareUnsigned(a.getLeastSignificantBits(), b.getLeastSignificantBits());
-		return lsl;
+	public static <T1, T2> Tuple2<T1, T2> of(final T1 t1, final T2 t2) {
+		return new Tuple2<>(t1, t2);
+	}
+
+	/**
+	 * Returns a tuple of three elements.
+	 *
+	 * @param <T1> the type of first element
+	 * @param <T2> the type of second element
+	 * @param <T3> the type of third element
+	 * @param t1   the first element
+	 * @param t2   the second element
+	 * @param t3   the third element
+	 */
+	public static <T1, T2, T3> Tuple3<T1, T2, T3> of(final T1 t1, final T2 t2, final T3 t3) {
+		return new Tuple3<>(t1, t2, t3);
 	}
 }

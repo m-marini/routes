@@ -35,76 +35,86 @@ import org.mmarini.routes.model.v2.MapNode;
 import org.mmarini.routes.model.v2.Traffics;
 
 /**
- *
+ * Controller functions
  */
 public interface ControllerFunctions {
 
 	/**
+	 * Centered map view to a given point.
 	 *
-	 * @param st
-	 * @param elem1
+	 * @param status the ui status the ui status
+	 * @param center the center point
+	 * @return the controller
 	 */
-	public ControllerFunctions centerMapTo(UIStatus st, Point2D elem1);
+	public ControllerFunctions centerMapTo(UIStatus status, Point2D center);
 
 	/**
+	 * Returns the ui status deleting an edge.
 	 *
-	 * @param uiStatus
-	 * @param edge
-	 * @return
+	 * @param status the initial status
+	 * @param edge   the edge to delete
 	 */
-	public UIStatus deleteEdge(final UIStatus uiStatus, final MapEdge edge);
+	public UIStatus deleteEdge(final UIStatus status, final MapEdge edge);
 
 	/**
+	 * Returns the ui status deleting a node.
 	 *
-	 * @param uiStatus
-	 * @param node
-	 * @return
+	 * @param status the initial status
+	 * @param node   the node to delete
 	 */
-	public UIStatus deleteNode(final UIStatus uiStatus, final MapNode node);
+	public UIStatus deleteNode(final UIStatus status, final MapNode node);
 
 	/**
+	 * Upgrades the ui components due to map change.
 	 *
-	 * @param uiStatus
-	 * @return
+	 * @param status the ui status
+	 * @return the controller
 	 */
-	public ControllerFunctions mapChanged(final UIStatus uiStatus);
+	public ControllerFunctions mapChanged(final UIStatus status);
 
 	/**
+	 * Processes a request of traffics change.
 	 *
-	 * @param status
-	 * @param scale
-	 * @param pivot
-	 * @return
+	 * @param changeStatus the change function
+	 * @return the controller
+	 */
+	public Controller request(Function<Traffics, UIStatus> changeStatus);
+
+	/**
+	 * Returns the new ui status due to a scale change.
+	 * <p>
+	 * It computes the viewport position and zoom of scroll map.
+	 * </p>
+	 *
+	 * @param status the initial status
+	 * @param scale  the scale factor
+	 * @param pivot  the pivot point of scale function
 	 */
 	public UIStatus scaleTo(final UIStatus status, final double scale, final Point pivot);
 
 	/**
-	 * Returns the controller with error message
+	 * Shows an error message.
 	 *
-	 * @param message
-	 * @param parameters
+	 * @param pattern    the pattern message to show
+	 * @param parameters the parameters
+	 * @return the controller
 	 */
-	public ControllerFunctions showError(String message, Object... parameters);
+	public ControllerFunctions showError(String pattern, Object... parameters);
 
 	/**
-	 * Returns the controller with error message from exception
+	 * Shows an error message from an exception.
 	 *
 	 * @param e the exception
+	 * @return the controller
 	 */
 	public ControllerFunctions showError(final Throwable e);
 
 	/**
+	 * Upgrades the head up display.
 	 *
-	 * @param elem1
-	 * @param elem12
-	 * @return
+	 * @param status the ui status
+	 * @param point  the cursor location
+	 * @return the controller
 	 */
-	public ControllerFunctions updateHud(UIStatus elem1, Point2D elem12);
-
-	/**
-	 *
-	 * @param changeStatus
-	 * @return
-	 */
-	public Controller withStopSimulator(Function<Traffics, UIStatus> changeStatus);
+	public ControllerFunctions updateHud(UIStatus status, Point2D point);
 }

@@ -14,26 +14,22 @@ import javax.swing.JList;
 import org.mmarini.routes.model.v2.MapNode;
 
 /**
- * @author US00852
- *
+ * Renderer of list cell for site nodes.
+ * <p>
+ * The cell is rendered with color and name of site
+ * </p>
  */
 public class SiteListCellRenderer extends DefaultListCellRenderer {
 	private static final long serialVersionUID = 3743457808802444412L;
 	private Map<MapNode, Color> colorMap;
 	private Map<MapNode, Color> selectionColorMap;
 
-	/**
-	 *
-	 */
+	/** Create the renderer. */
 	public SiteListCellRenderer() {
 		this.colorMap = Map.of();
 		this.selectionColorMap = Map.of();
 	}
 
-	/**
-	 * @see javax.swing.DefaultListCellRenderer#getListCellRendererComponent(javax.swing.JList,
-	 *      java.lang.Object, int, boolean, boolean)
-	 */
 	@Override
 	public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
 			final boolean isSelected, final boolean cellHasFocus) {
@@ -54,9 +50,10 @@ public class SiteListCellRenderer extends DefaultListCellRenderer {
 	}
 
 	/**
+	 * Sets the color map.
 	 *
-	 * @param colorMap
-	 * @return
+	 * @param colorMap the color map
+	 * @return the renderer
 	 */
 	public SiteListCellRenderer setColorMap(final Map<MapNode, Color> colorMap) {
 		this.colorMap = colorMap;
@@ -64,8 +61,10 @@ public class SiteListCellRenderer extends DefaultListCellRenderer {
 	}
 
 	/**
-	 * @param selectionColorMap the selectionColorMap to set
-	 * @return
+	 * Sets the color map for selected sites.
+	 *
+	 * @param selectionColorMap the color map for selected sites
+	 * @return the renderer
 	 */
 	public SiteListCellRenderer setSelectionColorMap(final Map<MapNode, Color> selectionColorMap) {
 		this.selectionColorMap = selectionColorMap;

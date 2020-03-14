@@ -27,19 +27,24 @@
 package org.mmarini.routes.model.v2;
 
 /**
- *
+ * Tuple of three elements.
+ * <p>
+ * The instance can be created with {@link Tuple#of(Object, Object, Object)}
+ * </p>
  */
-public class Tuple3<T1, T2, T3> {
+public class Tuple3<T1, T2, T3> implements Tuple {
 	private final T1 elem1;
 	private final T2 elem2;
 	private final T3 elem3;
 
 	/**
-	 * @param elem1
-	 * @param elem2
-	 * @param elem3
+	 * Creates a tuple of three elements.
+	 *
+	 * @param elem1 first element
+	 * @param elem2 second element
+	 * @param elem3 third element
 	 */
-	public Tuple3(final T1 elem1, final T2 elem2, final T3 elem3) {
+	protected Tuple3(final T1 elem1, final T2 elem2, final T3 elem3) {
 		super();
 		assert elem1 != null;
 		assert elem2 != null;
@@ -74,23 +79,17 @@ public class Tuple3<T1, T2, T3> {
 		return true;
 	}
 
-	/**
-	 * @return the elem1
-	 */
+	/** Returns the first element. */
 	public T1 get1() {
 		return elem1;
 	}
 
-	/**
-	 * @return the elem2
-	 */
+	/** Returns the second element. */
 	public T2 get2() {
 		return elem2;
 	}
 
-	/**
-	 * @return the elem3
-	 */
+	/** Returns the third element. */
 	public T3 get3() {
 		return elem3;
 	}
@@ -108,8 +107,7 @@ public class Tuple3<T1, T2, T3> {
 	@Override
 	public String toString() {
 		final StringBuilder builder = new StringBuilder();
-		builder.append("Tuple3 [elem1=").append(elem1).append(", elem2=").append(elem2).append(", elem3=").append(elem3)
-				.append("]");
+		builder.append("(").append(elem1).append(", ").append(elem2).append(", ").append(elem3).append(")");
 		return builder.toString();
 	}
 

@@ -27,18 +27,23 @@
 package org.mmarini.routes.model.v2;
 
 /**
- *
+ * Pair of elements.
+ * <p>
+ * The instance can be created with {@link Tuple#of(Object, Object)}
+ * </p>
  */
-public class Tuple2<T1, T2> {
+public class Tuple2<T1, T2> implements Tuple {
+
 	private final T1 elem1;
 	private final T2 elem2;
 
 	/**
+	 * Create a pair of object.
 	 *
-	 * @param elem1
-	 * @param elem2
+	 * @param elem1 first element
+	 * @param elem2 second element
 	 */
-	public Tuple2(final T1 elem1, final T2 elem2) {
+	protected Tuple2(final T1 elem1, final T2 elem2) {
 		super();
 		assert elem1 != null;
 		assert elem2 != null;
@@ -67,16 +72,12 @@ public class Tuple2<T1, T2> {
 		return true;
 	}
 
-	/**
-	 * @return the element 1
-	 */
+	/** Returns the first element. */
 	public T1 get1() {
 		return elem1;
 	}
 
-	/**
-	 * @return the element 2
-	 */
+	/** Returns the second element. */
 	public T2 get2() {
 		return elem2;
 	}

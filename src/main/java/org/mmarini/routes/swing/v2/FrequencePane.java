@@ -17,10 +17,7 @@ import javax.swing.JSlider;
 import javax.swing.SwingConstants;
 
 /**
- * Pannello di selezione del profilo di generazione delle mappe casuali
- *
- * @author Marco
- *
+ * The panel with the selector of vehicle generation frequency.
  */
 public class FrequencePane extends Box {
 	private static final double[] FREQUENCES = { 0.4, 0.7, 1.5, 2.2, 10. / 3. };
@@ -28,9 +25,7 @@ public class FrequencePane extends Box {
 
 	private final BoundedRangeModel frequenceModel;
 
-	/**
-	     *
-	     */
+	/** Creates the panel. */
 	public FrequencePane() {
 		super(BoxLayout.PAGE_AXIS);
 		frequenceModel = new DefaultBoundedRangeModel(0, 0, 0, FREQUENCES.length - 1);
@@ -38,10 +33,11 @@ public class FrequencePane extends Box {
 	}
 
 	/**
-	     *
-	     *
-	     */
-	private void createContent() {
+	 * Creates the content.
+	 *
+	 * @return the panel
+	 */
+	private FrequencePane createContent() {
 		final Box box = createHorizontalBox();
 		box.add(new JLabel(Messages.getString("FrequencePane.frequenceLabel.text"))); //$NON-NLS-1$
 		box.add(createHorizontalGlue());
@@ -60,21 +56,21 @@ public class FrequencePane extends Box {
 		freqSlider.setLabelTable(labels);
 		box.add(freqSlider);
 		add(box);
+		return this;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns the selected frequency. */
 	public double getFrequence() {
 		return FREQUENCES[frequenceModel.getValue()];
 	}
 
 	/**
+	 * Sets the selected frequency.
 	 *
-	 * @param frequence
+	 * @param frequence the frequency
+	 * @return the panel
 	 */
-	public void setFrequence(final double frequence) {
+	public FrequencePane setFrequence(final double frequence) {
 		int idx = 0;
 		double error = Double.POSITIVE_INFINITY;
 		for (int i = 0; i < FREQUENCES.length; ++i) {
@@ -85,5 +81,6 @@ public class FrequencePane extends Box {
 			}
 		}
 		frequenceModel.setValue(idx);
+		return this;
 	}
 }

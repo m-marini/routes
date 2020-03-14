@@ -38,50 +38,48 @@ import java.util.stream.StreamSupport;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- *
- * @author mmarini
- *
+ * Utility functions to manipulate yaml.
  */
-public class YamlUtils {
+public interface YamlUtils {
 
 	/**
+	 * Returns the double value of json node.
 	 *
-	 * @param node
-	 * @param defaultValue
-	 * @return
+	 * @param node         the node
+	 * @param defaultValue the default value
 	 */
 	public static double jsonDouble(final JsonNode node, final double defaultValue) {
 		return Optional.ofNullable(node).map(json -> json.asDouble(defaultValue)).orElse(defaultValue);
 	}
 
 	/**
+	 * Returns the integer value of json node.
 	 *
-	 * @param node
-	 * @param defaultValue
-	 * @return
+	 * @param node         the node
+	 * @param defaultValue the default value
 	 */
 	public static int jsonInt(final JsonNode node, final int defaultValue) {
 		return Optional.ofNullable(node).map(json -> json.asInt(defaultValue)).orElse(defaultValue);
 	}
 
 	/**
+	 * Returns the list of items from an iterator.
 	 *
-	 * @param <T>
-	 * @param iterator
-	 * @return
+	 * @param <T>      the type of items
+	 * @param iterator the iterator
 	 */
-	public static <T> List<T> toList(final Iterator<T> iterator) {
-		final List<T> list = toStream(iterator).collect(Collectors.toList());
+	public static <T> List<T> listFrom(final Iterator<T> iterator) {
+		final List<T> list = streamFrom(iterator).collect(Collectors.toList());
 		return list;
 	}
 
 	/**
+	 * Returns the stream of items from an iterator.
 	 *
-	 * @param <T>
-	 * @param iterator
-	 * @return
+	 * @param <T>      the type of items
+	 * @param iterator the iterator
 	 */
-	public static <T> Stream<T> toStream(final Iterator<T> iterator) {
+	public static <T> Stream<T> streamFrom(final Iterator<T> iterator) {
 		final Spliterator<T> spliterator = Spliterators.spliteratorUnknownSize(iterator, 0);
 		return StreamSupport.stream(spliterator, false);
 	}

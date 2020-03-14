@@ -27,7 +27,17 @@
 package org.mmarini.routes.model.v2;
 
 /**
- *
+ * Profile used during random map generation.
+ * <p>
+ * It includes
+ * <ul>
+ * <li>Number of sites</li>
+ * <li>Map width</li>
+ * <li>Map height</li>
+ * <li>Minimum traffic weight</li>
+ * <li>Traffic frequency</li>
+ * </ul>
+ * </p>
  */
 public class MapProfile {
 	private final int siteCount;
@@ -37,11 +47,13 @@ public class MapProfile {
 	private final double frequence;
 
 	/**
-	 * @param siteCount
-	 * @param width
-	 * @param height
-	 * @param minWeight
-	 * @param frequence
+	 * Creates a map profile.
+	 *
+	 * @param siteCount number of sites
+	 * @param width     width of map in meters
+	 * @param height    height of map in meters
+	 * @param minWeight minimum traffic weight
+	 * @param frequence traffic frequency
 	 */
 	public MapProfile(final int siteCount, final double width, final double height, final double minWeight,
 			final double frequence) {
@@ -52,37 +64,27 @@ public class MapProfile {
 		this.frequence = frequence;
 	}
 
-	/**
-	 * @return the frequence
-	 */
+	/** Returns the frequency. */
 	public double getFrequence() {
 		return frequence;
 	}
 
-	/**
-	 * @return the height
-	 */
+	/** Returns the height in meters. */
 	public double getHeight() {
 		return height;
 	}
 
-	/**
-	 * @return the minWeight
-	 */
+	/** Returns the minimum traffic weight. */
 	public double getMinWeight() {
 		return minWeight;
 	}
 
-	/**
-	 * @return the siteCount
-	 */
+	/** Returns the number of sites. */
 	public int getSiteCount() {
 		return siteCount;
 	}
 
-	/**
-	 * @return the width
-	 */
+	/** Returns the map width in meters. */
 	public double getWidth() {
 		return width;
 	}

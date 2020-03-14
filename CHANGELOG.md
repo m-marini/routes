@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #76: Information menu items
 - Issue #77: Traffics view
 - Issue #81: split control logic 
+- Issue #83: Java docs
 
 ## [4.2.0] - 2019-12-08
 

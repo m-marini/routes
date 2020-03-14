@@ -32,23 +32,23 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 /**
- *
+ * Node at a location point in the map.
  */
 public class MapNode implements Comparable<MapNode> {
 	/**
+	 * Returns the map node at point coordinates.
 	 *
-	 * @param x
-	 * @param y
-	 * @return
+	 * @param x horizontal coordinates
+	 * @param y vertical coordinates
 	 */
 	public static MapNode create(final double x, final double y) {
 		return create(new Point2D.Double(x, y));
 	}
 
 	/**
+	 * Returns the map node at a given point.
 	 *
-	 * @param location
-	 * @return
+	 * @param location the location point
 	 */
 	public static MapNode create(final Point2D location) {
 		return new MapNode(location);
@@ -58,9 +58,9 @@ public class MapNode implements Comparable<MapNode> {
 	private final UUID id;
 
 	/**
+	 * Creates a map node for a location.
 	 *
-	 * @param id
-	 * @param location
+	 * @param location the location point
 	 */
 	protected MapNode(final Point2D location) {
 		super();
@@ -94,47 +94,32 @@ public class MapNode implements Comparable<MapNode> {
 		return true;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns the unique node identifier. */
 	public UUID getId() {
 		return id;
 	}
 
-	/**
-	 * @return the location
-	 */
+	/** Returns the location point of node. */
 	public Point2D getLocation() {
 		return location;
 	}
 
-	/**
-	 * Return the name (the uuid)
-	 */
+	/** Returns the name (the uuid). */
 	public String getName() {
 		return id.toString();
 	}
 
-	/**
-	 * Returns the short name (first 6 characters of uuid)
-	 */
+	/** Returns the short name (first 6 characters of uuid). */
 	public String getShortName() {
 		return getName().substring(0, 6);
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns the horizontal coordinate of node in meters. */
 	public double getX() {
 		return location.getX();
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns the vertical coordinate of node in meters. */
 	public double getY() {
 		return location.getY();
 	}
@@ -155,7 +140,7 @@ public class MapNode implements Comparable<MapNode> {
 	}
 
 	/**
-	 * Returns the node by applying the transformation
+	 * Returns the node by applying the transformation.
 	 *
 	 * @param trans the transformation
 	 */
