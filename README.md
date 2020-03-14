@@ -1,4 +1,4 @@
-# Route
+# Routes
 
 **Routes** is a java application to simulate the traffics of vehicles.
 
@@ -6,7 +6,7 @@
 
 ## Latest release
 
-Latest release [`4.2.0`](https://github.com/m-marini/routes/tree/routes-4.2.0)
+Latest release [`5.0.0`](https://github.com/m-marini/routes/tree/routes-5.0.0)
 
 ## Requirements
 
