@@ -1,20 +1,6 @@
 ---
-default:
-    speedLimit: 36.71294
-    frequence: 1
-sites:
-    Node_0:
-        x: 250.0
-        y: 0.0
-    Node_1:
-        x: 0.0
-        y: 250.0
-    Node_2:
-        x: 500.0
-        y: 250.0
-    Node_3:
-        x: 250.0
-        y: 500.0
+version: "1"
+frequence: 1
 paths:
 -   departure: Node_0
     destination: Node_1
@@ -53,6 +39,18 @@ paths:
     destination: Node_0
     weight: 1
 nodes:
+    Node_0:
+        x: 250.0
+        y: 0.0
+    Node_1:
+        x: 0.0
+        y: 250.0
+    Node_2:
+        x: 500.0
+        y: 250.0
+    Node_3:
+        x: 250.0
+        y: 500.0
     Node_4:
         x: 245.0
         y: 238.0
