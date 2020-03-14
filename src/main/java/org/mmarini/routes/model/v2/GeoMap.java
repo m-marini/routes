@@ -42,7 +42,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- *
+ * A map with the information of the edges and site nodes
  */
 public class GeoMap implements Constants {
 	private final static GeoMap EMPTY = new GeoMap(Set.of(), Map.of(), Set.of(), Set.of(), DEFAULT_FREQUENCE);
@@ -57,7 +57,7 @@ public class GeoMap implements Constants {
 			final ToDoubleBiFunction<MapNode, MapNode> weightSupplier) {
 		final Map<Tuple2<MapNode, MapNode>, Double> result = sites.stream().sorted().flatMap(from -> {
 			return sites.stream().sorted().filter(to -> !from.equals(to)).map(to -> {
-				return new Tuple2<>(from, to);
+				return Tuple.of(from, to);
 			});
 		}).collect(Collectors.toMap(Function.identity(), t -> {
 			final double w = weightSupplier.applyAsDouble(t.get1(), t.get2());
@@ -66,9 +66,7 @@ public class GeoMap implements Constants {
 		return result;
 	}
 
-	/**
-	 * Returns an empty map
-	 */
+	/** Returns an empty map */
 	public static GeoMap create() {
 		return EMPTY;
 	}
@@ -167,8 +165,9 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * @param edges
-	 * @return
+	 * Returns the stream of begine and and nodes of a set of edges
+	 *
+	 * @param edges the edges
 	 */
 	private static Stream<MapNode> retrieveNodeStream(final Set<MapEdge> edges) {
 		return edges.parallelStream().flatMap(edge -> {
@@ -196,6 +195,13 @@ public class GeoMap implements Constants {
 
 	/**
 	 * Creates a geo map
+	 *
+	 * @param edges     the edges
+	 * @param weights   the weights of vehicle creation for a give departure and
+	 *                  destination
+	 * @param sites     the site nodes
+	 * @param nodes     the nodes
+	 * @param frequence the frequency of vehicle creation
 	 */
 	protected GeoMap(final Set<MapEdge> edges, final Map<Tuple2<MapNode, MapNode>, Double> weights,
 			final Set<MapNode> sites, final Set<MapNode> nodes, final double frequence) {
@@ -241,9 +247,12 @@ public class GeoMap implements Constants {
 	}
 
 	/**
+	 * Returns the map with added edges
+	 * <p>
+	 * New edges are created using the the node instances of this map
+	 * </p>
 	 *
-	 * @param edges
-	 * @return
+	 * @param edges the edges
 	 */
 	public GeoMap addEdges(final Set<MapEdge> edges) {
 		final Stream<MapEdge> newEdgesStrem = edges.parallelStream().map(edge -> {
@@ -257,13 +266,14 @@ public class GeoMap implements Constants {
 	}
 
 	/**
+	 * Returns the map with node type changed
 	 *
-	 * @param node
-	 * @param minWeight
-	 * @param random
-	 * @return
+	 * @param node          the changing node
+	 * @param weightBuilder the function that computes the weights between the
+	 *                      departure and the destination when the changing node
+	 *                      becomes a site node
 	 */
-	public GeoMap changeNode(final MapNode node, final ToDoubleBiFunction<MapNode, MapNode> toDoubleBiFunction) {
+	public GeoMap changeNode(final MapNode node, final ToDoubleBiFunction<MapNode, MapNode> weightBuilder) {
 		if (!nodes.contains(node)) {
 			return this;
 		} else if (getSite(node).isPresent()) {
@@ -290,9 +300,9 @@ public class GeoMap implements Constants {
 		} else {
 			// node -> site => add weights
 			final Map<Tuple2<MapNode, MapNode>, Double> addWeights = sites.parallelStream().flatMap(s -> {
-				return Set.of(new Tuple2<>(s, node), new Tuple2<>(node, s)).stream();
+				return Set.of(Tuple.of(s, node), Tuple.of(node, s)).stream();
 			}).collect(Collectors.toMap(Function.identity(), k -> {
-				return toDoubleBiFunction.applyAsDouble(k.get1(), k.get2());
+				return weightBuilder.applyAsDouble(k.get1(), k.get2());
 			}));
 			final Map<Tuple2<MapNode, MapNode>, Double> newWeights = new HashMap<>(weights);
 			newWeights.putAll(addWeights);
@@ -327,16 +337,12 @@ public class GeoMap implements Constants {
 		return edges.parallelStream().filter(e -> e.equals(pattern)).findAny();
 	}
 
-	/**
-	 * Returns the edges
-	 */
+	/** Returns the edges */
 	public Set<MapEdge> getEdges() {
 		return edges;
 	}
 
-	/**
-	 * Returns the frequence
-	 */
+	/** Returns the frequency */
 	public double getFrequence() {
 		return frequence;
 	}
@@ -350,9 +356,7 @@ public class GeoMap implements Constants {
 		return nodes.parallelStream().filter(n -> n.equals(pattern)).findAny();
 	}
 
-	/**
-	 * Returns the nodes
-	 */
+	/** Returns the nodes */
 	public Set<MapNode> getNodes() {
 		return nodes;
 	}
@@ -366,42 +370,43 @@ public class GeoMap implements Constants {
 		return sites.parallelStream().filter(s -> s.equals(pattern)).findAny();
 	}
 
-	/**
-	 * Returns the sites
-	 */
+	/** Returns the sites */
 	public Set<MapNode> getSites() {
 		return sites;
 	}
 
 	/**
+	 * Returns the weights between the departure site and the destination site
 	 *
-	 * @param k
-	 * @return
+	 * @param from the departure
+	 * @param to   the destination
 	 */
 	public double getWeight(final MapNode from, final MapNode to) {
-		return getWeight(new Tuple2<>(from, to));
+		return getWeight(Tuple.of(from, to));
 	}
 
 	/**
+	 * Returns the weights between the pair of departure site and destination site
 	 *
-	 * @param k
-	 * @return
+	 * @param pair the pair of departure site and destination site
 	 */
-	public double getWeight(final Tuple2<MapNode, MapNode> k) {
-		return Optional.ofNullable(weights.get(k)).orElse(0.0);
+	public double getWeight(final Tuple2<MapNode, MapNode> pair) {
+		return Optional.ofNullable(weights.get(pair)).orElse(0.0);
 	}
 
-	/**
-	 * Returns the weight map
-	 */
+	/** Returns the weight map */
 	public Map<Tuple2<MapNode, MapNode>, Double> getWeights() {
 		return weights;
 	}
 
 	/**
+	 * Returns the map with optimal speed limit for each edge
+	 * <p>
+	 * The length of edge and the maximum speed limits determine the edge speed
+	 * limit
+	 * </p>
 	 *
-	 * @param speedLimit
-	 * @return
+	 * @param speedLimit the maximum speed limit
 	 */
 	public GeoMap optimizeSpeedLimit(final double speedLimit) {
 		final Set<MapEdge> newEdges = edges.parallelStream().map(edge -> {
@@ -411,10 +416,10 @@ public class GeoMap implements Constants {
 	}
 
 	/**
+	 * Returns the map randomized weights
 	 *
-	 * @param minWeight
-	 * @param random
-	 * @return
+	 * @param minWeight the minimum weight value
+	 * @param random    the random generator
 	 */
 	public GeoMap randomize(final double minWeight, final Random random) {
 		return setWeights(buildWeights(sites, randomWeight(minWeight, random)));
@@ -516,7 +521,7 @@ public class GeoMap implements Constants {
 	 * @param weight the weight
 	 */
 	public GeoMap setWeight(final MapNode from, final MapNode to, final double weight) {
-		return setWeight(new Tuple2<>(from, to), weight);
+		return setWeight(Tuple.of(from, to), weight);
 	}
 
 	/**

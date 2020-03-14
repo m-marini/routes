@@ -46,10 +46,9 @@ public class TrafficsBuilderTest1 extends AbstractTrafficsBuilderTest {
 	@MethodSource("timeRange")
 	public void build(final double time) {
 		final TrafficsBuilder builder1 = createDefaultBuilder(time, time + 5, (traffic, i) -> traffic);
-		final TrafficsBuilder builder = builder1
-				.setInitialStatus(builder1.getInitialStatus().setRandom(new Random(12345)));
+		final TrafficsBuilder builder = builder1.setInitialStatus(builder1.getInitialStatus());
 
-		final Traffics result = builder.build();
+		final Traffics result = builder.build(new Random(12345));
 		assertNotNull(result);
 
 		final Set<EdgeTraffic> traffics1 = result.getTraffics();

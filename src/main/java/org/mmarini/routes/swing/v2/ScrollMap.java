@@ -54,7 +54,7 @@ import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
 
 /**
- *
+ * The scroll map with the map and the user actions observables
  */
 public class ScrollMap extends JScrollPane implements Constants {
 	private static final long serialVersionUID = 1L;
@@ -69,7 +69,9 @@ public class ScrollMap extends JScrollPane implements Constants {
 	private List<String> hud;
 
 	/**
-	 * @param content
+	 * Creates the panel
+	 *
+	 * @param content the content
 	 */
 	public ScrollMap(final Component content) {
 		hud = List.of("Head Up", "Display");
@@ -91,11 +93,11 @@ public class ScrollMap extends JScrollPane implements Constants {
 	/**
 	 * Returns the head up display text
 	 *
-	 * @param patterns
-	 * @param gridSize
-	 * @param point
-	 * @param dragEdge
-	 * @param maxSpeed
+	 * @param patterns the hud patterns
+	 * @param gridSize the grid size
+	 * @param point    the cursor map location
+	 * @param dragEdge the dragging edge
+	 * @param maxSpeed the max speed of edge
 	 */
 	private List<String> computeHud(final List<String> patterns, final double gridSize, final Point2D point,
 			final Optional<Tuple2<Point2D, Point2D>> dragEdge, final double maxSpeed) {
@@ -124,23 +126,16 @@ public class ScrollMap extends JScrollPane implements Constants {
 		return result;
 	}
 
-	/**
-	 * @return the changeObs
-	 */
+	/** Returns the observable of viewport changes */
 	public Observable<ChangeEvent> getChangeObs() {
 		return changeObs;
 	}
 
-	/**
-	 * Returns the scaleToObs
-	 */
+	/** Returns the observable of scale to button (right bottom corner) */
 	public Observable<ActionEvent> getScaleToObs() {
 		return scaleToObs;
 	}
 
-	/**
-	 * @see javax.swing.JComponent#paintChildren(java.awt.Graphics)
-	 */
 	@Override
 	protected void paintChildren(final Graphics g) {
 		super.paintChildren(g);
@@ -149,10 +144,11 @@ public class ScrollMap extends JScrollPane implements Constants {
 	}
 
 	/**
+	 * Paints head up display
 	 *
-	 * @param g
-	 * @param messages
-	 * @return
+	 * @param g        graphics context
+	 * @param messages messages
+	 * @return the map
 	 */
 	private ScrollMap paintHud(final Graphics g, final List<String> messages) {
 		final Rectangle rect = computeRect(messages);
@@ -172,12 +168,13 @@ public class ScrollMap extends JScrollPane implements Constants {
 	}
 
 	/**
-	 * Set hud for edge
+	 * Set head up display for edge
 	 *
-	 * @param gridSize grid size
-	 * @param point    mouse position
-	 * @param dragEdge drag edge
-	 * @param maxSpeed max speed
+	 * @param gridSize the grid size
+	 * @param point    the mouse position
+	 * @param dragEdge the drag edge
+	 * @param maxSpeed the max speed
+	 * @return the panel
 	 */
 	public ScrollMap setEdgeHud(final double gridSize, final Point2D point,
 			final Optional<Tuple2<Point2D, Point2D>> dragEdge, final double maxSpeed) {
@@ -185,9 +182,10 @@ public class ScrollMap extends JScrollPane implements Constants {
 	}
 
 	/**
-	 * Returns the scroll map with changed head up display
+	 * Sets the head up display content
 	 *
-	 * @param hud the head up display
+	 * @param hud the text rows
+	 * @return the panel
 	 */
 	public ScrollMap setHud(final List<String> hud) {
 		this.hud = hud;
@@ -196,12 +194,13 @@ public class ScrollMap extends JScrollPane implements Constants {
 	}
 
 	/**
-	 * Set hud for edge
+	 * Sets the head up display for edge
 	 *
 	 * @param gridSize grid size
 	 * @param point    mouse position
 	 * @param dragEdge drag edge
 	 * @param maxSpeed max speed
+	 * @return the panel
 	 */
 	public ScrollMap setPointHud(final double gridSize, final Point2D point) {
 		return setHud(computeHud(pointLegendPattern, gridSize, point, Optional.empty(), 0));

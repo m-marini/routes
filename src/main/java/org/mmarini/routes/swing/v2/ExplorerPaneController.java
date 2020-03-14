@@ -8,14 +8,17 @@ import java.util.Optional;
 import org.mmarini.routes.model.v2.Constants;
 import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;
-import org.mmarini.routes.model.v2.Tuple2;
+import org.mmarini.routes.model.v2.Tuple;
 
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 /**
- * @author us00852
- *
+ * The controller for the explorer panel.
+ * <p>
+ * The controller manages all the user interactions from the explorer panel to
+ * the main controller and other components
+ * </p>
  */
 public class ExplorerPaneController implements Constants {
 
@@ -27,12 +30,14 @@ public class ExplorerPaneController implements Constants {
 	private final ControllerFunctions controller;
 
 	/**
-	 * @param explorerPane
-	 * @param routeMap
-	 * @param mapElementPane
-	 * @param uiStatusSubj
-	 * @param uiStatusObs
-	 * @param controller
+	 * Creates the controller for the explorer panel
+	 *
+	 * @param explorerPane   the explorer panel
+	 * @param routeMap       the route map
+	 * @param mapElementPane the map element panel
+	 * @param uiStatusSubj   the status subject
+	 * @param uiStatusObs    the status observables
+	 * @param controller     the main controller
 	 */
 	public ExplorerPaneController(final ExplorerPane explorerPane, final RouteMap routeMap,
 			final MapElementPane mapElementPane, final BehaviorSubject<UIStatus> uiStatusSubj,
@@ -46,12 +51,13 @@ public class ExplorerPaneController implements Constants {
 	}
 
 	/**
+	 * Builds the subscriptions that manage the user interactions.
 	 *
-	 * @return
+	 * @return the controller
 	 */
 	public ExplorerPaneController build() {
 		explorerPane.getSiteObs().withLatestFrom(uiStatusObs, (site, st) -> {
-			return new Tuple2<>(st, site);
+			return Tuple.of(st, site);
 		}).subscribe(t -> {
 			final UIStatus st = t.get1();
 			final MapNode site = t.get2();
@@ -62,7 +68,7 @@ public class ExplorerPaneController implements Constants {
 		}, controller::showError);
 
 		explorerPane.getNodeObs().withLatestFrom(uiStatusObs, (node, st) -> {
-			return new Tuple2<>(st, node);
+			return Tuple.of(st, node);
 		}).subscribe(t -> {
 			final UIStatus st = t.get1();
 			final MapNode node = t.get2();
@@ -73,7 +79,7 @@ public class ExplorerPaneController implements Constants {
 		}, controller::showError);
 
 		explorerPane.getEdgeObs().withLatestFrom(uiStatusObs, (edge, st) -> {
-			return new Tuple2<>(st, edge);
+			return Tuple.of(st, edge);
 		}).subscribe(t -> {
 			final UIStatus st = t.get1();
 			final MapEdge edge = t.get2();

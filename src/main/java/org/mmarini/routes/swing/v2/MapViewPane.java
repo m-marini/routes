@@ -86,9 +86,10 @@ public class MapViewPane extends JPanel {
 	private Optional<MapModule> module;
 
 	/**
-	 * Create the component
+	 * Creates the panel
 	 *
-	 * @param moduleSelector
+	 * @param content        the content
+	 * @param moduleSelector the module selector
 	 */
 	public MapViewPane(final Component content, final JButton moduleSelector) {
 		selectButton = createJToggleButton("MapViewPane.selectAction"); //$NON-NLS-1$
@@ -160,74 +161,56 @@ public class MapViewPane extends JPanel {
 		return bar;
 	}
 
-	/**
-	 * @return the edgeModeObs
-	 */
+	/** Returns the observable of edge mode button */
 	public Observable<ActionEvent> getEdgeModeObs() {
 		return edgeModeObs;
 	}
 
-	/**
-	 * @return the fitInWindowObs
-	 */
+	/** Returns the observable of fit in window button */
 	public Observable<ActionEvent> getFitInWindowObs() {
 		return fitInWindowObs;
 	}
 
-	/**
-	 * @return the moduleModeObs
-	 */
+	/** Returns the observable of module mode button */
 	public Observable<MapModule> getModuleModeObs() {
 		return moduleModeObs;
 	}
 
-	/**
-	 * @return the normalViewObs
-	 */
+	/** Returns the observable of normal view button */
 	public Observable<ActionEvent> getNormalViewObs() {
 		return normalViewObs;
 	}
 
-	/**
-	 * @return the selectModeObs
-	 */
+	/** Returns the observable of select mode button */
 	public Observable<ActionEvent> getSelectModeObs() {
 		return selectModeObs;
 	}
 
-	/**
-	 * @return the trafficViewObs
-	 */
+	/** Return the observable of traffic view button */
 	public Observable<ActionEvent> getTrafficViewObs() {
 		return trafficViewObs;
 	}
 
-	/**
-	 * @return the zoomDefaultObs
-	 */
+	/** Return the observable of zoom to default button */
 	public Observable<ActionEvent> getZoomDefaultObs() {
 		return zoomDefaultObs;
 	}
 
-	/**
-	 * @return the zoomInObs
-	 */
+	/** Returns the observable of zoom in button */
 	public Observable<ActionEvent> getZoomInObs() {
 		return zoomInObs;
 	}
 
-	/**
-	 * @return the zoomOutObs
-	 */
+	/** Returns the observable of zoom out button */
 	public Observable<ActionEvent> getZoomOutObs() {
 		return zoomOutObs;
 	}
 
 	/**
-	 * Initialize the component
+	 * Initializes the component
 	 *
-	 * @param content
-	 * @return
+	 * @param content the content
+	 * @return the panel
 	 */
 	private MapViewPane init(final Component content) {
 		toolGroup.add(selectButton);
@@ -242,8 +225,9 @@ public class MapViewPane extends JPanel {
 	}
 
 	/**
+	 * Sets the module selection mode
 	 *
-	 * @return
+	 * @return the panel
 	 */
 	public MapViewPane selectModuleMode() {
 		moduleButton.doClick();
@@ -251,9 +235,10 @@ public class MapViewPane extends JPanel {
 	}
 
 	/**
+	 * Sets the module
 	 *
-	 * @param module
-	 * @return
+	 * @param module the module
+	 * @return the panel
 	 */
 	public MapViewPane setModule(final MapModule module) {
 		this.module = Optional.of(module);
@@ -261,9 +246,10 @@ public class MapViewPane extends JPanel {
 	}
 
 	/**
+	 * Sets the module icon
 	 *
-	 * @param icon
-	 * @return
+	 * @param icon the icon
+	 * @return the panel
 	 */
 	public MapViewPane setModuleIcon(final Icon icon) {
 		moduleButton.setIcon(icon);

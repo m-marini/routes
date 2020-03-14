@@ -12,18 +12,18 @@ public class Tuple2Test {
 
 	@Test
 	public void create() {
-		final Tuple2<String, String> t1 = new Tuple2<>("a", "b");
+		final Tuple2<String, String> t1 = Tuple.of("a", "b");
 		assertThat(t1.get1(), equalTo("a"));
 		assertThat(t1.get2(), equalTo("b"));
 	}
 
 	@Test
 	public void testEquals() {
-		final Tuple2<String, String> t1 = new Tuple2<>("a", "b");
-		final Tuple2<String, String> t11 = new Tuple2<>("a", "b");
-		final Tuple2<String, String> t2 = new Tuple2<>("a", "c");
-		final Tuple2<String, String> t3 = new Tuple2<>("c", "b");
-		final Tuple2<String, Double> t4 = new Tuple2<>("c", 1.0);
+		final Tuple2<String, String> t1 = Tuple.of("a", "b");
+		final Tuple2<String, String> t11 = Tuple.of("a", "b");
+		final Tuple2<String, String> t2 = Tuple.of("a", "c");
+		final Tuple2<String, String> t3 = Tuple.of("c", "b");
+		final Tuple2<String, Double> t4 = Tuple.of("c", 1.0);
 
 		assertFalse(t1.equals(null));
 		assertFalse(t1.equals(new Object()));
@@ -43,15 +43,15 @@ public class Tuple2Test {
 
 	@Test
 	public void testHashCode() {
-		final Tuple2<String, String> t1 = new Tuple2<>("a", "b");
-		final Tuple2<String, String> t11 = new Tuple2<>("a", "b");
+		final Tuple2<String, String> t1 = Tuple.of("a", "b");
+		final Tuple2<String, String> t11 = Tuple.of("a", "b");
 
 		assertThat(t1.hashCode(), equalTo(t11.hashCode()));
 	}
 
 	@Test
 	public void testToString() {
-		final Tuple2<String, String> t1 = new Tuple2<>("a", "b");
+		final Tuple2<String, String> t1 = Tuple.of("a", "b");
 
 		assertThat(t1, hasToString("(a, b)"));
 	}

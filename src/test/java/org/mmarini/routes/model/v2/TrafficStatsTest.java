@@ -50,7 +50,7 @@ public class TrafficStatsTest implements Constants {
 
 		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
 
-		final TrafficStats s = new TrafficStats(stats);
+		final RoutePlanner s = new RoutePlanner(stats);
 
 		final OptionalDouble t13 = s.getMinTime(node1, node1);
 		assertFalse(t13.isPresent());
@@ -82,7 +82,7 @@ public class TrafficStatsTest implements Constants {
 
 		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
 
-		final TrafficStats s = new TrafficStats(stats);
+		final RoutePlanner s = new RoutePlanner(stats);
 
 		final OptionalDouble t13 = s.getMinTime(node1, node3);
 		assertTrue(t13.isPresent());
@@ -115,7 +115,7 @@ public class TrafficStatsTest implements Constants {
 
 		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
 
-		final TrafficStats s = new TrafficStats(stats);
+		final RoutePlanner s = new RoutePlanner(stats);
 
 		final OptionalDouble t13 = s.getTime(node1, node1);
 		assertFalse(t13.isPresent());
@@ -147,7 +147,7 @@ public class TrafficStatsTest implements Constants {
 
 		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
 
-		final TrafficStats s = new TrafficStats(stats);
+		final RoutePlanner s = new RoutePlanner(stats);
 
 		final OptionalDouble t13 = s.getTime(node1, node3);
 		assertTrue(t13.isPresent());
@@ -156,7 +156,7 @@ public class TrafficStatsTest implements Constants {
 
 	@Test
 	public void test() {
-		final TrafficStats s = TrafficStats.create();
+		final RoutePlanner s = RoutePlanner.create();
 		assertNotNull(s);
 		assertThat(s.getEdgeTraffics(), empty());
 	}
@@ -187,7 +187,7 @@ public class TrafficStatsTest implements Constants {
 
 		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
 
-		final TrafficStats s = new TrafficStats(stats);
+		final RoutePlanner s = new RoutePlanner(stats);
 
 		assertNotNull(s);
 		assertThat(s.getEdgeTraffics(), equalTo(stats));
@@ -245,7 +245,7 @@ public class TrafficStatsTest implements Constants {
 
 		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
 
-		final TrafficStats s = new TrafficStats(stats);
+		final RoutePlanner s = new RoutePlanner(stats);
 
 		assertNotNull(s);
 		assertThat(s.getEdgeTraffics(), equalTo(stats));
@@ -294,7 +294,7 @@ public class TrafficStatsTest implements Constants {
 
 		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
 
-		final TrafficStats s = new TrafficStats(stats);
+		final RoutePlanner s = new RoutePlanner(stats);
 
 		assertNotNull(s);
 		assertThat(s.getEdgeTraffics(), equalTo(stats));
@@ -327,7 +327,7 @@ public class TrafficStatsTest implements Constants {
 
 		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
 
-		final TrafficStats s = new TrafficStats(stats);
+		final RoutePlanner s = new RoutePlanner(stats);
 
 		final Optional<EdgeTraffic> n13 = s.nextEdge(node1, node3);
 		assertTrue(n13.isPresent());
@@ -380,7 +380,7 @@ public class TrafficStatsTest implements Constants {
 
 		final Set<EdgeTraffic> stats = edges.stream().map(EdgeTraffic::create).collect(Collectors.toSet());
 
-		final TrafficStats s = new TrafficStats(stats);
+		final RoutePlanner s = new RoutePlanner(stats);
 
 		assertThat(s.prevNode(node1, node3), equalTo(Optional.of(node4)));
 		assertThat(s.prevNode(node1, node4), equalTo(Optional.of(node2)));
@@ -393,7 +393,7 @@ public class TrafficStatsTest implements Constants {
 	@Test
 	public void testSetEdgeStats() {
 		final Set<EdgeTraffic> edgeStats = Collections.emptySet();
-		final TrafficStats s = TrafficStats.create().setEdgeStats(edgeStats);
+		final RoutePlanner s = RoutePlanner.create().setEdgeStats(edgeStats);
 		assertNotNull(s);
 		assertThat(s.getEdgeTraffics(), equalTo(edgeStats));
 	}

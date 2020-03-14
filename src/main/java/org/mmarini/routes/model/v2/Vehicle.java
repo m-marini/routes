@@ -31,6 +31,16 @@ import java.util.UUID;
 
 /**
  * A vehicle in the simulation model
+ * <p>
+ * It includes:
+ * <ul>
+ * <li>unique identifier</li>
+ * <li>destination node</li>
+ * <li>departure node</li>
+ * <li>location in the current edge in meters</li>
+ * <li>instant of entry in the current edge</li>
+ * <li>if it is returning to the departure</li>
+ * </ul>
  */
 public class Vehicle implements Comparable<Vehicle>, Constants {
 
@@ -102,61 +112,37 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 		return true;
 	}
 
-	/**
-	 * Returns the departure site node
-	 *
-	 * @return the departure site node
-	 */
+	/** Returns the departure site node */
 	public MapNode getDeparture() {
 		return departure;
 	}
 
-	/**
-	 * Returns the destination site node
-	 *
-	 * @return the destination site node
-	 */
+	/** Returns the destination site node */
 	public MapNode getDestination() {
 		return destination;
 	}
 
-	/**
-	 * Returns the edge entry time
-	 *
-	 * @return the edge entry time
-	 */
+	/** Returns the edge entry time */
 	public double getEdgeEntryTime() {
 		return edgeEntryTime;
 	}
 
-	/**
-	 * Returns the unique identifier
-	 *
-	 * @return the unique identifier
-	 */
+	/** Returns the unique identifier */
 	public UUID getId() {
 		return id;
 	}
 
-	/**
-	 * Returns the location in the current edge
-	 *
-	 * @return the location in the current edge
-	 */
+	/** Returns the location in the current edge */
 	public double getLocation() {
 		return location;
 	}
 
-	/**
-	 * Return the name (the uuid)
-	 */
+	/** Return the name (the uuid) */
 	public String getName() {
 		return id.toString();
 	}
 
-	/**
-	 * Returns the short name (first 6 characters of uuid)
-	 */
+	/** Returns the short name (first 6 characters of uuid) */
 	public String getShortName() {
 		return getName().substring(0, 6);
 	}
@@ -164,9 +150,8 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 	/**
 	 * Returns the target site
 	 * <p>
-	 * Returns the destination if vehicle is not returning or else the departure
-	 *
-	 * @return the target site
+	 * Returns the destination if vehicle is not returning else the departure
+	 * </p>
 	 */
 	public MapNode getTarget() {
 		return returning ? departure : destination;
@@ -180,11 +165,7 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 		return result;
 	}
 
-	/**
-	 * Returns true if the vehicle is returning to the departure
-	 *
-	 * @return true if the vehicle is returning to the departure
-	 */
+	/** Returns true if the vehicle is returning to the departure */
 	public boolean isReturning() {
 		return returning;
 	}
@@ -208,13 +189,13 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 			if (maxLocation > length) {
 				final double realInterval = Math.max((length - location) / speed, 0);
 				final Vehicle newVeichle = setLocation(length);
-				return new Tuple2<>(newVeichle, realInterval);
+				return Tuple.of(newVeichle, realInterval);
 			} else if (maxLocation + EPSILON < length) {
 				final Vehicle newVeichle = setLocation(maxLocation);
-				return new Tuple2<>(newVeichle, interval);
+				return Tuple.of(newVeichle, interval);
 			} else {
 				final Vehicle newVeichle = setLocation(length);
-				return new Tuple2<>(newVeichle, interval);
+				return Tuple.of(newVeichle, interval);
 			}
 		} else {
 			final double nextLocation = nextVehicleLocation.getAsDouble();
@@ -226,10 +207,10 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 				final double safetyLocation = location + dLocation;
 				final double finalLocation = Math.min(stopLocation, safetyLocation);
 				final Vehicle newVeichle = setLocation(finalLocation);
-				return new Tuple2<>(newVeichle, interval);
+				return Tuple.of(newVeichle, interval);
 			} else {
 				final Vehicle newVeichle = setLocation(maxLocation);
-				return new Tuple2<>(newVeichle, interval);
+				return Tuple.of(newVeichle, interval);
 			}
 		}
 	}
@@ -238,7 +219,6 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 	 * Returns the vehicle with changed edge entry time
 	 *
 	 * @param edgeEntryTime the edge entry time
-	 * @return the vehicle with changed edge entry time
 	 */
 	public Vehicle setEdgeEntryTime(final double edgeEntryTime) {
 		return new Vehicle(id, departure, destination, location, edgeEntryTime, returning);
@@ -248,7 +228,6 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 	 * Returns the vehicle with the changed location
 	 *
 	 * @param location the location
-	 * @return the vehicle with the changed location
 	 */
 	public Vehicle setLocation(final double location) {
 		return new Vehicle(id, departure, destination, location, edgeEntryTime, returning);
@@ -258,7 +237,6 @@ public class Vehicle implements Comparable<Vehicle>, Constants {
 	 * Returns the vehicle with the changed returning
 	 *
 	 * @param returning true if vehicle is returning
-	 * @return the vehicle with the changed returning
 	 */
 	public Vehicle setReturning(final boolean returning) {
 		return new Vehicle(id, departure, destination, location, edgeEntryTime, returning);

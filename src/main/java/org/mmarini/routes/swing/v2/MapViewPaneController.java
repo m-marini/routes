@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.Optional;
 
 import org.mmarini.routes.model.v2.MapModule;
-import org.mmarini.routes.model.v2.Tuple2;
+import org.mmarini.routes.model.v2.Tuple;
 import org.mmarini.routes.swing.v2.UIStatus.MapMode;
 
 import io.reactivex.rxjava3.core.Observable;
@@ -77,7 +77,7 @@ public class MapViewPaneController {
 	 */
 	public MapViewPaneController build() {
 		mapViewPane.getEdgeModeObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			controller.withStopSimulator(tr -> {
+			controller.request(tr -> {
 				routeMap.setModule(Optional.empty()).setDragEdge(Optional.empty())
 						.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 				final UIStatus newStatus = st.setMode(MapMode.START_EDGE).setDragEdge(Optional.empty());
@@ -86,7 +86,7 @@ public class MapViewPaneController {
 		}, controller::showError);
 
 		mapViewPane.getSelectModeObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			controller.withStopSimulator(tr -> {
+			controller.request(tr -> {
 				routeMap.setModule(Optional.empty()).setDragEdge(Optional.empty())
 						.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 				final UIStatus newStatus = st.setMode(MapMode.SELECTION).setDragEdge(Optional.empty());
@@ -95,9 +95,9 @@ public class MapViewPaneController {
 		}, controller::showError);
 
 		mapViewPane.getModuleModeObs().withLatestFrom(uiStatusObs, (m, st) -> {
-			return new Tuple2<>(st, m);
+			return Tuple.of(st, m);
 		}).subscribe(t -> {
-			controller.withStopSimulator(tr -> {
+			controller.request(tr -> {
 				final UIStatus st = t.get1();
 				final MapModule module = t.get2();
 				final UIStatus newStatus = st.setMode(MapMode.DRAG_MODULE);

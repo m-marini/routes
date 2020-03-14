@@ -35,6 +35,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,9 +50,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * The user interface status of simulator
  */
 public class UIStatus implements Constants {
+	/** The map modes */
 	static enum MapMode {
 		SELECTION, START_EDGE, DRAG_EDGE, DRAG_MODULE, ROTATE_MODULE
 	}
@@ -64,9 +66,7 @@ public class UIStatus implements Constants {
 
 	private static final Logger logger = LoggerFactory.getLogger(UIStatus.class);
 
-	/**
-	 * Returns default status
-	 */
+	/** Returns default status */
 	public static UIStatus create() {
 		return new UIStatus(DEFAULT_SCALE, Traffics.create(), MapMode.SELECTION, Optional.empty(),
 				DEFAULT_SPEED_LIMIT_KMH * KMH_TO_MPS);
@@ -152,18 +152,18 @@ public class UIStatus implements Constants {
 	}
 
 	/**
+	 * Returns the node at a given point
 	 *
-	 * @param pt
-	 * @return
+	 * @param pt point in the map
 	 */
 	public Optional<MapNode> findAnyNodeAt(final Point2D pt) {
 		return findSiteAt(pt).map(site -> site).or(() -> findNodeAt(pt));
 	}
 
 	/**
-	 * Returns the edge at location
+	 * Returns the edge at given point
 	 *
-	 * @param pt the location
+	 * @param pt the point in the map
 	 */
 	private Optional<MapEdge> findEdgeAt(final Point2D pt) {
 		final Optional<MapEdge> result = traffics.getMap().getEdges().stream().filter(s -> {
@@ -173,9 +173,9 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the map element at location
+	 * Returns the map element at given point
 	 *
-	 * @param pt the location
+	 * @param pt the point in the map
 	 */
 	public MapElement findElementAt(final Point2D pt) {
 		final MapElement result = findSiteAt(pt).map(site -> MapElement.create(site))
@@ -185,9 +185,9 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the node at location
+	 * Returns the node at a given point
 	 *
-	 * @param pt the location
+	 * @param pt the point in the map
 	 */
 	private Optional<MapNode> findNodeAt(final Point2D pt) {
 		final Optional<MapNode> result = traffics.getMap().getNodes().parallelStream().filter(s -> {
@@ -197,9 +197,9 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the node at location
+	 * Returns the site at a given point
 	 *
-	 * @param pt the location
+	 * @param pt the point in the map
 	 */
 	private Optional<MapNode> findSiteAt(final Point2D pt) {
 		final Optional<MapNode> result = traffics.getMap().getSites().parallelStream().filter(s -> {
@@ -208,16 +208,12 @@ public class UIStatus implements Constants {
 		return result;
 	}
 
-	/**
-	 * @return the dragEdge
-	 */
+	/** Returns the drag edge */
 	public Optional<Tuple2<Point2D, Point2D>> getDragEdge() {
 		return dragEdge;
 	}
 
-	/**
-	 * Returns the grid size in meters
-	 */
+	/** Returns the grid size in meters */
 	public double getGridSize() {
 		// size meters to have a grid of at least 10 pixels in the screen
 		final double size = MIN_GRID_SIZE_PIXELS / scale;
@@ -229,9 +225,7 @@ public class UIStatus implements Constants {
 		return gridSize;
 	}
 
-	/**
-	 * Returns the transformation from screen coordinates to map coordinates
-	 */
+	/** Returns the transformation from screen coordinates to map coordinates */
 	public AffineTransform getInverseTransform() {
 		try {
 			return getTransform().createInverse();
@@ -241,11 +235,7 @@ public class UIStatus implements Constants {
 		}
 	}
 
-	/**
-	 * Returns the map bound
-	 *
-	 * @param map the map
-	 */
+	/** Returns the map bound */
 	public Rectangle2D getMapBound() {
 		final GeoMap map = traffics.getMap();
 		final Set<MapNode> all = Stream.concat(map.getSites().parallelStream(), map.getNodes().parallelStream())
@@ -262,30 +252,22 @@ public class UIStatus implements Constants {
 		return result;
 	}
 
-	/**
-	 * @return the mode
-	 */
+	/** Returns the mode of mouse cursor */
 	public MapMode getMode() {
 		return mode;
 	}
 
-	/**
-	 * @return the priority
-	 */
+	/** Return the default edge priority */
 	public int getPriority() {
 		return priority;
 	}
 
-	/**
-	 * @return the scale
-	 */
+	/** Return the scale */
 	public double getScale() {
 		return scale;
 	}
 
-	/**
-	 * Returns the map size
-	 */
+	/** Returns the map size */
 	public Dimension getScreenMapSize() {
 		final Rectangle2D bound = getMapBound();
 		final int width = (int) Math.round(bound.getWidth() * scale) + MAP_INSETS * 2;
@@ -294,23 +276,17 @@ public class UIStatus implements Constants {
 		return result;
 	}
 
-	/**
-	 * @return the speedLimit
-	 */
+	/** Return the speed limit */
 	public double getSpeedLimit() {
 		return speedLimit;
 	}
 
-	/**
-	 * @return the status
-	 */
+	/** Return the traffics */
 	public Traffics getTraffics() {
 		return traffics;
 	}
 
-	/**
-	 * Returns the transformation from map coordinates to screen coordinates
-	 */
+	/** Returns the transformation from map coordinates to screen coordinates */
 	public AffineTransform getTransform() {
 		return getTransform(scale);
 	}
@@ -329,36 +305,37 @@ public class UIStatus implements Constants {
 	}
 
 	/**
+	 * Returns the ui status with optimized traffics
 	 *
-	 * @param speedLimit
-	 * @return
+	 * @param speedLimit the speed limits
 	 */
 	public UIStatus optimizeSpeed() {
 		return setTraffics(traffics.optimizeSpeed(speedLimit));
 	}
 
 	/**
+	 * Returns the status with randomized vehicle generation parameters
 	 *
-	 * @param minWeight
-	 * @return
+	 * @param minWeight the minimum weights
+	 * @param random    the random generator
 	 */
-	public UIStatus randomize(final double minWeight) {
-		return setTraffics(traffics.randomize(minWeight));
+	public UIStatus randomize(final double minWeight, final Random random) {
+		return setTraffics(traffics.randomize(minWeight, random));
 	}
 
 	/**
 	 * Returns the UIStatus with a new drage edge
 	 *
-	 * @param dragEdge
+	 * @param dragEdge the drag edge ends
 	 */
 	public UIStatus setDragEdge(final Optional<Tuple2<Point2D, Point2D>> dragEdge) {
 		return new UIStatus(scale, traffics, mode, dragEdge, speedLimit);
 	}
 
 	/**
-	 * Returns the status with new frequence of traffics
+	 * Returns the status with new frequency of traffics
 	 *
-	 * @param frequence frequence
+	 * @param frequence frequency
 	 */
 	public UIStatus setFrequence(final double frequence) {
 		final Traffics newTraffics = traffics.setFrequence(frequence);
@@ -385,36 +362,36 @@ public class UIStatus implements Constants {
 	}
 
 	/**
+	 * Returns the UIStatus with a speed limit
 	 *
-	 * @param speedLimit
-	 * @return
+	 * @param speedLimit the speed limit in meters/second
 	 */
 	public UIStatus setSpeedLimit(final double speedLimit) {
 		return new UIStatus(scale, traffics, mode, dragEdge, speedLimit);
 	}
 
 	/**
-	 * Returns the UIStatus with a new Simulation status
+	 * Returns the UIStatus with a new traffics
 	 *
-	 * @param traffics the status
+	 * @param traffics the traffics
 	 */
 	public UIStatus setTraffics(final Traffics traffics) {
 		return new UIStatus(scale, traffics, mode, dragEdge, speedLimit);
 	}
 
 	/**
+	 * Returns the UIStatus with a new vehicle generation weights
 	 *
-	 * @param weights
-	 * @return
+	 * @param weights the weights
 	 */
 	public UIStatus setWeights(final Map<Tuple2<MapNode, MapNode>, Double> weights) {
 		return setTraffics(traffics.setWeights(weights));
 	}
 
 	/**
+	 * Returns the point snap to the nearest node
 	 *
-	 * @param point
-	 * @return
+	 * @param point the point n the map
 	 */
 	public Point2D snapToNode(final Point2D point) {
 		final double precision = CURSOR_SELECTION_PRECISION / scale;
@@ -424,9 +401,9 @@ public class UIStatus implements Constants {
 	}
 
 	/**
+	 * Returns the point in the map from point in the viewport
 	 *
-	 * @param point
-	 * @return
+	 * @param point viewport point
 	 */
 	public Point2D toMapPoint(final Point2D point) {
 		try {
@@ -438,9 +415,9 @@ public class UIStatus implements Constants {
 	}
 
 	/**
+	 * Returns the point in the viewport from map
 	 *
-	 * @param point
-	 * @return
+	 * @param point point in the map
 	 */
 	public Point2D toScreenPoint(final Point2D point) {
 		return getTransform().transform(point, new Point2D.Double());

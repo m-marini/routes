@@ -62,12 +62,21 @@ import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
 /**
- * A traffic information for a given edge
+ * A traffic information for a given edge.
+ *
+ * The information include
+ * <ul>
+ * <li>the map edge</li>
+ * <li>the vehicles in the edge</li>
+ * <li>the time instant of information</li>
+ * <li>the last vehicle travel time if some vehicles already present in the
+ * edge</li>
+ * </ul>
  */
 public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 
 	/**
-	 * Returns the new empty traffic information for an edge
+	 * Returns a new empty traffic information for an edge
 	 *
 	 * @param edge the edge
 	 */
@@ -81,11 +90,12 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 	private final OptionalDouble lastTravelTime;
 
 	/**
-	 * Creates the empty traffic information for an edge
+	 * Creates the traffic information for an edge
 	 *
-	 * @param edge     the edge
-	 * @param vehicles the ordered by distance list of vehicles in the edge
-	 * @param time     the instant of information
+	 * @param edge           the edge
+	 * @param vehicles       the ordered by distance list of vehicles in the edge
+	 * @param time           the traffic time instant
+	 * @param lastTravelTime the last travel time in seconds
 	 */
 	protected EdgeTraffic(final MapEdge edge, final List<Vehicle> vehicles, final double time,
 			final OptionalDouble lastTravelTime) {
@@ -128,7 +138,7 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 	 */
 
 	/**
-	 * Return the comparison between the exiting time.
+	 * Returns the comparison between the exiting time.
 	 * <ul>
 	 * <li>zero both edges have no vehicle or have the same exit times</li>
 	 * <li>negative if other has no vehicle or edge has exit time lower then
@@ -157,8 +167,8 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 	}
 
 	/**
-	 * Return positive if edge priority higher then other edge priority, negative if
-	 * edge priority greater then other edge priority or 0 if same priority
+	 * Returns positive if edge priority higher then other edge priority, negative
+	 * if edge priority greater then other edge priority or 0 if same priority
 	 *
 	 * @param other the other traffic edge
 	 */
@@ -195,16 +205,12 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 		return true;
 	}
 
-	/**
-	 * Returns the edge
-	 */
+	/** Returns the edge */
 	public MapEdge getEdge() {
 		return edge;
 	}
 
-	/**
-	 * Returns the expected time of exit of last vehicle in the edge
-	 */
+	/** Returns the expected time of exit of last vehicle in the edge */
 	public OptionalDouble getExitTime() {
 		final Optional<Double> result1 = getLast().map(last -> {
 			return (edge.getLength() - last.getLocation()) / edge.getSpeedLimit() + time;
@@ -213,30 +219,30 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 		return result;
 	}
 
-	/**
-	 * Returns the last vehicle in the edge
-	 */
+	/** Returns the last vehicle in the edge */
 	public Optional<Vehicle> getLast() {
 		return vehicles.isEmpty() ? Optional.empty() : Optional.of(vehicles.get(vehicles.size() - 1));
 	}
 
-	/**
-	 * Returns the last travel time if exists
-	 */
+	/** Returns the last travel time if exists */
 	OptionalDouble getLastTravelTime() {
 		return lastTravelTime;
 	}
 
-	/**
-	 * Returns the instant of traffic information
-	 */
+	/** Returns the instant of traffic information */
 	public double getTime() {
 		return time;
 	}
 
 	/**
+	 * Returns the traffic congestion indicator
 	 *
-	 * @return
+	 * @return a value between 0 and 1<br>
+	 *         <ul>
+	 *         <li>0 no traffics
+	 *         <li>0.5 the maximum vehicles at max speed</li>
+	 *         <li>1 the maximum vehicle for the edge</li>
+	 *         </ul>
 	 */
 	public double getTrafficCongestion() {
 		final int n = getVehicles().size();
@@ -260,9 +266,7 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 		return lastTravelTime.orElseGet(() -> edge.getTransitTime());
 	}
 
-	/**
-	 * Returns the ordered by distance list of vehicles in the edge
-	 */
+	/** Returns the ordered by distance list of vehicles in the edge */
 	public List<Vehicle> getVehicles() {
 		return vehicles;
 	}
@@ -287,10 +291,7 @@ public class EdgeTraffic implements Comparable<EdgeTraffic>, Constants {
 		return result;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns true if the entry of edge is busy */
 	public boolean isBusy() {
 		return !vehicles.isEmpty() && vehicles.get(0).getLocation() <= VEHICLE_LENGTH;
 	}

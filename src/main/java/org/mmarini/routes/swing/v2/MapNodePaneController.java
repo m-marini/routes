@@ -7,7 +7,7 @@ import org.mmarini.routes.model.v2.Constants;
 import org.mmarini.routes.model.v2.GeoMap;
 import org.mmarini.routes.model.v2.MapNode;
 import org.mmarini.routes.model.v2.Traffics;
-import org.mmarini.routes.model.v2.Tuple2;
+import org.mmarini.routes.model.v2.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,9 +50,9 @@ public class MapNodePaneController implements Constants {
 	public MapNodePaneController build() {
 		// Change node type
 		nodePane.getChangeObs().withLatestFrom(uiStatusObs, (node, st) -> {
-			return new Tuple2<>(st, node);
+			return Tuple.of(st, node);
 		}).subscribe(t -> {
-			controller.withStopSimulator(tr -> {
+			controller.request(tr -> {
 				final UIStatus st = t.get1();
 				final MapNode node = t.get2();
 				logger.debug("changeNode {} ", node); //$NON-NLS-1$
@@ -69,9 +69,9 @@ public class MapNodePaneController implements Constants {
 
 		// delete node type
 		nodePane.getDeleteObs().withLatestFrom(uiStatusObs, (node, st) -> {
-			return new Tuple2<>(st, node);
+			return Tuple.of(st, node);
 		}).subscribe(t -> {
-			controller.withStopSimulator(tr -> {
+			controller.request(tr -> {
 				final UIStatus nextStatus = controller.deleteNode(t.get1(), t.get2());
 				controller.mapChanged(nextStatus);
 				explorerPane.clearSelection();

@@ -47,7 +47,7 @@ public class GeoMapSerializerTest implements Constants {
 		assertTrue(paths.isArray());
 		assertThat(paths.size(), equalTo(2));
 
-		YamlUtils.toStream(paths.elements()).forEach(node -> {
+		YamlUtils.streamFrom(paths.elements()).forEach(node -> {
 			final String depId = node.path("departure").asText();
 			final Optional<MapNode> dep = map.getSites().parallelStream().filter(n -> {
 				return n.getId().toString().equals(depId);
@@ -69,7 +69,7 @@ public class GeoMapSerializerTest implements Constants {
 		assertTrue(nodes.isObject());
 		assertThat(nodes.size(), equalTo(1));
 
-		final JsonNode sx = YamlUtils.toList(nodes.elements()).get(0);
+		final JsonNode sx = YamlUtils.listFrom(nodes.elements()).get(0);
 		assertNotNull(sx);
 		assertThat(sx.path("x").asDouble(), equalTo(0.0));
 		assertThat(sx.path("y").asDouble(), equalTo(200.0));
@@ -79,7 +79,7 @@ public class GeoMapSerializerTest implements Constants {
 		assertThat(edges.size(), equalTo(1));
 
 		map.getEdges().forEach(edge -> {
-			assertTrue(YamlUtils.toStream(edges.elements()).anyMatch(ed -> {
+			assertTrue(YamlUtils.streamFrom(edges.elements()).anyMatch(ed -> {
 				return ed.path("start").asText().equals(edge.getBegin().getId().toString())
 						&& ed.path("end").asText().equals(edge.getEnd().getId().toString())
 						&& ed.path("priority").asInt() == edge.getPriority()

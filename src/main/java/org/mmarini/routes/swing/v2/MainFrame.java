@@ -126,13 +126,14 @@ public class MainFrame extends JFrame {
 	private final Observable<Double> speedObs;
 
 	/**
+	 * Creates the main frame
 	 *
-	 * @param left
-	 * @param top
-	 * @param buttom
-	 * @throws HeadlessException
+	 * @param left   the left component
+	 * @param top    the top component
+	 * @param bottom the bottom component
+	 * @throws HeadlessException in case of error
 	 */
-	public MainFrame(final Component left, final Component top, final Component buttom) throws HeadlessException {
+	public MainFrame(final Component left, final Component top, final Component bottom) throws HeadlessException {
 		this.splitPane = new JSplitPane();
 		this.rightSplitPane = new JSplitPane();
 		this.saveMenuItem = createJMenuItem("MainFrame.saveAction"); //$NON-NLS-1$
@@ -182,14 +183,10 @@ public class MainFrame extends JFrame {
 		this.randomizeObs = SwingObservable.actions(randomizeMenuItem);
 		this.vehicleInfoObs = SwingObservable.actions(veicleInfosMenuItem);
 
-		init(left, top, buttom);
+		init(left, top, bottom);
 	}
 
-	/**
-	 * Returns the main frame with the content
-	 *
-	 * @return
-	 */
+	/** Returns the main frame with the content */
 	private MainFrame createContent() {
 		final Container pane = getContentPane();
 		pane.setLayout(new BorderLayout());
@@ -199,9 +196,7 @@ public class MainFrame extends JFrame {
 		return this;
 	}
 
-	/**
-	 * Returns the main frame with the menu bar
-	 */
+	/** Returns the main frame with the menu bar */
 	private MainFrame createMenuBar() {
 		final JMenuBar bar = new JMenuBar();
 		final JMenu fileMenu = new JMenu(Messages.getString("MainFrame.fileMenu.text")); //$NON-NLS-1$
@@ -249,9 +244,7 @@ public class MainFrame extends JFrame {
 		return this;
 	}
 
-	/**
-	 * Returns the tool bar
-	 */
+	/** Returns the tool bar */
 	private Component createToolBar() {
 		final JToolBar toolBar = new JToolBar();
 		toolBar.add(newButton);
@@ -260,105 +253,80 @@ public class MainFrame extends JFrame {
 		return toolBar;
 	}
 
-	/**
-	 * @return the exitObs
-	 */
+	/** Returns the observable of exit action */
 	public Observable<ActionEvent> getExitObs() {
 		return exitObs;
 	}
 
-	/**
-	 * @return the frequenceObs
-	 */
+	/** Returns the observable of frequency action */
 	public Observable<ActionEvent> getFrequenceObs() {
 		return frequenceObs;
 	}
 
-	/**
-	 * Returns the newMapObs
-	 */
+	/** Returns the observable of new map action */
 	public Observable<ActionEvent> getNewMapObs() {
 		return newMapObs;
 	}
 
-	/**
-	 * Returns the new random map observer
-	 */
+	/** Returns the observable of new random map action */
 	public Observable<ActionEvent> getNewRandomObs() {
 		return newRandomObs;
 	}
 
-	/**
-	 * Returns the openMapObs
-	 */
+	/** Returns the observable of open action */
 	public Observable<ActionEvent> getOpenMapObs() {
 		return openMapObs;
 	}
 
-	/**
-	 * @return the optimizeObs
-	 */
+	/** Returns the observable of optimize action */
 	public Observable<ActionEvent> getOptimizeObs() {
 		return optimizeObs;
 	}
 
-	/**
-	 * @return the randomizeObs
-	 */
+	/** Returns the observable of randomize action */
 	public Observable<ActionEvent> getRandomizeObs() {
 		return randomizeObs;
 	}
 
-	/**
-	 * @return the routesObs
-	 */
+	/** Returns the observable of routes action */
 	public Observable<ActionEvent> getRoutesObs() {
 		return routesObs;
 	}
 
-	/**
-	 * Return the saveMapAsObs
-	 */
+	/** Returns the observable of save as action */
 	public Observable<ActionEvent> getSaveMapAsObs() {
 		return saveMapAsObs;
 	}
 
-	/**
-	 * Returns the saveMapObs
-	 */
+	/** Returns the observable of save action */
 	public Observable<ActionEvent> getSaveMapObs() {
 		return saveMapObs;
 	}
 
-	/**
-	 * @return the speedObs
-	 */
+	/** Returns the observable of speed action */
 	public Observable<Double> getSpeedObs() {
 		return speedObs;
 	}
 
-	/**
-	 * @return the stopObs
-	 */
+	/** Returns the observable of stop action */
 	public Observable<ActionEvent> getStopObs() {
 		return stopObs;
 	}
 
-	/**
-	 * @return the vehicleInfoObs
-	 */
+	/** Returns the observable of vehicle info action */
 	public Observable<ActionEvent> getVehicleInfoObs() {
 		return vehicleInfoObs;
 	}
 
 	/**
-	 * Returns the initialized main frame
+	 * InitializeS main frame
 	 *
-	 * @param left
-	 * @param top
-	 * @param buttom
+	 * @param left   left component
+	 * @param top    right component
+	 * @param bottom bottom component
+	 * @return the main frame
 	 */
-	private MainFrame init(final Component left, final Component top, final Component buttom) {
+	private MainFrame init(final Component left, final Component top, final Component bottom) {
 		resetTitle();
 
 		final URL url = getClass().getResource(IMAGES_ROUTES);
@@ -379,7 +347,7 @@ public class MainFrame extends JFrame {
 		rightSplitPane.setOneTouchExpandable(true);
 		rightSplitPane.setResizeWeight(1);
 		rightSplitPane.setTopComponent(top);
-		rightSplitPane.setBottomComponent(buttom);
+		rightSplitPane.setBottomComponent(bottom);
 
 		createMenuBar();
 		createContent();
@@ -390,18 +358,15 @@ public class MainFrame extends JFrame {
 		return this;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** Returns true if simulation is stopped */
 	public boolean isStopped() {
 		return stopMenuItem.isSelected();
 	}
 
 	/**
-	 * Returns the main frame with title
+	 * Resets the title
 	 *
-	 * @return
+	 * @return the main frame
 	 */
 	public MainFrame resetTitle() {
 		setTitle(Messages.getString("MainFrame.title")); //$NON-NLS-1$
@@ -409,9 +374,10 @@ public class MainFrame extends JFrame {
 	}
 
 	/**
-	 * Returns the main frame with save action enabled or disabled
+	 * Set the enabling of save action
 	 *
 	 * @param enabled true if enabled
+	 * @return the main frame
 	 */
 	public MainFrame setSaveActionEnabled(final boolean enabled) {
 		saveButton.setEnabled(enabled);

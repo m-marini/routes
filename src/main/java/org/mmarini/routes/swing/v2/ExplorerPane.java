@@ -50,15 +50,25 @@ import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
 
 /**
- *
+ * The explorer panel with contains the tabs with the list of sites node, nodes
+ * and edges of the map.
+ * <p>
+ * The user can select a site, a node or an edge
+ * </p>
  */
 public class ExplorerPane extends JTabbedPane {
+	/**
+	 * The string cell renderer render a generic type T as a string applying a
+	 * conversion function
+	 */
 	static class StringCellRenderer<T> extends JLabel implements ListCellRenderer<T> {
 		private static final long serialVersionUID = 1L;
 		private final Function<T, String> f;
 
 		/**
-		 * @param f
+		 * Create the string cell renderer
+		 *
+		 * @param converter the converter function
 		 */
 		public StringCellRenderer(final Function<T, String> converter) {
 			super();
@@ -103,9 +113,7 @@ public class ExplorerPane extends JTabbedPane {
 	private final Observable<MapNode> siteObs;
 	private GeoMap map;
 
-	/**
-	 *
-	 */
+	/** Creates the explorer panel */
 	public ExplorerPane() {
 		this.siteList = new DefaultListModel<>();
 		this.nodeList = new DefaultListModel<>();
@@ -130,8 +138,9 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	 * @return
+	 * Clears the selection of edge
 	 *
+	 * @return the panel
 	 */
 	private ExplorerPane clearEdgeSelection() {
 		final int edgeIdx = edgeJList.getSelectedIndex();
@@ -142,7 +151,9 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	 * @return
+	 * Clears the selection of node
+	 *
+	 * @return the panel
 	 */
 	private ExplorerPane clearNodeSelection() {
 		final int nodeIdx = nodeJList.getSelectedIndex();
@@ -153,7 +164,9 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	 * Returns the explorer panel with selection cleared
+	 * Clears all the selection
+	 *
+	 * @return the panel
 	 */
 	public ExplorerPane clearSelection() {
 		logger.debug("clearSelection");
@@ -161,8 +174,9 @@ public class ExplorerPane extends JTabbedPane {
 	}
 
 	/**
-	 * @return
+	 * Clears the selection of site
 	 *
+	 * @return the panel
 	 */
 	private ExplorerPane clearSiteSelection() {
 		final int siteIdx = siteJList.getSelectedIndex();
@@ -175,7 +189,7 @@ public class ExplorerPane extends JTabbedPane {
 	/**
 	 * Creates the content
 	 *
-	 * @return
+	 * @return the panel
 	 */
 	private ExplorerPane createContent() {
 		addTab(Messages.getString("ExplorerPane.siteTabe.title"), new JScrollPane(siteJList)); //$NON-NLS-1$
@@ -184,23 +198,17 @@ public class ExplorerPane extends JTabbedPane {
 		return this;
 	}
 
-	/**
-	 * @return the edgeSelectionObs
-	 */
+	/** Returns the observable of edge selection */
 	public Observable<MapEdge> getEdgeObs() {
 		return edgeObs;
 	}
 
-	/**
-	 * @return the nodeSelectionObs
-	 */
+	/** Returns the observable of node selection */
 	public Observable<MapNode> getNodeObs() {
 		return nodeObs;
 	}
 
-	/**
-	 * @return the nodeSelectionObs
-	 */
+	/** Returns the observable of site selection */
 	public Observable<MapNode> getSiteObs() {
 		return siteObs;
 	}
@@ -208,7 +216,7 @@ public class ExplorerPane extends JTabbedPane {
 	/**
 	 * Initializes the panel
 	 *
-	 * @return
+	 * @return the panel
 	 */
 	private ExplorerPane init() {
 		final String title = Messages.getString("ExplorerPane.title"); //$NON-NLS-1$

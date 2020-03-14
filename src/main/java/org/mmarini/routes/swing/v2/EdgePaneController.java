@@ -7,15 +7,18 @@ import java.util.Optional;
 
 import org.mmarini.routes.model.v2.Constants;
 import org.mmarini.routes.model.v2.MapEdge;
-import org.mmarini.routes.model.v2.Tuple2;
+import org.mmarini.routes.model.v2.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.reactivex.rxjava3.core.Observable;
 
 /**
- * @author us00852
- *
+ * The controller for the edge panel.
+ * <p>
+ * The controller manages all the user interactions from the edge panel to the
+ * main controller and other components
+ * </p>
  */
 public class EdgePaneController implements Constants {
 
@@ -28,11 +31,13 @@ public class EdgePaneController implements Constants {
 	private final ControllerFunctions controller;
 
 	/**
-	 * @param edgePane
-	 * @param routeMap
-	 * @param explorerPane
-	 * @param uiStatusObs
-	 * @param controller
+	 * Creates the controller
+	 *
+	 * @param edgePane     the edge panel
+	 * @param routeMap     the route map panel
+	 * @param explorerPane the explorer panel
+	 * @param uiStatusObs  the ui status observable
+	 * @param controller   the main controller
 	 */
 	public EdgePaneController(final EdgePane edgePane, final RouteMap routeMap, final ExplorerPane explorerPane,
 			final Observable<UIStatus> uiStatusObs, final ControllerFunctions controller) {
@@ -44,14 +49,15 @@ public class EdgePaneController implements Constants {
 	}
 
 	/**
+	 * Builds the subscriptions
 	 *
-	 * @return
+	 * @return the controller
 	 */
 	public EdgePaneController build() {
 		edgePane.getDeleteObs().withLatestFrom(uiStatusObs, (edge, st) -> {
-			return new Tuple2<>(st, edge);
+			return Tuple.of(st, edge);
 		}).subscribe(t -> {
-			controller.withStopSimulator(st1 -> {
+			controller.request(st1 -> {
 				final UIStatus status = t.get1();
 				final MapEdge edge = t.get2();
 				logger.debug("delete edge {}", edge.getShortName());
@@ -65,14 +71,14 @@ public class EdgePaneController implements Constants {
 
 		edgePane.getPriorityObs().withLatestFrom(uiStatusObs, (p, st) -> {
 			// add last ui status
-			return new Tuple2<>(st, p);
+			return Tuple.of(st, p);
 		}).filter(t -> {
 			// filter changes
 			return edgePane.getEdge().map(ed -> {
 				return ed.getPriority() != t.get2();
 			}).orElse(false);
 		}).subscribe(t -> {
-			controller.withStopSimulator(tr -> {
+			controller.request(tr -> {
 				final MapEdge edge = edgePane.getEdge().get();
 				final int priority = t.get2();
 				logger.debug("changePriority {} {}", edge.getShortName(), priority); //$NON-NLS-1$
@@ -88,14 +94,14 @@ public class EdgePaneController implements Constants {
 
 		edgePane.getSpeedLimitObs().withLatestFrom(uiStatusObs, (speed, st) -> {
 			// add last ui status
-			return new Tuple2<>(st, speed);
+			return Tuple.of(st, speed);
 		}).filter(t -> {
 			// filter changes
 			return edgePane.getEdge().map(ed -> {
 				return ed.getSpeedLimit() != t.get2();
 			}).orElse(false);
 		}).subscribe(t -> {
-			controller.withStopSimulator(tr -> {
+			controller.request(tr -> {
 				// change priority
 				final double speedLimit = t.get2() * KMH_TO_MPS;
 				final UIStatus uiStatus = t.get1();

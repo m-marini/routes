@@ -36,21 +36,22 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import org.mmarini.routes.model.v2.MapNode;
 
+/**
+ * The table cell renderer for a map node.
+ * <p>
+ * The cell is rendered with the name and color of node
+ * </p>
+ */
 public class MapNodeTableCellRenderer extends DefaultTableCellRenderer {
 	private static final long serialVersionUID = 1L;
 	private Map<MapNode, Color> colorMap;
 
-	/**
-	 *
-	 */
+	/** Creates the renderer */
 	public MapNodeTableCellRenderer() {
 		this.colorMap = Map.of();
 		setBorder(BorderFactory.createMatteBorder(0, 1, 1, 1, Color.GRAY));
 	}
 
-	/**
-	 *
-	 */
 	@Override
 	public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
 			final boolean hasFocus, final int row, final int column) {
@@ -63,10 +64,13 @@ public class MapNodeTableCellRenderer extends DefaultTableCellRenderer {
 	}
 
 	/**
-	 * @param colorMap the colorMap to set
+	 * Sets the color map
+	 *
+	 * @param colorMap the color map
+	 * @return the renderer
 	 */
-	public void setColorMap(final Map<MapNode, Color> colorMap) {
+	public MapNodeTableCellRenderer setColorMap(final Map<MapNode, Color> colorMap) {
 		this.colorMap = colorMap;
+		return this;
 	}
-
 }

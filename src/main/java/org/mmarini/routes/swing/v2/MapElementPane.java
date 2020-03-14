@@ -36,7 +36,11 @@ import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;
 
 /**
- *
+ * The map element panel.
+ * <p>
+ * It is a card panel showing different panels. The shown panel may be a map or
+ * edge or empty panel
+ * </p>
  */
 public class MapElementPane extends JPanel {
 	public static final String EMPTY_CARD = "Empty"; //$NON-NLS-1$
@@ -47,14 +51,14 @@ public class MapElementPane extends JPanel {
 	private static final long serialVersionUID = 1L;
 
 	private final CardLayout cardLayout;
-//	private final SiteNodePane siteNodePane;
 	private final MapNodePane mapNodePane;
 	private final EdgePane edgePane;
 
 	/**
+	 * Creates the map element panel
 	 *
-	 * @param nodePane
-	 * @param edgePane
+	 * @param nodePane the node panel
+	 * @param edgePane the edge panel
 	 */
 	public MapElementPane(final MapNodePane nodePane, final EdgePane edgePane) {
 		this.mapNodePane = nodePane;
@@ -64,7 +68,9 @@ public class MapElementPane extends JPanel {
 	}
 
 	/**
+	 * Clears the selection of this panel showing an empty panel
 	 *
+	 * @return the panel
 	 */
 	public MapElementPane clearSelection() {
 		cardLayout.show(this, EMPTY_CARD);
@@ -72,7 +78,9 @@ public class MapElementPane extends JPanel {
 	}
 
 	/**
-	 * Returns the map element panel with content
+	 * Creates the content of panel
+	 *
+	 * @return the panel
 	 */
 	private MapElementPane createContent() {
 		setLayout(cardLayout);
@@ -80,15 +88,15 @@ public class MapElementPane extends JPanel {
 		empty.setBorder(BorderFactory.createTitledBorder(Messages.getString("MapElementPane.emptyPane.title"))); //$NON-NLS-1$
 		add(empty, EMPTY_CARD);
 		add(mapNodePane, NODE_CARD);
-//		add(siteNodePane, SITE_CARD);
 		add(edgePane, EDGE_CARD);
 		return this;
 	}
 
 	/**
-	 * Returns the map element panel with edge detail panel
+	 * Sets the content for an edge
 	 *
 	 * @param edge the edge
+	 * @return the panel
 	 */
 	public MapElementPane setEdge(final MapEdge edge) {
 		edgePane.setEdge(edge);
@@ -97,9 +105,10 @@ public class MapElementPane extends JPanel {
 	}
 
 	/**
-	 * Returns the map element panel with node detail panel
+	 * Sets the content for a node
 	 *
 	 * @param node the node
+	 * @return the panel
 	 */
 	public MapElementPane setNode(final MapNode node) {
 		mapNodePane.setNode(node);

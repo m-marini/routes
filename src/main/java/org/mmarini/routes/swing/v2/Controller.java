@@ -35,6 +35,7 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -54,8 +55,7 @@ import org.mmarini.routes.model.v2.MapNode;
 import org.mmarini.routes.model.v2.Simulator;
 import org.mmarini.routes.model.v2.Traffics;
 import org.mmarini.routes.model.v2.TrafficsBuilder;
-import org.mmarini.routes.model.v2.Tuple2;
-import org.mmarini.routes.model.v2.Tuple3;
+import org.mmarini.routes.model.v2.Tuple;
 import org.mmarini.routes.swing.v2.UIStatus.MapMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,18 +65,21 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 /**
- *
+ * The main controller of simulation application
+ * <p>
+ * The controller keeps the instance of ui components and bind the interactions
+ * of user with the components
+ * </p>
  */
 public class Controller implements Constants, ControllerFunctions {
+	private static final long SIMULATOR_INTERVAL = 5;
 	private static final int FPS = 25;
 	public static final double SCALE_FACTOR = Math.pow(10, 1.0 / 6);
 	private static final String INITIAL_MAP = "/test.yml"; //$NON-NLS-1$
 
 	private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
-	/**
-	 * Returns the default status
-	 */
+	/** Returns the default traffics status */
 	private static Traffics loadDefault() {
 		final URL url = Controller.class.getResource(INITIAL_MAP);
 		if (url != null) {
@@ -103,16 +106,16 @@ public class Controller implements Constants, ControllerFunctions {
 	private final ModuleSelector moduleSelector;
 	private final BehaviorSubject<UIStatus> uiStatusSubj;
 	private final Observable<UIStatus> uiStatusObs;
+	private Random random;
 
-	/**
-	 *
-	 */
+	/** Creates the controller */
 	public Controller() {
-		this.simulator = Simulator.create((tr, t) -> {
-			return TrafficsBuilder.create(tr, t).build();
+		this.random = new Random();
+		this.simulator = Simulator.<Traffics>create((tr, t) -> {
+			return TrafficsBuilder.create(tr, t).build(random);
 		}, tr -> {
 			return tr.getTime();
-		});
+		}).setInterval(SIMULATOR_INTERVAL, TimeUnit.MILLISECONDS);
 		this.routeMap = new RouteMap();
 		this.fileChooser = new JFileChooser();
 		this.explorerPane = new ExplorerPane();
@@ -145,11 +148,13 @@ public class Controller implements Constants, ControllerFunctions {
 	}
 
 	/**
+	 * Binds all user action to the components
 	 *
+	 * @return the controller
 	 */
 	private Controller bindAll() {
 		new MouseController(scrollMap, routeMap, mapElementPane, explorerPane, uiStatusSubj, uiStatusObs, this).build();
-		new MainFrameController(mainFrame, fileChooser, uiStatusObs, simulator, this).build();
+		new MainFrameController(mainFrame, fileChooser, uiStatusObs, simulator, this).build(random);
 		new MapViewPaneController(mapViewPane, scrollMap, routeMap, uiStatusSubj, uiStatusObs, this).build();
 		new EdgePaneController(edgePane, routeMap, explorerPane, uiStatusObs, this).build();
 		new MapNodePaneController(nodePane, routeMap, explorerPane, uiStatusObs, this).build();
@@ -159,13 +164,15 @@ public class Controller implements Constants, ControllerFunctions {
 	}
 
 	/**
-	 * @return
+	 * Binds the user actions from module selector
+	 *
+	 * @return the controller
 	 */
 	private Controller bindOnModuleSelector() {
 		moduleSelector.getModuleObs().withLatestFrom(uiStatusObs, (t, s) -> {
-			return new Tuple3<>(s, t.get1(), t.get2());
+			return Tuple.of(s, t.get1(), t.get2());
 		}).subscribe(t -> {
-			withStopSimulator(tr -> {
+			request(tr -> {
 				final UIStatus st = t.get1();
 				final JMenuItem menuItem = (JMenuItem) t.get2().getSource();
 				final MapModule module = t.get3();
@@ -179,12 +186,13 @@ public class Controller implements Constants, ControllerFunctions {
 	}
 
 	/**
+	 * Binds the user actions from mousew heel
 	 *
-	 * @return
+	 * @return the controller
 	 */
 	private Controller bindOnMouseWheel() {
 		routeMap.getMouseWheelObs().withLatestFrom(uiStatusObs, (ev, status) -> {
-			return new Tuple2<>(status, ev);
+			return Tuple.of(status, ev);
 		}).subscribe(t -> {
 			final UIStatus st = t.get1();
 			final MouseWheelEvent ev = t.get2();
@@ -199,14 +207,16 @@ public class Controller implements Constants, ControllerFunctions {
 	}
 
 	/**
-	 * Returns the controller with refresh status event binding
+	 * Binds the events from repainting clock
+	 *
+	 * @return the controller
 	 */
 	private Controller bindOnStatus() {
 		Observable.interval(1000 / FPS, TimeUnit.MILLISECONDS)
 				// Add last simulator status
 				.withLatestFrom(simulator.getEvents().toObservable(), (t, status) -> status)
 				// Add last ui status
-				.withLatestFrom(uiStatusObs, (simStat, uiStat) -> new Tuple2<>(simStat, uiStat))
+				.withLatestFrom(uiStatusObs, (simStat, uiStat) -> Tuple.of(simStat, uiStat))
 				// discard no change events
 				.filter(t -> !t.get2().getTraffics().equals(t.get1()))
 				// Update ui status, refresh panels and send new event
@@ -218,12 +228,6 @@ public class Controller implements Constants, ControllerFunctions {
 		return this;
 	}
 
-	/**
-	 * Returns the controller with centered map
-	 *
-	 * @param status the ui status
-	 * @param center the center
-	 */
 	@Override
 	public Controller centerMapTo(final UIStatus status, final Point2D center) {
 		logger.debug("centerMapTo {} ", center); //$NON-NLS-1$
@@ -246,11 +250,6 @@ public class Controller implements Constants, ControllerFunctions {
 		return result;
 	}
 
-	/**
-	 * @param uiStatus
-	 * @param edge
-	 * @return
-	 */
 	@Override
 	public UIStatus deleteEdge(final UIStatus uiStatus, final MapEdge edge) {
 		logger.debug("deleteEdge {} ", edge); //$NON-NLS-1$
@@ -258,11 +257,6 @@ public class Controller implements Constants, ControllerFunctions {
 		return uiStatus.setTraffics(nextSt);
 	}
 
-	/**
-	 * @param uiStatus
-	 * @param edge
-	 * @return
-	 */
 	@Override
 	public UIStatus deleteNode(final UIStatus uiStatus, final MapNode node) {
 		logger.debug("deleteNode {} ", node); //$NON-NLS-1$
@@ -270,27 +264,22 @@ public class Controller implements Constants, ControllerFunctions {
 		return uiStatus.setTraffics(nextSt);
 	}
 
-	/**
-	 * Returns the explorerPane
-	 */
+	/** Returns the explorerPane */
 	public ExplorerPane getExplorerPane() {
 		return explorerPane;
 	}
 
-	/**
-	 * Returns the mapElementPane
-	 */
+	/** Returns the mapElementPane */
 	public MapElementPane getMapElementPane() {
 		return mapElementPane;
 	}
 
-	/**
-	 * Returns the routeMap
-	 */
+	/** Returns the routeMap */
 	public RouteMap getRouteMap() {
 		return routeMap;
 	}
 
+	/** Returns the list of modules by loading a file */
 	private List<MapModule> loadModules() {
 		final File path = new File("modules");
 		if (path.isDirectory()) {
@@ -318,11 +307,6 @@ public class Controller implements Constants, ControllerFunctions {
 		}
 	}
 
-	/**
-	 *
-	 * @param uiStatus
-	 * @return
-	 */
 	@Override
 	public Controller mapChanged(final UIStatus uiStatus) {
 		routeMap.setTraffics(uiStatus.getTraffics()).setGridSize(uiStatus.getGridSize()).clearSelection()
@@ -333,13 +317,16 @@ public class Controller implements Constants, ControllerFunctions {
 		return this;
 	}
 
-	/**
-	 *
-	 * @param status
-	 * @param scale
-	 * @param pivot
-	 * @return
-	 */
+	@Override
+	public Controller request(final Function<Traffics, UIStatus> changeStatus) {
+		simulator.request(traffics -> {
+			final UIStatus status = changeStatus.apply(traffics);
+			uiStatusSubj.onNext(status);
+			return status.getTraffics();
+		});
+		return this;
+	}
+
 	@Override
 	public UIStatus scaleTo(final UIStatus status, final double scale, final Point pivot) {
 		final UIStatus newStatus = status.setScale(scale);
@@ -353,12 +340,6 @@ public class Controller implements Constants, ControllerFunctions {
 		return newStatus;
 	}
 
-	/**
-	 * Returns the controller with error message from pattern
-	 *
-	 * @param pattern   the pattern
-	 * @param arguments the argument
-	 */
 	@Override
 	public Controller showError(final String pattern, final Object... arguments) {
 		JOptionPane.showMessageDialog(mainFrame, MessageFormat.format(pattern, arguments),
@@ -366,20 +347,13 @@ public class Controller implements Constants, ControllerFunctions {
 		return this;
 	}
 
-	/**
-	 * Returns the controller with error message from exception
-	 *
-	 * @param e the exception
-	 */
 	@Override
 	public Controller showError(final Throwable e) {
 		logger.error(e.getMessage(), e);
 		return showError("{0}", new Object[] { e.getMessage(), e.getMessage() }); //$NON-NLS-1$
 	}
 
-	/**
-	 * Returns the controller with the simulator started
-	 */
+	/** Returns the controller with the simulator started */
 	private Controller startSimulator() {
 		if (!mainFrame.isStopped()) {
 			simulator.start();
@@ -388,9 +362,10 @@ public class Controller implements Constants, ControllerFunctions {
 	}
 
 	/**
+	 * Upgrades the component to repaint the new traffic
 	 *
-	 * @param uiStatus
-	 * @return
+	 * @param uiStatus the ui status
+	 * @return the controller
 	 */
 	private Controller trafficChanged(final UIStatus uiStatus) {
 		routeMap.setTraffics(uiStatus.getTraffics());// .requestFocus();
@@ -398,11 +373,6 @@ public class Controller implements Constants, ControllerFunctions {
 		return this;
 	}
 
-	/**
-	 * @param status
-	 * @param point
-	 * @return
-	 */
 	@Override
 	public Controller updateHud(final UIStatus status, final Point2D point) {
 		switch (status.getMode()) {
@@ -413,21 +383,6 @@ public class Controller implements Constants, ControllerFunctions {
 		default:
 			scrollMap.setPointHud(status.getGridSize(), point);
 		}
-		return this;
-	}
-
-	/**
-	 *
-	 * @param changeStatus
-	 * @return
-	 */
-	@Override
-	public Controller withStopSimulator(final Function<Traffics, UIStatus> changeStatus) {
-		simulator.request(traffics -> {
-			final UIStatus status = changeStatus.apply(traffics);
-			uiStatusSubj.onNext(status);
-			return status.getTraffics();
-		});
 		return this;
 	}
 
