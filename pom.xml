@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.mmarini.routes</groupId>
 	<artifactId>routes</artifactId>
-	<version>4.2.0</version>
+	<version>5.0.0</version>
 	<packaging>jar</packaging>
 	<name>routes</name>
 	<description>Routes - Traffic simulator</description>

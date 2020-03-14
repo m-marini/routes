@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [5.0.0] - 2020-03-13
+
 The model has heavly changed to use immutable objects, multi processes computations and reactive programming.
 
 ### Fixed
