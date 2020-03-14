@@ -2,6 +2,6 @@
 
 To run **Routes** you need the Java 11 runtime environment installed.
 
-The application installable file are available in https://github.com/m-marini/routes/wiki/Downloads
+The application installable file are available in [Download](https://github.com/m-marini/routes/wiki/Downloads)
 
 ![Routes application sample image](https://raw.github.com/m-marini/routes/master/images/routes-sample.png)
