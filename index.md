@@ -1,6 +1,6 @@
 **Routes** is a java application to  simulate the traffics of veicles.
 
-To run **Routes** you need the Java 1.7 runtime environment installed.
+To run **Routes** you need the Java 11 runtime environment installed.
 
 The application installable file are available in https://github.com/m-marini/routes/wiki/Downloads
 
