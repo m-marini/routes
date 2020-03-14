@@ -1,68 +1,71 @@
-# Simulator
+# Simulation
+
+March 13th, 2020
+marco.marini@mmarini.org
 
 [TOC]
 
 ## Vehicle movement
 
-Lo spostamento di un veicolo in una tratta è semplificato vincolando la velocità del veicolo al massimo consentito nel tratto, il limite di tempo simulato, la distanza di sicurezza con l'eventuale veicolo successivo e il limite di spazio della tratta. Si assume un'accelerazione istantanea illimitata.
+Moving a vehicle on a section is simplified by limiting the speed of the vehicle to the maximum allowed in the edge, the simulated time limit, the safety distance with any subsequent vehicle and the space limit of the section. Unlimited instantaneous acceleration is assumed.
 
-La simulazione deve calcolare la nuova posizione del veicolo e il tempo impegato per raggiungere la nuova posizione.
+The simulation must calculate the new vehicle position and the time taken to reach the new position.
 
-La distanza di sicurezza tra un'auto e la successiva è determinata da
+The safety distance between one car and the next is determined by
 
 ```math
     s = v \cdot t_r + l_v
 ```
 
-dove
+where
 
-- $ v $ la velocità del veicolo
-- $ t_r = 1 s $ tempo di reazione e
-- $ l_v = 5m $ la lunghezza del veicolo
+- $ v $ the vehicle speed
+- $ t_r = 1 s $ the reaction time
+- $ l_v = 5m $ the vehicle length
 
-Il numero di veicoli presenti nel tratto è dato allora da
+The number of vehicles in the edge is then given by
 
 ```math
     n = \frac{l_s}{s} = \frac{l_s}{v \cdot t_r+ l_v}
 ```
 
-dove
+where
 
-- $ l_s $ è la lunghezza della tratta
+- $ l_s $ edge length
 
-Il numero massimo di veicoli in una tratta è quando i veicoli sono completamete fermi
+The maximum number of vehicles on an edge is when the vehicles are completely stationary
 
 ```math
     n_x = \frac{l_s}{l_v}
 ```
 
-Il numero massimo di veicoli con il massimo flusso invece è dato da
+The maximum number of vehicles with the maximum flow instead is given by
 
 ```math
     n_n = \frac{l_s}{v_x \cdot t_r+ l_v}
 ```
 
-con $ v_x $ velocità massima nella tratta.
+with $ v_x $ maximum speed in the edge.
 
-Possiamo calcolare il grado di intasamento relativo di una tratta come rapporto tra l'eccesso di veicoli rispetto il flusso massimo e l'eccesso massimo della tratta:
+We can calculate the relative degree of clogging of an edge as the ratio between the excess of vehicles with respect to the maximum flow and the maximum excess of the edge:
 
 ```math
     \nu = \frac{n - n_n}{n_x -n_n}
 ```
 
-Il veicolo davanti a tutti ha come vincoli solo la velocità massima, il limite di tempo e il limite di spazio della tratta quindi la posizione successiva sarà
+The vehicle in front of everyone has only the maximum speed, the time limit and the space limit of the edge as constraints so the next position will be
 
 ```math
     s_i' = \min (s_i + v_x \Delta t, l_s)
 ```
 
-e il tempo reale di spostamento sarà
+and the real travel time will be
 
 ```math
     \Delta t' = \frac{s_i' - s_i}{v_x}
 ```
 
-Tutti i veicoli precedenti si muoveranno mantenendo la distanza di sicurezza e il limite di tempo ovvero
+All previous vehicles will move keeping the safety distance and the time limit therfore
 
 ```math
     v = \frac{\Delta s}{\Delta t}\\
@@ -75,47 +78,46 @@ Tutti i veicoli precedenti si muoveranno mantenendo la distanza di sicurezza e i
 
 ## Simulation process
 
-La fase di simulazione consiste di:
+The simulation phase consists of:
 
-### Spostamento dei veicoli nelle tratte
+### Movement of vehicles on the edges
 
-- Spostamento di tutti i veicoli in una tratta partendo da quello davanti a tutti.
-- Si calcola lo spazio percorso nell'intervallo di tempo determinato.
-- Se il veicolo non esce dalla tratta si procede con il calcolo della posizione dei rimanenti veicoli in ordine di posizione.
-- Se il veicolo esce dalla tratta si deve calcolare il tempo necessario ad arrivare alla fine della tratta
-- posizionare il veicolo alla fine della tratta
-- calcolare la posizione dei rimanenti veicoli in base all'intervallo di tempo intercorso per arrivare alla fine della tratta.
+- Moving of all vehicles on a edge starting from the one in front of everyone.
+- The distance traveled in the given time interval is calculated.
+- If the vehicle does not leave the edge, the position of the remaining vehicles is calculated in order of position.
+- If the vehicle leaves the edge, the time needed to reach the end of the edge must be calculated
+- The vehicle is positioned at the end of the edge
+- The positions of the remaining vehicles are calculated based on the time interval elapsed to reach the end of the edge.
 
-### Selezione degli incroci
+### Selection of intersections
 
-Abbiamo ora un'insieme di tratte il cui tempo di simulazione è diverso e dobbiamo decidere quali veicoli possono spostarsi di tratta.
+We now have a set of edges whose simulation time is different and we have to decide which vehicles can move from each section.
 
-La regola è che tra i veicoli che si intersecano sullo stesso nodo nell'intervallo del tempo di reazione hanno la precedenza quelli sulle tratte a priorità e in caso di stessa priorità la precedenza è ai veicoli provenienti da destra.
+The rule is that among the vehicles that intersect on the same node in the reaction time interval, those on the priority edges have priority and in the case of the same priority, priority is given to vehicles coming from the right.
 
-- Prendiamo le tratte con tempo non completo (tratte con veicoli uscenti).
-- Se non ce ne sono abbiamo concluso la fase di simulazione parziale
+- We take the edges with incomplete time (routes with outgoing vehicles).
+- If there are none, we have completed the partial simulation phase
 
-- Filtriamo le tratte con tempo di simulazione minimo
-- Filtriamo le tratte prioritarie e con tratto successivo libero, spostiamo i veicoli e ripetiamo il processo
-- Se non ci sono tratte prioritarie con tratto successivo libero, quelle che rimandono sono tratte bloccate per priorità o per intasamento quindi si modificano tutti i tempi di simulazione delle tratte al tempo della tratta con tempo minimo diverso dalla attuale e si ripete il processo
+- We filter the edges with minimal simulation time
+- We filter the priority edges and with the next edge free, move the vehicles and repeat the process
+- If there are no priority edges with the next free edge, those that return are edhes blocked by priority or clogging, therefore all the simulation times of the edges are changed to the time of the edge with a minimum time different from the current one and the process is repeated.
 
-Il completamento della simulazione avviene spostando eventuali veicoli uscenti alla tratta sucecssiva se libera.
+The simulation is completed by moving any outgoing vehicles to the next section if free.
 
-### Selezione precedenze
+### Precedence selection
 
-- Consideriamo le tratte con tempo di uscita previsto entro il tempo di reazione considerato
+- We consider the edges with expected exit time within the considered reaction time
+- Among these, those with higher priority are selected
+- Among these we take the one on the right,
+- If there is none further to the right (intersection with the same priority), select the one with the shortest simulation time (the first arrived at the intersection).
 
-- Tra queste si selezionano quelle a priorità maggiore
-- Tra queste si prende quella più a destra,
-- Se non c'è ne nessuna più a destra (incrocio a pari priorità) si seleziona quella con tempo di simulazione minore (il primo arrivato all'incrocio).
+### Vehicle movement at the end of the section
 
-### Spostamento veicolo a fine tratta
+- The next edge is calculated for the vehicle of the selected edge or is deleted if it returns to the departure.
+- The vehicle is moved to the next section if it is free
+- The position is calculated for the time given by the difference between the simulation time of the next edge and the outgoing edge
+- All the edges with the shortest time are stopped for the time of the selected edge.
+- If the edge is busy, all edges with a shorter or equal time are stopped for the time of the outgoing edge.
+- The process is repeated again until all the edges have completed the simulation time.
 
-- Si calcola la tratta successiva per il veicolo della tratta selezionata o si elimina se ritornato alla partenza.
-- il veicolo della viene spostato alla tratta successiva se è libera
-- Si calcolando la posizione per il tempo dato dalla differenza tra il tempo di simulazione della tratta successiva e la tratta in uscita
-- Tutti le tratte con tempo minore vengono fermate per il tempo della tratta selezionata.
-- Se la tratta è occupata tutte le tratte con tempo minore o uguale vengono fermate per il tempo della tratta in uscita.
-- Si ripete di nuovo il processo fino a quando tutte le tratte hanno completato il tempo di simulazione.
-
-La fase di spostamento genera una nuova configurazione di veicoli nel tempo e una nuova mappa di tempi di transito.
+The movement phase generates a new configuration of vehicles over time and a new map of transit times.

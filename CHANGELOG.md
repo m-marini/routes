@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+The model has heavly changed to use immutable objects, multi processes computations and reactive programming.
+
 ### Fixed
 
 - Issue #27: Simualtion stop after a while
@@ -29,7 +31,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Issue #17: Change model rendering
 - Issue #18: Load immutable model
-- Issue #19: Remove old model 
+- Issue #19: Remove old model
+- Issue #20: Translate documentation
 - Issue #21: Create main frame
 - Issue #22: Create reactive simulation
 - Issue #28: Zoom in / out
