@@ -50,7 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The user interface status of simulator
+ * Status of user interface of simulator.
  */
 public class UIStatus implements Constants {
 	/** The map modes */
@@ -66,14 +66,14 @@ public class UIStatus implements Constants {
 
 	private static final Logger logger = LoggerFactory.getLogger(UIStatus.class);
 
-	/** Returns default status */
+	/** Returns default status. */
 	public static UIStatus create() {
 		return new UIStatus(DEFAULT_SCALE, Traffics.create(), MapMode.SELECTION, Optional.empty(),
 				DEFAULT_SPEED_LIMIT_KMH * KMH_TO_MPS);
 	}
 
 	/**
-	 * Returns true if location is in range of an edge
+	 * Returns true if location is in range of an edge.
 	 *
 	 * @param node  edge
 	 * @param point point
@@ -84,7 +84,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns true if location is in range of site
+	 * Returns true if location is in range of site.
 	 *
 	 * @param node  site
 	 * @param point point
@@ -94,7 +94,7 @@ public class UIStatus implements Constants {
 		return distance <= maxDistance;
 	}
 
-	/** The scale of route map (pixels/m) */
+	/** The scale of route map (pixels/m). */
 	private final double scale;
 	private final Traffics traffics;
 	private final MapMode mode;
@@ -103,11 +103,13 @@ public class UIStatus implements Constants {
 	private final double speedLimit;
 
 	/**
-	 * @param scale
-	 * @param traffics
-	 * @param mode
-	 * @param dragEdge
-	 * @param speedLimit
+	 * Creates the status.
+	 *
+	 * @param scale      the scale
+	 * @param traffics   the traffics
+	 * @param mode       the selection mode
+	 * @param dragEdge   the drag edge ends
+	 * @param speedLimit the speed limit
 	 */
 	protected UIStatus(final double scale, final Traffics traffics, final MapMode mode,
 			final Optional<Tuple2<Point2D, Point2D>> dragEdge, final double speedLimit) {
@@ -120,7 +122,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the location for a pivot point
+	 * Returns the location for a pivot point.
 	 *
 	 * @param viewportPosition the viewport point
 	 * @param pivot            the pivot point
@@ -137,10 +139,10 @@ public class UIStatus implements Constants {
 	}
 
 	/**
+	 * Returns the UIStatus with a new edge.
 	 *
-	 * @param startPoint
-	 * @param endPoint
-	 * @return
+	 * @param startPoint start point
+	 * @param endPoint   end point
 	 */
 	public UIStatus createEdge(final Point2D startPoint, final Point2D endPoint) {
 		logger.debug("createEdge {}, {}", startPoint, endPoint);
@@ -152,7 +154,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the node at a given point
+	 * Returns the node at a given point.
 	 *
 	 * @param pt point in the map
 	 */
@@ -161,7 +163,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the edge at given point
+	 * Returns the edge at given point.
 	 *
 	 * @param pt the point in the map
 	 */
@@ -173,7 +175,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the map element at given point
+	 * Returns the map element at given point.
 	 *
 	 * @param pt the point in the map
 	 */
@@ -185,7 +187,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the node at a given point
+	 * Returns the node at a given point.
 	 *
 	 * @param pt the point in the map
 	 */
@@ -197,7 +199,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the site at a given point
+	 * Returns the site at a given point.
 	 *
 	 * @param pt the point in the map
 	 */
@@ -208,12 +210,12 @@ public class UIStatus implements Constants {
 		return result;
 	}
 
-	/** Returns the drag edge */
+	/** Returns the drag edge. */
 	public Optional<Tuple2<Point2D, Point2D>> getDragEdge() {
 		return dragEdge;
 	}
 
-	/** Returns the grid size in meters */
+	/** Returns the grid size in meters. */
 	public double getGridSize() {
 		// size meters to have a grid of at least 10 pixels in the screen
 		final double size = MIN_GRID_SIZE_PIXELS / scale;
@@ -225,7 +227,7 @@ public class UIStatus implements Constants {
 		return gridSize;
 	}
 
-	/** Returns the transformation from screen coordinates to map coordinates */
+	/** Returns the transformation from screen coordinates to map coordinates. */
 	public AffineTransform getInverseTransform() {
 		try {
 			return getTransform().createInverse();
@@ -235,7 +237,7 @@ public class UIStatus implements Constants {
 		}
 	}
 
-	/** Returns the map bound */
+	/** Returns the map bound. */
 	public Rectangle2D getMapBound() {
 		final GeoMap map = traffics.getMap();
 		final Set<MapNode> all = Stream.concat(map.getSites().parallelStream(), map.getNodes().parallelStream())
@@ -252,22 +254,22 @@ public class UIStatus implements Constants {
 		return result;
 	}
 
-	/** Returns the mode of mouse cursor */
+	/** Returns the mode of mouse cursor. */
 	public MapMode getMode() {
 		return mode;
 	}
 
-	/** Return the default edge priority */
+	/** Return the default edge priority. */
 	public int getPriority() {
 		return priority;
 	}
 
-	/** Return the scale */
+	/** Return the scale. */
 	public double getScale() {
 		return scale;
 	}
 
-	/** Returns the map size */
+	/** Returns the map size. */
 	public Dimension getScreenMapSize() {
 		final Rectangle2D bound = getMapBound();
 		final int width = (int) Math.round(bound.getWidth() * scale) + MAP_INSETS * 2;
@@ -276,23 +278,23 @@ public class UIStatus implements Constants {
 		return result;
 	}
 
-	/** Return the speed limit */
+	/** Return the speed limit. */
 	public double getSpeedLimit() {
 		return speedLimit;
 	}
 
-	/** Return the traffics */
+	/** Return the traffics. */
 	public Traffics getTraffics() {
 		return traffics;
 	}
 
-	/** Returns the transformation from map coordinates to screen coordinates */
+	/** Returns the transformation from map coordinates to screen coordinates. */
 	public AffineTransform getTransform() {
 		return getTransform(scale);
 	}
 
 	/**
-	 * Returns the transformation from map coordinates to screen coordinate
+	 * Returns the transformation from map coordinates to screen coordinate.
 	 *
 	 * @param scale the scale
 	 */
@@ -304,17 +306,13 @@ public class UIStatus implements Constants {
 		return result;
 	}
 
-	/**
-	 * Returns the ui status with optimized traffics
-	 *
-	 * @param speedLimit the speed limits
-	 */
+	/** Returns the ui status with optimized traffics. */
 	public UIStatus optimizeSpeed() {
 		return setTraffics(traffics.optimizeSpeed(speedLimit));
 	}
 
 	/**
-	 * Returns the status with randomized vehicle generation parameters
+	 * Returns the status with randomized vehicle generation parameters.
 	 *
 	 * @param minWeight the minimum weights
 	 * @param random    the random generator
@@ -324,7 +322,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the UIStatus with a new drage edge
+	 * Returns the UIStatus with a new drage edge.
 	 *
 	 * @param dragEdge the drag edge ends
 	 */
@@ -333,7 +331,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the status with new frequency of traffics
+	 * Returns the status with new frequency of traffics.
 	 *
 	 * @param frequence frequency
 	 */
@@ -344,7 +342,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the UIStatus with a new mode
+	 * Returns the UIStatus with a new mode.
 	 *
 	 * @param mode the mode
 	 */
@@ -353,7 +351,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the UIStatus with a new scale
+	 * Returns the UIStatus with a new scale.
 	 *
 	 * @param scale the scale
 	 */
@@ -362,7 +360,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the UIStatus with a speed limit
+	 * Returns the UIStatus with a speed limit.
 	 *
 	 * @param speedLimit the speed limit in meters/second
 	 */
@@ -371,7 +369,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the UIStatus with a new traffics
+	 * Returns the UIStatus with a new traffics.
 	 *
 	 * @param traffics the traffics
 	 */
@@ -380,7 +378,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the UIStatus with a new vehicle generation weights
+	 * Returns the UIStatus with a new vehicle generation weights.
 	 *
 	 * @param weights the weights
 	 */
@@ -389,7 +387,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the point snap to the nearest node
+	 * Returns the point snap to the nearest node.
 	 *
 	 * @param point the point n the map
 	 */
@@ -401,7 +399,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the point in the map from point in the viewport
+	 * Returns the point in the map from point in the viewport..
 	 *
 	 * @param point viewport point
 	 */
@@ -415,7 +413,7 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the point in the viewport from map
+	 * Returns the point in the viewport from map.
 	 *
 	 * @param point point in the map
 	 */

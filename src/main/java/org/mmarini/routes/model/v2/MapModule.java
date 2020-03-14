@@ -39,14 +39,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A map module consisting of a set of edges the can be dropped during editing
- * of map
+ * Module consisting of a set of edges the can be dropped during editing of map.
  */
 public class MapModule {
 
 	private static final MapModule EMPTY = new MapModule(Set.of());
 
-	/** Returns empty module */
+	/** Returns empty module. */
 	public static MapModule create() {
 		return EMPTY;
 	}
@@ -63,7 +62,7 @@ public class MapModule {
 	private final Set<MapEdge> edges;
 
 	/**
-	 * Creates the map module
+	 * Creates the map module.
 	 *
 	 * @param edges the edges of module
 	 */
@@ -90,7 +89,7 @@ public class MapModule {
 		return true;
 	}
 
-	/** Returns the bound rectangle of the module */
+	/** Returns the bound rectangle of the module. */
 	public Rectangle2D getBound() {
 		if (edges.isEmpty()) {
 			return new Rectangle2D.Double();
@@ -116,7 +115,7 @@ public class MapModule {
 		}
 	}
 
-	/** Returns the edges of module */
+	/** Returns the edges of module. */
 	public Set<MapEdge> getEdges() {
 		return edges;
 	}
@@ -137,7 +136,7 @@ public class MapModule {
 	}
 
 	/**
-	 * Returns the module applying the affine transformation
+	 * Returns the module applying the affine transformation.
 	 *
 	 * @param trans the affine transformation
 	 */

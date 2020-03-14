@@ -35,7 +35,7 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
 /**
- * The header table cell renderer for map nodes
+ * Renderer of header table cell for map nodes.
  * <p>
  * The cell is rendered with the name and color of node
  * </p>
@@ -45,7 +45,7 @@ public class MapNodeHeaderTableCellRenderer extends DefaultTableCellRenderer {
 	private final Color bg;
 	private List<Color> colorMap;
 
-	/** Creates the rendere */
+	/** Creates the renderer. */
 	public MapNodeHeaderTableCellRenderer() {
 		this.bg = getBackground();
 		this.colorMap = List.of();
@@ -62,7 +62,7 @@ public class MapNodeHeaderTableCellRenderer extends DefaultTableCellRenderer {
 	}
 
 	/**
-	 * Sets the color map
+	 * Sets the color map.
 	 *
 	 * @param colorMap the color map
 	 * @return the renderer

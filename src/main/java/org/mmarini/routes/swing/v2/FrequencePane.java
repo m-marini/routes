@@ -25,7 +25,7 @@ public class FrequencePane extends Box {
 
 	private final BoundedRangeModel frequenceModel;
 
-	/** Creates the panel */
+	/** Creates the panel. */
 	public FrequencePane() {
 		super(BoxLayout.PAGE_AXIS);
 		frequenceModel = new DefaultBoundedRangeModel(0, 0, 0, FREQUENCES.length - 1);
@@ -59,13 +59,13 @@ public class FrequencePane extends Box {
 		return this;
 	}
 
-	/** Returns the selected frequency */
+	/** Returns the selected frequency. */
 	public double getFrequence() {
 		return FREQUENCES[frequenceModel.getValue()];
 	}
 
 	/**
-	 * Sets the selected frequency
+	 * Sets the selected frequency.
 	 *
 	 * @param frequence the frequency
 	 * @return the panel

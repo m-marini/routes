@@ -41,7 +41,19 @@ import org.mmarini.routes.swing.v2.UIStatus.MapMode;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
+/**
+ * Controller for map view panel.
+ * <p>
+ * The controller manages all the user interactions from the map view panel to
+ * the main controller and other components.
+ * </p>
+ */
 public class MapViewPaneController {
+	/**
+	 * Returns the Point from a Point2D
+	 *
+	 * @param point the Point2D
+	 */
 	private static Point toPoint(final Point2D point) {
 		return new Point((int) Math.round(point.getX()), (int) Math.round(point.getY()));
 	}
@@ -73,7 +85,9 @@ public class MapViewPaneController {
 	}
 
 	/**
-	 * @return
+	 * Builds the subscribers
+	 *
+	 * @return the controller
 	 */
 	public MapViewPaneController build() {
 		mapViewPane.getEdgeModeObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {

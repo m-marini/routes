@@ -14,7 +14,7 @@ import javax.swing.JList;
 import org.mmarini.routes.model.v2.MapNode;
 
 /**
- * The list cell renderer for site nodes
+ * Renderer of list cell for site nodes.
  * <p>
  * The cell is rendered with color and name of site
  * </p>
@@ -24,7 +24,7 @@ public class SiteListCellRenderer extends DefaultListCellRenderer {
 	private Map<MapNode, Color> colorMap;
 	private Map<MapNode, Color> selectionColorMap;
 
-	/** Create the renderer */
+	/** Create the renderer. */
 	public SiteListCellRenderer() {
 		this.colorMap = Map.of();
 		this.selectionColorMap = Map.of();
@@ -50,7 +50,7 @@ public class SiteListCellRenderer extends DefaultListCellRenderer {
 	}
 
 	/**
-	 * Sets the color map
+	 * Sets the color map.
 	 *
 	 * @param colorMap the color map
 	 * @return the renderer
@@ -61,7 +61,7 @@ public class SiteListCellRenderer extends DefaultListCellRenderer {
 	}
 
 	/**
-	 * Sets the color map for selected sites
+	 * Sets the color map for selected sites.
 	 *
 	 * @param selectionColorMap the color map for selected sites
 	 * @return the renderer

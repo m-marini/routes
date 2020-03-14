@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import io.reactivex.rxjava3.core.Observable;
 
 /**
- * The controller for the edge panel.
+ * Controller for the edge panel.
  * <p>
  * The controller manages all the user interactions from the edge panel to the
  * main controller and other components
@@ -31,7 +31,7 @@ public class EdgePaneController implements Constants {
 	private final ControllerFunctions controller;
 
 	/**
-	 * Creates the controller
+	 * Creates the controller.
 	 *
 	 * @param edgePane     the edge panel
 	 * @param routeMap     the route map panel
@@ -49,7 +49,7 @@ public class EdgePaneController implements Constants {
 	}
 
 	/**
-	 * Builds the subscriptions
+	 * Builds the subscriptions.
 	 *
 	 * @return the controller
 	 */

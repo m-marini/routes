@@ -27,7 +27,10 @@
 package org.mmarini.routes.model.v2;
 
 /**
- * A tuple of three elements
+ * Tuple of three elements.
+ * <p>
+ * The instance can be created with {@link Tuple#of(Object, Object, Object)}
+ * </p>
  */
 public class Tuple3<T1, T2, T3> implements Tuple {
 	private final T1 elem1;
@@ -35,7 +38,7 @@ public class Tuple3<T1, T2, T3> implements Tuple {
 	private final T3 elem3;
 
 	/**
-	 * Creates a tuple of three elements
+	 * Creates a tuple of three elements.
 	 *
 	 * @param elem1 first element
 	 * @param elem2 second element
@@ -76,17 +79,17 @@ public class Tuple3<T1, T2, T3> implements Tuple {
 		return true;
 	}
 
-	/** Returns the first element */
+	/** Returns the first element. */
 	public T1 get1() {
 		return elem1;
 	}
 
-	/** Returns the second element */
+	/** Returns the second element. */
 	public T2 get2() {
 		return elem2;
 	}
 
-	/** Returns the third element */
+	/** Returns the third element. */
 	public T3 get3() {
 		return elem3;
 	}

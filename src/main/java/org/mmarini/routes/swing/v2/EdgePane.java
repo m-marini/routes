@@ -57,7 +57,7 @@ import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
 
 /**
- * The edge panels with edge information and user actions on the panel
+ * Panel with edge information and user actions.
  */
 public class EdgePane extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -80,7 +80,7 @@ public class EdgePane extends JPanel {
 	private final Observable<Double> speedLimitObs;
 	private Optional<MapEdge> edge;
 
-	/** Creates an edge panel */
+	/** Creates an edge panel. */
 	public EdgePane() {
 		priorityField = new JFormattedTextField(new NumberFormatter(NumberFormat.getIntegerInstance()));
 		speedLimitField = new JFormattedTextField(new NumberFormatter(NumberFormat.getNumberInstance()));
@@ -104,7 +104,7 @@ public class EdgePane extends JPanel {
 		speedLimitObs = SwingUtils.<Number>value(speedLimitField).map(v -> v.doubleValue());
 	}
 
-	/** Returns the edge panel with content */
+	/** Returns the edge panel with content. */
 	private EdgePane createContent() {
 		setLayout(new BorderLayout());
 		add(createToolbar(), BorderLayout.NORTH);
@@ -112,7 +112,7 @@ public class EdgePane extends JPanel {
 		return this;
 	}
 
-	/** Returns the info panel */
+	/** Returns the info panel. */
 	private Component createInfoPane() {
 		browseBeginNodeButton.setBorder(BorderFactory.createEmptyBorder());
 		browseEndNodeButton.setBorder(BorderFactory.createEmptyBorder());
@@ -143,45 +143,45 @@ public class EdgePane extends JPanel {
 		return pane;
 	}
 
-	/** Returns the tool bar */
+	/** Returns the tool bar. */
 	private JToolBar createToolbar() {
 		final JToolBar bar = new JToolBar();
 		bar.add(deleteButton);
 		return bar;
 	}
 
-	/** Returns the observable of begin node button selection */
+	/** Returns the observable of begin node button selection. */
 	public Observable<MapEdge> getBrowseBeginObs() {
 		return browseBeginObs;
 	}
 
-	/** Returns the observable of end node button selection */
+	/** Returns the observable of end node button selection. */
 	public Observable<MapEdge> getBrowseEndObs() {
 		return browseEndObs;
 	}
 
-	/** Returns the observable of delete edge button selection */
+	/** Returns the observable of delete edge button selection. */
 	public Observable<MapEdge> getDeleteObs() {
 		return deleteObs;
 	}
 
-	/** Returns the edge */
+	/** Returns the edge. */
 	Optional<MapEdge> getEdge() {
 		return edge;
 	}
 
-	/** Returns the observable of priority field changes */
+	/** Returns the observable of priority field changes. */
 	public Observable<Integer> getPriorityObs() {
 		return priorityObs;
 	}
 
-	/** Returns the observable of speed limit field changes */
+	/** Returns the observable of speed limit field changes. */
 	public Observable<Double> getSpeedLimitObs() {
 		return speedLimitObs;
 	}
 
 	/**
-	 * Initializes the panel
+	 * Initializes the panel.
 	 *
 	 * @return the panel
 	 */
@@ -209,7 +209,7 @@ public class EdgePane extends JPanel {
 	}
 
 	/**
-	 * Sets the edge to manage
+	 * Sets the edge to manage.
 	 *
 	 * @param edge
 	 * @return the panel

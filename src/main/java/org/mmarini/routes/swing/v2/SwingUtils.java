@@ -51,13 +51,13 @@ import io.reactivex.rxjava3.core.Observable;
 /**
  * Various functionalities used in the user interface.
  */
-public interface SwingUtils {
-	/** Grid bag constraint builder */
+public abstract class SwingUtils {
+	/** Builder of grid bag constraints */
 	public static class GridBagConstraintsBuilder {
 		private final GridBagConstraints constraints;
 
 		/**
-		 * Creates a grid bag constraints builder
+		 * Creates a grid bag constraints builder.
 		 *
 		 * @param constraints the constraints
 		 */
@@ -66,26 +66,26 @@ public interface SwingUtils {
 			this.constraints = constraints;
 		}
 
-		/** Returns a builder for above anchor */
+		/** Returns a builder for above anchor. */
 		public GridBagConstraintsBuilder above() {
 			constraints.anchor = GridBagConstraints.ABOVE_BASELINE;
 			return this;
 		}
 
-		/** Returns the builder for above leading anchor */
+		/** Returns the builder for above leading anchor. */
 		public GridBagConstraintsBuilder aboveLeading() {
 			constraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
 			return this;
 		}
 
-		/** Returns a builder for above trailing anchor */
+		/** Returns a builder for above trailing anchor. */
 		public GridBagConstraintsBuilder aboveTrailing() {
 			constraints.anchor = GridBagConstraints.ABOVE_BASELINE_TRAILING;
 			return this;
 		}
 
 		/**
-		 * Returns the builder for an anchor
+		 * Returns the builder for an anchor.
 		 *
 		 * @param anchor the anchor
 		 */
@@ -94,55 +94,55 @@ public interface SwingUtils {
 			return this;
 		}
 
-		/** Returns the builder for a baseline anchor */
+		/** Returns the builder for a baseline anchor. */
 		public GridBagConstraintsBuilder baseline() {
 			constraints.anchor = GridBagConstraints.BASELINE;
 			return this;
 		}
 
-		/** Returns the builder for a below anchor */
+		/** Returns the builder for a below anchor. */
 		public GridBagConstraintsBuilder below() {
 			constraints.anchor = GridBagConstraints.BELOW_BASELINE;
 			return this;
 		}
 
-		/** Returns the builder for a below leading anchor */
+		/** Returns the builder for a below leading anchor. */
 		public GridBagConstraintsBuilder belowLeading() {
 			constraints.anchor = GridBagConstraints.BELOW_BASELINE_LEADING;
 			return this;
 		}
 
-		/** Returns the builder for a below trailing anchor */
+		/** Returns the builder for a below trailing anchor. */
 		public GridBagConstraintsBuilder belowTrailing() {
 			constraints.fill = GridBagConstraints.BELOW_BASELINE_TRAILING;
 			return this;
 		}
 
-		/** Returns the builder for a both fill */
+		/** Returns the builder for a both fill. */
 		public GridBagConstraintsBuilder both() {
 			constraints.fill = GridBagConstraints.BOTH;
 			return this;
 		}
 
-		/** Returns the built constraints */
+		/** Returns the built constraints. */
 		public GridBagConstraints build() {
 			return constraints;
 		}
 
-		/** Returns the builder for a center anchor */
+		/** Returns the builder for a center anchor. */
 		public GridBagConstraintsBuilder center() {
 			constraints.anchor = GridBagConstraints.CENTER;
 			return this;
 		}
 
-		/** Returns the builder for a east anchor */
+		/** Returns the builder for a east anchor. */
 		public GridBagConstraintsBuilder east() {
 			constraints.anchor = GridBagConstraints.EAST;
 			return this;
 		}
 
 		/**
-		 * Returns the builder for a fill
+		 * Returns the builder for a fill.
 		 *
 		 * @param fill the fill mode
 		 */
@@ -151,20 +151,20 @@ public interface SwingUtils {
 			return this;
 		}
 
-		/** Returns the builder for a first line anchor */
+		/** Returns the builder for a first line anchor. */
 		public GridBagConstraintsBuilder firstLineEnd() {
 			constraints.anchor = GridBagConstraints.FIRST_LINE_END;
 			return this;
 		}
 
-		/** Returns the builder for a first line start anchor */
+		/** Returns the builder for a first line start anchor. */
 		public GridBagConstraintsBuilder firstLineStart() {
 			constraints.anchor = GridBagConstraints.FIRST_LINE_START;
 			return this;
 		}
 
 		/**
-		 * Returns the builder for a grid position
+		 * Returns the builder for a grid position.
 		 *
 		 * @param gridx      x cell index
 		 * @param gridy      y cell index
@@ -181,7 +181,7 @@ public interface SwingUtils {
 		}
 
 		/**
-		 * Returns the builder for a grid height
+		 * Returns the builder for a grid height.
 		 *
 		 * @param gridheight the height
 		 */
@@ -190,16 +190,16 @@ public interface SwingUtils {
 			return this;
 		}
 
-		/** Returns the builder for a horizontal fill */
+		/** Returns the builder for a horizontal fill. */
 		public GridBagConstraintsBuilder horizontal() {
 			constraints.fill = GridBagConstraints.HORIZONTAL;
 			return this;
 		}
 
 		/**
+		 * Returns the builder for an insets.
 		 *
-		 * @param size
-		 * @return
+		 * @param size the insets
 		 */
 		public GridBagConstraintsBuilder inset(final int size) {
 			constraints.insets = new Insets(size, size, size, size);
@@ -207,7 +207,7 @@ public interface SwingUtils {
 		}
 
 		/**
-		 * Returns the builder for an insets
+		 * Returns the builder for an insets..
 		 *
 		 * @param vertical   vertical insets
 		 * @param horizontal horizontal insets
@@ -218,7 +218,7 @@ public interface SwingUtils {
 		}
 
 		/**
-		 * Returns the builder for an insets
+		 * Returns the builder for an insets.
 		 *
 		 * @param top        top insets
 		 * @param horizontal horizontal insets
@@ -230,7 +230,7 @@ public interface SwingUtils {
 		}
 
 		/**
-		 * Returns the builder for an insets
+		 * Returns the builder for an insets.
 		 *
 		 * @param top    top insets
 		 * @param left   left insets
@@ -243,7 +243,7 @@ public interface SwingUtils {
 		}
 
 		/**
-		 * Returns the builder for an insets
+		 * Returns the builder for an insets.
 		 *
 		 * @param insets insets
 		 */
@@ -253,7 +253,7 @@ public interface SwingUtils {
 		}
 
 		/**
-		 * Returns the builder for ipad
+		 * Returns the builder for ipad.
 		 *
 		 * @param ipadx x ipad
 		 * @param ipady y ipad
@@ -265,7 +265,7 @@ public interface SwingUtils {
 		}
 
 		/**
-		 * Returns the builder for ipad
+		 * Returns the builder for ipad.
 		 *
 		 * @param ipadx x ipad
 		 */
@@ -275,7 +275,7 @@ public interface SwingUtils {
 		}
 
 		/**
-		 * Returns the builder for ipad
+		 * Returns the builder for ipad.
 		 *
 		 * @param ipady y ipad
 		 */
@@ -284,140 +284,140 @@ public interface SwingUtils {
 			return this;
 		}
 
-		/** Returns the builder for a last in column width */
+		/** Returns the builder for a last in column width. */
 		public GridBagConstraintsBuilder lastInColumn() {
 			constraints.gridwidth = GridBagConstraints.REMAINDER;
 			return this;
 		}
 
-		/** Returns the builder for a last in row height */
+		/** Returns the builder for a last in row height. */
 		public GridBagConstraintsBuilder lastInRow() {
 			constraints.gridheight = GridBagConstraints.REMAINDER;
 			return this;
 		}
 
-		/** Returns the builder for a last line anchor */
+		/** Returns the builder for a last line anchor. */
 		public GridBagConstraintsBuilder lastLineEnd() {
 			constraints.anchor = GridBagConstraints.LAST_LINE_END;
 			return this;
 		}
 
-		/** Returns the builder for a last line start anchor */
+		/** Returns the builder for a last line start anchor. */
 		public GridBagConstraintsBuilder lastLineStart() {
 			constraints.anchor = GridBagConstraints.LAST_LINE_START;
 			return this;
 		}
 
-		/** Returns the builder for a baseline leading anchor */
+		/** Returns the builder for a baseline leading anchor. */
 		public GridBagConstraintsBuilder leading() {
 			constraints.anchor = GridBagConstraints.BASELINE_LEADING;
 			return this;
 		}
 
-		/** Returns the builder for a line end */
+		/** Returns the builder for a line end. */
 		public GridBagConstraintsBuilder lineEnd() {
 			constraints.anchor = GridBagConstraints.LINE_END;
 			return this;
 		}
 
-		/** Returns the builder for a line start anchor */
+		/** Returns the builder for a line start anchor. */
 		public GridBagConstraintsBuilder lineStart() {
 			constraints.anchor = GridBagConstraints.LINE_START;
 			return this;
 		}
 
-		/** Returns the builder for a next last in column width */
+		/** Returns the builder for a next last in column width. */
 		public GridBagConstraintsBuilder nextLastInColumn() {
 			constraints.gridwidth = GridBagConstraints.RELATIVE;
 			return this;
 		}
 
-		/** Returns the builder for a next last in row height */
+		/** Returns the builder for a next last in row height. */
 		public GridBagConstraintsBuilder nextLastInRow() {
 			constraints.gridheight = GridBagConstraints.RELATIVE;
 			return this;
 		}
 
-		/** Returns the builder for a next x position */
+		/** Returns the builder for a next x position. */
 		public GridBagConstraintsBuilder nextx() {
 			constraints.gridx = GridBagConstraints.RELATIVE;
 			return this;
 		}
 
-		/** Returns the builder for a next y position */
+		/** Returns the builder for a next y position. */
 		public GridBagConstraintsBuilder nexty() {
 			constraints.gridy = GridBagConstraints.RELATIVE;
 			return this;
 		}
 
-		/** Returns the builder for a none fill */
+		/** Returns the builder for a none fill. */
 		public GridBagConstraintsBuilder none() {
 			constraints.fill = GridBagConstraints.NONE;
 			return this;
 		}
 
-		/** Returns the builder for a north anchor */
+		/** Returns the builder for a north anchor. */
 		public GridBagConstraintsBuilder north() {
 			constraints.anchor = GridBagConstraints.NORTH;
 			return this;
 		}
 
-		/** Returns the builder for a north east anchor */
+		/** Returns the builder for a north east anchor. */
 		public GridBagConstraintsBuilder northEast() {
 			constraints.anchor = GridBagConstraints.NORTHEAST;
 			return this;
 		}
 
-		/** Returns the builder for a north west anchor */
+		/** Returns the builder for a north west anchor. */
 		public GridBagConstraintsBuilder northWest() {
 			constraints.anchor = GridBagConstraints.NORTHWEST;
 			return this;
 		}
 
-		/** Returns the builder for a page end anchor */
+		/** Returns the builder for a page end anchor. */
 		public GridBagConstraintsBuilder pageEnd() {
 			constraints.anchor = GridBagConstraints.PAGE_END;
 			return this;
 		}
 
-		/** Returns the builder for a page start */
+		/** Returns the builder for a page start. */
 		public GridBagConstraintsBuilder pageStart() {
 			constraints.anchor = GridBagConstraints.PAGE_START;
 			return this;
 		}
 
-		/** Returns the builder for a south anchor */
+		/** Returns the builder for a south anchor. */
 		public GridBagConstraintsBuilder south() {
 			constraints.anchor = GridBagConstraints.SOUTH;
 			return this;
 		}
 
-		/** Returns the builder for a south end anchor */
+		/** Returns the builder for a south end anchor. */
 		public GridBagConstraintsBuilder southEast() {
 			constraints.anchor = GridBagConstraints.SOUTHEAST;
 			return this;
 		}
 
-		/** Returns the builder for a south west anchor */
+		/** Returns the builder for a south west anchor. */
 		public GridBagConstraintsBuilder southWest() {
 			constraints.anchor = GridBagConstraints.SOUTHWEST;
 			return this;
 		}
 
-		/** Returns the builder for a trailing anchor */
+		/** Returns the builder for a trailing anchor. */
 		public GridBagConstraintsBuilder trailing() {
 			constraints.anchor = GridBagConstraints.BASELINE_TRAILING;
 			return this;
 		}
 
-		/** Returns the builder for a vertical fill */
+		/** Returns the builder for a vertical fill. */
 		public GridBagConstraintsBuilder vertical() {
 			constraints.fill = GridBagConstraints.VERTICAL;
 			return this;
 		}
 
 		/**
-		 * Returns the builder for a weights
+		 * Returns the builder for a weights.
 		 *
 		 * @param weightx the x weight
 		 * @param weighty the y weight
@@ -429,7 +429,7 @@ public interface SwingUtils {
 		}
 
 		/**
-		 * Returns the builder for x weight
+		 * Returns the builder for x weight.
 		 *
 		 * @param weightx the x weight
 		 */
@@ -439,23 +439,23 @@ public interface SwingUtils {
 		}
 
 		/**
-		 * Returns the builder for y weight
+		 * Returns the builder for y weight.
 		 *
-		 * @param weightx the y weight
+		 * @param weighty the y weight
 		 */
 		public GridBagConstraintsBuilder weighty(final double weighty) {
 			constraints.weighty = weighty;
 			return this;
 		}
 
-		/** Returns the builder for west anchor */
+		/** Returns the builder for west anchor. */
 		public GridBagConstraintsBuilder west() {
 			constraints.anchor = GridBagConstraints.WEST;
 			return this;
 		}
 
 		/**
-		 * Returns the builder for width
+		 * Returns the builder for width.
 		 *
 		 * @param gridwidth the width
 		 */
@@ -465,7 +465,7 @@ public interface SwingUtils {
 		}
 
 		/**
-		 * Returns the builder for x position
+		 * Returns the builder for x position.
 		 *
 		 * @param x the position
 		 */
@@ -475,7 +475,7 @@ public interface SwingUtils {
 		}
 
 		/**
-		 * Returns the builder for y position
+		 * Returns the builder for y position.
 		 *
 		 * @param y the position
 		 */
@@ -486,7 +486,7 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * A utilities grid bag builder for containers
+	 * Builder of grid bag constrained content for a container.
 	 *
 	 * @param <T> the type of container
 	 */
@@ -494,7 +494,7 @@ public interface SwingUtils {
 		private final T container;
 
 		/**
-		 * Creates the builder
+		 * Creates the builder.
 		 *
 		 * @param container the container
 		 */
@@ -505,7 +505,7 @@ public interface SwingUtils {
 		}
 
 		/**
-		 * Adds a component with its constraints
+		 * Adds a component with its constraints.
 		 *
 		 * @param component   the component
 		 * @param constraints the constraints
@@ -517,7 +517,7 @@ public interface SwingUtils {
 			return this;
 		}
 
-		/** Returns the container */
+		/** Returns the container. */
 		public T getContainer() {
 			return container;
 		}
@@ -533,7 +533,7 @@ public interface SwingUtils {
 	public static final double NODE_SATURATION = 1;
 
 	/**
-	 * Returns the observable of action event for a text field
+	 * Returns the observable of action event for a text field.
 	 *
 	 * @param field the field
 	 */
@@ -546,7 +546,7 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns the color map for sites
+	 * Returns the color map for sites.
 	 *
 	 * @param sites the sites
 	 */
@@ -555,7 +555,7 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns the color map for sites
+	 * Returns the color map for sites.
 	 *
 	 * @param sites      the sites
 	 * @param saturation saturation
@@ -577,9 +577,11 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns the iride color depending on a control value.<br>
-	 * The result color are between violet color to red color varying from zero
-	 * level to one level of the control value <br>
+	 * Returns the rainbow color depending on a control value.
+	 * <p>
+	 * > The result color are between violet color to red color varying from zero
+	 * level to one level of the control value
+	 * </p>
 	 *
 	 *
 	 * @param value      the control value
@@ -593,8 +595,10 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns the GridBagConstraintsBuilder for a field. The field is left aligned
-	 * e horizontal filled
+	 * Returns the GridBagConstraintsBuilder for a field.
+	 * <p>
+	 * The field is left aligned e horizontal filled
+	 * </p>
 	 *
 	 * @param x horizontal position
 	 * @param y vertical position
@@ -606,14 +610,14 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns the default GridBagConstraintsBuilder
+	 * Returns the default GridBagConstraintsBuilder.
 	 */
 	public static GridBagConstraintsBuilder createGridConstraints() {
 		return new GridBagConstraintsBuilder(new GridBagConstraints());
 	}
 
 	/**
-	 * Returns the default GridBagConstraintsBuilder for a cell
+	 * Returns the default GridBagConstraintsBuilder for a cell.
 	 *
 	 * @param x horizontal position
 	 * @param y vertical position
@@ -625,7 +629,7 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns a new JButton initialized with key properties
+	 * Returns a new JButton initialized with key properties.
 	 *
 	 * @param key the key properties
 	 */
@@ -634,7 +638,7 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns a new JCheckBoxMenuItem initialized with key properties
+	 * Returns a new JCheckBoxMenuItem initialized with key properties.
 	 *
 	 * @param key the key properties
 	 */
@@ -643,7 +647,7 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns a new JMenuItem initialized with key properties
+	 * Returns a new JMenuItem initialized with key properties.
 	 *
 	 * @param key the key properties
 	 */
@@ -652,7 +656,7 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns a new JRadioButtonMenuItem initialized with key properties
+	 * Returns a new JRadioButtonMenuItem initialized with key properties.
 	 *
 	 * @param key the key properties
 	 */
@@ -661,7 +665,7 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns a new JToggleButton initialized with key properties
+	 * Returns a new JToggleButton initialized with key properties.
 	 *
 	 * @param key the key properties
 	 */
@@ -670,7 +674,10 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns the GridBagConstraintsBuilder for a field. The field is right aligned
+	 * Returns the GridBagConstraintsBuilder for a field.
+	 * <p>
+	 * The field is right aligned
+	 * </p>
 	 *
 	 * @param x horizontal position
 	 * @param y vertical position
@@ -682,7 +689,7 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns the formatted string representing a time interval
+	 * Returns the formatted string representing a time interval.
 	 *
 	 * @param t the interval time in seconds
 	 */
@@ -714,7 +721,7 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns the list of patterns by key.n
+	 * Returns the list of patterns by key.
 	 *
 	 * @param key the key
 	 */
@@ -733,7 +740,7 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns the Abstract Button initialized with key properties
+	 * Returns the Abstract Button initialized with key properties.
 	 *
 	 * @param key the key properties
 	 */
@@ -762,7 +769,7 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns the menu item initialized with key properties
+	 * Returns the menu item initialized with key properties.
 	 *
 	 * @param key the key properties
 	 */
@@ -776,7 +783,7 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns the observable of value changed of a text field
+	 * Returns the observable of value changed of a text field.
 	 *
 	 * @param <T>   the type of value
 	 * @param field the text field
@@ -794,7 +801,7 @@ public interface SwingUtils {
 	}
 
 	/**
-	 * Returns the utility builder of content container
+	 * Returns the utility builder of content container.
 	 *
 	 * @param <T>       the type of container
 	 * @param container the container

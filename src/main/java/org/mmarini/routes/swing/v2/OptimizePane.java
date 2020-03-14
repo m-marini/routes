@@ -20,7 +20,7 @@ import javax.swing.SpinnerNumberModel;
 import org.mmarini.routes.model.v2.Constants;
 
 /**
- * The panel with optimization parameters
+ * Panel with optimization parameters.
  */
 public class OptimizePane extends Box implements Constants {
 
@@ -30,7 +30,7 @@ public class OptimizePane extends Box implements Constants {
 	private final JSpinner speedField;
 	private final JLabel speedLabel;
 
-	/** Creates the panel */
+	/** Creates the panel. */
 	public OptimizePane() {
 		super(BoxLayout.PAGE_AXIS);
 		optimizeSpeed = new JCheckBox(Messages.getString("OptimizePane.optimizeSpeed.label")); //$NON-NLS-1$
@@ -43,7 +43,7 @@ public class OptimizePane extends Box implements Constants {
 	}
 
 	/**
-	 * Creates the content
+	 * Creates the content.
 	 *
 	 * @return the panel
 	 */
@@ -61,18 +61,18 @@ public class OptimizePane extends Box implements Constants {
 		add(box);
 	}
 
-	/** Returns the speed limit in meters/second */
+	/** Returns the speed limit in meters/second. */
 	public double getSpeedLimit() {
 		return ((Number) speedField.getValue()).doubleValue() * KMH_TO_MPS;
 	}
 
-	/** Returns true if speed optimization */
+	/** Returns true if speed optimization. */
 	public boolean isOptimizeSpeed() {
 		return optimizeSpeed.isSelected();
 	}
 
 	/**
-	 * Sets the speed limit for optimization
+	 * Sets the speed limit for optimization.
 	 *
 	 * @param speedLimit speed limit in meters/second
 	 * @return the panel

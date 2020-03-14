@@ -44,15 +44,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 /**
- * A map deserializer that converts a json object to a GeoMap
+ * Deserializer of map that converts a json object to a GeoMap.
  */
 public class GeoMapDeserializer implements Constants {
 
 	private static final String CURRENT_VERSION = "1";
 
-	/**
-	 * Returns a new simulation status deserializer
-	 */
+	/** Returns a new simulation status deserializer. */
 	public static GeoMapDeserializer create() {
 		return new GeoMapDeserializer(new ObjectMapper(new YAMLFactory()), Map.of(), Set.of(), Map.of(), Set.of(),
 				DEFAULT_FREQUENCE);
@@ -66,10 +64,10 @@ public class GeoMapDeserializer implements Constants {
 	private final double frequence;
 
 	/**
-	 * Create a deserializer
+	 * Create a deserializer.
 	 *
 	 * @param mapper    the json object mapper
-	 * @param namesthe  map between name and map node
+	 * @param names     map between name and map node
 	 * @param sites     the sites
 	 * @param weights   the map between pairs of departure and destination and the
 	 *                  weights
@@ -87,7 +85,7 @@ public class GeoMapDeserializer implements Constants {
 		this.edges = edges;
 	}
 
-	/** Returns the built map */
+	/** Returns the built map. */
 	private GeoMap build() {
 		if (sites.size() == 1) {
 			final MapNode site = sites.stream().findAny().get();
@@ -98,7 +96,7 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
-	 * Returns the map by parsing yaml file
+	 * Returns the map by parsing yaml file.
 	 *
 	 * @param file the file
 	 * @throws IOException             in case of error
@@ -111,7 +109,7 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
-	 * Returns the map by parsing json object
+	 * Returns the map by parsing json object.
 	 *
 	 * @param tree the json object
 	 */
@@ -126,7 +124,7 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
-	 * Returns the map by parsing yaml resource url
+	 * Returns the map by parsing yaml resource url.
 	 *
 	 * @param resource the resource url
 	 * @throws IOException in case of error
@@ -138,7 +136,7 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
-	 * Returns the edge parsing a json node
+	 * Returns the edge parsing a json node.
 	 *
 	 * @param jsonNode the json node
 	 */
@@ -159,7 +157,7 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
-	 * Returns the changed deserializer parsing json tree with edges
+	 * Returns the changed deserializer parsing json tree with edges.
 	 *
 	 * @param tree the json tree
 	 */
@@ -170,7 +168,7 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
-	 * Returns the changed deserializer parsing json frequency node
+	 * Returns the changed deserializer parsing json frequency node.
 	 *
 	 * @param jsonNode the frequency node
 	 */
@@ -179,7 +177,7 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
-	 * Returns the node parsing the json node
+	 * Returns the node parsing the json node.
 	 *
 	 * @param jsonNode the node
 	 */
@@ -191,7 +189,7 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
-	 * Returns the changed deserializer parsing json tree with nodes and sites
+	 * Returns the changed deserializer parsing json tree with nodes and sites.
 	 * <p>
 	 * The result deserializer has the names and sites properties updated with
 	 * definition of json tree
@@ -220,7 +218,7 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
-	 * Returns the path data parsing the path json node
+	 * Returns the path data parsing the path json node.
 	 *
 	 * @param json the json node
 	 */
@@ -241,7 +239,7 @@ public class GeoMapDeserializer implements Constants {
 	}
 
 	/**
-	 * Returns the deserializer parsing the paths json node
+	 * Returns the deserializer parsing the paths json node.
 	 * <p>
 	 * The result deserializer has the sites and weights properties updated with the
 	 * defnition on json node

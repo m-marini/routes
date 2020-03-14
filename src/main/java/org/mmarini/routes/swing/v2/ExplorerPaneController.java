@@ -14,7 +14,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 /**
- * The controller for the explorer panel.
+ * Controller for the explorer panel.
  * <p>
  * The controller manages all the user interactions from the explorer panel to
  * the main controller and other components
@@ -30,7 +30,7 @@ public class ExplorerPaneController implements Constants {
 	private final ControllerFunctions controller;
 
 	/**
-	 * Creates the controller for the explorer panel
+	 * Creates the controller for the explorer panel.
 	 *
 	 * @param explorerPane   the explorer panel
 	 * @param routeMap       the route map

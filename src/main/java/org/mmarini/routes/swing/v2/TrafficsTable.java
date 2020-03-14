@@ -43,7 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The table with traffics information.
+ * Table with traffics information.
  * <p>
  * The each cell contains the expected and the minimum travel time from a
  * departure site to a destination site
@@ -99,7 +99,7 @@ public class TrafficsTable extends JTable {
 	private final RoutePlanner planner;
 
 	/**
-	 * Creates the traffics table
+	 * Creates the traffics table.
 	 *
 	 * @param traffics the traffic information
 	 */

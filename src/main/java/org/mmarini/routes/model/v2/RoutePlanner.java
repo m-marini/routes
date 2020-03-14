@@ -35,12 +35,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * The route planner computes computes the fastest route from a node source to a
- * target node and information about travel time
+ * Planner of route computes the fastest route from a node source to a target
+ * node and information about travel time.
  */
 public class RoutePlanner {
 
-	/** Returns an empty planner */
+	/** Returns an empty planner. */
 	public static RoutePlanner create() {
 		return new RoutePlanner(Collections.emptySet());
 	}
@@ -52,7 +52,7 @@ public class RoutePlanner {
 	private final double[][] minTimeMatrix;
 
 	/**
-	 * Creates a planner for the edge traffic
+	 * Creates a planner for the edge traffic.
 	 *
 	 * @param edgeStats the edge traffic
 	 */
@@ -115,7 +115,7 @@ public class RoutePlanner {
 		return this;
 	}
 
-	/** Returns the list of nodes */
+	/** Returns the list of nodes. */
 	List<MapNode> createNodes() {
 		final Set<MapNode> begins = edgeTraffics.parallelStream().map(s -> s.getEdge().getBegin())
 				.collect(Collectors.toSet());
@@ -126,18 +126,18 @@ public class RoutePlanner {
 		return result;
 	}
 
-	/** Returns the connection matrix */
+	/** Returns the connection matrix. */
 	int[][] getConnectionMatrix() {
 		return connectionMatrix;
 	}
 
-	/** Returns the edge traffic */
+	/** Returns the edge traffic. */
 	public Set<EdgeTraffic> getEdgeTraffics() {
 		return edgeTraffics;
 	}
 
 	/**
-	 * Returns the minimum travel time between two nodes
+	 * Returns the minimum travel time between two nodes.
 	 * <p>
 	 * The time is computed considering only the limit speed of edges. Returns an
 	 * empty value if no connection exists between the two nodes
@@ -154,13 +154,13 @@ public class RoutePlanner {
 				: OptionalDouble.empty();
 	}
 
-	/** Returns the list of nodes */
+	/** Returns the list of nodes. */
 	public List<MapNode> getNodes() {
 		return nodes;
 	}
 
 	/**
-	 * Returns the expected travel time between two nodes
+	 * Returns the expected travel time between two nodes.
 	 * <p>
 	 * The time is computed considering the current traffics in the edge. Returns an
 	 * empty value if no connection exists between the two nodes
@@ -177,15 +177,13 @@ public class RoutePlanner {
 				: OptionalDouble.empty();
 	}
 
-	/**
-	 * Returns the tme matrix
-	 */
+	/** Returns the tme matrix. */
 	double[][] getTimeMatrix() {
 		return timeMatrix;
 	}
 
 	/**
-	 * Returns the next edge from a node to a given node
+	 * Returns the next edge from a node to a given node.
 	 * <p>
 	 * Returns an empty edge if no connection exists between the two node
 	 * </p>
@@ -217,7 +215,7 @@ public class RoutePlanner {
 	}
 
 	/**
-	 * Returns the previous node in the route from a node to a given node
+	 * Returns the previous node in the route from a node to a given node.
 	 * <p>
 	 * Returns an empty node if no connection exists between the two node
 	 * </p>
@@ -238,7 +236,7 @@ public class RoutePlanner {
 	}
 
 	/**
-	 * Returns the planner with a given edge traffic
+	 * Returns the planner with a given edge traffic.
 	 *
 	 * @param edgeStats the edge traffics
 	 */

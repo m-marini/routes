@@ -14,8 +14,11 @@ import org.slf4j.LoggerFactory;
 import io.reactivex.rxjava3.core.Observable;
 
 /**
- * @author us00852
- *
+ * Controller for map node panel.
+ * <p>
+ * The controller manages all the user interactions from the map node panel to
+ * the main controller and other components.
+ * </p>
  */
 public class MapNodePaneController implements Constants {
 
@@ -28,11 +31,13 @@ public class MapNodePaneController implements Constants {
 	private final Observable<UIStatus> uiStatusObs;
 
 	/**
-	 * @param nodePane
-	 * @param routeMap
-	 * @param explorerPane
-	 * @param uiStatusObs
-	 * @param controller
+	 * Creates the controller.
+	 *
+	 * @param nodePane     the node panel
+	 * @param routeMap     the route panel
+	 * @param explorerPane the explorer panel
+	 * @param uiStatusObs  the observable of UIStatus
+	 * @param controller   the main controller
 	 */
 	public MapNodePaneController(final MapNodePane nodePane, final RouteMap routeMap, final ExplorerPane explorerPane,
 			final Observable<UIStatus> uiStatusObs, final ControllerFunctions controller) {
@@ -44,8 +49,9 @@ public class MapNodePaneController implements Constants {
 	}
 
 	/**
+	 * Builds the subscribers.
 	 *
-	 * @return
+	 * @return the controller
 	 */
 	public MapNodePaneController build() {
 		// Change node type

@@ -10,7 +10,7 @@
 package org.mmarini.routes.model.v2;
 
 /**
- * Common constants of simulation
+ * Common constants of simulation.
  */
 public interface Constants {
 	/** Multiplicative factor from meters/second to kilometers/hour */

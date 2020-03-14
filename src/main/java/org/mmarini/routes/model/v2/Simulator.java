@@ -40,7 +40,7 @@ import io.reactivex.rxjava3.processors.MulticastProcessor;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
- * A generic simulator.
+ * Generic simulator.
  * <p>
  * A simulator generates events representing the evolution in the time of a
  * model. It starts with an initial event at an initial time and generates the
@@ -62,7 +62,7 @@ public class Simulator<T> {
 		private final T event;
 
 		/**
-		 * Creates a seed
+		 * Creates a seed.
 		 *
 		 * @param time  the clock instant in nanosecons
 		 * @param event the last event
@@ -73,7 +73,7 @@ public class Simulator<T> {
 		}
 
 		/**
-		 * Creates a seed at current clock instant
+		 * Creates a seed at current clock instant.
 		 *
 		 * @param event the event
 		 */
@@ -82,7 +82,7 @@ public class Simulator<T> {
 		}
 
 		/**
-		 * Returns the seed at the original instant with a event
+		 * Returns the seed at the original instant with a event.
 		 *
 		 * @param event the event
 		 */
@@ -90,13 +90,13 @@ public class Simulator<T> {
 			return new Seed(time, event);
 		}
 
-		/** Returns the seed event */
+		/** Returns the seed event. */
 		public T getEvent() {
 			return event;
 		}
 
 		/**
-		 * Returns the seed at the current time applying the builder function
+		 * Returns the seed at the current time applying the builder function.
 		 *
 		 * @throws Throwable in case of builder error
 		 */
@@ -108,13 +108,13 @@ public class Simulator<T> {
 			return new Seed(t, newEvent);
 		}
 
-		/** Returns the original seed at the current time */
+		/** Returns the original seed at the current time. */
 		public Seed now() {
 			return new Seed(System.nanoTime(), event);
 		}
 	}
 
-	/** The simulator status */
+	/** The simulator status. */
 	enum Status {
 		IDLE, ACTIVE, FAILED
 	}
@@ -122,7 +122,7 @@ public class Simulator<T> {
 	private static final Logger logger = LoggerFactory.getLogger(Simulator.class);
 
 	/**
-	 * Returns a simulator
+	 * Returns a simulator.
 	 * <p>
 	 * The simulator is bound to a new dedicated thread worker that serializes the
 	 * activities
@@ -147,7 +147,7 @@ public class Simulator<T> {
 	private TimeUnit unit;
 
 	/**
-	 * Creates the simulator
+	 * Creates the simulator.
 	 *
 	 * @param worker  the assigned worker
 	 * @param seed    the seed of event
@@ -168,38 +168,38 @@ public class Simulator<T> {
 		unit = TimeUnit.MILLISECONDS;
 	}
 
-	/** Returns the events flow */
+	/** Returns the events flow. */
 	public Flowable<T> getEvents() {
 		return events;
 	}
 
-	/** Returns the minimum simulation interval */
+	/** Returns the minimum simulation interval. */
 	public long getInterval() {
 		return interval;
 	}
 
-	/** Returns the event seed */
+	/** Returns the event seed. */
 	Optional<Seed> getSeed() {
 		return seed;
 	}
 
-	/** Returns the simulation speed */
+	/** Returns the simulation speed. */
 	double getSpeed() {
 		return speed;
 	}
 
-	/** Returns the simulation status */
+	/** Returns the simulation status. */
 	Status getStatus() {
 		return status;
 	}
 
-	/** Returns the time unit of interval */
+	/** Returns the time unit of interval. */
 	public TimeUnit getUnit() {
 		return unit;
 	}
 
 	/**
-	 * Process an event generating the new seed ad emitting the event
+	 * Process an event generating the new seed ad emitting the event.
 	 *
 	 * @param event the event
 	 * @return the simulator
@@ -212,8 +212,10 @@ public class Simulator<T> {
 	}
 
 	/**
-	 * Process the generation of next event. The next seed is generated and the next
-	 * event is emitted
+	 * Process the generation of next event.
+	 * <p>
+	 * The next seed is generated and the next event is emitted
+	 * </p>
 	 *
 	 * @return the simulator
 	 */
@@ -236,7 +238,7 @@ public class Simulator<T> {
 	}
 
 	/**
-	 * Process a transition request
+	 * Process a transition request.
 	 *
 	 * @param transition the transition
 	 * @return the simulator
@@ -257,7 +259,7 @@ public class Simulator<T> {
 	}
 
 	/**
-	 * Process the setting of simulation speed
+	 * Process the setting of simulation speed.
 	 *
 	 * @param speed the simulation speed
 	 * @return the simulator
@@ -269,7 +271,7 @@ public class Simulator<T> {
 	}
 
 	/**
-	 * Process the start of simulation
+	 * Process the start of simulation.
 	 *
 	 * @return the simulator
 	 */
@@ -283,7 +285,7 @@ public class Simulator<T> {
 	}
 
 	/**
-	 * Process the stop of simulation
+	 * Process the stop of simulation.
 	 *
 	 * @return the simulator
 	 */
@@ -294,7 +296,7 @@ public class Simulator<T> {
 	}
 
 	/**
-	 * Enqueues the transition request
+	 * Enqueues the transition request.
 	 *
 	 * @param transition the transition
 	 * @return the simulator
@@ -308,7 +310,7 @@ public class Simulator<T> {
 	}
 
 	/**
-	 * Enqueues the a new event
+	 * Enqueues the a new event.
 	 *
 	 * @param event the event
 	 * @return the simulator
@@ -322,7 +324,7 @@ public class Simulator<T> {
 	}
 
 	/**
-	 * Set the minimum simulation interval
+	 * Set the minimum simulation interval.
 	 *
 	 * @param interval the interval to set
 	 * @param unit     the time unit
@@ -349,7 +351,7 @@ public class Simulator<T> {
 	}
 
 	/**
-	 * Enqueue the start of simulation
+	 * Enqueue the start of simulation.
 	 *
 	 * @return the simulator
 	 */
@@ -360,7 +362,7 @@ public class Simulator<T> {
 	}
 
 	/**
-	 * Enqueue the stop of simulation
+	 * Enqueue the stop of simulation.
 	 *
 	 * @return the simulation
 	 */

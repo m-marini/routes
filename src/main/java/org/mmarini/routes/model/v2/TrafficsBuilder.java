@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A builder of simulation status
+ * Builder of simulation status.
  * <p>
  * Builds the simulation status starting from an status applying the simulation
  * process for a given time interval
@@ -46,13 +46,13 @@ import java.util.stream.Stream;
  */
 public class TrafficsBuilder implements Constants {
 
-	/** Returns an empty traffics builders */
+	/** Returns an empty traffics builders. */
 	public static TrafficsBuilder create() {
 		return new TrafficsBuilder(Traffics.create(), Collections.emptySet(), 0);
 	}
 
 	/**
-	 * Returns a builder from an initial status for a given instant
+	 * Returns a builder from an initial status for a given instant.
 	 *
 	 * @param status the status
 	 * @param time   the instant
@@ -80,7 +80,7 @@ public class TrafficsBuilder implements Constants {
 	}
 
 	/**
-	 * Returns the new traffic builder applying the simulation process
+	 * Returns the new traffic builder applying the simulation process.
 	 *
 	 * @param builder the initial builder
 	 */
@@ -131,7 +131,7 @@ public class TrafficsBuilder implements Constants {
 	private RoutePlanner routePlanner;
 
 	/**
-	 * Creates a traffic builder
+	 * Creates a traffic builder.
 	 *
 	 * @param status   the current traffic information
 	 * @param traffics the current edges traffic
@@ -145,7 +145,7 @@ public class TrafficsBuilder implements Constants {
 	}
 
 	/**
-	 * Returns the status builder with new traffics added
+	 * Returns the status builder with new traffics added.
 	 *
 	 * @param traffics the added traffics
 	 */
@@ -163,7 +163,7 @@ public class TrafficsBuilder implements Constants {
 	}
 
 	/**
-	 * Returns the builder with a given edge traffic
+	 * Returns the builder with a given edge traffic.
 	 *
 	 * @param edge the edge traffic
 	 */
@@ -174,7 +174,7 @@ public class TrafficsBuilder implements Constants {
 		return setTraffics(newTraffics);
 	}
 
-	/** Returns the simulation status at the target instant */
+	/** Returns the simulation status at the target instant. */
 	public Traffics build(final Random random) {
 		final TrafficsBuilder finalStatus = simulationProcess(this).createVehicles(random);
 		final Traffics resut = finalStatus.initialStatus.setTraffics(finalStatus.traffics);
@@ -182,7 +182,7 @@ public class TrafficsBuilder implements Constants {
 	}
 
 	/**
-	 * Returns the status builder with n new vehicles
+	 * Returns the status builder with n new vehicles.
 	 *
 	 * @param n    number of vehicles
 	 * @param from departure
@@ -206,7 +206,7 @@ public class TrafficsBuilder implements Constants {
 	}
 
 	/**
-	 * Returns the traffic builder generating random new vehicles
+	 * Returns the traffic builder generating random new vehicles.
 	 *
 	 * @param random the random generator
 	 */
@@ -253,18 +253,18 @@ public class TrafficsBuilder implements Constants {
 		return result;
 	}
 
-	/** Returns the initial status */
+	/** Returns the initial status. */
 	Traffics getInitialStatus() {
 		return initialStatus;
 	}
 
-	/** Returns the minimum simulation time */
+	/** Returns the minimum simulation time. */
 	double getMinimumTime() {
 		final double result = traffics.parallelStream().mapToDouble(EdgeTraffic::getTime).min().orElseGet(() -> time);
 		return result;
 	}
 
-	/** Returns the next minimum simulation time */
+	/** Returns the next minimum simulation time. */
 	double getNextMinimumTime() {
 		final double min = getMinimumTime();
 		final double result = traffics.parallelStream().mapToDouble(EdgeTraffic::getTime).filter(t -> t != min).min()
@@ -273,7 +273,7 @@ public class TrafficsBuilder implements Constants {
 	}
 
 	/**
-	 * Returns the next edge for a give edge
+	 * Returns the next edge for a give edge.
 	 *
 	 * @param edge edge
 	 */
@@ -287,7 +287,7 @@ public class TrafficsBuilder implements Constants {
 		return result1;
 	}
 
-	/** Returns the route planner with lazy creation */
+	/** Returns the route planner with lazy creation. */
 	RoutePlanner getRoutePlanner() {
 		if (routePlanner == null) {
 			routePlanner = RoutePlanner.create().setEdgeStats(traffics);
@@ -295,13 +295,13 @@ public class TrafficsBuilder implements Constants {
 		return routePlanner;
 	}
 
-	/** Returns the current traffic information */
+	/** Returns the current traffic information. */
 	Set<EdgeTraffic> getTraffics() {
 		return traffics;
 	}
 
 	/**
-	 * Returns the incoming edges traffics stream for a given edge
+	 * Returns the incoming edges traffics stream for a given edge.
 	 *
 	 * @param trafficEdge the edge
 	 */
@@ -309,13 +309,13 @@ public class TrafficsBuilder implements Constants {
 		return traffics.parallelStream().filter(te -> !te.getVehicles().isEmpty() && te.isCrossing(trafficEdge));
 	}
 
-	/** Returns true if not any edge has not completed the simulation */
+	/** Returns true if not any edge has not completed the simulation. */
 	boolean isCompleted() {
 		return !traffics.parallelStream().anyMatch(edge -> edge.getTime() < time);
 	}
 
 	/**
-	 * Returns true if the traffic edge is has priority
+	 * Returns true if the traffic edge is has priority.
 	 *
 	 * @param trafficEdge edge
 	 */
@@ -371,7 +371,7 @@ public class TrafficsBuilder implements Constants {
 
 	/**
 	 * Returns the status builder with last vehicle of the given edge moved to next
-	 * edge
+	 * edge.
 	 *
 	 * @param traffic the edge
 	 */
@@ -415,7 +415,7 @@ public class TrafficsBuilder implements Constants {
 		return result;
 	}
 
-	/** Returns the status builder with all vehicles moved in the edges */
+	/** Returns the status builder with all vehicles moved in the edges. */
 	TrafficsBuilder moveVehiclesInAllEdges() {
 		final Set<EdgeTraffic> newTraffics = traffics.parallelStream().map(et -> et.moveVehicles(time))
 				.collect(Collectors.toSet());
@@ -423,7 +423,7 @@ public class TrafficsBuilder implements Constants {
 	}
 
 	/**
-	 * Returns the status builder for an initial status
+	 * Returns the status builder for an initial status.
 	 *
 	 * @param initialStatus the initial status
 	 */
@@ -432,7 +432,7 @@ public class TrafficsBuilder implements Constants {
 	}
 
 	/**
-	 * Returns the traffic builder with a given set of edge traffic
+	 * Returns the traffic builder with a given set of edge traffic.
 	 *
 	 * @param traffics the edge traffics
 	 */

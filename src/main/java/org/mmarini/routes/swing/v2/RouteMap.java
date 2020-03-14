@@ -61,7 +61,7 @@ import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
 
 /**
- * The route map component render the translated and scaled map
+ * Component that renders the traffics map.
  */
 public class RouteMap extends JComponent implements Constants {
 
@@ -72,7 +72,7 @@ public class RouteMap extends JComponent implements Constants {
 		private final boolean borderPainted;
 
 		/**
-		 * Creates the painter
+		 * Creates the painter.
 		 *
 		 * @param graphics      the graphics context
 		 * @param bound         the map bound
@@ -89,7 +89,7 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Sets the site color map
+		 * Sets the site color map.
 		 *
 		 * @return the painter
 		 */
@@ -227,7 +227,7 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Paints the selected edge
+		 * Paints the selected edge.
 		 *
 		 * @return the painter
 		 */
@@ -257,7 +257,7 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Paints the selected site
+		 * Paints the selected site.
 		 *
 		 * @return the painter
 		 */
@@ -270,7 +270,7 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Paints the site
+		 * Paints the site.
 		 *
 		 * @param site the site
 		 * @return the painter
@@ -282,7 +282,7 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Paints the sites
+		 * Paints the sites.
 		 *
 		 * @return the painter
 		 */
@@ -294,7 +294,7 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Paints the node
+		 * Paints the node.
 		 *
 		 * @param node the node
 		 * @return the painter
@@ -312,7 +312,7 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Paints the edge traffics
+		 * Paints the edge traffics.
 		 *
 		 * @param traffic the edge traffic
 		 * @return the painter
@@ -326,7 +326,7 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Paints the vehicle
+		 * Paints the vehicle.
 		 *
 		 * @param v the vehicle
 		 * @return the painter
@@ -348,7 +348,7 @@ public class RouteMap extends JComponent implements Constants {
 		}
 
 		/**
-		 * Paints the vehicles
+		 * Paints the vehicles.
 		 *
 		 * @return the painter
 		 */
@@ -367,14 +367,14 @@ public class RouteMap extends JComponent implements Constants {
 		}
 	}
 
-	/** The vehicle information */
+	/** The vehicle information. */
 	static class VehicleInfo {
 		public final Color color;
 		public final Point2D location;
 		public final Point2D direction;
 
 		/**
-		 * Creates the vehicle information
+		 * Creates the vehicle information.
 		 *
 		 * @param location  the location point
 		 * @param direction the vehicle direction
@@ -418,7 +418,7 @@ public class RouteMap extends JComponent implements Constants {
 	private static final Rectangle2D VEHICLE_SHAPE = new Rectangle2D.Double(-VEHICLE_LENGTH, -VEHICLE_WIDTH / 2,
 			VEHICLE_LENGTH, VEHICLE_WIDTH);
 
-	/** Returns true if blinking component is visible */
+	/** Returns true if blinking component is visible. */
 	static boolean isBlink() {
 		return System.currentTimeMillis() % BLINKING_TIME >= BLINKING_ON_TIME;
 	}
@@ -438,7 +438,7 @@ public class RouteMap extends JComponent implements Constants {
 	private Optional<Point2D> pivot;
 	private double angle;
 
-	/** Create the map */
+	/** Creates the component. */
 	public RouteMap() {
 		super();
 		this.transform = new AffineTransform();
@@ -465,7 +465,7 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Clear all selected elements
+	 * Clear all selected elements.
 	 *
 	 * @return the map component
 	 */
@@ -476,52 +476,52 @@ public class RouteMap extends JComponent implements Constants {
 		return this;
 	}
 
-	/** Returns the angle of module rotation */
+	/** Returns the angle of module rotation. */
 	public double getAngle() {
 		return angle;
 	}
 
-	/** Returns the observable of keyboard */
+	/** Returns the observable of keyboard. */
 	public Observable<KeyEvent> getKeyboardObs() {
 		return keyboardObs;
 	}
 
-	/** Returns the selected module */
+	/** Returns the selected module. */
 	public Optional<MapModule> getModule() {
 		return module;
 	}
 
-	/** Returns the observable of mouse */
+	/** Returns the observable of mouse. */
 	public Observable<MouseEvent> getMouseObs() {
 		return mouseObs;
 	}
 
-	/** Returns the observable of mouse wheel */
+	/** Returns the observable of mouse wheel. */
 	public Observable<MouseWheelEvent> getMouseWheelObs() {
 		return mouseWheelObs;
 	}
 
-	/** Returns the pivot point for the module */
+	/** Returns the pivot point for the module. */
 	public Optional<Point2D> getPivot() {
 		return pivot;
 	}
 
-	/** Returns the selected edge */
+	/** Returns the selected edge. */
 	Optional<MapEdge> getSelectedEdge() {
 		return selectedEdge;
 	}
 
-	/** Returns the selected node */
+	/** Returns the selected node. */
 	Optional<MapNode> getSelectedNode() {
 		return selectedNode;
 	}
 
-	/** Returns the selected site */
+	/** Returns the selected site. */
 	Optional<MapNode> getSelectedSite() {
 		return selectedSite;
 	}
 
-	/** Returns true if border is painted */
+	/** Returns true if border is painted. */
 	boolean isBorderPainted() {
 		final double scale = Math.max(transform.getScaleX(), transform.getScaleY());
 		final boolean borderPainted = scale >= BORDER_SCALE;
@@ -552,7 +552,7 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Sets the module rotation angle
+	 * Sets the module rotation angle.
 	 *
 	 * @param angle the angle
 	 * @return the map component
@@ -563,7 +563,7 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Set drag edge
+	 * Set drag edge.
 	 *
 	 * @param edge the edge
 	 * @return the map component
@@ -575,7 +575,7 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Sets the grid size
+	 * Sets the grid size.
 	 *
 	 * @param gridSize the grid size in meters
 	 * @return the map component
@@ -587,7 +587,7 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Sets the module
+	 * Sets the module.
 	 *
 	 * @param module the module
 	 * @return the map component
@@ -598,7 +598,7 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Sets the pivot point for the module
+	 * Sets the pivot point for the module.
 	 *
 	 * @param pivot the pivot point
 	 * @return the map component
@@ -609,7 +609,7 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Sets the selected edge
+	 * Sets the selected edge.
 	 *
 	 * @param edge the edge
 	 * @return the map component
@@ -621,7 +621,7 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Sets the deleted node
+	 * Sets the deleted node.
 	 *
 	 * @param node the selected node
 	 * @return the map component
@@ -633,7 +633,7 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Sets the selected site
+	 * Sets the selected site.
 	 *
 	 * @param site the selected site
 	 * @return the map component
@@ -645,7 +645,7 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Sets the traffics
+	 * Sets the traffics.
 	 *
 	 * @param traffics the traffics
 	 * @return the map component
@@ -656,7 +656,7 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Sets the traffics view
+	 * Sets the traffics view.
 	 *
 	 * @param trafficView true if showing traffics congestion
 	 * @return the map component
@@ -667,7 +667,7 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Sets the map affine transform
+	 * Sets the map affine transform.
 	 *
 	 * @param transform the transform from map coordinate to screen coordinate
 	 * @return the map component

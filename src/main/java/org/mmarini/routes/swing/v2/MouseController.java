@@ -47,7 +47,7 @@ import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 
 /**
- * The controller for the mouse.
+ * Controller for the mouse.
  * <p>
  * The controller manages all the user interactions from mouse to the main
  * controller and other components
@@ -65,7 +65,7 @@ public class MouseController implements Constants {
 	private final ControllerFunctions controller;
 
 	/**
-	 * Create the mouse controller
+	 * Create the mouse controller.
 	 *
 	 * @param scrollMap      the scroll map
 	 * @param routeMap       the route map
@@ -164,7 +164,7 @@ public class MouseController implements Constants {
 	}
 
 	/**
-	 * Binds for mouse to head up display
+	 * Binds for mouse to head up display.
 	 *
 	 * @param withPointObs the observable of cursor map point
 	 * @return the controller
@@ -177,7 +177,7 @@ public class MouseController implements Constants {
 	}
 
 	/**
-	 * Binds for mouse selection
+	 * Binds for mouse selection.
 	 *
 	 * @param withPointObs the observable of cursor map point
 	 * @return the controller
@@ -275,7 +275,7 @@ public class MouseController implements Constants {
 	}
 
 	/**
-	 * Builds the subscription to mouse events
+	 * Builds the subscription to mouse events.
 	 *
 	 * @return the controller
 	 */

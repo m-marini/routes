@@ -13,16 +13,16 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 /**
- * The messages i18n builder
+ * Builder of i18n messages.
  */
 public interface Messages {
-	/** The messages table */
+	/** The messages table. */
 	public static final String BUNDLE_NAME = "org.mmarini.routes.swing.v2.messages"; //$NON-NLS-1$
-	/** The bundle of resources */
+	/** The bundle of resources. */
 	public static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME);
 
 	/**
-	 * Returns the internationalized message
+	 * Returns the internationalized message.
 	 *
 	 * @param key the key message
 	 */

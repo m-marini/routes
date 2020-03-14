@@ -39,7 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The Traffics information for a a map.
+ * Traffics information for a map.
  * <p>
  * It includes
  * <ul>
@@ -55,13 +55,13 @@ public class Traffics implements Constants {
 	private static final Traffics EMPTY = new Traffics(GeoMap.create(), Set.of());
 	private static final Logger logger = LoggerFactory.getLogger(Traffics.class);
 
-	/** Returns an empty simulation status */
+	/** Returns an empty simulation status. */
 	public static Traffics create() {
 		return EMPTY;
 	}
 
 	/**
-	 * Returns the traffics information for a given map
+	 * Returns the traffics information for a given map.
 	 *
 	 * @param map the map
 	 */
@@ -73,7 +73,7 @@ public class Traffics implements Constants {
 	}
 
 	/**
-	 * Returns a traffics information generating a random map with a given profile
+	 * Returns a traffics information generating a random map with a given profile.
 	 *
 	 * @param profile the generation map profile
 	 * @param random  the random generator
@@ -87,7 +87,7 @@ public class Traffics implements Constants {
 	private final Set<EdgeTraffic> traffics;
 
 	/**
-	 * Create the traffics information for a map and traffics edges
+	 * Create the traffics information for a map and traffics edges.
 	 *
 	 * @param map      the map
 	 * @param traffics the traffic edges
@@ -99,7 +99,7 @@ public class Traffics implements Constants {
 	}
 
 	/**
-	 * Returns the traffics information adding a new edge to the map
+	 * Returns the traffics information adding a new edge to the map.
 	 *
 	 * @param edge the edge
 	 */
@@ -113,7 +113,7 @@ public class Traffics implements Constants {
 	}
 
 	/**
-	 * Returns the traffics information adding a set of edges to the map
+	 * Returns the traffics information adding a set of edges to the map.
 	 *
 	 * @param edges the edges
 	 */
@@ -132,7 +132,7 @@ public class Traffics implements Constants {
 
 	/**
 	 * Returns the simulation status with an edge properties changed the traffic do
-	 * still not change
+	 * still not change.
 	 *
 	 * @param edge new edge with changed properties
 	 */
@@ -148,7 +148,7 @@ public class Traffics implements Constants {
 	}
 
 	/**
-	 * Returns the simulation status with given node changed in type
+	 * Returns the simulation status with given node changed in type.
 	 *
 	 * @param node           the changing node
 	 * @param weightFunction the weight generation function
@@ -167,23 +167,23 @@ public class Traffics implements Constants {
 		return newMap != map ? setGeoMap(newMap).setTraffics(newTraffics) : this;
 	}
 
-	/** Returns the map */
+	/** Returns the map. */
 	public GeoMap getMap() {
 		return map;
 	}
 
-	/** Returns traffics instant */
+	/** Returns traffics instant. */
 	public double getTime() {
 		return traffics.stream().findAny().map(t -> t.getTime()).orElse(0.0);
 	}
 
-	/** Returns the edges' traffic */
+	/** Returns the edges' traffic. */
 	public Set<EdgeTraffic> getTraffics() {
 		return traffics;
 	}
 
 	/**
-	 * Returns the traffic information with edges optimized for a given speed limit
+	 * Returns the traffic information with edges optimized for a given speed limit.
 	 *
 	 * @param speedLimit the speed limit
 	 */
@@ -197,7 +197,7 @@ public class Traffics implements Constants {
 	}
 
 	/**
-	 * Returns the traffic information with random vehicle generation weights
+	 * Returns the traffic information with random vehicle generation weights.
 	 *
 	 * @param minWeight the minimum weight
 	 * @param random    the random generator
@@ -207,7 +207,7 @@ public class Traffics implements Constants {
 	}
 
 	/**
-	 * Returns the simulation status without edge
+	 * Returns the simulation status without edge.
 	 *
 	 * @param edge the removing edge
 	 */
@@ -221,7 +221,7 @@ public class Traffics implements Constants {
 	}
 
 	/**
-	 * Returns simulation status with a removed node
+	 * Returns simulation status with a removed node.
 	 *
 	 * @param node the node
 	 */
@@ -245,7 +245,7 @@ public class Traffics implements Constants {
 	}
 
 	/**
-	 * Returns the traffic with a given frequency of vehicle generation
+	 * Returns the traffic with a given frequency of vehicle generation.
 	 *
 	 * @param frequence the frequency
 	 */
@@ -255,7 +255,7 @@ public class Traffics implements Constants {
 	}
 
 	/**
-	 * Returns the traffic with a given map
+	 * Returns the traffic with a given map.
 	 *
 	 * @param map the map
 	 */
@@ -264,7 +264,7 @@ public class Traffics implements Constants {
 	}
 
 	/**
-	 * Returns the traffic with a given set of traffic edges
+	 * Returns the traffic with a given set of traffic edges.
 	 *
 	 * @param traffics the traffics edges
 	 */
@@ -273,7 +273,7 @@ public class Traffics implements Constants {
 	}
 
 	/**
-	 * Returns the traffic with a given vehicle generation weights
+	 * Returns the traffic with a given vehicle generation weights.
 	 *
 	 * @param weights the weights
 	 */

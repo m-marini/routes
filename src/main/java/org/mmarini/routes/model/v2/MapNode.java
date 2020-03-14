@@ -32,11 +32,11 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 /**
- * A node at a location point in the map
+ * Node at a location point in the map.
  */
 public class MapNode implements Comparable<MapNode> {
 	/**
-	 * Returns the map node at point coordinates
+	 * Returns the map node at point coordinates.
 	 *
 	 * @param x horizontal coordinates
 	 * @param y vertical coordinates
@@ -46,7 +46,7 @@ public class MapNode implements Comparable<MapNode> {
 	}
 
 	/**
-	 * Returns the map node at a given point
+	 * Returns the map node at a given point.
 	 *
 	 * @param location the location point
 	 */
@@ -58,7 +58,7 @@ public class MapNode implements Comparable<MapNode> {
 	private final UUID id;
 
 	/**
-	 * Creates a map node for a location
+	 * Creates a map node for a location.
 	 *
 	 * @param location the location point
 	 */
@@ -94,32 +94,32 @@ public class MapNode implements Comparable<MapNode> {
 		return true;
 	}
 
-	/** Returns the unique node identifier */
+	/** Returns the unique node identifier. */
 	public UUID getId() {
 		return id;
 	}
 
-	/** Returns the location point of node */
+	/** Returns the location point of node. */
 	public Point2D getLocation() {
 		return location;
 	}
 
-	/** Returns the name (the uuid) */
+	/** Returns the name (the uuid). */
 	public String getName() {
 		return id.toString();
 	}
 
-	/** Returns the short name (first 6 characters of uuid) */
+	/** Returns the short name (first 6 characters of uuid). */
 	public String getShortName() {
 		return getName().substring(0, 6);
 	}
 
-	/** Returns the horizontal coordinate of node in meters */
+	/** Returns the horizontal coordinate of node in meters. */
 	public double getX() {
 		return location.getX();
 	}
 
-	/** Returns the vertical coordinate of node in meters */
+	/** Returns the vertical coordinate of node in meters. */
 	public double getY() {
 		return location.getY();
 	}
@@ -140,7 +140,7 @@ public class MapNode implements Comparable<MapNode> {
 	}
 
 	/**
-	 * Returns the node by applying the transformation
+	 * Returns the node by applying the transformation.
 	 *
 	 * @param trans the transformation
 	 */

@@ -39,7 +39,7 @@ import javax.swing.SpinnerNumberModel;
 import org.mmarini.routes.model.v2.MapProfile;
 
 /**
- * The input panel to set the map profile for random map generation
+ * Panel for input the map profile of random map generation.
  */
 public class MapProfilePane extends Box {
 	public static final double LARGE_SIZE = 15000.;
@@ -63,7 +63,7 @@ public class MapProfilePane extends Box {
 	private final JComboBox<String> mapSizeField;
 	private final Component siteCountField;
 
-	/** Creates the panel */
+	/** Creates the panel. */
 	public MapProfilePane() {
 		super(BoxLayout.PAGE_AXIS);
 		mapSizeModel = new DefaultComboBoxModel<>(
@@ -86,7 +86,7 @@ public class MapProfilePane extends Box {
 	}
 
 	/**
-	 * Creates the content
+	 * Creates the content.
 	 *
 	 * @return the panel
 	 */
@@ -115,7 +115,7 @@ public class MapProfilePane extends Box {
 		return this;
 	}
 
-	/** Returns the profile */
+	/** Returns the profile. */
 	public MapProfile getProfile() {
 		final int sizeIdx = mapSizeModel.getIndexOf(mapSizeModel.getSelectedItem());
 		final int diffIdx = difficultyModel.getIndexOf(difficultyModel.getSelectedItem());
@@ -127,7 +127,7 @@ public class MapProfilePane extends Box {
 	}
 
 	/**
-	 * Sets the difficulty level
+	 * Sets the difficulty level.
 	 *
 	 * @param difficultOnly true for difficult level only
 	 * @return the panel

@@ -54,7 +54,7 @@ import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
 
 /**
- * The scroll map with the map and the user actions observables
+ * Panel with scrolling view of map and the user actions.
  */
 public class ScrollMap extends JScrollPane implements Constants {
 	private static final long serialVersionUID = 1L;
@@ -69,7 +69,7 @@ public class ScrollMap extends JScrollPane implements Constants {
 	private List<String> hud;
 
 	/**
-	 * Creates the panel
+	 * Creates the panel.
 	 *
 	 * @param content the content
 	 */
@@ -91,7 +91,7 @@ public class ScrollMap extends JScrollPane implements Constants {
 	}
 
 	/**
-	 * Returns the head up display text
+	 * Returns the head up display text.
 	 *
 	 * @param patterns the hud patterns
 	 * @param gridSize the grid size
@@ -113,7 +113,7 @@ public class ScrollMap extends JScrollPane implements Constants {
 	}
 
 	/**
-	 * Returns the rectangle containing the HUD
+	 * Returns the rectangle containing the HUD.
 	 *
 	 * @param messages the messages in the HUD
 	 */
@@ -126,12 +126,12 @@ public class ScrollMap extends JScrollPane implements Constants {
 		return result;
 	}
 
-	/** Returns the observable of viewport changes */
+	/** Returns the observable of viewport changes. */
 	public Observable<ChangeEvent> getChangeObs() {
 		return changeObs;
 	}
 
-	/** Returns the observable of scale to button (right bottom corner) */
+	/** Returns the observable of scale to button (right bottom corner). */
 	public Observable<ActionEvent> getScaleToObs() {
 		return scaleToObs;
 	}
@@ -144,7 +144,7 @@ public class ScrollMap extends JScrollPane implements Constants {
 	}
 
 	/**
-	 * Paints head up display
+	 * Paints head up display.
 	 *
 	 * @param g        graphics context
 	 * @param messages messages
@@ -168,7 +168,7 @@ public class ScrollMap extends JScrollPane implements Constants {
 	}
 
 	/**
-	 * Set head up display for edge
+	 * Set head up display for edge.
 	 *
 	 * @param gridSize the grid size
 	 * @param point    the mouse position
@@ -182,7 +182,7 @@ public class ScrollMap extends JScrollPane implements Constants {
 	}
 
 	/**
-	 * Sets the head up display content
+	 * Sets the head up display content.
 	 *
 	 * @param hud the text rows
 	 * @return the panel
@@ -194,12 +194,10 @@ public class ScrollMap extends JScrollPane implements Constants {
 	}
 
 	/**
-	 * Sets the head up display for edge
+	 * Sets the head up display for edge.
 	 *
-	 * @param gridSize grid size
-	 * @param point    mouse position
-	 * @param dragEdge drag edge
-	 * @param maxSpeed max speed
+	 * @param gridSize the grid size
+	 * @param point    the cursor map point
 	 * @return the panel
 	 */
 	public ScrollMap setPointHud(final double gridSize, final Point2D point) {

@@ -65,7 +65,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 /**
- * The main controller of simulation application
+ * Main controller of simulation application.
  * <p>
  * The controller keeps the instance of ui components and bind the interactions
  * of user with the components
@@ -79,7 +79,7 @@ public class Controller implements Constants, ControllerFunctions {
 
 	private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
-	/** Returns the default traffics status */
+	/** Returns the default traffics status. */
 	private static Traffics loadDefault() {
 		final URL url = Controller.class.getResource(INITIAL_MAP);
 		if (url != null) {
@@ -108,7 +108,7 @@ public class Controller implements Constants, ControllerFunctions {
 	private final Observable<UIStatus> uiStatusObs;
 	private Random random;
 
-	/** Creates the controller */
+	/** Creates the controller. */
 	public Controller() {
 		this.random = new Random();
 		this.simulator = Simulator.<Traffics>create((tr, t) -> {
@@ -148,7 +148,7 @@ public class Controller implements Constants, ControllerFunctions {
 	}
 
 	/**
-	 * Binds all user action to the components
+	 * Binds all user action to the components.
 	 *
 	 * @return the controller
 	 */
@@ -164,7 +164,7 @@ public class Controller implements Constants, ControllerFunctions {
 	}
 
 	/**
-	 * Binds the user actions from module selector
+	 * Binds the user actions from module selector.
 	 *
 	 * @return the controller
 	 */
@@ -186,7 +186,7 @@ public class Controller implements Constants, ControllerFunctions {
 	}
 
 	/**
-	 * Binds the user actions from mousew heel
+	 * Binds the user actions from mouse wheel.
 	 *
 	 * @return the controller
 	 */
@@ -207,7 +207,7 @@ public class Controller implements Constants, ControllerFunctions {
 	}
 
 	/**
-	 * Binds the events from repainting clock
+	 * Binds the events from repainting clock.
 	 *
 	 * @return the controller
 	 */
@@ -238,7 +238,7 @@ public class Controller implements Constants, ControllerFunctions {
 	}
 
 	/**
-	 * Returns the viewport position for a center point
+	 * Returns the viewport position for a center point.
 	 *
 	 * @param center the graph center point
 	 */
@@ -264,22 +264,22 @@ public class Controller implements Constants, ControllerFunctions {
 		return uiStatus.setTraffics(nextSt);
 	}
 
-	/** Returns the explorerPane */
+	/** Returns the explorerPane. */
 	public ExplorerPane getExplorerPane() {
 		return explorerPane;
 	}
 
-	/** Returns the mapElementPane */
+	/** Returns the mapElementPane. */
 	public MapElementPane getMapElementPane() {
 		return mapElementPane;
 	}
 
-	/** Returns the routeMap */
+	/** Returns the routeMap. */
 	public RouteMap getRouteMap() {
 		return routeMap;
 	}
 
-	/** Returns the list of modules by loading a file */
+	/** Returns the list of modules by loading a file. */
 	private List<MapModule> loadModules() {
 		final File path = new File("modules");
 		if (path.isDirectory()) {
@@ -353,7 +353,7 @@ public class Controller implements Constants, ControllerFunctions {
 		return showError("{0}", new Object[] { e.getMessage(), e.getMessage() }); //$NON-NLS-1$
 	}
 
-	/** Returns the controller with the simulator started */
+	/** Returns the controller with the simulator started. */
 	private Controller startSimulator() {
 		if (!mainFrame.isStopped()) {
 			simulator.start();
@@ -362,7 +362,7 @@ public class Controller implements Constants, ControllerFunctions {
 	}
 
 	/**
-	 * Upgrades the component to repaint the new traffic
+	 * Upgrades the component to repaint the new traffic.
 	 *
 	 * @param uiStatus the ui status
 	 * @return the controller
@@ -385,5 +385,4 @@ public class Controller implements Constants, ControllerFunctions {
 		}
 		return this;
 	}
-
 }

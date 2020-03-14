@@ -27,12 +27,12 @@
 package org.mmarini.routes.model.v2;
 
 /**
- * A tuple of variable elements
+ * Tuple of variable elements.
  */
 public interface Tuple {
 
 	/**
-	 * Returns a tuple of two elements
+	 * Returns a tuple of two elements.
 	 *
 	 * @param <T1> the type of first element
 	 * @param <T2> the type of second element
@@ -44,7 +44,7 @@ public interface Tuple {
 	}
 
 	/**
-	 * Returns a tuple of three elements
+	 * Returns a tuple of three elements.
 	 *
 	 * @param <T1> the type of first element
 	 * @param <T2> the type of second element

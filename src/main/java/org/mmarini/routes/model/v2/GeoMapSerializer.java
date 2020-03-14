@@ -39,7 +39,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 /**
- * A map serializer that converts a GeoMap into a json object and writes to file
+ * Serializer of map that converts a GeoMap into a json object and writes to
+ * file.
  */
 public class GeoMapSerializer implements Constants {
 
@@ -48,7 +49,7 @@ public class GeoMapSerializer implements Constants {
 	private final ObjectMapper mapper;
 
 	/**
-	 * Creates a serializer for a given map
+	 * Creates a serializer for a given map.
 	 *
 	 * @param map the map
 	 */
@@ -60,7 +61,7 @@ public class GeoMapSerializer implements Constants {
 	}
 
 	/**
-	 * Returns the json node for a given edge
+	 * Returns the json node for a given edge.
 	 *
 	 * @param edge the edge
 	 */
@@ -71,7 +72,7 @@ public class GeoMapSerializer implements Constants {
 		return result;
 	}
 
-	/** Returns the json node for the map edges */
+	/** Returns the json node for the map edges. */
 	private JsonNode buildEdgesNode() {
 		final ArrayNode result = mapper.createArrayNode();
 		map.getEdges().forEach(edge -> result.add(buildEdge(edge)));
@@ -79,7 +80,7 @@ public class GeoMapSerializer implements Constants {
 	}
 
 	/**
-	 * Returns the json node for a node
+	 * Returns the json node for a node.
 	 *
 	 * @param node the node
 	 */
@@ -89,7 +90,7 @@ public class GeoMapSerializer implements Constants {
 		return result;
 	}
 
-	/** Returns the json node for the map nodes */
+	/** Returns the json node for the map nodes. */
 	private JsonNode buildNodesNode() {
 		final ObjectNode result = mapper.createObjectNode();
 		final Set<MapNode> site = map.getSites();
@@ -101,7 +102,7 @@ public class GeoMapSerializer implements Constants {
 		return result;
 	}
 
-	/** Returns the json node for the path data */
+	/** Returns the json node for the path data. */
 	private JsonNode buildPathsNode() {
 		final ArrayNode result = mapper.createArrayNode();
 		map.getSites().forEach(from -> {
@@ -117,14 +118,14 @@ public class GeoMapSerializer implements Constants {
 		return result;
 	}
 
-	/** Returns the json node for the sites */
+	/** Returns the json node for the sites. */
 	private JsonNode buildSitesNode() {
 		final ObjectNode result = mapper.createObjectNode();
 		map.getSites().forEach(node -> result.set(node.getId().toString(), buildNode(node)));
 		return result;
 	}
 
-	/** Returns the json node of map */
+	/** Returns the json node of map. */
 	JsonNode toJson() {
 		final ObjectNode result = mapper.createObjectNode();
 		result.put("version", CURRENT_VERSION);
@@ -137,7 +138,7 @@ public class GeoMapSerializer implements Constants {
 	}
 
 	/**
-	 * Writes yaml file with map description
+	 * Writes yaml file with map description.
 	 *
 	 * @param file the file
 	 * @return this serializer

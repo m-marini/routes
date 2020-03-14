@@ -49,7 +49,7 @@ import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
 
 /**
- * The MapViewPane allows the user to view and interact with the map.
+ * Panel of map view that allows the user to view and interact with the map.
  * <p>
  * It contains a tool bar to select the tool to change the map or the view scale
  * or view mode.
@@ -86,7 +86,7 @@ public class MapViewPane extends JPanel {
 	private Optional<MapModule> module;
 
 	/**
-	 * Creates the panel
+	 * Creates the panel.
 	 *
 	 * @param content        the content
 	 * @param moduleSelector the module selector
@@ -126,7 +126,7 @@ public class MapViewPane extends JPanel {
 	}
 
 	/**
-	 * Returns the panel with content
+	 * Returns the panel with content.
 	 *
 	 * @param content the content
 	 */
@@ -138,7 +138,7 @@ public class MapViewPane extends JPanel {
 	}
 
 	/**
-	 * Create the tool bar
+	 * Creates the tool bar.
 	 *
 	 * @return the tool bar
 	 */
@@ -161,53 +161,53 @@ public class MapViewPane extends JPanel {
 		return bar;
 	}
 
-	/** Returns the observable of edge mode button */
+	/** Returns the observable of edge mode button. */
 	public Observable<ActionEvent> getEdgeModeObs() {
 		return edgeModeObs;
 	}
 
-	/** Returns the observable of fit in window button */
+	/** Returns the observable of fit in window button. */
 	public Observable<ActionEvent> getFitInWindowObs() {
 		return fitInWindowObs;
 	}
 
-	/** Returns the observable of module mode button */
+	/** Returns the observable of module mode button. */
 	public Observable<MapModule> getModuleModeObs() {
 		return moduleModeObs;
 	}
 
-	/** Returns the observable of normal view button */
+	/** Returns the observable of normal view button. */
 	public Observable<ActionEvent> getNormalViewObs() {
 		return normalViewObs;
 	}
 
-	/** Returns the observable of select mode button */
+	/** Returns the observable of select mode button. */
 	public Observable<ActionEvent> getSelectModeObs() {
 		return selectModeObs;
 	}
 
-	/** Return the observable of traffic view button */
+	/** Return the observable of traffic view button. */
 	public Observable<ActionEvent> getTrafficViewObs() {
 		return trafficViewObs;
 	}
 
-	/** Return the observable of zoom to default button */
+	/** Return the observable of zoom to default button. */
 	public Observable<ActionEvent> getZoomDefaultObs() {
 		return zoomDefaultObs;
 	}
 
-	/** Returns the observable of zoom in button */
+	/** Returns the observable of zoom in button. */
 	public Observable<ActionEvent> getZoomInObs() {
 		return zoomInObs;
 	}
 
-	/** Returns the observable of zoom out button */
+	/** Returns the observable of zoom out button . */
 	public Observable<ActionEvent> getZoomOutObs() {
 		return zoomOutObs;
 	}
 
 	/**
-	 * Initializes the component
+	 * Initializes the component.
 	 *
 	 * @param content the content
 	 * @return the panel
@@ -225,7 +225,7 @@ public class MapViewPane extends JPanel {
 	}
 
 	/**
-	 * Sets the module selection mode
+	 * Sets the module selection mode.
 	 *
 	 * @return the panel
 	 */
@@ -235,7 +235,7 @@ public class MapViewPane extends JPanel {
 	}
 
 	/**
-	 * Sets the module
+	 * Sets the module.
 	 *
 	 * @param module the module
 	 * @return the panel
@@ -246,7 +246,7 @@ public class MapViewPane extends JPanel {
 	}
 
 	/**
-	 * Sets the module icon
+	 * Sets the module icon.
 	 *
 	 * @param icon the icon
 	 * @return the panel

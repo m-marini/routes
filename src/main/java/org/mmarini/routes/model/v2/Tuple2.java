@@ -27,7 +27,10 @@
 package org.mmarini.routes.model.v2;
 
 /**
- * A pair of elements
+ * Pair of elements.
+ * <p>
+ * The instance can be created with {@link Tuple#of(Object, Object)}
+ * </p>
  */
 public class Tuple2<T1, T2> implements Tuple {
 
@@ -35,7 +38,7 @@ public class Tuple2<T1, T2> implements Tuple {
 	private final T2 elem2;
 
 	/**
-	 * Create a pair of object
+	 * Create a pair of object.
 	 *
 	 * @param elem1 first element
 	 * @param elem2 second element
@@ -69,12 +72,12 @@ public class Tuple2<T1, T2> implements Tuple {
 		return true;
 	}
 
-	/** Returns the first element */
+	/** Returns the first element. */
 	public T1 get1() {
 		return elem1;
 	}
 
-	/** Returns the second element */
+	/** Returns the second element. */
 	public T2 get2() {
 		return elem2;
 	}

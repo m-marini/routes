@@ -56,7 +56,7 @@ import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
 
 /**
- * The node panel with the information of a node and its user actions.
+ * Panel with the information of a node and its user actions.
  */
 public class MapNodePane extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -71,7 +71,7 @@ public class MapNodePane extends JPanel {
 	private final Observable<MapNode> deleteObs;
 	private Optional<MapNode> node;
 
-	/** Create the panel */
+	/** Creates the panel. */
 	public MapNodePane() {
 		nameField = new JTextField(6);
 		xField = new JFormattedTextField(new NumberFormatter());
@@ -98,7 +98,7 @@ public class MapNodePane extends JPanel {
 	}
 
 	/**
-	 * Creates the content
+	 * Creates the content.
 	 *
 	 * @return the panel
 	 */
@@ -109,7 +109,7 @@ public class MapNodePane extends JPanel {
 		return this;
 	}
 
-	/** Returns the info panel */
+	/** Returns the info panel. */
 	private JComponent createInfoPane() {
 		final JPanel pane = withGridBagConstraints(new JPanel())
 				.add(new JLabel(Messages.getString("MapNodePane.name.label")), //$NON-NLS-1$
@@ -126,7 +126,7 @@ public class MapNodePane extends JPanel {
 		return pane;
 	}
 
-	/** Returns the tool bar */
+	/** Returns the tool bar. */
 	private JComponent createToolBar() {
 		final JToolBar toolbar = new JToolBar();
 
@@ -135,23 +135,23 @@ public class MapNodePane extends JPanel {
 		return toolbar;
 	}
 
-	/** Returns the observable of change node button */
+	/** Returns the observable of change node button. */
 	public Observable<MapNode> getChangeObs() {
 		return changeObs;
 	}
 
-	/** Returns the observable of delete node button */
+	/** Returns the observable of delete node button. */
 	public Observable<MapNode> getDeleteObs() {
 		return deleteObs;
 	}
 
-	/** Returns the node */
+	/** Returns the node. */
 	Optional<MapNode> getNode() {
 		return node;
 	}
 
 	/**
-	 * Sets the shown node
+	 * Sets the shown node.
 	 *
 	 * @param node the node
 	 * @return the panel

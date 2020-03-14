@@ -27,7 +27,7 @@
 package org.mmarini.routes.model.v2;
 
 /**
- * A map profile used during automatic map generation.
+ * Profile used during random map generation.
  * <p>
  * It includes
  * <ul>
@@ -47,7 +47,7 @@ public class MapProfile {
 	private final double frequence;
 
 	/**
-	 * Creates a map profile
+	 * Creates a map profile.
 	 *
 	 * @param siteCount number of sites
 	 * @param width     width of map in meters
@@ -64,27 +64,27 @@ public class MapProfile {
 		this.frequence = frequence;
 	}
 
-	/** Returns the frequency */
+	/** Returns the frequency. */
 	public double getFrequence() {
 		return frequence;
 	}
 
-	/** Returns the height in meters */
+	/** Returns the height in meters. */
 	public double getHeight() {
 		return height;
 	}
 
-	/** Returns the minimum traffic weight */
+	/** Returns the minimum traffic weight. */
 	public double getMinWeight() {
 		return minWeight;
 	}
 
-	/** Returns the number of sites */
+	/** Returns the number of sites. */
 	public int getSiteCount() {
 		return siteCount;
 	}
 
-	/** Returns the map width in meters */
+	/** Returns the map width in meters. */
 	public double getWidth() {
 		return width;
 	}

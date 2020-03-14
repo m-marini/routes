@@ -35,12 +35,12 @@ import org.mmarini.routes.model.v2.MapNode;
 import org.mmarini.routes.model.v2.Traffics;
 
 /**
- * The controller functions
+ * Controller functions
  */
 public interface ControllerFunctions {
 
 	/**
-	 * Centered map view to a given point
+	 * Centered map view to a given point.
 	 *
 	 * @param status the ui status the ui status
 	 * @param center the center point
@@ -49,7 +49,7 @@ public interface ControllerFunctions {
 	public ControllerFunctions centerMapTo(UIStatus status, Point2D center);
 
 	/**
-	 * Returns the ui status deleting an edge
+	 * Returns the ui status deleting an edge.
 	 *
 	 * @param status the initial status
 	 * @param edge   the edge to delete
@@ -57,7 +57,7 @@ public interface ControllerFunctions {
 	public UIStatus deleteEdge(final UIStatus status, final MapEdge edge);
 
 	/**
-	 * Returns the ui status deleting a node
+	 * Returns the ui status deleting a node.
 	 *
 	 * @param status the initial status
 	 * @param node   the node to delete
@@ -65,7 +65,7 @@ public interface ControllerFunctions {
 	public UIStatus deleteNode(final UIStatus status, final MapNode node);
 
 	/**
-	 * Upgrades the ui components due to map change
+	 * Upgrades the ui components due to map change.
 	 *
 	 * @param status the ui status
 	 * @return the controller
@@ -73,7 +73,7 @@ public interface ControllerFunctions {
 	public ControllerFunctions mapChanged(final UIStatus status);
 
 	/**
-	 * Processes a request of traffics change
+	 * Processes a request of traffics change.
 	 *
 	 * @param changeStatus the change function
 	 * @return the controller
@@ -81,7 +81,7 @@ public interface ControllerFunctions {
 	public Controller request(Function<Traffics, UIStatus> changeStatus);
 
 	/**
-	 * Returns the new ui status due to a scale change
+	 * Returns the new ui status due to a scale change.
 	 * <p>
 	 * It computes the viewport position and zoom of scroll map.
 	 * </p>
@@ -93,7 +93,7 @@ public interface ControllerFunctions {
 	public UIStatus scaleTo(final UIStatus status, final double scale, final Point pivot);
 
 	/**
-	 * Shows an error message
+	 * Shows an error message.
 	 *
 	 * @param pattern    the pattern message to show
 	 * @param parameters the parameters
@@ -102,7 +102,7 @@ public interface ControllerFunctions {
 	public ControllerFunctions showError(String pattern, Object... parameters);
 
 	/**
-	 * Shows an error message from an exception
+	 * Shows an error message from an exception.
 	 *
 	 * @param e the exception
 	 * @return the controller
@@ -110,7 +110,7 @@ public interface ControllerFunctions {
 	public ControllerFunctions showError(final Throwable e);
 
 	/**
-	 * Upgrades the head up display
+	 * Upgrades the head up display.
 	 *
 	 * @param status the ui status
 	 * @param point  the cursor location

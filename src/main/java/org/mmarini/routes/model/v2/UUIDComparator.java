@@ -29,16 +29,18 @@ package org.mmarini.routes.model.v2;
 import java.util.UUID;
 
 /**
- * An UUID comparator
+ * UUID comparator.
  */
 public interface UUIDComparator {
 	/**
-	 * Returns an integer indicating the order of two uuids
+	 * Returns an integer indicating the order of two uuids.
+	 * <p>
 	 * <ul>
 	 * <li>a positive number if first UUID is after the second</li>
 	 * <li>a negative number if first UUID is before the second</li>
 	 * <li>zeroif first UUID is equal to the second</li>
 	 * </ul>
+	 * </p>
 	 *
 	 * @param a first uuid
 	 * @param b second uuid

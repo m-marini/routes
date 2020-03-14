@@ -42,13 +42,13 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * A map with the information of the edges and site nodes
+ * Map with the information of the edges and site nodes.
  */
 public class GeoMap implements Constants {
 	private final static GeoMap EMPTY = new GeoMap(Set.of(), Map.of(), Set.of(), Set.of(), DEFAULT_FREQUENCE);
 
 	/**
-	 * Returns random weight for a given set of sites
+	 * Returns random weight for a given set of sites.
 	 *
 	 * @param sites          the sites
 	 * @param weightSupplier the weight supplier
@@ -72,7 +72,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns a map with edges only
+	 * Returns a map with edges only.
 	 *
 	 * @param edges the edges
 	 */
@@ -82,7 +82,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns a map with edges and weights for site
+	 * Returns a map with edges and weights for site.
 	 *
 	 * @param edges   the edges
 	 * @param weights the weights
@@ -95,7 +95,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns a map with edges and a single site
+	 * Returns a map with edges and a single site.
 	 *
 	 * @param edges the edges
 	 * @param site  the site
@@ -107,7 +107,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns a random map for a give profile and random generator
+	 * Returns a random map for a give profile and random generator.
 	 *
 	 * @param profile the profile
 	 * @param random  the random generator
@@ -154,7 +154,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the weight function generator
+	 * Returns the weight function generator.
 	 *
 	 * @param minWeight minimum weight
 	 * @param random    the ranom generator
@@ -165,7 +165,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the stream of begine and and nodes of a set of edges
+	 * Returns the stream of begine and and nodes of a set of edges.
 	 *
 	 * @param edges the edges
 	 */
@@ -176,7 +176,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the sites for a given map of weights
+	 * Returns the sites for a given map of weights.
 	 *
 	 * @param weights the weight map
 	 */
@@ -194,7 +194,7 @@ public class GeoMap implements Constants {
 	private final double frequence;
 
 	/**
-	 * Creates a geo map
+	 * Creates a geo map.
 	 *
 	 * @param edges     the edges
 	 * @param weights   the weights of vehicle creation for a give departure and
@@ -218,7 +218,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the map with a new edge
+	 * Returns the map with a new edge.
 	 *
 	 * @param edge the edge
 	 */
@@ -247,7 +247,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the map with added edges
+	 * Returns the map with added edges.
 	 * <p>
 	 * New edges are created using the the node instances of this map
 	 * </p>
@@ -266,7 +266,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the map with node type changed
+	 * Returns the map with node type changed.
 	 *
 	 * @param node          the changing node
 	 * @param weightBuilder the function that computes the weights between the
@@ -311,7 +311,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the nearest node to the point within maximum distance
+	 * Returns the nearest node to the point within maximum distance.
 	 *
 	 * @param point    the point
 	 * @param distance the distance
@@ -329,7 +329,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the edge matching the pattern
+	 * Returns the edge matching the pattern.
 	 *
 	 * @param pattern the pattern
 	 */
@@ -348,7 +348,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the node matching the pattern
+	 * Returns the node matching the pattern.
 	 *
 	 * @param pattern the pattern
 	 */
@@ -362,7 +362,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the site matching the pattern
+	 * Returns the site matching the pattern.
 	 *
 	 * @param pattern the pattern
 	 */
@@ -376,7 +376,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the weights between the departure site and the destination site
+	 * Returns the weights between the departure site and the destination site.
 	 *
 	 * @param from the departure
 	 * @param to   the destination
@@ -394,13 +394,13 @@ public class GeoMap implements Constants {
 		return Optional.ofNullable(weights.get(pair)).orElse(0.0);
 	}
 
-	/** Returns the weight map */
+	/** Returns the weight map. */
 	public Map<Tuple2<MapNode, MapNode>, Double> getWeights() {
 		return weights;
 	}
 
 	/**
-	 * Returns the map with optimal speed limit for each edge
+	 * Returns the map with optimal speed limit for each edge.
 	 * <p>
 	 * The length of edge and the maximum speed limits determine the edge speed
 	 * limit
@@ -416,7 +416,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the map randomized weights
+	 * Returns the map randomized weights.
 	 *
 	 * @param minWeight the minimum weight value
 	 * @param random    the random generator
@@ -426,7 +426,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the map without the given edge
+	 * Returns the map without the given edge.
 	 *
 	 * @param edge the edge
 	 */
@@ -442,7 +442,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the map with removed node and edges
+	 * Returns the map with removed node and edges.
 	 *
 	 * @param node the node to remove
 	 */
@@ -483,7 +483,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the map with the given edges
+	 * Returns the map with the given edges.
 	 *
 	 * @param edges the edges
 	 */
@@ -494,7 +494,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the map with the give frequence
+	 * Returns the map with the give frequence.
 	 *
 	 * @param frequence the frequence
 	 */
@@ -503,7 +503,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the map with the a single given site
+	 * Returns the map with the a single given site.
 	 *
 	 * @param site the site
 	 */
@@ -514,7 +514,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the map with weight associated a departure and destination sites
+	 * Returns the map with weight associated a departure and destination sites.
 	 *
 	 * @param from   departure site
 	 * @param to     destination site
@@ -525,7 +525,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the map with weight associated to a key
+	 * Returns the map with weight associated to a key.
 	 *
 	 * @param key    the key
 	 * @param weight the weight
@@ -537,7 +537,7 @@ public class GeoMap implements Constants {
 	}
 
 	/**
-	 * Returns the map with the given weights
+	 * Returns the map with the given weights.
 	 *
 	 * @param weights the weights
 	 */

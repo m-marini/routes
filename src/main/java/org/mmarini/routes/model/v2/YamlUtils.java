@@ -38,12 +38,12 @@ import java.util.stream.StreamSupport;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * A set of utility functions to manipulate yaml
+ * Utility functions to manipulate yaml.
  */
 public interface YamlUtils {
 
 	/**
-	 * Returns the double value of json node
+	 * Returns the double value of json node.
 	 *
 	 * @param node         the node
 	 * @param defaultValue the default value
@@ -53,7 +53,7 @@ public interface YamlUtils {
 	}
 
 	/**
-	 * Returns the integer value of json node
+	 * Returns the integer value of json node.
 	 *
 	 * @param node         the node
 	 * @param defaultValue the default value
@@ -63,7 +63,7 @@ public interface YamlUtils {
 	}
 
 	/**
-	 * Returns the list of items from an iterator
+	 * Returns the list of items from an iterator.
 	 *
 	 * @param <T>      the type of items
 	 * @param iterator the iterator
@@ -74,7 +74,7 @@ public interface YamlUtils {
 	}
 
 	/**
-	 * Returns the stream of items from an iterator
+	 * Returns the stream of items from an iterator.
 	 *
 	 * @param <T>      the type of items
 	 * @param iterator the iterator

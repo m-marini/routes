@@ -60,11 +60,10 @@ import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
 
 /**
- * This is the main frame of the simulation.
+ * Main frame of the simulation and application entry point.
  * <p>
  * It contains the menu actions, the route map panel, the edge panel and the
- * explorer panel. It communicates with RouteMediator to manage the simulation.
- * All the menu actions are redirected to the controller to be resolved.
+ * explorer panel.
  * </p>
  *
  */
@@ -75,7 +74,7 @@ public class MainFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Application entry point
+	 * Application entry point.
 	 *
 	 * @param args unused
 	 */
@@ -126,7 +125,7 @@ public class MainFrame extends JFrame {
 	private final Observable<Double> speedObs;
 
 	/**
-	 * Creates the main frame
+	 * Creates the main frame.
 	 *
 	 * @param left   the left component
 	 * @param top    the top component
@@ -186,7 +185,7 @@ public class MainFrame extends JFrame {
 		init(left, top, bottom);
 	}
 
-	/** Returns the main frame with the content */
+	/** Returns the main frame with the content. */
 	private MainFrame createContent() {
 		final Container pane = getContentPane();
 		pane.setLayout(new BorderLayout());
@@ -196,7 +195,7 @@ public class MainFrame extends JFrame {
 		return this;
 	}
 
-	/** Returns the main frame with the menu bar */
+	/** Returns the main frame with the menu bar. */
 	private MainFrame createMenuBar() {
 		final JMenuBar bar = new JMenuBar();
 		final JMenu fileMenu = new JMenu(Messages.getString("MainFrame.fileMenu.text")); //$NON-NLS-1$
@@ -244,7 +243,7 @@ public class MainFrame extends JFrame {
 		return this;
 	}
 
-	/** Returns the tool bar */
+	/** Returns the tool bar. */
 	private Component createToolBar() {
 		final JToolBar toolBar = new JToolBar();
 		toolBar.add(newButton);
@@ -253,47 +252,47 @@ public class MainFrame extends JFrame {
 		return toolBar;
 	}
 
-	/** Returns the observable of exit action */
+	/** Returns the observable of exit action. */
 	public Observable<ActionEvent> getExitObs() {
 		return exitObs;
 	}
 
-	/** Returns the observable of frequency action */
+	/** Returns the observable of frequency action. */
 	public Observable<ActionEvent> getFrequenceObs() {
 		return frequenceObs;
 	}
 
-	/** Returns the observable of new map action */
+	/** Returns the observable of new map action. */
 	public Observable<ActionEvent> getNewMapObs() {
 		return newMapObs;
 	}
 
-	/** Returns the observable of new random map action */
+	/** Returns the observable of new random map action. */
 	public Observable<ActionEvent> getNewRandomObs() {
 		return newRandomObs;
 	}
 
-	/** Returns the observable of open action */
+	/** Returns the observable of open action. */
 	public Observable<ActionEvent> getOpenMapObs() {
 		return openMapObs;
 	}
 
-	/** Returns the observable of optimize action */
+	/** Returns the observable of optimize action. */
 	public Observable<ActionEvent> getOptimizeObs() {
 		return optimizeObs;
 	}
 
-	/** Returns the observable of randomize action */
+	/** Returns the observable of randomize action. */
 	public Observable<ActionEvent> getRandomizeObs() {
 		return randomizeObs;
 	}
 
-	/** Returns the observable of routes action */
+	/** Returns the observable of routes action. */
 	public Observable<ActionEvent> getRoutesObs() {
 		return routesObs;
 	}
 
-	/** Returns the observable of save as action */
+	/** Returns the observable of save as action. */
 	public Observable<ActionEvent> getSaveMapAsObs() {
 		return saveMapAsObs;
 	}
@@ -303,23 +302,23 @@ public class MainFrame extends JFrame {
 		return saveMapObs;
 	}
 
-	/** Returns the observable of speed action */
+	/** Returns the observable of speed action. */
 	public Observable<Double> getSpeedObs() {
 		return speedObs;
 	}
 
-	/** Returns the observable of stop action */
+	/** Returns the observable of stop action. */
 	public Observable<ActionEvent> getStopObs() {
 		return stopObs;
 	}
 
-	/** Returns the observable of vehicle info action */
+	/** Returns the observable of vehicle info action. */
 	public Observable<ActionEvent> getVehicleInfoObs() {
 		return vehicleInfoObs;
 	}
 
 	/**
-	 * InitializeS main frame
+	 * InitializeS main frame.
 	 *
 	 * @param left   left component
 	 * @param top    right component
@@ -358,13 +357,13 @@ public class MainFrame extends JFrame {
 		return this;
 	}
 
-	/** Returns true if simulation is stopped */
+	/** Returns true if simulation is stopped. */
 	public boolean isStopped() {
 		return stopMenuItem.isSelected();
 	}
 
 	/**
-	 * Resets the title
+	 * Resets the title.
 	 *
 	 * @return the main frame
 	 */
@@ -374,7 +373,7 @@ public class MainFrame extends JFrame {
 	}
 
 	/**
-	 * Set the enabling of save action
+	 * Set the enabling of save action.
 	 *
 	 * @param enabled true if enabled
 	 * @return the main frame

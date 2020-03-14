@@ -30,7 +30,7 @@ import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
 
 /**
- * The module selector
+ * Selector of modules.
  */
 public class ModuleSelector {
 	private static final int ICON_HEIGHT = 20;
@@ -42,7 +42,7 @@ public class ModuleSelector {
 	private static final Logger logger = LoggerFactory.getLogger(ModuleSelector.class);
 
 	/**
-	 * Returns the icon for a given module
+	 * Returns the icon for a given module.
 	 *
 	 * @param module the module
 	 */
@@ -72,7 +72,7 @@ public class ModuleSelector {
 	private final Observable<Tuple2<ActionEvent, MapModule>> moduleObs;
 
 	/**
-	 * Creates the selector
+	 * Creates the selector.
 	 *
 	 * @param modules the list of modules
 	 */
@@ -105,17 +105,17 @@ public class ModuleSelector {
 		});
 	}
 
-	/** Returns the drop down button */
+	/** Returns the drop down button. */
 	public JButton getDropDownButton() {
 		return dropDownButton;
 	}
 
-	/** Returns the items */
+	/** Returns the items. */
 	public List<JMenuItem> getItems() {
 		return items;
 	}
 
-	/** Returns the observable of selected module */
+	/** Returns the observable of selected module. */
 	public Observable<Tuple2<ActionEvent, MapModule>> getModuleObs() {
 		return moduleObs;
 	}

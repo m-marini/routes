@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 import io.reactivex.rxjava3.core.Observable;
 
 /**
- * The controller for the main frame
+ * Controller for the main frame.
  * <p>
  * The controller manages all the user interactions from the main frame to the
  * main controller and other components
@@ -68,7 +68,7 @@ public class MainFrameController {
 	private final ControllerFunctions controller;
 
 	/**
-	 * Creates the main frame controller
+	 * Creates the main frame controller.
 	 *
 	 * @param mainFrame   the main frame
 	 * @param fileChooser the file chooser
@@ -88,7 +88,7 @@ public class MainFrameController {
 	}
 
 	/**
-	 * Builds the subscriptions for actions
+	 * Builds the subscriptions for actions.
 	 *
 	 * @param random the random generator
 	 * @return the controller
@@ -254,7 +254,7 @@ public class MainFrameController {
 	}
 
 	/**
-	 * Handles of save action
+	 * Handles of save action.
 	 *
 	 * @param status the status
 	 * @return the controller

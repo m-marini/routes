@@ -12,7 +12,7 @@ import org.mmarini.routes.model.v2.MapNode;
 import io.reactivex.rxjava3.core.Observable;
 
 /**
- * The controller for the keyboard command
+ * Controller for the keyboard command.
  * <p>
  * The controller manages all the user interactions from the keyboard to the
  * main controller and other components
@@ -25,7 +25,7 @@ public class KeyController implements Constants {
 	private final Observable<UIStatus> uiStatusObs;
 
 	/**
-	 * Creates the controller
+	 * Creates the controller.
 	 *
 	 * @param routeMap    the route map
 	 * @param uiStatusObs the observable of ui status
@@ -39,7 +39,7 @@ public class KeyController implements Constants {
 	}
 
 	/**
-	 * Create the binding to the keyboard
+	 * Create the binding to the keyboard.
 	 *
 	 * @return the controller
 	 */

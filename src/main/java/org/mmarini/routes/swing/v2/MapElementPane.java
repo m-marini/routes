@@ -36,7 +36,7 @@ import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;
 
 /**
- * The map element panel.
+ * Panel with map element.
  * <p>
  * It is a card panel showing different panels. The shown panel may be a map or
  * edge or empty panel
@@ -55,7 +55,7 @@ public class MapElementPane extends JPanel {
 	private final EdgePane edgePane;
 
 	/**
-	 * Creates the map element panel
+	 * Creates the map element panel.
 	 *
 	 * @param nodePane the node panel
 	 * @param edgePane the edge panel
@@ -68,7 +68,7 @@ public class MapElementPane extends JPanel {
 	}
 
 	/**
-	 * Clears the selection of this panel showing an empty panel
+	 * Clears the selection of this panel showing an empty panel.
 	 *
 	 * @return the panel
 	 */
@@ -78,7 +78,7 @@ public class MapElementPane extends JPanel {
 	}
 
 	/**
-	 * Creates the content of panel
+	 * Creates the content of panel.
 	 *
 	 * @return the panel
 	 */
@@ -93,7 +93,7 @@ public class MapElementPane extends JPanel {
 	}
 
 	/**
-	 * Sets the content for an edge
+	 * Sets the content for an edge.
 	 *
 	 * @param edge the edge
 	 * @return the panel
@@ -105,7 +105,7 @@ public class MapElementPane extends JPanel {
 	}
 
 	/**
-	 * Sets the content for a node
+	 * Sets the content for a node.
 	 *
 	 * @param node the node
 	 * @return the panel

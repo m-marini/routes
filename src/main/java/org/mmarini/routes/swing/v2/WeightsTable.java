@@ -42,8 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The weights table woth the weights from a departure node to a destination
- * node
+ * Table with the weights from a departure node to a destination node.
  */
 public class WeightsTable extends JTable {
 	private class WeightsTableModel extends AbstractTableModel {
@@ -110,7 +109,7 @@ public class WeightsTable extends JTable {
 	private Map<Tuple2<MapNode, MapNode>, Double> weights;
 	private List<MapNode> nodes;
 
-	/** Creates the table */
+	/** Creates the table. */
 	public WeightsTable() {
 		logger.debug("WeightTable");
 		this.weights = Map.of();
@@ -122,13 +121,13 @@ public class WeightsTable extends JTable {
 		getTableHeader().setDefaultRenderer(headerRenderer);
 	}
 
-	/** Return the weights */
+	/** Return the weights. */
 	public Map<Tuple2<MapNode, MapNode>, Double> getWeights() {
 		return weights;
 	}
 
 	/**
-	 * Sets the weights
+	 * Sets the weights.
 	 *
 	 * @param weights the weights
 	 * @return the table
