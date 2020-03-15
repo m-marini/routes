@@ -37,7 +37,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.swing.JFileChooser;
@@ -62,6 +61,7 @@ import org.slf4j.LoggerFactory;
 
 import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 /**
@@ -104,7 +104,7 @@ public class Controller implements Constants, ControllerFunctions {
 	private final ScrollMap scrollMap;
 	private final MapViewPane mapViewPane;
 	private final ModuleSelector moduleSelector;
-	private final BehaviorSubject<UIStatus> uiStatusSubj;
+	private final Observer<UIStatus> uiStatusObser;
 	private final Observable<UIStatus> uiStatusObs;
 	private Random random;
 
@@ -129,8 +129,9 @@ public class Controller implements Constants, ControllerFunctions {
 		this.mainFrame = new MainFrame(mapViewPane, explorerPane, mapElementPane);
 		final Traffics status1 = loadDefault();
 		final UIStatus initStatus = UIStatus.create().setTraffics(status1);
-		this.uiStatusSubj = BehaviorSubject.createDefault(initStatus);
-		this.uiStatusObs = uiStatusSubj;
+		final BehaviorSubject<UIStatus> subj = BehaviorSubject.createDefault(initStatus);
+		this.uiStatusObser = subj;
+		this.uiStatusObs = subj;
 
 		this.fileChooser.setFileFilter(
 				new FileNameExtensionFilter(Messages.getString("Controller.filetype.title"), "yml", "rml")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -140,9 +141,7 @@ public class Controller implements Constants, ControllerFunctions {
 			mapViewPane.setModuleIcon(moduleSelector.getItems().get(0).getIcon());
 			mapViewPane.setModule(modules.get(0));
 		}
-		mapChanged(initStatus);
-		simulator.setEvent(status1);
-		startSimulator();
+		mapChanged(initStatus).startSimulator();
 		mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		mainFrame.setVisible(true);
 	}
@@ -153,12 +152,12 @@ public class Controller implements Constants, ControllerFunctions {
 	 * @return the controller
 	 */
 	private Controller bindAll() {
-		new MouseController(scrollMap, routeMap, mapElementPane, explorerPane, uiStatusSubj, uiStatusObs, this).build();
+		new MouseController(scrollMap, routeMap, mapElementPane, explorerPane, uiStatusObs, this).build();
 		new MainFrameController(mainFrame, fileChooser, uiStatusObs, simulator, this).build(random);
-		new MapViewPaneController(mapViewPane, scrollMap, routeMap, uiStatusSubj, uiStatusObs, this).build();
+		new MapViewPaneController(mapViewPane, scrollMap, routeMap, uiStatusObs, this).build();
 		new EdgePaneController(edgePane, routeMap, explorerPane, uiStatusObs, this).build();
 		new MapNodePaneController(nodePane, routeMap, explorerPane, uiStatusObs, this).build();
-		new ExplorerPaneController(explorerPane, routeMap, mapElementPane, uiStatusSubj, uiStatusObs, this).build();
+		new ExplorerPaneController(explorerPane, routeMap, mapElementPane, uiStatusObs, this).build();
 		new KeyController(routeMap, uiStatusObs, this).build();
 		return bindOnStatus().bindOnMouseWheel().bindOnModuleSelector();
 	}
@@ -172,15 +171,12 @@ public class Controller implements Constants, ControllerFunctions {
 		moduleSelector.getModuleObs().withLatestFrom(uiStatusObs, (t, s) -> {
 			return Tuple.of(s, t.get1(), t.get2());
 		}).subscribe(t -> {
-			request(tr -> {
-				final UIStatus st = t.get1();
-				final JMenuItem menuItem = (JMenuItem) t.get2().getSource();
-				final MapModule module = t.get3();
-				logger.debug("bindOnModuleSelector module={}", module);
-				mapViewPane.setModuleIcon(menuItem.getIcon()).setModule(module).selectModuleMode();
-				final UIStatus newSt = st.setMode(MapMode.DRAG_MODULE);
-				return newSt;
-			});
+			final UIStatus st = t.get1();
+			final JMenuItem menuItem = (JMenuItem) t.get2().getSource();
+			final MapModule module = t.get3();
+			logger.debug("bindOnModuleSelector module={}", module);
+			mapViewPane.setModuleIcon(menuItem.getIcon()).setModule(module).selectModuleMode();
+			changeStatus(st.setMode(MapMode.DRAG_MODULE));
 		}, this::showError);
 		return this;
 	}
@@ -201,7 +197,7 @@ public class Controller implements Constants, ControllerFunctions {
 			final Point pivot = ev.getPoint();
 			final UIStatus newStatus = scaleTo(st, newScale, pivot);
 			updateHud(newStatus, newStatus.toMapPoint(pivot));
-			uiStatusSubj.onNext(newStatus);
+			uiStatusObser.onNext(newStatus);
 		}, this::showError);
 		return this;
 	}
@@ -223,7 +219,7 @@ public class Controller implements Constants, ControllerFunctions {
 				.compose(SwingObservable.observeOnEdt()).subscribe(t -> {
 					final UIStatus uiStatus = t.get2().setTraffics(t.get1());
 					trafficChanged(uiStatus);
-					uiStatusSubj.onNext(uiStatus);
+					uiStatusObser.onNext(uiStatus);
 				}, this::showError);
 		return this;
 	}
@@ -234,6 +230,12 @@ public class Controller implements Constants, ControllerFunctions {
 		final Point2D pt = status.toScreenPoint(center);
 		final Point vp = computeViewportPosition(pt);
 		scrollMap.getViewport().setViewPosition(vp);
+		return this;
+	}
+
+	@Override
+	public Controller changeStatus(final UIStatus status) {
+		uiStatusObser.onNext(status);
 		return this;
 	}
 
@@ -309,21 +311,14 @@ public class Controller implements Constants, ControllerFunctions {
 
 	@Override
 	public Controller mapChanged(final UIStatus uiStatus) {
-		routeMap.setTraffics(uiStatus.getTraffics()).setGridSize(uiStatus.getGridSize()).clearSelection()
+		final Traffics traffics = uiStatus.getTraffics();
+		routeMap.setTraffics(traffics).setGridSize(uiStatus.getGridSize()).clearSelection()
 				.setTransform(uiStatus.getTransform()).setPreferredSize(uiStatus.getScreenMapSize());
 		scrollMap.repaint();
-		explorerPane.setMap(uiStatus.getTraffics().getMap());
+		explorerPane.setMap(traffics.getMap());
 		mapElementPane.clearSelection();
-		return this;
-	}
-
-	@Override
-	public Controller request(final Function<Traffics, UIStatus> changeStatus) {
-		simulator.request(traffics -> {
-			final UIStatus status = changeStatus.apply(traffics);
-			uiStatusSubj.onNext(status);
-			return status.getTraffics();
-		});
+		simulator.setEvent(traffics);
+		uiStatusObser.onNext(uiStatus);
 		return this;
 	}
 

@@ -58,32 +58,26 @@ public class MapNodePaneController implements Constants {
 		nodePane.getChangeObs().withLatestFrom(uiStatusObs, (node, st) -> {
 			return Tuple.of(st, node);
 		}).subscribe(t -> {
-			controller.request(tr -> {
-				final UIStatus st = t.get1();
-				final MapNode node = t.get2();
-				logger.debug("changeNode {} ", node); //$NON-NLS-1$
-				final Traffics nextSt = st.getTraffics().changeNode(node, (a, b) -> 1);
-				final UIStatus nextUiStatus = st.setTraffics(nextSt);
-				controller.mapChanged(nextUiStatus);
-				final GeoMap map = nextUiStatus.getTraffics().getMap();
-				routeMap.setSelectedSite(map.getSite(node));
-				routeMap.setSelectedNode(map.getNode(node));
-				explorerPane.setSelectedNode(node);
-				return nextUiStatus;
-			});
+			final UIStatus st = t.get1();
+			final MapNode node = t.get2();
+			logger.debug("changeNode {} ", node); //$NON-NLS-1$
+			final Traffics nextSt = st.getTraffics().changeNode(node, (a, b) -> 1);
+			final UIStatus nextUiStatus = st.setTraffics(nextSt);
+			final GeoMap map = nextUiStatus.getTraffics().getMap();
+			routeMap.setSelectedSite(map.getSite(node));
+			routeMap.setSelectedNode(map.getNode(node));
+			explorerPane.setSelectedNode(node);
+			controller.mapChanged(nextUiStatus);
 		}, controller::showError);
 
 		// delete node type
 		nodePane.getDeleteObs().withLatestFrom(uiStatusObs, (node, st) -> {
 			return Tuple.of(st, node);
 		}).subscribe(t -> {
-			controller.request(tr -> {
-				final UIStatus nextStatus = controller.deleteNode(t.get1(), t.get2());
-				controller.mapChanged(nextStatus);
-				explorerPane.clearSelection();
-				routeMap.clearSelection();
-				return nextStatus;
-			});
+			final UIStatus nextStatus = controller.deleteNode(t.get1(), t.get2());
+			explorerPane.clearSelection();
+			routeMap.clearSelection();
+			controller.mapChanged(nextStatus);
 		}, controller::showError);
 		return this;
 	}

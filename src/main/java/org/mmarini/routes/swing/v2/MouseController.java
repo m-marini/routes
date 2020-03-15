@@ -43,7 +43,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 
 /**
@@ -60,7 +59,6 @@ public class MouseController implements Constants {
 	private final RouteMap routeMap;
 	private final MapElementPane mapElementPane;
 	private final ExplorerPane explorerPane;
-	private final BehaviorSubject<UIStatus> uiStatusSubj;
 	private final Observable<UIStatus> uiStatusObs;
 	private final ControllerFunctions controller;
 
@@ -71,17 +69,15 @@ public class MouseController implements Constants {
 	 * @param routeMap       the route map
 	 * @param mapElementPane the map element panel
 	 * @param explorerPane   the explorer panel
-	 * @param uiStatusSubj   the subject of ui status
 	 * @param uiStatusObs    the observable of ui status
 	 * @param controller     the main controller
 	 */
 	public MouseController(final ScrollMap scrollMap, final RouteMap routeMap, final MapElementPane mapElementPane,
-			final ExplorerPane explorerPane, final BehaviorSubject<UIStatus> uiStatusSubj,
-			final Observable<UIStatus> uiStatusObs, final ControllerFunctions controller) {
+			final ExplorerPane explorerPane, final Observable<UIStatus> uiStatusObs,
+			final ControllerFunctions controller) {
 		this.scrollMap = scrollMap;
 		this.routeMap = routeMap;
 		this.explorerPane = explorerPane;
-		this.uiStatusSubj = uiStatusSubj;
 		this.uiStatusObs = uiStatusObs;
 		this.controller = controller;
 		this.mapElementPane = mapElementPane;
@@ -109,21 +105,18 @@ public class MouseController implements Constants {
 			case MouseEvent.MOUSE_MOVED: {
 				final Optional<Tuple2<Point2D, Point2D>> dragEdge = Optional.of(Tuple.of(startPoint, endPoint));
 				routeMap.setDragEdge(dragEdge);
-				uiStatusSubj.onNext(st.setDragEdge(dragEdge));
+				controller.changeStatus(st.setDragEdge(dragEdge));
 			}
 				break;
 			case MouseEvent.MOUSE_PRESSED:
 				logger.debug("bindOnDragEdge addEdge status {} {}", st, st.getTraffics().getTraffics().size()); //$NON-NLS-1$
-				controller.request(tr -> {
-					logger.debug("bindOnDragEdge addEdge {}", st); //$NON-NLS-1$
-					final UIStatus statusWithEdge = st.createEdge(startPoint, endPoint);
-					final Optional<Tuple2<Point2D, Point2D>> dragEdge = Optional.of(Tuple.of(endPoint, endPoint));
-					final UIStatus newStatus = statusWithEdge.setDragEdge(dragEdge);
-					logger.debug("bindOnDragEdge addEdge new status {} {}", newStatus, //$NON-NLS-1$
-							newStatus.getTraffics().getTraffics().size());
-					controller.mapChanged(newStatus);
-					return newStatus;
-				});
+				logger.debug("bindOnDragEdge addEdge {}", st); //$NON-NLS-1$
+				final UIStatus statusWithEdge = st.createEdge(startPoint, endPoint);
+				final Optional<Tuple2<Point2D, Point2D>> dragEdge = Optional.of(Tuple.of(endPoint, endPoint));
+				final UIStatus newStatus = statusWithEdge.setDragEdge(dragEdge);
+				logger.debug("bindOnDragEdge addEdge new status {} {}", newStatus, //$NON-NLS-1$
+						newStatus.getTraffics().getTraffics().size());
+				controller.mapChanged(newStatus);
 				break;
 			}
 		}, controller::showError);
@@ -156,7 +149,7 @@ public class MouseController implements Constants {
 				routeMap.setPivot(Optional.of(pivot)).setAngle(0.0);
 				scrollMap.repaint();
 				logger.debug("bindOnRotateModule drop pivot={}", pivot);
-				uiStatusSubj.onNext(st.setMode(MapMode.ROTATE_MODULE));
+				controller.changeStatus(st.setMode(MapMode.ROTATE_MODULE));
 			}
 			routeMap.requestFocus();
 		}, controller::showError);
@@ -229,20 +222,17 @@ public class MouseController implements Constants {
 				scrollMap.repaint();
 				break;
 			case MouseEvent.MOUSE_PRESSED:
-				controller.request(tr1 -> {
-					final Optional<MapModule> module = routeMap.getModule().map(m -> {
-						final AffineTransform tr = AffineTransform.getTranslateInstance(pivot.getX(), pivot.getY());
-						tr.rotate(angle);
-						return m.transform(tr);
-					});
-					final Traffics newTraffics = st.getTraffics()
-							.addEdges(module.map(MapModule::getEdges).orElse(Set.of()));
-					logger.debug("bindOnRotateModule drop angle={}", angle);
-					final UIStatus newStatus = st.setMode(MapMode.DRAG_MODULE).setTraffics(newTraffics);
-					routeMap.setPivot(Optional.of(pt)).setAngle(0.0);
-					controller.mapChanged(newStatus);
-					return newStatus;
+				final Optional<MapModule> module = routeMap.getModule().map(m -> {
+					final AffineTransform tr = AffineTransform.getTranslateInstance(pivot.getX(), pivot.getY());
+					tr.rotate(angle);
+					return m.transform(tr);
 				});
+				final Traffics newTraffics = st.getTraffics()
+						.addEdges(module.map(MapModule::getEdges).orElse(Set.of()));
+				logger.debug("bindOnRotateModule drop angle={}", angle);
+				final UIStatus newStatus = st.setMode(MapMode.DRAG_MODULE).setTraffics(newTraffics);
+				routeMap.setPivot(Optional.of(pt)).setAngle(0.0);
+				controller.mapChanged(newStatus);
 			}
 			routeMap.requestFocus();
 		}, controller::showError);
@@ -268,7 +258,7 @@ public class MouseController implements Constants {
 			routeMap.setSelectedEdge(Optional.empty()).setSelectedNode(Optional.empty())
 					.setSelectedSite(Optional.empty()).setDragEdge(dragEdge);
 			scrollMap.repaint();
-			uiStatusSubj.onNext(st.setDragEdge(dragEdge).setMode(MapMode.DRAG_EDGE));
+			controller.changeStatus(st.setDragEdge(dragEdge).setMode(MapMode.DRAG_EDGE));
 			routeMap.requestFocus();
 		}, controller::showError);
 		return this;

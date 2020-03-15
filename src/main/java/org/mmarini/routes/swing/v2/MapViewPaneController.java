@@ -39,7 +39,6 @@ import org.mmarini.routes.model.v2.Tuple;
 import org.mmarini.routes.swing.v2.UIStatus.MapMode;
 
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 /**
  * Controller for map view panel.
@@ -61,25 +60,23 @@ public class MapViewPaneController {
 	private final MapViewPane mapViewPane;
 	private final ScrollMap scrollMap;
 	private final RouteMap routeMap;
-	private final BehaviorSubject<UIStatus> uiStatusSubj;
 	private final Observable<UIStatus> uiStatusObs;
 	private final ControllerFunctions controller;
 
 	/**
-	 * @param mapViewPane
-	 * @param scrollMap
-	 * @param routeMap
-	 * @param uiStatusSubj
-	 * @param uiStatusObs
-	 * @param controller
+	 * Creates the controller.
+	 *
+	 * @param mapViewPane the map view panel
+	 * @param scrollMap   the scroll map panel
+	 * @param routeMap    the route map panel
+	 * @param uiStatusObs the observable of ui status
+	 * @param controller  the controller
 	 */
 	public MapViewPaneController(final MapViewPane mapViewPane, final ScrollMap scrollMap, final RouteMap routeMap,
-			final BehaviorSubject<UIStatus> uiStatusSubj, final Observable<UIStatus> uiStatusObs,
-			final ControllerFunctions controller) {
+			final Observable<UIStatus> uiStatusObs, final ControllerFunctions controller) {
 		this.mapViewPane = mapViewPane;
 		this.scrollMap = scrollMap;
 		this.routeMap = routeMap;
-		this.uiStatusSubj = uiStatusSubj;
 		this.uiStatusObs = uiStatusObs;
 		this.controller = controller;
 	}
@@ -91,55 +88,49 @@ public class MapViewPaneController {
 	 */
 	public MapViewPaneController build() {
 		mapViewPane.getEdgeModeObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			controller.request(tr -> {
-				routeMap.setModule(Optional.empty()).setDragEdge(Optional.empty())
-						.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-				final UIStatus newStatus = st.setMode(MapMode.START_EDGE).setDragEdge(Optional.empty());
-				return newStatus;
-			});
+			routeMap.setModule(Optional.empty()).setDragEdge(Optional.empty())
+					.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+			final UIStatus newStatus = st.setMode(MapMode.START_EDGE).setDragEdge(Optional.empty());
+			controller.changeStatus(newStatus);
 		}, controller::showError);
 
 		mapViewPane.getSelectModeObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			controller.request(tr -> {
-				routeMap.setModule(Optional.empty()).setDragEdge(Optional.empty())
-						.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-				final UIStatus newStatus = st.setMode(MapMode.SELECTION).setDragEdge(Optional.empty());
-				return newStatus;
-			});
+			routeMap.setModule(Optional.empty()).setDragEdge(Optional.empty())
+					.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+			final UIStatus newStatus = st.setMode(MapMode.SELECTION).setDragEdge(Optional.empty());
+			controller.changeStatus(newStatus);
 		}, controller::showError);
 
 		mapViewPane.getModuleModeObs().withLatestFrom(uiStatusObs, (m, st) -> {
 			return Tuple.of(st, m);
 		}).subscribe(t -> {
-			controller.request(tr -> {
-				final UIStatus st = t.get1();
-				final MapModule module = t.get2();
-				final UIStatus newStatus = st.setMode(MapMode.DRAG_MODULE);
-				final Optional<MapModule> moduleOpt = Optional.of(module);
-				routeMap.setDragEdge(Optional.empty()).setModule(moduleOpt);
-				return newStatus;
-			});
+			final UIStatus st = t.get1();
+			final MapModule module = t.get2();
+			final UIStatus newStatus = st.setMode(MapMode.DRAG_MODULE);
+			final Optional<MapModule> moduleOpt = Optional.of(module);
+			routeMap.setDragEdge(Optional.empty()).setModule(moduleOpt);
+			controller.changeStatus(newStatus);
 		}, controller::showError);
 
 		mapViewPane.getZoomDefaultObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
 			final Rectangle rect = scrollMap.getViewport().getViewRect();
 			final Point pivot = toPoint(new Point2D.Double(rect.getCenterX(), rect.getCenterY()));
 			final UIStatus newStatus = controller.scaleTo(st, UIStatus.DEFAULT_SCALE, pivot);
-			uiStatusSubj.onNext(newStatus);
+			controller.changeStatus(newStatus);
 		}, controller::showError);
 
 		mapViewPane.getZoomInObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
 			final Rectangle rect = scrollMap.getViewport().getViewRect();
 			final Point pivot = toPoint(new Point2D.Double(rect.getCenterX(), rect.getCenterY()));
 			final UIStatus newStatus = controller.scaleTo(st, st.getScale() * Controller.SCALE_FACTOR, pivot);
-			uiStatusSubj.onNext(newStatus);
+			controller.changeStatus(newStatus);
 		}, controller::showError);
 
 		mapViewPane.getZoomOutObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
 			final Rectangle rect = scrollMap.getViewport().getViewRect();
 			final Point pivot = toPoint(new Point2D.Double(rect.getCenterX(), rect.getCenterY()));
 			final UIStatus newStatus = controller.scaleTo(st, st.getScale() / Controller.SCALE_FACTOR, pivot);
-			uiStatusSubj.onNext(newStatus);
+			controller.changeStatus(newStatus);
 		}, controller::showError);
 
 		mapViewPane.getFitInWindowObs().withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
@@ -151,7 +142,7 @@ public class MapViewPaneController {
 			final double scaleStep = Math.floor(Math.log(newScale1) / Math.log(Controller.SCALE_FACTOR));
 			final double newScale = Math.pow(Controller.SCALE_FACTOR, scaleStep);
 			final UIStatus newStatus = controller.scaleTo(st, newScale, new Point());
-			uiStatusSubj.onNext(newStatus);
+			controller.changeStatus(newStatus);
 		}, controller::showError);
 
 		mapViewPane.getTrafficViewObs().subscribe(ev -> {

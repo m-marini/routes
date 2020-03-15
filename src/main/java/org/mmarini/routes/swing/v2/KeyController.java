@@ -50,22 +50,18 @@ public class KeyController implements Constants {
 			return ev.getID() == KeyEvent.KEY_PRESSED
 					&& (ev.getKeyCode() == KeyEvent.VK_BACK_SPACE || ev.getKeyCode() == KeyEvent.VK_DELETE);
 		}).withLatestFrom(uiStatusObs, (ev, st) -> st).subscribe(st -> {
-			controller.request(tr -> {
-				final Optional<MapNode> mapNode = routeMap.getSelectedSite().or(() -> {
-					return routeMap.getSelectedNode();
-				});
-				final Optional<UIStatus> deleteNodeProcess = mapNode.map(node -> {
-					return controller.deleteNode(st, node);
-				});
-				final Optional<UIStatus> deleteProcess = deleteNodeProcess.or(() -> {
-					final Optional<UIStatus> sta = routeMap.getSelectedEdge()
-							.map(edge -> controller.deleteEdge(st, edge));
-					return sta;
-				});
-				final UIStatus nextStatus = deleteProcess.orElse(st);
-				controller.mapChanged(nextStatus);
-				return nextStatus;
+			final Optional<MapNode> mapNode = routeMap.getSelectedSite().or(() -> {
+				return routeMap.getSelectedNode();
 			});
+			final Optional<UIStatus> deleteNodeProcess = mapNode.map(node -> {
+				return controller.deleteNode(st, node);
+			});
+			final Optional<UIStatus> deleteProcess = deleteNodeProcess.or(() -> {
+				final Optional<UIStatus> sta = routeMap.getSelectedEdge().map(edge -> controller.deleteEdge(st, edge));
+				return sta;
+			});
+			final UIStatus nextStatus = deleteProcess.orElse(st);
+			controller.mapChanged(nextStatus);
 		}, controller::showError);
 
 		return this;
