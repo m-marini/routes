@@ -81,7 +81,7 @@ public interface ControllerFunctions {
 	public ControllerFunctions mapChanged(final UIStatus status);
 
 	/**
-	 * Returns the new ui status due to a scale change.
+	 * Changes the scale
 	 * <p>
 	 * It computes the viewport position and zoom of scroll map.
 	 * </p>
@@ -90,7 +90,7 @@ public interface ControllerFunctions {
 	 * @param scale  the scale factor
 	 * @param pivot  the pivot point of scale function
 	 */
-	public UIStatus scaleTo(final UIStatus status, final double scale, final Point pivot);
+	public ControllerFunctions scaleTo(final UIStatus status, final double scale, final Point pivot);
 
 	/**
 	 * Shows an error message.

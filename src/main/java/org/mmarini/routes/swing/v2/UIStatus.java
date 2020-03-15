@@ -251,15 +251,6 @@ public class UIStatus implements Constants {
 	}
 
 	/**
-	 * Returns the UIStatus with a new scale.
-	 *
-	 * @param scale the scale
-	 */
-	public UIStatus setScale(final double scale) {
-		return new UIStatus(traffics, mode, dragEdge, speedLimit);
-	}
-
-	/**
 	 * Returns the UIStatus with a speed limit.
 	 *
 	 * @param speedLimit the speed limit in meters/second

@@ -195,9 +195,7 @@ public class Controller implements Constants, ControllerFunctions {
 			final double newScale = routeMap.getScale() * Math.pow(SCALE_FACTOR, -ev.getPreciseWheelRotation());
 			logger.debug("bindOnMouseWheel scale {} -> {}", routeMap.getScale(), newScale);
 			final Point pivot = ev.getPoint();
-			final UIStatus newStatus = scaleTo(st, newScale, pivot);
-			updateHud(newStatus, routeMap.toMapPoint(pivot));
-			changeStatus(newStatus);
+			scaleTo(st, newScale, pivot);
 		}, this::showError);
 		return this;
 	}
@@ -323,15 +321,14 @@ public class Controller implements Constants, ControllerFunctions {
 	}
 
 	@Override
-	public UIStatus scaleTo(final UIStatus status, final double scale, final Point pivot) {
-		routeMap.setScale(scale);
-		final UIStatus newStatus = status.setScale(scale);
+	public Controller scaleTo(final UIStatus status, final double scale, final Point pivot) {
 		final Point vp = scrollMap.getViewport().getViewPosition();
 		final Point newVp = routeMap.computeViewporPositionWithScale(vp, pivot, scale);
+		routeMap.setScale(scale);
 		scrollMap.getViewport().setViewPosition(newVp);
 		scrollMap.repaint();
-		updateHud(newStatus, routeMap.toMapPoint(pivot));
-		return newStatus;
+		updateHud(status, routeMap.toMapPoint(pivot));
+		return this;
 	}
 
 	@Override

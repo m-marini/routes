@@ -115,22 +115,19 @@ public class MapViewPaneController {
 		mapViewPane.getZoomDefaultFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
 			final Rectangle rect = scrollMap.getViewport().getViewRect();
 			final Point pivot = toPoint(new Point2D.Double(rect.getCenterX(), rect.getCenterY()));
-			final UIStatus newStatus = controller.scaleTo(st, RouteMap.DEFAULT_SCALE, pivot);
-			controller.changeStatus(newStatus);
+			controller.scaleTo(st, RouteMap.DEFAULT_SCALE, pivot);
 		}, controller::showError);
 
 		mapViewPane.getZoomInFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
 			final Rectangle rect = scrollMap.getViewport().getViewRect();
 			final Point pivot = toPoint(new Point2D.Double(rect.getCenterX(), rect.getCenterY()));
-			final UIStatus newStatus = controller.scaleTo(st, routeMap.getScale() * Controller.SCALE_FACTOR, pivot);
-			controller.changeStatus(newStatus);
+			controller.scaleTo(st, routeMap.getScale() * Controller.SCALE_FACTOR, pivot);
 		}, controller::showError);
 
 		mapViewPane.getZoomOutFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
 			final Rectangle rect = scrollMap.getViewport().getViewRect();
 			final Point pivot = toPoint(new Point2D.Double(rect.getCenterX(), rect.getCenterY()));
-			final UIStatus newStatus = controller.scaleTo(st, routeMap.getScale() / Controller.SCALE_FACTOR, pivot);
-			controller.changeStatus(newStatus);
+			controller.scaleTo(st, routeMap.getScale() / Controller.SCALE_FACTOR, pivot);
 		}, controller::showError);
 
 		mapViewPane.getFitInWindowFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
@@ -141,8 +138,7 @@ public class MapViewPaneController {
 			final double newScale1 = Math.min(sx, sy);
 			final double scaleStep = Math.floor(Math.log(newScale1) / Math.log(Controller.SCALE_FACTOR));
 			final double newScale = Math.pow(Controller.SCALE_FACTOR, scaleStep);
-			final UIStatus newStatus = controller.scaleTo(st, newScale, new Point());
-			controller.changeStatus(newStatus);
+			controller.scaleTo(st, newScale, new Point());
 		}, controller::showError);
 
 		mapViewPane.getTrafficViewFlow().subscribe(ev -> {
