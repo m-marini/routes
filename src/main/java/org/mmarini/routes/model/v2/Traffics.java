@@ -173,7 +173,7 @@ public class Traffics implements Constants {
 		return map;
 	}
 
-	/** Returns the map bound */
+	/** Returns the map bound. */
 	public Rectangle2D getMapBound() {
 		return map.getBound();
 	}

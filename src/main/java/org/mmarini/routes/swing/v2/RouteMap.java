@@ -162,6 +162,7 @@ public class RouteMap extends JComponent implements Constants {
 			final Color majorColor = trafficView ? MAJOR_GRID_REVERSED_COLOR : MAJOR_GRID_COLOR;
 			graphics.setStroke(THIN_STROKE);
 
+			final double gridSize = getGridSize();
 			final long i0 = (long) Math.floor(bound.getMinX() / gridSize);
 			final long i1 = (long) Math.floor(bound.getMaxX() / gridSize) + 1;
 			final long j0 = (long) Math.floor(bound.getMinY() / gridSize);
@@ -387,18 +388,14 @@ public class RouteMap extends JComponent implements Constants {
 		}
 	}
 
+	private static final Logger logger = LoggerFactory.getLogger(RouteMap.class);
+
 	public static final int MAP_INSETS = 60;
 	public static final double DEFAULT_SCALE = 1;
 	private static final double MIN_GRID_SIZE_METERS = 1;
-
 	private static final int MIN_GRID_SIZE_PIXELS = 10;
-
 	private static final double CURSOR_SELECTION_PRECISION = 10;
-
 	private static final long serialVersionUID = 1L;
-
-	private static final Logger logger = LoggerFactory.getLogger(RouteMap.class);
-
 	public static final double VEHICLE_WIDTH = 3;
 	public static final double EDGE_WIDTH = 5;
 	public static final double SITE_SIZE = 10;
@@ -436,7 +433,6 @@ public class RouteMap extends JComponent implements Constants {
 	private boolean trafficView;
 	private Optional<Traffics> traffics;
 	private AffineTransform transform;
-	private final double gridSize;
 	private Optional<MapNode> selectedNode;
 	private Optional<MapEdge> selectedEdge;
 	private Optional<MapNode> selectedSite;
@@ -450,7 +446,6 @@ public class RouteMap extends JComponent implements Constants {
 	public RouteMap() {
 		super();
 		this.transform = new AffineTransform();
-		this.gridSize = 10;
 		this.mouseFlow = SwingUtils.mouse(this);
 		this.mouseWheelFlow = SwingUtils.mouseWheel(this);
 		this.keyboardFlow = SwingUtils.keyboard(this);

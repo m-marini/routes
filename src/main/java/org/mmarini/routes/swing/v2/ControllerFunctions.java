@@ -81,7 +81,7 @@ public interface ControllerFunctions {
 	public ControllerFunctions mapChanged(final UIStatus status);
 
 	/**
-	 * Changes the scale
+	 * Changes the scale.
 	 * <p>
 	 * It computes the viewport position and zoom of scroll map.
 	 * </p>
@@ -89,6 +89,7 @@ public interface ControllerFunctions {
 	 * @param status the initial status
 	 * @param scale  the scale factor
 	 * @param pivot  the pivot point of scale function
+	 * @return the controller
 	 */
 	public ControllerFunctions scaleTo(final UIStatus status, final double scale, final Point pivot);
 
@@ -119,7 +120,7 @@ public interface ControllerFunctions {
 	public ControllerFunctions updateHud(UIStatus status, Point2D point);
 
 	/**
-	 * Executes an action with stopped simulator
+	 * Executes an action with stopped simulator.
 	 *
 	 * @param action the action
 	 * @return the controller
