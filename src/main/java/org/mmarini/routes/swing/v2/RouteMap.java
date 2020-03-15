@@ -31,6 +31,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Shape;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -63,7 +64,6 @@ import io.reactivex.rxjava3.core.Flowable;
  * Component that renders the traffics map.
  */
 public class RouteMap extends JComponent implements Constants {
-
 	private class Painter {
 		private final Graphics2D graphics;
 		private final Map<MapNode, Color> colorMap;
@@ -162,6 +162,7 @@ public class RouteMap extends JComponent implements Constants {
 			final Color majorColor = trafficView ? MAJOR_GRID_REVERSED_COLOR : MAJOR_GRID_COLOR;
 			graphics.setStroke(THIN_STROKE);
 
+			final double gridSize = getGridSize();
 			final long i0 = (long) Math.floor(bound.getMinX() / gridSize);
 			final long i1 = (long) Math.floor(bound.getMaxX() / gridSize) + 1;
 			final long j0 = (long) Math.floor(bound.getMinY() / gridSize);
@@ -387,10 +388,14 @@ public class RouteMap extends JComponent implements Constants {
 		}
 	}
 
-	private static final long serialVersionUID = 1L;
-
 	private static final Logger logger = LoggerFactory.getLogger(RouteMap.class);
 
+	public static final int MAP_INSETS = 60;
+	public static final double DEFAULT_SCALE = 1;
+	private static final double MIN_GRID_SIZE_METERS = 1;
+	private static final int MIN_GRID_SIZE_PIXELS = 10;
+	private static final double CURSOR_SELECTION_PRECISION = 10;
+	private static final long serialVersionUID = 1L;
 	public static final double VEHICLE_WIDTH = 3;
 	public static final double EDGE_WIDTH = 5;
 	public static final double SITE_SIZE = 10;
@@ -428,7 +433,6 @@ public class RouteMap extends JComponent implements Constants {
 	private boolean trafficView;
 	private Optional<Traffics> traffics;
 	private AffineTransform transform;
-	private double gridSize;
 	private Optional<MapNode> selectedNode;
 	private Optional<MapEdge> selectedEdge;
 	private Optional<MapNode> selectedSite;
@@ -436,12 +440,12 @@ public class RouteMap extends JComponent implements Constants {
 	private Optional<MapModule> module;
 	private Optional<Point2D> pivot;
 	private double angle;
+	private double scale;
 
 	/** Creates the component. */
 	public RouteMap() {
 		super();
 		this.transform = new AffineTransform();
-		this.gridSize = 10;
 		this.mouseFlow = SwingUtils.mouse(this);
 		this.mouseWheelFlow = SwingUtils.mouseWheel(this);
 		this.keyboardFlow = SwingUtils.keyboard(this);
@@ -449,6 +453,7 @@ public class RouteMap extends JComponent implements Constants {
 		this.module = Optional.empty();
 		this.pivot = Optional.empty();
 		this.angle = 0;
+		this.scale = DEFAULT_SCALE;
 		setFocusable(true);
 		setRequestFocusEnabled(true);
 		requestFocus();
@@ -475,9 +480,49 @@ public class RouteMap extends JComponent implements Constants {
 		return this;
 	}
 
+	/**
+	 * Returns the location for a pivot point.
+	 *
+	 * @param viewportPosition the viewport point
+	 * @param pivot            the pivot point
+	 * @param newScale         the new scale
+	 */
+	public Point computeViewporPositionWithScale(final Point viewportPosition, final Point pivot,
+			final double newScale) {
+		final int x = Math.max(0,
+				(int) Math.round((pivot.x - MAP_INSETS) * (newScale / scale - 1) + viewportPosition.x));
+		final int y = Math.max(0,
+				(int) Math.round((pivot.y - MAP_INSETS) * (newScale / scale - 1) + viewportPosition.y));
+		final Point corner = new Point(x, y);
+		return corner;
+	}
+
+	/** Returns the affine transform */
+	private AffineTransform createTransform() {
+		final AffineTransform result1 = traffics.map(tr -> {
+			final Rectangle2D mapBound = tr.getMapBound();
+			final AffineTransform result = AffineTransform.getTranslateInstance(MAP_INSETS, MAP_INSETS);
+			result.scale(scale, scale);
+			result.translate(-mapBound.getMinX(), -mapBound.getMinY());
+			return result;
+		}).orElseGet(() -> new AffineTransform());
+		return result1;
+	}
+
 	/** Returns the angle of module rotation. */
 	public double getAngle() {
 		return angle;
+	}
+
+	public double getGridSize() {
+		// size meters to have a grid of at least 10 pixels in the screen
+		final double size = MIN_GRID_SIZE_PIXELS / scale;
+		// Minimum grid of size 1 m
+		double gridSize = MIN_GRID_SIZE_METERS;
+		while (size > gridSize) {
+			gridSize *= 10;
+		}
+		return gridSize;
 	}
 
 	/** Returns the flowable of keyboard. */
@@ -505,6 +550,23 @@ public class RouteMap extends JComponent implements Constants {
 		return pivot;
 	}
 
+	@Override
+	public Dimension getPreferredSize() {
+		final Dimension result1 = traffics.map(tr -> {
+			final Rectangle2D bound = tr.getMapBound();
+			final int width = (int) Math.round(bound.getWidth() * scale) + MAP_INSETS * 2;
+			final int height = (int) Math.round(bound.getHeight() * scale) + MAP_INSETS * 2;
+			final Dimension result = new Dimension(width, height);
+			return result;
+		}).orElseGet(super::getPreferredSize);
+		return result1;
+	}
+
+	/** Returns the scale */
+	public double getScale() {
+		return scale;
+	}
+
 	/** Returns the selected edge. */
 	Optional<MapEdge> getSelectedEdge() {
 		return selectedEdge;
@@ -522,7 +584,6 @@ public class RouteMap extends JComponent implements Constants {
 
 	/** Returns true if border is painted. */
 	boolean isBorderPainted() {
-		final double scale = Math.max(transform.getScaleX(), transform.getScaleY());
 		final boolean borderPainted = scale >= BORDER_SCALE;
 		return borderPainted;
 	}
@@ -574,18 +635,6 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Sets the grid size.
-	 *
-	 * @param gridSize the grid size in meters
-	 * @return the map component
-	 */
-	public RouteMap setGridSize(final double gridSize) {
-		logger.debug("setGridSize {}", gridSize);
-		this.gridSize = gridSize;
-		return this;
-	}
-
-	/**
 	 * Sets the module.
 	 *
 	 * @param module the module
@@ -604,6 +653,19 @@ public class RouteMap extends JComponent implements Constants {
 	 */
 	public RouteMap setPivot(final Optional<Point2D> pivot) {
 		this.pivot = pivot;
+		return this;
+	}
+
+	/**
+	 * Sets the scale
+	 *
+	 * @param scale the scale
+	 * @return the panel
+	 *
+	 */
+	public RouteMap setScale(final double scale) {
+		this.scale = scale;
+		this.transform = createTransform();
 		return this;
 	}
 
@@ -651,6 +713,7 @@ public class RouteMap extends JComponent implements Constants {
 	 */
 	public RouteMap setTraffics(final Traffics traffics) {
 		this.traffics = Optional.ofNullable(traffics);
+		this.transform = createTransform();
 		return this;
 	}
 
@@ -666,13 +729,39 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Sets the map affine transform.
+	 * Returns the point snap to the nearest node.
 	 *
-	 * @param transform the transform from map coordinate to screen coordinate
-	 * @return the map component
+	 * @param point the point n the map
 	 */
-	public RouteMap setTransform(final AffineTransform transform) {
-		this.transform = transform;
-		return this;
+	public Point2D snapToNode(final Point2D point) {
+		final double precision = CURSOR_SELECTION_PRECISION / scale;
+		final Optional<MapNode> node = traffics.flatMap(tr -> {
+			return tr.getMap().findNearst(point, precision);
+		});
+		final Point2D result = node.map(MapNode::getLocation).orElse(point);
+		return result;
+	}
+
+	/**
+	 * Returns the point in the map from point in the viewport..
+	 *
+	 * @param point viewport point
+	 */
+	public Point2D toMapPoint(final Point2D point) {
+		try {
+			return transform.inverseTransform(point, new Point2D.Double());
+		} catch (final NoninvertibleTransformException e) {
+			logger.error(e.getMessage(), e);
+			return point;
+		}
+	}
+
+	/**
+	 * Returns the point in the viewport from map.
+	 *
+	 * @param point point in the map
+	 */
+	public Point2D toScreenPoint(final Point2D point) {
+		return transform.transform(point, new Point2D.Double());
 	}
 }

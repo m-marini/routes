@@ -32,6 +32,8 @@ import java.awt.geom.Point2D;
 import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;
 
+import io.reactivex.rxjava3.functions.Action;
+
 /**
  * Controller functions
  */
@@ -79,7 +81,7 @@ public interface ControllerFunctions {
 	public ControllerFunctions mapChanged(final UIStatus status);
 
 	/**
-	 * Returns the new ui status due to a scale change.
+	 * Changes the scale.
 	 * <p>
 	 * It computes the viewport position and zoom of scroll map.
 	 * </p>
@@ -87,8 +89,9 @@ public interface ControllerFunctions {
 	 * @param status the initial status
 	 * @param scale  the scale factor
 	 * @param pivot  the pivot point of scale function
+	 * @return the controller
 	 */
-	public UIStatus scaleTo(final UIStatus status, final double scale, final Point pivot);
+	public ControllerFunctions scaleTo(final UIStatus status, final double scale, final Point pivot);
 
 	/**
 	 * Shows an error message.
@@ -115,4 +118,13 @@ public interface ControllerFunctions {
 	 * @return the controller
 	 */
 	public ControllerFunctions updateHud(UIStatus status, Point2D point);
+
+	/**
+	 * Executes an action with stopped simulator.
+	 *
+	 * @param action the action
+	 * @return the controller
+	 * @throws Throwable in case of error
+	 */
+	public ControllerFunctions withSimulationStop(Action action) throws Throwable;
 }

@@ -26,22 +26,13 @@
 
 package org.mmarini.routes.swing.v2;
 
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalDouble;
 import java.util.Random;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.mmarini.routes.model.v2.Constants;
-import org.mmarini.routes.model.v2.GeoMap;
 import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;
 import org.mmarini.routes.model.v2.Traffics;
@@ -58,17 +49,11 @@ public class UIStatus implements Constants {
 		SELECTION, START_EDGE, DRAG_EDGE, DRAG_MODULE, ROTATE_MODULE
 	}
 
-	public static final int MAP_INSETS = 60;
-	public static final double DEFAULT_SCALE = 1;
-	private static final double MIN_GRID_SIZE_METERS = 1;
-	private static final int MIN_GRID_SIZE_PIXELS = 10;
-	private static final double CURSOR_SELECTION_PRECISION = 10;
-
 	private static final Logger logger = LoggerFactory.getLogger(UIStatus.class);
 
 	/** Returns default status. */
 	public static UIStatus create() {
-		return new UIStatus(DEFAULT_SCALE, Traffics.create(), MapMode.SELECTION, Optional.empty(),
+		return new UIStatus(Traffics.create(), MapMode.SELECTION, Optional.empty(),
 				DEFAULT_SPEED_LIMIT_KMH * KMH_TO_MPS);
 	}
 
@@ -95,7 +80,6 @@ public class UIStatus implements Constants {
 	}
 
 	/** The scale of route map (pixels/m). */
-	private final double scale;
 	private final Traffics traffics;
 	private final MapMode mode;
 	private final Optional<Tuple2<Point2D, Point2D>> dragEdge;
@@ -104,38 +88,19 @@ public class UIStatus implements Constants {
 
 	/**
 	 * Creates the status.
-	 *
-	 * @param scale      the scale
+	 * 
 	 * @param traffics   the traffics
 	 * @param mode       the selection mode
 	 * @param dragEdge   the drag edge ends
 	 * @param speedLimit the speed limit
 	 */
-	protected UIStatus(final double scale, final Traffics traffics, final MapMode mode,
-			final Optional<Tuple2<Point2D, Point2D>> dragEdge, final double speedLimit) {
-		this.scale = scale;
+	protected UIStatus(final Traffics traffics, final MapMode mode, final Optional<Tuple2<Point2D, Point2D>> dragEdge,
+			final double speedLimit) {
 		this.traffics = traffics;
 		this.mode = mode;
 		this.dragEdge = dragEdge;
 		this.priority = DEFAULT_PRIORITY;
 		this.speedLimit = speedLimit;
-	}
-
-	/**
-	 * Returns the location for a pivot point.
-	 *
-	 * @param viewportPosition the viewport point
-	 * @param pivot            the pivot point
-	 * @param newScale         the new scale
-	 */
-	public Point computeViewporPositionWithScale(final Point viewportPosition, final Point pivot,
-			final double newScale) {
-		final int x = Math.max(0,
-				(int) Math.round((pivot.x - MAP_INSETS) * (newScale / scale - 1) + viewportPosition.x));
-		final int y = Math.max(0,
-				(int) Math.round((pivot.y - MAP_INSETS) * (newScale / scale - 1) + viewportPosition.y));
-		final Point corner = new Point(x, y);
-		return corner;
 	}
 
 	/**
@@ -215,42 +180,9 @@ public class UIStatus implements Constants {
 		return dragEdge;
 	}
 
-	/** Returns the grid size in meters. */
-	public double getGridSize() {
-		// size meters to have a grid of at least 10 pixels in the screen
-		final double size = MIN_GRID_SIZE_PIXELS / scale;
-		// Minimum grid of size 1 m
-		double gridSize = MIN_GRID_SIZE_METERS;
-		while (size > gridSize) {
-			gridSize *= 10;
-		}
-		return gridSize;
-	}
-
-	/** Returns the transformation from screen coordinates to map coordinates. */
-	public AffineTransform getInverseTransform() {
-		try {
-			return getTransform().createInverse();
-		} catch (final NoninvertibleTransformException e) {
-			logger.error(e.getMessage(), e);
-			return new AffineTransform();
-		}
-	}
-
 	/** Returns the map bound. */
 	public Rectangle2D getMapBound() {
-		final GeoMap map = traffics.getMap();
-		final Set<MapNode> all = Stream.concat(map.getSites().parallelStream(), map.getNodes().parallelStream())
-				.collect(Collectors.toSet());
-		final OptionalDouble x0 = all.parallelStream().mapToDouble(n -> n.getX()).min();
-		final OptionalDouble x1 = all.parallelStream().mapToDouble(n -> n.getX()).max();
-		final OptionalDouble y0 = all.parallelStream().mapToDouble(n -> n.getY()).min();
-		final OptionalDouble y1 = all.parallelStream().mapToDouble(n -> n.getY()).max();
-
-		final Rectangle2D result = (x0.isPresent() && x1.isPresent() && y0.isPresent() && y1.isPresent())
-				? new Rectangle2D.Double(x0.getAsDouble(), y0.getAsDouble(), x1.getAsDouble() - x0.getAsDouble(),
-						y1.getAsDouble() - y0.getAsDouble())
-				: new Rectangle2D.Double();
+		final Rectangle2D result = traffics.getMap().getBound();
 		return result;
 	}
 
@@ -264,20 +196,6 @@ public class UIStatus implements Constants {
 		return priority;
 	}
 
-	/** Return the scale. */
-	public double getScale() {
-		return scale;
-	}
-
-	/** Returns the map size. */
-	public Dimension getScreenMapSize() {
-		final Rectangle2D bound = getMapBound();
-		final int width = (int) Math.round(bound.getWidth() * scale) + MAP_INSETS * 2;
-		final int height = (int) Math.round(bound.getHeight() * scale) + MAP_INSETS * 2;
-		final Dimension result = new Dimension(width, height);
-		return result;
-	}
-
 	/** Return the speed limit. */
 	public double getSpeedLimit() {
 		return speedLimit;
@@ -286,24 +204,6 @@ public class UIStatus implements Constants {
 	/** Return the traffics. */
 	public Traffics getTraffics() {
 		return traffics;
-	}
-
-	/** Returns the transformation from map coordinates to screen coordinates. */
-	public AffineTransform getTransform() {
-		return getTransform(scale);
-	}
-
-	/**
-	 * Returns the transformation from map coordinates to screen coordinate.
-	 *
-	 * @param scale the scale
-	 */
-	private AffineTransform getTransform(final double scale) {
-		final Rectangle2D mapBound = getMapBound();
-		final AffineTransform result = AffineTransform.getTranslateInstance(MAP_INSETS, MAP_INSETS);
-		result.scale(scale, scale);
-		result.translate(-mapBound.getMinX(), -mapBound.getMinY());
-		return result;
 	}
 
 	/** Returns the ui status with optimized traffics. */
@@ -327,7 +227,7 @@ public class UIStatus implements Constants {
 	 * @param dragEdge the drag edge ends
 	 */
 	public UIStatus setDragEdge(final Optional<Tuple2<Point2D, Point2D>> dragEdge) {
-		return new UIStatus(scale, traffics, mode, dragEdge, speedLimit);
+		return new UIStatus(traffics, mode, dragEdge, speedLimit);
 	}
 
 	/**
@@ -347,16 +247,7 @@ public class UIStatus implements Constants {
 	 * @param mode the mode
 	 */
 	public UIStatus setMode(final MapMode mode) {
-		return new UIStatus(scale, traffics, mode, dragEdge, speedLimit);
-	}
-
-	/**
-	 * Returns the UIStatus with a new scale.
-	 *
-	 * @param scale the scale
-	 */
-	public UIStatus setScale(final double scale) {
-		return new UIStatus(scale, traffics, mode, dragEdge, speedLimit);
+		return new UIStatus(traffics, mode, dragEdge, speedLimit);
 	}
 
 	/**
@@ -365,7 +256,7 @@ public class UIStatus implements Constants {
 	 * @param speedLimit the speed limit in meters/second
 	 */
 	public UIStatus setSpeedLimit(final double speedLimit) {
-		return new UIStatus(scale, traffics, mode, dragEdge, speedLimit);
+		return new UIStatus(traffics, mode, dragEdge, speedLimit);
 	}
 
 	/**
@@ -374,7 +265,7 @@ public class UIStatus implements Constants {
 	 * @param traffics the traffics
 	 */
 	public UIStatus setTraffics(final Traffics traffics) {
-		return new UIStatus(scale, traffics, mode, dragEdge, speedLimit);
+		return new UIStatus(traffics, mode, dragEdge, speedLimit);
 	}
 
 	/**
@@ -384,40 +275,5 @@ public class UIStatus implements Constants {
 	 */
 	public UIStatus setWeights(final Map<Tuple2<MapNode, MapNode>, Double> weights) {
 		return setTraffics(traffics.setWeights(weights));
-	}
-
-	/**
-	 * Returns the point snap to the nearest node.
-	 *
-	 * @param point the point n the map
-	 */
-	public Point2D snapToNode(final Point2D point) {
-		final double precision = CURSOR_SELECTION_PRECISION / scale;
-		final Optional<MapNode> node = traffics.getMap().findNearst(point, precision);
-		final Point2D result = node.map(MapNode::getLocation).orElse(point);
-		return result;
-	}
-
-	/**
-	 * Returns the point in the map from point in the viewport..
-	 *
-	 * @param point viewport point
-	 */
-	public Point2D toMapPoint(final Point2D point) {
-		try {
-			return getTransform().inverseTransform(point, new Point2D.Double());
-		} catch (final NoninvertibleTransformException e) {
-			logger.error(e.getMessage(), e);
-			return point;
-		}
-	}
-
-	/**
-	 * Returns the point in the viewport from map.
-	 *
-	 * @param point point in the map
-	 */
-	public Point2D toScreenPoint(final Point2D point) {
-		return getTransform().transform(point, new Point2D.Double());
 	}
 }

@@ -96,20 +96,24 @@ public class MainFrameController {
 	public MainFrameController build(final Random random) {
 
 		mainFrame.getOpenMapFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
-			final Optional<Tuple2<UIStatus, File>> t = loadProcess(st);
-			t.ifPresent(tup -> {
-				mainFrame.setSaveActionEnabled(true);
-				mainFrame.setTitle(tup.get2().getName());
-				final UIStatus uiStatus = tup.get1();
-				controller.mapChanged(uiStatus);
+			controller.withSimulationStop(() -> {
+				final Optional<Tuple2<UIStatus, File>> t = loadProcess(st);
+				t.ifPresent(tup -> {
+					mainFrame.setSaveActionEnabled(true);
+					mainFrame.setTitle(tup.get2().getName());
+					final UIStatus uiStatus = tup.get1();
+					controller.mapChanged(uiStatus);
+				});
 			});
 		});
 
 		mainFrame.getSaveMapAsFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
-			final int choice = fileChooser.showSaveDialog(mainFrame);
-			if (choice == JFileChooser.APPROVE_OPTION) {
-				handleSaveMap(st);
-			}
+			controller.withSimulationStop(() -> {
+				final int choice = fileChooser.showSaveDialog(mainFrame);
+				if (choice == JFileChooser.APPROVE_OPTION) {
+					handleSaveMap(st);
+				}
+			});
 		}, controller::showError);
 
 		mainFrame.getSaveMapFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
@@ -123,49 +127,53 @@ public class MainFrameController {
 		}, controller::showError);
 
 		mainFrame.getNewRandomFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
-			mapProfilePane.setDifficultyOnly(false);
-			final int opt = JOptionPane.showConfirmDialog(mainFrame, mapProfilePane,
-					Messages.getString("Controller.mapProfilePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
-			if (opt == JOptionPane.OK_OPTION) {
-				final MapProfile profile = mapProfilePane.getProfile();
-				logger.info("Selected {}", profile); //$NON-NLS-1$
-				final Traffics status = Traffics.random(profile, new Random());
-				final UIStatus uiStatus = UIStatus.create().setTraffics(status);
-				mainFrame.resetTitle().setSaveActionEnabled(false).repaint();
-				controller.mapChanged(uiStatus);
-			}
+			controller.withSimulationStop(() -> {
+				mapProfilePane.setDifficultyOnly(false);
+				final int opt = JOptionPane.showConfirmDialog(mainFrame, mapProfilePane,
+						Messages.getString("Controller.mapProfilePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
+				if (opt == JOptionPane.OK_OPTION) {
+					final MapProfile profile = mapProfilePane.getProfile();
+					logger.info("Selected {}", profile); //$NON-NLS-1$
+					final Traffics status = Traffics.random(profile, new Random());
+					final UIStatus uiStatus = UIStatus.create().setTraffics(status);
+					mainFrame.resetTitle().setSaveActionEnabled(false).repaint();
+					controller.mapChanged(uiStatus);
+				}
+			});
 		}, controller::showError);
 
-		mainFrame.getExitFlow().subscribe(ev ->
-
-		{
+		mainFrame.getExitFlow().subscribe(ev -> {
 			mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
 		}, controller::showError);
 
 		mainFrame.getOptimizeFlow().withLatestFrom(uiStatusFlow, (ev, status) -> status).subscribe(status -> {
-			final OptimizePane optimizePane = new OptimizePane();
-			optimizePane.setSpeedLimit(status.getSpeedLimit());
-			final int opt = JOptionPane.showConfirmDialog(mainFrame, optimizePane,
-					Messages.getString("Controller.optimizerPane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
-			if (opt == JOptionPane.OK_OPTION) {
-				final double speedLimit = optimizePane.getSpeedLimit();
-				if (optimizePane.isOptimizeSpeed()) {
-					final UIStatus newStatus = status.setSpeedLimit(speedLimit).optimizeSpeed();
-					controller.mapChanged(newStatus);
+			controller.withSimulationStop(() -> {
+				final OptimizePane optimizePane = new OptimizePane();
+				optimizePane.setSpeedLimit(status.getSpeedLimit());
+				final int opt = JOptionPane.showConfirmDialog(mainFrame, optimizePane,
+						Messages.getString("Controller.optimizerPane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
+				if (opt == JOptionPane.OK_OPTION) {
+					final double speedLimit = optimizePane.getSpeedLimit();
+					if (optimizePane.isOptimizeSpeed()) {
+						final UIStatus newStatus = status.setSpeedLimit(speedLimit).optimizeSpeed();
+						controller.mapChanged(newStatus);
+					}
 				}
-			}
+			});
 		}, controller::showError);
 
 		mainFrame.getFrequenceFlow().withLatestFrom(uiStatusFlow, (ev, status) -> status).subscribe(status -> {
-			final FrequencePane frequencePane = new FrequencePane();
-			final double frequence = status.getTraffics().getMap().getFrequence();
-			frequencePane.setFrequence(frequence);
-			final int opt = JOptionPane.showConfirmDialog(mainFrame, frequencePane,
-					Messages.getString("Controller.frequencePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
-			if (opt == JOptionPane.OK_OPTION) {
-				final UIStatus newStatus = status.setFrequence(frequencePane.getFrequence());
-				controller.mapChanged(newStatus);
-			}
+			controller.withSimulationStop(() -> {
+				final FrequencePane frequencePane = new FrequencePane();
+				final double frequence = status.getTraffics().getMap().getFrequence();
+				frequencePane.setFrequence(frequence);
+				final int opt = JOptionPane.showConfirmDialog(mainFrame, frequencePane,
+						Messages.getString("Controller.frequencePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
+				if (opt == JOptionPane.OK_OPTION) {
+					final UIStatus newStatus = status.setFrequence(frequencePane.getFrequence());
+					controller.mapChanged(newStatus);
+				}
+			});
 		}, controller::showError);
 
 		mainFrame.getSpeedFlow().withLatestFrom(uiStatusFlow, (speed, status) -> {
@@ -183,15 +191,17 @@ public class MainFrameController {
 		}, controller::showError);
 
 		mainFrame.getRoutesFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
-			final WeightsTable table = new WeightsTable();
-			table.setWeights(st.getTraffics().getMap().getWeights());
-			final JScrollPane pane = new JScrollPane(table);
-			final int opt = JOptionPane.showConfirmDialog(mainFrame, pane,
-					Messages.getString("Controller.routePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
-			if (opt == JOptionPane.OK_OPTION) {
-				final UIStatus newStatus = st.setWeights(table.getWeights());
-				controller.mapChanged(newStatus);
-			}
+			controller.withSimulationStop(() -> {
+				final WeightsTable table = new WeightsTable();
+				table.setWeights(st.getTraffics().getMap().getWeights());
+				final JScrollPane pane = new JScrollPane(table);
+				final int opt = JOptionPane.showConfirmDialog(mainFrame, pane,
+						Messages.getString("Controller.routePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
+				if (opt == JOptionPane.OK_OPTION) {
+					final UIStatus newStatus = st.setWeights(table.getWeights());
+					controller.mapChanged(newStatus);
+				}
+			});
 		}, controller::showError);
 
 		mainFrame.getRandomizeFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
@@ -207,13 +217,16 @@ public class MainFrameController {
 		}, controller::showError);
 
 		mainFrame.getVehicleInfoFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
-			final Traffics traffics = st.getTraffics();
-			final TrafficsTable table = new TrafficsTable(traffics);
-			final JScrollPane pane = new JScrollPane(table);
-			pane.setBorder(BorderFactory
-					.createTitledBorder(Messages.getString("MainFrameController.trafficsPane.description")));
-			JOptionPane.showMessageDialog(mainFrame, pane, Messages.getString("MainFrameController.trafficsPane.title"), //$NON-NLS-1$
-					JOptionPane.INFORMATION_MESSAGE);
+			controller.withSimulationStop(() -> {
+				final Traffics traffics = st.getTraffics();
+				final TrafficsTable table = new TrafficsTable(traffics);
+				final JScrollPane pane = new JScrollPane(table);
+				pane.setBorder(BorderFactory
+						.createTitledBorder(Messages.getString("MainFrameController.trafficsPane.description")));
+				JOptionPane.showMessageDialog(mainFrame, pane,
+						Messages.getString("MainFrameController.trafficsPane.title"), //$NON-NLS-1$
+						JOptionPane.INFORMATION_MESSAGE);
+			});
 		}, controller::showError);
 
 		return this;

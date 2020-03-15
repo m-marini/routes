@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- Issue #103: wrong transformation during scroll or zoom
 - Issue #105: Transform observables to flowables
 
 ## [5.0.0] - 2020-03-13

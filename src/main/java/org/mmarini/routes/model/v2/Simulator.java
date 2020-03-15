@@ -287,6 +287,7 @@ public class Simulator<T> {
 		logger.debug("processStart()");
 		if (status == Status.IDLE) {
 			status = Status.ACTIVE;
+			seed = seed.map(Seed::now);
 			processNext();
 		}
 		return this;
