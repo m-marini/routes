@@ -57,8 +57,7 @@ import org.mmarini.routes.model.v2.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import hu.akarnokd.rxjava3.swing.SwingObservable;
-import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * Component that renders the traffics map.
@@ -423,9 +422,9 @@ public class RouteMap extends JComponent implements Constants {
 		return System.currentTimeMillis() % BLINKING_TIME >= BLINKING_ON_TIME;
 	}
 
-	private final Observable<MouseEvent> mouseObs;
-	private final Observable<MouseWheelEvent> mouseWheelObs;
-	private final Observable<KeyEvent> keyboardObs;
+	private final Flowable<MouseEvent> mouseFlow;
+	private final Flowable<MouseWheelEvent> mouseWheelFlow;
+	private final Flowable<KeyEvent> keyboardFlow;
 	private boolean trafficView;
 	private Optional<Traffics> traffics;
 	private AffineTransform transform;
@@ -443,9 +442,9 @@ public class RouteMap extends JComponent implements Constants {
 		super();
 		this.transform = new AffineTransform();
 		this.gridSize = 10;
-		this.mouseObs = SwingObservable.mouse(this);
-		this.mouseWheelObs = SwingObservable.mouseWheel(this);
-		this.keyboardObs = SwingObservable.keyboard(this);
+		this.mouseFlow = SwingUtils.mouse(this);
+		this.mouseWheelFlow = SwingUtils.mouseWheel(this);
+		this.keyboardFlow = SwingUtils.keyboard(this);
 		this.dragEdge = Optional.empty();
 		this.module = Optional.empty();
 		this.pivot = Optional.empty();
@@ -481,9 +480,9 @@ public class RouteMap extends JComponent implements Constants {
 		return angle;
 	}
 
-	/** Returns the observable of keyboard. */
-	public Observable<KeyEvent> getKeyboardObs() {
-		return keyboardObs;
+	/** Returns the flowable of keyboard. */
+	public Flowable<KeyEvent> getKeyboardFlow() {
+		return keyboardFlow;
 	}
 
 	/** Returns the selected module. */
@@ -491,14 +490,14 @@ public class RouteMap extends JComponent implements Constants {
 		return module;
 	}
 
-	/** Returns the observable of mouse. */
-	public Observable<MouseEvent> getMouseObs() {
-		return mouseObs;
+	/** Returns the flowable of mouse. */
+	public Flowable<MouseEvent> getMouseFlow() {
+		return mouseFlow;
 	}
 
-	/** Returns the observable of mouse wheel. */
-	public Observable<MouseWheelEvent> getMouseWheelObs() {
-		return mouseWheelObs;
+	/** Returns the flowable of mouse wheel. */
+	public Flowable<MouseWheelEvent> getMouseWheelFlow() {
+		return mouseWheelFlow;
 	}
 
 	/** Returns the pivot point for the module. */

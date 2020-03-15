@@ -53,8 +53,7 @@ import org.mmarini.routes.model.v2.MapEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import hu.akarnokd.rxjava3.swing.SwingObservable;
-import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * Panel with edge information and user actions.
@@ -73,11 +72,11 @@ public class EdgePane extends JPanel {
 	private final JButton browseBeginNodeButton;
 	private final JButton browseEndNodeButton;
 	private final JButton deleteButton;
-	private final Observable<MapEdge> browseBeginObs;
-	private final Observable<MapEdge> browseEndObs;
-	private final Observable<MapEdge> deleteObs;
-	private final Observable<Integer> priorityObs;
-	private final Observable<Double> speedLimitObs;
+	private final Flowable<Object> browseBeginFlow;
+	private final Flowable<MapEdge> browseEndFlow;
+	private final Flowable<MapEdge> deleteFlow;
+	private final Flowable<Integer> priorityFlow;
+	private final Flowable<Double> speedLimitFlow;
 	private Optional<MapEdge> edge;
 
 	/** Creates an edge panel. */
@@ -93,15 +92,15 @@ public class EdgePane extends JPanel {
 		browseEndNodeButton = createJButton("EdgePane.browseEndNodeAction"); //$NON-NLS-1$
 		deleteButton = createJButton("EdgePane.deleteAction"); //$NON-NLS-1$
 
-		browseBeginObs = SwingObservable.actions(browseBeginNodeButton).map(ev -> getEdge())
-				.filter(ed -> ed.isPresent()).map(ed -> ed.get());
-		browseEndObs = SwingObservable.actions(browseBeginNodeButton).map(ev -> getEdge()).filter(ed -> ed.isPresent())
+		browseBeginFlow = SwingUtils.actions(browseBeginNodeButton).map(ev -> getEdge()).filter(ed -> ed.isPresent())
 				.map(ed -> ed.get());
-		deleteObs = SwingObservable.actions(deleteButton).map(ev -> getEdge()).filter(ed -> ed.isPresent())
+		browseEndFlow = SwingUtils.actions(browseBeginNodeButton).map(ev -> getEdge()).filter(ed -> ed.isPresent())
+				.map(ed -> ed.get());
+		deleteFlow = SwingUtils.actions(deleteButton).map(ev -> getEdge()).filter(ed -> ed.isPresent())
 				.map(ed -> ed.get()).doOnNext(ev -> logger.debug("on next delete {}", ev));
 		init().createContent();
-		priorityObs = SwingUtils.<Number>value(priorityField).map(v -> v.intValue());
-		speedLimitObs = SwingUtils.<Number>value(speedLimitField).map(v -> v.doubleValue());
+		priorityFlow = SwingUtils.<Number>value(priorityField).map(v -> v.intValue());
+		speedLimitFlow = SwingUtils.<Number>value(speedLimitField).map(v -> v.doubleValue());
 	}
 
 	/** Returns the edge panel with content. */
@@ -150,19 +149,19 @@ public class EdgePane extends JPanel {
 		return bar;
 	}
 
-	/** Returns the observable of begin node button selection. */
-	public Observable<MapEdge> getBrowseBeginObs() {
-		return browseBeginObs;
+	/** Returns the flowable of begin node button selection. */
+	public Flowable<Object> getBrowseBeginFlow() {
+		return browseBeginFlow;
 	}
 
-	/** Returns the observable of end node button selection. */
-	public Observable<MapEdge> getBrowseEndObs() {
-		return browseEndObs;
+	/** Returns the flowable of end node button selection. */
+	public Flowable<MapEdge> getBrowseEndFlow() {
+		return browseEndFlow;
 	}
 
-	/** Returns the observable of delete edge button selection. */
-	public Observable<MapEdge> getDeleteObs() {
-		return deleteObs;
+	/** Returns the flowable of delete edge button selection. */
+	public Flowable<MapEdge> getDeleteFlow() {
+		return deleteFlow;
 	}
 
 	/** Returns the edge. */
@@ -170,14 +169,14 @@ public class EdgePane extends JPanel {
 		return edge;
 	}
 
-	/** Returns the observable of priority field changes. */
-	public Observable<Integer> getPriorityObs() {
-		return priorityObs;
+	/** Returns the flowable of priority field changes. */
+	public Flowable<Integer> getPriorityFlow() {
+		return priorityFlow;
 	}
 
-	/** Returns the observable of speed limit field changes. */
-	public Observable<Double> getSpeedLimitObs() {
-		return speedLimitObs;
+	/** Returns the flowable of speed limit field changes. */
+	public Flowable<Double> getSpeedLimitFlow() {
+		return speedLimitFlow;
 	}
 
 	/**

@@ -11,7 +11,7 @@ import org.mmarini.routes.model.v2.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * Controller for map node panel.
@@ -28,7 +28,7 @@ public class MapNodePaneController implements Constants {
 	private final RouteMap routeMap;
 	private final ExplorerPane explorerPane;
 	private final ControllerFunctions controller;
-	private final Observable<UIStatus> uiStatusObs;
+	private final Flowable<UIStatus> uiStatusFlow;
 
 	/**
 	 * Creates the controller.
@@ -36,16 +36,16 @@ public class MapNodePaneController implements Constants {
 	 * @param nodePane     the node panel
 	 * @param routeMap     the route panel
 	 * @param explorerPane the explorer panel
-	 * @param uiStatusObs  the observable of UIStatus
+	 * @param uiStatusFlow the flowable of UIStatus
 	 * @param controller   the main controller
 	 */
 	public MapNodePaneController(final MapNodePane nodePane, final RouteMap routeMap, final ExplorerPane explorerPane,
-			final Observable<UIStatus> uiStatusObs, final ControllerFunctions controller) {
+			final Flowable<UIStatus> uiStatusFlow, final ControllerFunctions controller) {
 		this.nodePane = nodePane;
 		this.routeMap = routeMap;
 		this.explorerPane = explorerPane;
 		this.controller = controller;
-		this.uiStatusObs = uiStatusObs;
+		this.uiStatusFlow = uiStatusFlow;
 	}
 
 	/**
@@ -55,35 +55,29 @@ public class MapNodePaneController implements Constants {
 	 */
 	public MapNodePaneController build() {
 		// Change node type
-		nodePane.getChangeObs().withLatestFrom(uiStatusObs, (node, st) -> {
+		nodePane.getChangeFlow().withLatestFrom(uiStatusFlow, (node, st) -> {
 			return Tuple.of(st, node);
 		}).subscribe(t -> {
-			controller.request(tr -> {
-				final UIStatus st = t.get1();
-				final MapNode node = t.get2();
-				logger.debug("changeNode {} ", node); //$NON-NLS-1$
-				final Traffics nextSt = st.getTraffics().changeNode(node, (a, b) -> 1);
-				final UIStatus nextUiStatus = st.setTraffics(nextSt);
-				controller.mapChanged(nextUiStatus);
-				final GeoMap map = nextUiStatus.getTraffics().getMap();
-				routeMap.setSelectedSite(map.getSite(node));
-				routeMap.setSelectedNode(map.getNode(node));
-				explorerPane.setSelectedNode(node);
-				return nextUiStatus;
-			});
+			final UIStatus st = t.get1();
+			final MapNode node = t.get2();
+			logger.debug("changeNode {} ", node); //$NON-NLS-1$
+			final Traffics nextSt = st.getTraffics().changeNode(node, (a, b) -> 1);
+			final UIStatus nextUiStatus = st.setTraffics(nextSt);
+			final GeoMap map = nextUiStatus.getTraffics().getMap();
+			routeMap.setSelectedSite(map.getSite(node));
+			routeMap.setSelectedNode(map.getNode(node));
+			explorerPane.setSelectedNode(node);
+			controller.mapChanged(nextUiStatus);
 		}, controller::showError);
 
 		// delete node type
-		nodePane.getDeleteObs().withLatestFrom(uiStatusObs, (node, st) -> {
+		nodePane.getDeleteFlow().withLatestFrom(uiStatusFlow, (node, st) -> {
 			return Tuple.of(st, node);
 		}).subscribe(t -> {
-			controller.request(tr -> {
-				final UIStatus nextStatus = controller.deleteNode(t.get1(), t.get2());
-				controller.mapChanged(nextStatus);
-				explorerPane.clearSelection();
-				routeMap.clearSelection();
-				return nextStatus;
-			});
+			final UIStatus nextStatus = controller.deleteNode(t.get1(), t.get2());
+			explorerPane.clearSelection();
+			routeMap.clearSelection();
+			controller.mapChanged(nextStatus);
 		}, controller::showError);
 		return this;
 	}

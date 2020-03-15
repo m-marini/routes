@@ -229,10 +229,13 @@ public class Simulator<T> {
 					seed = Optional.of(next);
 					worker.schedule(this::processNext, interval + start - worker.now(unit), unit);
 				} catch (final Throwable e) {
+					logger.error("processNext() error:", e);
 					status = Status.FAILED;
 					events.onError(e);
 				}
 			});
+		} else {
+			logger.debug("processNext() on status {}", status);
 		}
 		return this;
 	}
@@ -244,16 +247,21 @@ public class Simulator<T> {
 	 * @return the simulator
 	 */
 	private Simulator<T> processRequest(final Function<T, T> transition) {
-		logger.debug("processRequest(...)");
-		seed.ifPresent(s -> {
+		final int corrId = transition.hashCode();
+		logger.debug("processRequest({})", corrId);
+		seed.ifPresentOrElse(s -> {
 			try {
 				final T newEvent = transition.apply(s.getEvent());
+				logger.debug("processRequest({}) processed", corrId);
 				seed = Optional.of(s.event(newEvent));
 				events.onNext(newEvent);
 			} catch (final Throwable e) {
+				logger.error("processRequest(" + corrId + ") error:", e);
 				status = Status.FAILED;
 				events.onError(e);
 			}
+		}, () -> {
+			logger.warn("processRequest({}) ignored: no seed:", corrId);
 		});
 		return this;
 	}
@@ -290,7 +298,7 @@ public class Simulator<T> {
 	 * @return the simulator
 	 */
 	private Simulator<T> processStop() {
-		logger.debug("processStart()");
+		logger.debug("processStop()");
 		status = Status.IDLE;
 		return this;
 	}

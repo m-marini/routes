@@ -2,8 +2,8 @@
 /.project
 /.settings/
 /target/
-/docs/notes.aux
-/docs/notes.log
-/docs/notes.toc
-/docs/notes.synctex.gz
-/file.log
+/docs/*.aux
+/docs/*.log
+/docs/*.toc
+/docs/*.synctex.gz
+/logs/*

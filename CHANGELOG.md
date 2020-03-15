@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- Issue #105: Transform observables to flowables
+
 ## [5.0.0] - 2020-03-13
 
 The model has heavly changed to use immutable objects, multi processes computations and reactive programming.
@@ -23,7 +27,7 @@ The model has heavly changed to use immutable objects, multi processes computati
 - Issue #73: Mouse selection does not work
 - Issue #84: Clear selection bug
 - Issue #85: City exit edge bug
-- Issue @86: Selection module bug
+- Issue #86: Selection module bug
 - Issue #87: No vehicle Bug
 - Issue #88: Missing title on info panel
 - Issue #91: Delete key Bug

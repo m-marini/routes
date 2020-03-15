@@ -50,8 +50,7 @@ import org.mmarini.routes.model.v2.Constants;
 import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.Tuple2;
 
-import hu.akarnokd.rxjava3.swing.SwingObservable;
-import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * Panel with scrolling view of map and the user actions.
@@ -62,8 +61,8 @@ public class ScrollMap extends JScrollPane implements Constants {
 	private static final Point LEGEND_LOCATION = new Point(5, 5);
 	private static final Insets LEGEND_INSETS = new Insets(3, 3, 3, 3);
 
-	private final Observable<ActionEvent> scaleToObs;
-	private final Observable<ChangeEvent> changeObs;
+	private final Flowable<ActionEvent> scaleToFlow;
+	private final Flowable<ChangeEvent> changeFlow;
 	private final List<String> pointLegendPattern;
 	private final List<String> edgeLegendPattern;
 	private List<String> hud;
@@ -82,8 +81,8 @@ public class ScrollMap extends JScrollPane implements Constants {
 		setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
 		final JButton lowerLeftCornerButton = new JButton();
-		scaleToObs = SwingObservable.actions(lowerLeftCornerButton);
-		changeObs = SwingObservable.change(getViewport());
+		scaleToFlow = SwingUtils.actions(lowerLeftCornerButton);
+		changeFlow = SwingUtils.change(getViewport());
 		setCorner(ScrollPaneConstants.LOWER_RIGHT_CORNER, lowerLeftCornerButton);
 
 		setDoubleBuffered(false);
@@ -126,14 +125,14 @@ public class ScrollMap extends JScrollPane implements Constants {
 		return result;
 	}
 
-	/** Returns the observable of viewport changes. */
-	public Observable<ChangeEvent> getChangeObs() {
-		return changeObs;
+	/** Returns the flowable of viewport changes. */
+	public Flowable<ChangeEvent> getChangeFlow() {
+		return changeFlow;
 	}
 
-	/** Returns the observable of scale to button (right bottom corner). */
-	public Observable<ActionEvent> getScaleToObs() {
-		return scaleToObs;
+	/** Returns the flowable of scale to button (right bottom corner). */
+	public Flowable<ActionEvent> getScaleToFlow() {
+		return scaleToFlow;
 	}
 
 	@Override

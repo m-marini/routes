@@ -45,8 +45,7 @@ import javax.swing.SwingConstants;
 
 import org.mmarini.routes.model.v2.MapModule;
 
-import hu.akarnokd.rxjava3.swing.SwingObservable;
-import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * Panel of map view that allows the user to view and interact with the map.
@@ -74,15 +73,15 @@ public class MapViewPane extends JPanel {
 	private final JButton zoomInButton;
 	private final JButton zoomOutButton;
 	private final JButton fitInWindowAction;
-	private final Observable<ActionEvent> zoomInObs;
-	private final Observable<ActionEvent> zoomOutObs;
-	private final Observable<ActionEvent> fitInWindowObs;
-	private final Observable<ActionEvent> zoomDefaultObs;
-	private final Observable<ActionEvent> selectModeObs;
-	private final Observable<ActionEvent> edgeModeObs;
-	private final Observable<ActionEvent> normalViewObs;
-	private final Observable<ActionEvent> trafficViewObs;
-	private final Observable<MapModule> moduleModeObs;
+	private final Flowable<ActionEvent> zoomInFlow;
+	private final Flowable<ActionEvent> zoomOutFlow;
+	private final Flowable<ActionEvent> fitInWindowFlow;
+	private final Flowable<ActionEvent> zoomDefaultFlow;
+	private final Flowable<ActionEvent> selectModeFlow;
+	private final Flowable<ActionEvent> edgeModeFlow;
+	private final Flowable<ActionEvent> normalViewOFlow;
+	private final Flowable<ActionEvent> trafficViewFlow;
+	private final Flowable<MapModule> moduleModeFlow;
 	private Optional<MapModule> module;
 
 	/**
@@ -107,21 +106,21 @@ public class MapViewPane extends JPanel {
 		normalViewButton.setSelected(true);
 		module = Optional.empty();
 
-		zoomDefaultObs = SwingObservable.actions(zoomDefaultButton);
-		zoomInObs = SwingObservable.actions(zoomInButton);
-		zoomOutObs = SwingObservable.actions(zoomOutButton);
-		fitInWindowObs = SwingObservable.actions(fitInWindowAction);
-		selectModeObs = SwingObservable.actions(selectButton);
-		edgeModeObs = SwingObservable.actions(edgeButton);
-		moduleModeObs = SwingObservable.actions(moduleButton).map(ev -> {
+		zoomDefaultFlow = SwingUtils.actions(zoomDefaultButton);
+		zoomInFlow = SwingUtils.actions(zoomInButton);
+		zoomOutFlow = SwingUtils.actions(zoomOutButton);
+		fitInWindowFlow = SwingUtils.actions(fitInWindowAction);
+		selectModeFlow = SwingUtils.actions(selectButton);
+		edgeModeFlow = SwingUtils.actions(edgeButton);
+		moduleModeFlow = SwingUtils.actions(moduleButton).map(ev -> {
 			return module;
 		}).filter(m -> {
 			return m.isPresent();
 		}).map(m -> {
 			return m.get();
 		});
-		normalViewObs = SwingObservable.actions(normalViewButton);
-		trafficViewObs = SwingObservable.actions(trafficViewButton);
+		normalViewOFlow = SwingUtils.actions(normalViewButton);
+		trafficViewFlow = SwingUtils.actions(trafficViewButton);
 		init(content).setOpaque(false);
 	}
 
@@ -161,49 +160,49 @@ public class MapViewPane extends JPanel {
 		return bar;
 	}
 
-	/** Returns the observable of edge mode button. */
-	public Observable<ActionEvent> getEdgeModeObs() {
-		return edgeModeObs;
+	/** Returns the flowable of edge mode button. */
+	public Flowable<ActionEvent> getEdgeModeFlow() {
+		return edgeModeFlow;
 	}
 
-	/** Returns the observable of fit in window button. */
-	public Observable<ActionEvent> getFitInWindowObs() {
-		return fitInWindowObs;
+	/** Returns the flowable of fit in window button. */
+	public Flowable<ActionEvent> getFitInWindowFlow() {
+		return fitInWindowFlow;
 	}
 
-	/** Returns the observable of module mode button. */
-	public Observable<MapModule> getModuleModeObs() {
-		return moduleModeObs;
+	/** Returns the flowable of module mode button. */
+	public Flowable<MapModule> getModuleModeFlow() {
+		return moduleModeFlow;
 	}
 
-	/** Returns the observable of normal view button. */
-	public Observable<ActionEvent> getNormalViewObs() {
-		return normalViewObs;
+	/** Returns the flowable of normal view button. */
+	public Flowable<ActionEvent> getNormalViewFlow() {
+		return normalViewOFlow;
 	}
 
-	/** Returns the observable of select mode button. */
-	public Observable<ActionEvent> getSelectModeObs() {
-		return selectModeObs;
+	/** Returns the flowable of select mode button. */
+	public Flowable<ActionEvent> getSelectModeFlow() {
+		return selectModeFlow;
 	}
 
-	/** Return the observable of traffic view button. */
-	public Observable<ActionEvent> getTrafficViewObs() {
-		return trafficViewObs;
+	/** Return the flowable of traffic view button. */
+	public Flowable<ActionEvent> getTrafficViewFlow() {
+		return trafficViewFlow;
 	}
 
-	/** Return the observable of zoom to default button. */
-	public Observable<ActionEvent> getZoomDefaultObs() {
-		return zoomDefaultObs;
+	/** Return the flowable of zoom to default button. */
+	public Flowable<ActionEvent> getZoomDefaultFlow() {
+		return zoomDefaultFlow;
 	}
 
-	/** Returns the observable of zoom in button. */
-	public Observable<ActionEvent> getZoomInObs() {
-		return zoomInObs;
+	/** Returns the flowable of zoom in button. */
+	public Flowable<ActionEvent> getZoomInFlow() {
+		return zoomInFlow;
 	}
 
-	/** Returns the observable of zoom out button . */
-	public Observable<ActionEvent> getZoomOutObs() {
-		return zoomOutObs;
+	/** Returns the flowable of zoom out button . */
+	public Flowable<ActionEvent> getZoomOutFlow() {
+		return zoomOutFlow;
 	}
 
 	/**

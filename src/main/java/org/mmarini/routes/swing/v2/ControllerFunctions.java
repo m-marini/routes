@@ -28,11 +28,9 @@ package org.mmarini.routes.swing.v2;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
-import java.util.function.Function;
 
 import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;
-import org.mmarini.routes.model.v2.Traffics;
 
 /**
  * Controller functions
@@ -47,6 +45,14 @@ public interface ControllerFunctions {
 	 * @return the controller
 	 */
 	public ControllerFunctions centerMapTo(UIStatus status, Point2D center);
+
+	/**
+	 * Change the UI status
+	 *
+	 * @param status the status
+	 * @return the controller
+	 */
+	public ControllerFunctions changeStatus(UIStatus status);
 
 	/**
 	 * Returns the ui status deleting an edge.
@@ -71,14 +77,6 @@ public interface ControllerFunctions {
 	 * @return the controller
 	 */
 	public ControllerFunctions mapChanged(final UIStatus status);
-
-	/**
-	 * Processes a request of traffics change.
-	 *
-	 * @param changeStatus the change function
-	 * @return the controller
-	 */
-	public Controller request(Function<Traffics, UIStatus> changeStatus);
 
 	/**
 	 * Returns the new ui status due to a scale change.

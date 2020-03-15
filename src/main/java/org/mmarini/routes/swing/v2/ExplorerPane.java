@@ -46,8 +46,7 @@ import org.mmarini.routes.model.v2.MapNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import hu.akarnokd.rxjava3.swing.SwingObservable;
-import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * Panel with the tabs of the lists of sites node, nodes and edges of the map.
@@ -107,9 +106,9 @@ public class ExplorerPane extends JTabbedPane {
 	private final JList<MapNode> nodeJList;
 	private final JList<MapEdge> edgeJList;
 	private final SiteListCellRenderer siteListCellRenderer;
-	private final Observable<MapEdge> edgeObs;
-	private final Observable<MapNode> nodeObs;
-	private final Observable<MapNode> siteObs;
+	private final Flowable<MapEdge> edgeFlow;
+	private final Flowable<MapNode> nodeFlow;
+	private final Flowable<MapNode> siteFlow;
 	private GeoMap map;
 
 	/** Creates the explorer panel. */
@@ -121,13 +120,13 @@ public class ExplorerPane extends JTabbedPane {
 		this.nodeJList = new JList<>(nodeList);
 		this.edgeJList = new JList<>(edgeList);
 		this.siteListCellRenderer = new SiteListCellRenderer();
-		edgeObs = SwingObservable.listSelection(edgeJList)
+		edgeFlow = SwingUtils.listSelection(edgeJList)
 				.filter(ev -> !ev.getValueIsAdjusting() && edgeJList.getSelectedIndex() >= 0)
 				.map(ev -> edgeJList.getSelectedValue()).doOnNext(edge -> logger.debug("Emit edge event {}", edge));
-		siteObs = SwingObservable.listSelection(siteJList)
+		siteFlow = SwingUtils.listSelection(siteJList)
 				.filter(ev -> !ev.getValueIsAdjusting() && siteJList.getSelectedIndex() >= 0)
 				.map(ev -> siteJList.getSelectedValue()).doOnNext(site -> logger.debug("Emit site event {}", site));
-		nodeObs = SwingObservable.listSelection(nodeJList)
+		nodeFlow = SwingUtils.listSelection(nodeJList)
 				.filter(ev -> !ev.getValueIsAdjusting() && nodeJList.getSelectedIndex() >= 0)
 				.map(ev -> nodeJList.getSelectedValue()).doOnNext(node -> logger.debug("Emit node ebent {}", node));
 		siteJList.setCellRenderer(siteListCellRenderer);
@@ -197,19 +196,19 @@ public class ExplorerPane extends JTabbedPane {
 		return this;
 	}
 
-	/** Returns the observable of edge selection. */
-	public Observable<MapEdge> getEdgeObs() {
-		return edgeObs;
+	/** Returns the flowable of edge selection. */
+	public Flowable<MapEdge> getEdgeFlow() {
+		return edgeFlow;
 	}
 
-	/** Returns the observable of node selection. */
-	public Observable<MapNode> getNodeObs() {
-		return nodeObs;
+	/** Returns the flowable of node selection. */
+	public Flowable<MapNode> getNodeFlow() {
+		return nodeFlow;
 	}
 
-	/** Returns the observable of site selection. */
-	public Observable<MapNode> getSiteObs() {
-		return siteObs;
+	/** Returns the flowable of site selection. */
+	public Flowable<MapNode> getSiteFlow() {
+		return siteFlow;
 	}
 
 	/**

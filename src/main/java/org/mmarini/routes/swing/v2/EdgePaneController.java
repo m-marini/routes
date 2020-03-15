@@ -11,7 +11,7 @@ import org.mmarini.routes.model.v2.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * Controller for the edge panel.
@@ -27,7 +27,7 @@ public class EdgePaneController implements Constants {
 	private final EdgePane edgePane;
 	private final RouteMap routeMap;
 	private final ExplorerPane explorerPane;
-	private final Observable<UIStatus> uiStatusObs;
+	private final Flowable<UIStatus> uiStatusFlow;
 	private final ControllerFunctions controller;
 
 	/**
@@ -36,15 +36,15 @@ public class EdgePaneController implements Constants {
 	 * @param edgePane     the edge panel
 	 * @param routeMap     the route map panel
 	 * @param explorerPane the explorer panel
-	 * @param uiStatusObs  the ui status observable
+	 * @param uiStatusFlow the ui status flowable
 	 * @param controller   the main controller
 	 */
 	public EdgePaneController(final EdgePane edgePane, final RouteMap routeMap, final ExplorerPane explorerPane,
-			final Observable<UIStatus> uiStatusObs, final ControllerFunctions controller) {
+			final Flowable<UIStatus> uiStatusFlow, final ControllerFunctions controller) {
 		this.edgePane = edgePane;
 		this.routeMap = routeMap;
 		this.explorerPane = explorerPane;
-		this.uiStatusObs = uiStatusObs;
+		this.uiStatusFlow = uiStatusFlow;
 		this.controller = controller;
 	}
 
@@ -54,22 +54,19 @@ public class EdgePaneController implements Constants {
 	 * @return the controller
 	 */
 	public EdgePaneController build() {
-		edgePane.getDeleteObs().withLatestFrom(uiStatusObs, (edge, st) -> {
+		edgePane.getDeleteFlow().withLatestFrom(uiStatusFlow, (edge, st) -> {
 			return Tuple.of(st, edge);
 		}).subscribe(t -> {
-			controller.request(st1 -> {
-				final UIStatus status = t.get1();
-				final MapEdge edge = t.get2();
-				logger.debug("delete edge {}", edge.getShortName());
-				final UIStatus nextStatus = controller.deleteEdge(status, edge);
-				controller.mapChanged(nextStatus);
-				explorerPane.clearSelection();
-				routeMap.clearSelection();
-				return nextStatus;
-			});
+			final UIStatus status = t.get1();
+			final MapEdge edge = t.get2();
+			logger.debug("delete edge {}", edge.getShortName());
+			explorerPane.clearSelection();
+			routeMap.clearSelection();
+			final UIStatus nextStatus = controller.deleteEdge(status, edge);
+			controller.mapChanged(nextStatus);
 		});
 
-		edgePane.getPriorityObs().withLatestFrom(uiStatusObs, (p, st) -> {
+		edgePane.getPriorityFlow().withLatestFrom(uiStatusFlow, (p, st) -> {
 			// add last ui status
 			return Tuple.of(st, p);
 		}).filter(t -> {
@@ -78,21 +75,18 @@ public class EdgePaneController implements Constants {
 				return ed.getPriority() != t.get2();
 			}).orElse(false);
 		}).subscribe(t -> {
-			controller.request(tr -> {
-				final MapEdge edge = edgePane.getEdge().get();
-				final int priority = t.get2();
-				logger.debug("changePriority {} {}", edge.getShortName(), priority); //$NON-NLS-1$
-				final MapEdge newEdge = edge.setPriority(priority);
-				final UIStatus status = t.get1();
-				final UIStatus newStatus = status.setTraffics(status.getTraffics().change(newEdge));
-				controller.mapChanged(newStatus);
-				routeMap.setSelectedEdge(Optional.of(newEdge)).repaint();
-				explorerPane.setSelectedEdge(newEdge);
-				return newStatus;
-			});
+			final MapEdge edge = edgePane.getEdge().get();
+			final int priority = t.get2();
+			logger.debug("changePriority {} {}", edge.getShortName(), priority); //$NON-NLS-1$
+			final MapEdge newEdge = edge.setPriority(priority);
+			final UIStatus status = t.get1();
+			final UIStatus newStatus = status.setTraffics(status.getTraffics().change(newEdge));
+			routeMap.setSelectedEdge(Optional.of(newEdge)).repaint();
+			explorerPane.setSelectedEdge(newEdge);
+			controller.mapChanged(newStatus);
 		}, controller::showError);
 
-		edgePane.getSpeedLimitObs().withLatestFrom(uiStatusObs, (speed, st) -> {
+		edgePane.getSpeedLimitFlow().withLatestFrom(uiStatusFlow, (speed, st) -> {
 			// add last ui status
 			return Tuple.of(st, speed);
 		}).filter(t -> {
@@ -101,19 +95,16 @@ public class EdgePaneController implements Constants {
 				return ed.getSpeedLimit() != t.get2();
 			}).orElse(false);
 		}).subscribe(t -> {
-			controller.request(tr -> {
-				// change priority
-				final double speedLimit = t.get2() * KMH_TO_MPS;
-				final UIStatus uiStatus = t.get1();
-				final MapEdge edge = edgePane.getEdge().get();
-				logger.debug("changeSpeedLimit {} {}", edge.getShortName(), speedLimit); //$NON-NLS-1$
-				final MapEdge newEdge = edge.setSpeedLimit(speedLimit);
-				final UIStatus newStatus = uiStatus.setTraffics(uiStatus.getTraffics().change(newEdge));
-				controller.mapChanged(newStatus);
-				routeMap.setSelectedEdge(Optional.of(newEdge)).repaint();
-				explorerPane.setSelectedEdge(newEdge);
-				return newStatus;
-			});
+			// change priority
+			final double speedLimit = t.get2() * KMH_TO_MPS;
+			final UIStatus uiStatus = t.get1();
+			final MapEdge edge = edgePane.getEdge().get();
+			logger.debug("changeSpeedLimit {} {}", edge.getShortName(), speedLimit); //$NON-NLS-1$
+			final MapEdge newEdge = edge.setSpeedLimit(speedLimit);
+			final UIStatus newStatus = uiStatus.setTraffics(uiStatus.getTraffics().change(newEdge));
+			routeMap.setSelectedEdge(Optional.of(newEdge)).repaint();
+			explorerPane.setSelectedEdge(newEdge);
+			controller.mapChanged(newStatus);
 		}, controller::showError);
 		return this;
 	}

@@ -56,8 +56,7 @@ import javax.swing.JToolBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import hu.akarnokd.rxjava3.swing.SwingObservable;
-import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * Main frame of the simulation and application entry point.
@@ -110,19 +109,19 @@ public class MainFrame extends JFrame {
 	private final JButton openButton;
 	private final JButton saveButton;
 
-	private final Observable<ActionEvent> newMapObs;
-	private final Observable<ActionEvent> newRandomObs;
-	private final Observable<ActionEvent> openMapObs;
-	private final Observable<ActionEvent> saveMapObs;
-	private final Observable<ActionEvent> saveMapAsObs;
-	private final Observable<ActionEvent> exitObs;
-	private final Observable<ActionEvent> vehicleInfoObs;
-	private final Observable<ActionEvent> optimizeObs;
-	private final Observable<ActionEvent> randomizeObs;
-	private final Observable<ActionEvent> frequenceObs;
-	private final Observable<ActionEvent> routesObs;
-	private final Observable<ActionEvent> stopObs;
-	private final Observable<Double> speedObs;
+	private final Flowable<ActionEvent> newMapFlow;
+	private final Flowable<ActionEvent> newRandomFlow;
+	private final Flowable<ActionEvent> openMapFlow;
+	private final Flowable<ActionEvent> saveMapFlow;
+	private final Flowable<ActionEvent> saveMapAsFlow;
+	private final Flowable<ActionEvent> exitFlow;
+	private final Flowable<ActionEvent> vehicleInfoFlow;
+	private final Flowable<ActionEvent> optimizeFlow;
+	private final Flowable<ActionEvent> randomizeFlow;
+	private final Flowable<ActionEvent> frequenceFlow;
+	private final Flowable<ActionEvent> routesFlow;
+	private final Flowable<ActionEvent> stopFlow;
+	private final Flowable<Double> speedFlow;
 
 	/**
 	 * Creates the main frame.
@@ -158,29 +157,29 @@ public class MainFrame extends JFrame {
 		this.newButton = createJButton("MainFrame.newAction");
 		this.openButton = createJButton("MainFrame.openAction");
 
-		this.newRandomObs = SwingObservable.actions(newRandomMenuItem);
-		this.saveMapAsObs = SwingObservable.actions(saveAsMenuItem);
-		this.exitObs = SwingObservable.actions(exitMenuItem);
+		this.newRandomFlow = SwingUtils.actions(newRandomMenuItem);
+		this.saveMapAsFlow = SwingUtils.actions(saveAsMenuItem);
+		this.exitFlow = SwingUtils.actions(exitMenuItem);
 
-		this.newMapObs = SwingObservable.actions(newButton).mergeWith(SwingObservable.actions(newMenuItem));
-		this.openMapObs = SwingObservable.actions(openButton).mergeWith(SwingObservable.actions(openMenuItem));
-		this.saveMapObs = SwingObservable.actions(saveButton).mergeWith(SwingObservable.actions(saveMenuItem));
+		this.newMapFlow = SwingUtils.actions(newButton).mergeWith(SwingUtils.actions(newMenuItem));
+		this.openMapFlow = SwingUtils.actions(openButton).mergeWith(SwingUtils.actions(openMenuItem));
+		this.saveMapFlow = SwingUtils.actions(saveButton).mergeWith(SwingUtils.actions(saveMenuItem));
 
-		this.optimizeObs = SwingObservable.actions(optimizeMenuItem);
-		this.frequenceObs = SwingObservable.actions(frequenceMenuItem);
-		this.speedObs = SwingObservable.actions(speedx1MenuItem).map(ev -> {
+		this.optimizeFlow = SwingUtils.actions(optimizeMenuItem);
+		this.frequenceFlow = SwingUtils.actions(frequenceMenuItem);
+		this.speedFlow = SwingUtils.actions(speedx1MenuItem).map(ev -> {
 			return 1.0;
-		}).mergeWith(SwingObservable.actions(speedx2MenuItem).map(ev -> {
+		}).mergeWith(SwingUtils.actions(speedx2MenuItem).map(ev -> {
 			return 2.0;
-		})).mergeWith(SwingObservable.actions(speedx5MenuItem).map(ev -> {
+		})).mergeWith(SwingUtils.actions(speedx5MenuItem).map(ev -> {
 			return 5.0;
-		})).mergeWith(SwingObservable.actions(speedx10MenuItem).map(ev -> {
+		})).mergeWith(SwingUtils.actions(speedx10MenuItem).map(ev -> {
 			return 10.0;
 		}));
-		this.stopObs = SwingObservable.actions(stopMenuItem);
-		this.routesObs = SwingObservable.actions(routesMenuItem);
-		this.randomizeObs = SwingObservable.actions(randomizeMenuItem);
-		this.vehicleInfoObs = SwingObservable.actions(veicleInfosMenuItem);
+		this.stopFlow = SwingUtils.actions(stopMenuItem);
+		this.routesFlow = SwingUtils.actions(routesMenuItem);
+		this.randomizeFlow = SwingUtils.actions(randomizeMenuItem);
+		this.vehicleInfoFlow = SwingUtils.actions(veicleInfosMenuItem);
 
 		init(left, top, bottom);
 	}
@@ -252,69 +251,69 @@ public class MainFrame extends JFrame {
 		return toolBar;
 	}
 
-	/** Returns the observable of exit action. */
-	public Observable<ActionEvent> getExitObs() {
-		return exitObs;
+	/** Returns the flowable of exit action. */
+	public Flowable<ActionEvent> getExitFlow() {
+		return exitFlow;
 	}
 
-	/** Returns the observable of frequency action. */
-	public Observable<ActionEvent> getFrequenceObs() {
-		return frequenceObs;
+	/** Returns the flowable of frequency action. */
+	public Flowable<ActionEvent> getFrequenceFlow() {
+		return frequenceFlow;
 	}
 
-	/** Returns the observable of new map action. */
-	public Observable<ActionEvent> getNewMapObs() {
-		return newMapObs;
+	/** Returns the flowable of new map action. */
+	public Flowable<ActionEvent> getNewMapFlow() {
+		return newMapFlow;
 	}
 
-	/** Returns the observable of new random map action. */
-	public Observable<ActionEvent> getNewRandomObs() {
-		return newRandomObs;
+	/** Returns the flowable of new random map action. */
+	public Flowable<ActionEvent> getNewRandomFlow() {
+		return newRandomFlow;
 	}
 
-	/** Returns the observable of open action. */
-	public Observable<ActionEvent> getOpenMapObs() {
-		return openMapObs;
+	/** Returns the flowable of open action. */
+	public Flowable<ActionEvent> getOpenMapFlow() {
+		return openMapFlow;
 	}
 
-	/** Returns the observable of optimize action. */
-	public Observable<ActionEvent> getOptimizeObs() {
-		return optimizeObs;
+	/** Returns the flowable of optimize action. */
+	public Flowable<ActionEvent> getOptimizeFlow() {
+		return optimizeFlow;
 	}
 
-	/** Returns the observable of randomize action. */
-	public Observable<ActionEvent> getRandomizeObs() {
-		return randomizeObs;
+	/** Returns the flowable of randomize action. */
+	public Flowable<ActionEvent> getRandomizeFlow() {
+		return randomizeFlow;
 	}
 
-	/** Returns the observable of routes action. */
-	public Observable<ActionEvent> getRoutesObs() {
-		return routesObs;
+	/** Returns the flowable of routes action. */
+	public Flowable<ActionEvent> getRoutesFlow() {
+		return routesFlow;
 	}
 
-	/** Returns the observable of save as action. */
-	public Observable<ActionEvent> getSaveMapAsObs() {
-		return saveMapAsObs;
+	/** Returns the flowable of save as action. */
+	public Flowable<ActionEvent> getSaveMapAsFlow() {
+		return saveMapAsFlow;
 	}
 
-	/** Returns the observable of save action */
-	public Observable<ActionEvent> getSaveMapObs() {
-		return saveMapObs;
+	/** Returns the flowable of save action */
+	public Flowable<ActionEvent> getSaveMapFlow() {
+		return saveMapFlow;
 	}
 
-	/** Returns the observable of speed action. */
-	public Observable<Double> getSpeedObs() {
-		return speedObs;
+	/** Returns the flowable of speed action. */
+	public Flowable<Double> getSpeedFlow() {
+		return speedFlow;
 	}
 
-	/** Returns the observable of stop action. */
-	public Observable<ActionEvent> getStopObs() {
-		return stopObs;
+	/** Returns the flowable of stop action. */
+	public Flowable<ActionEvent> getStopFlow() {
+		return stopFlow;
 	}
 
-	/** Returns the observable of vehicle info action. */
-	public Observable<ActionEvent> getVehicleInfoObs() {
-		return vehicleInfoObs;
+	/** Returns the flowable of vehicle info action. */
+	public Flowable<ActionEvent> getVehicleInfoFlow() {
+		return vehicleInfoFlow;
 	}
 
 	/**
