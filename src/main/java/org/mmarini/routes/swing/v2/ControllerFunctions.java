@@ -32,6 +32,8 @@ import java.awt.geom.Point2D;
 import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapNode;
 
+import io.reactivex.rxjava3.functions.Action;
+
 /**
  * Controller functions
  */
@@ -115,4 +117,13 @@ public interface ControllerFunctions {
 	 * @return the controller
 	 */
 	public ControllerFunctions updateHud(UIStatus status, Point2D point);
+
+	/**
+	 * Executes an action with stopped simulator
+	 *
+	 * @param action the action
+	 * @return the controller
+	 * @throws Throwable in case of error
+	 */
+	public ControllerFunctions withSimulationStop(Action action) throws Throwable;
 }

@@ -96,7 +96,7 @@ public class MouseController implements Constants {
 		}).subscribe(t -> {
 			final UIStatus st = t.get1();
 			final MouseEvent ev = t.get3();
-			final Point2D endPoint = st.snapToNode(t.get2());
+			final Point2D endPoint = routeMap.snapToNode(t.get2());
 			final Point2D startPoint = st.getDragEdge().get().get1();
 			switch (ev.getID()) {
 			case MouseEvent.MOUSE_ENTERED:
@@ -252,7 +252,7 @@ public class MouseController implements Constants {
 			return st.getMode().equals(MapMode.START_EDGE) && ev.getID() == MouseEvent.MOUSE_PRESSED;
 		}).subscribe(t -> {
 			final UIStatus st = t.get1();
-			final Point2D startPoint = st.snapToNode(t.get2());
+			final Point2D startPoint = routeMap.snapToNode(t.get2());
 			final Optional<Tuple2<Point2D, Point2D>> dragEdge = Optional.of(Tuple.of(startPoint, startPoint));
 
 			routeMap.setSelectedEdge(Optional.empty()).setSelectedNode(Optional.empty())
@@ -274,7 +274,7 @@ public class MouseController implements Constants {
 //		withPointProc.start();
 		final PublishProcessor<Tuple3<UIStatus, Point2D, MouseEvent>> withPointProc = PublishProcessor.create();
 		routeMap.getMouseFlow().withLatestFrom(uiStatusFlow, (ev, status) -> {
-			final Point2D pt = status.toMapPoint(ev.getPoint());
+			final Point2D pt = routeMap.toMapPoint(ev.getPoint());
 			return Tuple.of(status, pt, ev);
 		}).subscribe(withPointProc);
 		final Flowable<Tuple3<UIStatus, Point2D, MouseEvent>> withPointFlow = withPointProc;

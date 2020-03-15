@@ -26,6 +26,7 @@
 
 package org.mmarini.routes.model.v2;
 
+import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -170,6 +171,11 @@ public class Traffics implements Constants {
 	/** Returns the map. */
 	public GeoMap getMap() {
 		return map;
+	}
+
+	/** Returns the map bound */
+	public Rectangle2D getMapBound() {
+		return map.getBound();
 	}
 
 	/** Returns traffics instant. */

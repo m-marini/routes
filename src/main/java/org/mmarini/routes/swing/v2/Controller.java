@@ -61,6 +61,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.functions.Action;
 import io.reactivex.rxjava3.processors.BehaviorProcessor;
 
 /**
@@ -191,12 +192,12 @@ public class Controller implements Constants, ControllerFunctions {
 		}).subscribe(t -> {
 			final UIStatus st = t.get1();
 			final MouseWheelEvent ev = t.get2();
-			final double newScale = st.getScale() * Math.pow(SCALE_FACTOR, -ev.getWheelRotation());
-			logger.debug("onNext scale at {}", newScale); //$NON-NLS-1$
+			final double newScale = routeMap.getScale() * Math.pow(SCALE_FACTOR, -ev.getPreciseWheelRotation());
+			logger.debug("bindOnMouseWheel scale {} -> {}", routeMap.getScale(), newScale);
 			final Point pivot = ev.getPoint();
 			final UIStatus newStatus = scaleTo(st, newScale, pivot);
-			updateHud(newStatus, newStatus.toMapPoint(pivot));
-			uiStatusSubs.onNext(newStatus);
+			updateHud(newStatus, routeMap.toMapPoint(pivot));
+			changeStatus(newStatus);
 		}, this::showError);
 		return this;
 	}
@@ -207,27 +208,28 @@ public class Controller implements Constants, ControllerFunctions {
 	 * @return the controller
 	 */
 	private Controller bindOnStatus() {
-
-		Flowable.interval(1000 / FPS, TimeUnit.MILLISECONDS)
-				// Add last simulator status
-				.withLatestFrom(simulator.getEvents(), (t, status) -> status)
-				// Add last ui status
-				.withLatestFrom(uiStatusFlow, (simStat, uiStat) -> Tuple.of(simStat, uiStat))
-				// discard no change events
-				.filter(t -> !t.get2().getTraffics().equals(t.get1()))
-				// Update ui status, refresh panels and send new event
-				.compose(SwingUtils.observeOnEdt()).subscribe(t -> {
-					final UIStatus uiStatus = t.get2().setTraffics(t.get1());
-					trafficChanged(uiStatus);
-					uiStatusSubs.onNext(uiStatus);
-				}, this::showError);
+		Flowable.interval(1000 / FPS, TimeUnit.MILLISECONDS).withLatestFrom(simulator.getEvents(), (t, status) -> {
+			// Add last simulator status
+			return status;
+		}).withLatestFrom(uiStatusFlow, (simStat, uiStat) -> {
+			// Add last ui status
+			return Tuple.of(simStat, uiStat);
+		}).filter(t -> {
+			// discard no change events
+			return !t.get2().getTraffics().equals(t.get1());
+		}).compose(SwingUtils.observeOnEdt()).subscribe(t -> {
+			// Update ui status, refresh panels and send new event
+			final UIStatus uiStatus = t.get2().setTraffics(t.get1());
+			trafficChanged(uiStatus);
+			changeStatus(uiStatus);
+		}, this::showError);
 		return this;
 	}
 
 	@Override
 	public Controller centerMapTo(final UIStatus status, final Point2D center) {
 		logger.debug("centerMapTo {} ", center); //$NON-NLS-1$
-		final Point2D pt = status.toScreenPoint(center);
+		final Point2D pt = routeMap.toScreenPoint(center);
 		final Point vp = computeViewportPosition(pt);
 		scrollMap.getViewport().setViewPosition(vp);
 		return this;
@@ -312,26 +314,23 @@ public class Controller implements Constants, ControllerFunctions {
 	@Override
 	public Controller mapChanged(final UIStatus uiStatus) {
 		final Traffics traffics = uiStatus.getTraffics();
-		routeMap.setTraffics(traffics).setGridSize(uiStatus.getGridSize()).clearSelection()
-				.setTransform(uiStatus.getTransform()).setPreferredSize(uiStatus.getScreenMapSize());
+		routeMap.setTraffics(traffics).clearSelection();
 		scrollMap.repaint();
 		explorerPane.setMap(traffics.getMap());
 		mapElementPane.clearSelection();
 		simulator.setEvent(traffics);
-		uiStatusSubs.onNext(uiStatus);
-		return this;
+		return changeStatus(uiStatus);
 	}
 
 	@Override
 	public UIStatus scaleTo(final UIStatus status, final double scale, final Point pivot) {
+		routeMap.setScale(scale);
 		final UIStatus newStatus = status.setScale(scale);
 		final Point vp = scrollMap.getViewport().getViewPosition();
-		final Point newVp = status.computeViewporPositionWithScale(vp, pivot, scale);
+		final Point newVp = routeMap.computeViewporPositionWithScale(vp, pivot, scale);
 		scrollMap.getViewport().setViewPosition(newVp);
-		routeMap.setTransform(newStatus.getTransform()).setGridSize(newStatus.getGridSize())
-				.setPreferredSize(newStatus.getScreenMapSize());
 		scrollMap.repaint();
-		updateHud(newStatus, newStatus.toMapPoint(pivot));
+		updateHud(newStatus, routeMap.toMapPoint(pivot));
 		return newStatus;
 	}
 
@@ -373,11 +372,19 @@ public class Controller implements Constants, ControllerFunctions {
 		switch (status.getMode()) {
 		case START_EDGE:
 		case DRAG_EDGE:
-			scrollMap.setEdgeHud(status.getGridSize(), point, status.getDragEdge(), status.getSpeedLimit());
+			scrollMap.setEdgeHud(routeMap.getGridSize(), point, status.getDragEdge(), status.getSpeedLimit());
 			break;
 		default:
-			scrollMap.setPointHud(status.getGridSize(), point);
+			scrollMap.setPointHud(routeMap.getGridSize(), point);
 		}
+		return this;
+	}
+
+	@Override
+	public ControllerFunctions withSimulationStop(final Action action) throws Throwable {
+		simulator.stop();
+		action.run();
+		startSimulator();
 		return this;
 	}
 }

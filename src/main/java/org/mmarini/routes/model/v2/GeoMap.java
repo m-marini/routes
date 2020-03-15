@@ -31,6 +31,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -188,6 +189,7 @@ public class GeoMap implements Constants {
 	}
 
 	private final Set<MapEdge> edges;
+
 	private final Map<Tuple2<MapNode, MapNode>, Double> weights;
 	private final Set<MapNode> sites;
 	private final Set<MapNode> nodes;
@@ -325,6 +327,22 @@ public class GeoMap implements Constants {
 			final double db2 = b.getLocation().distanceSq(point);
 			return Double.compare(da2, db2);
 		});
+		return result;
+	}
+
+	/** Returns the map bound. */
+	public Rectangle2D getBound() {
+		final Set<MapNode> all = Stream.concat(sites.parallelStream(), nodes.parallelStream())
+				.collect(Collectors.toSet());
+		final OptionalDouble x0 = all.parallelStream().mapToDouble(n -> n.getX()).min();
+		final OptionalDouble x1 = all.parallelStream().mapToDouble(n -> n.getX()).max();
+		final OptionalDouble y0 = all.parallelStream().mapToDouble(n -> n.getY()).min();
+		final OptionalDouble y1 = all.parallelStream().mapToDouble(n -> n.getY()).max();
+
+		final Rectangle2D result = (x0.isPresent() && x1.isPresent() && y0.isPresent() && y1.isPresent())
+				? new Rectangle2D.Double(x0.getAsDouble(), y0.getAsDouble(), x1.getAsDouble() - x0.getAsDouble(),
+						y1.getAsDouble() - y0.getAsDouble())
+				: new Rectangle2D.Double();
 		return result;
 	}
 
