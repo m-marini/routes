@@ -42,8 +42,8 @@ import org.mmarini.routes.swing.v2.UIStatus.MapMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.subjects.PublishSubject;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.processors.PublishProcessor;
 
 /**
  * Controller for the mouse.
@@ -59,7 +59,7 @@ public class MouseController implements Constants {
 	private final RouteMap routeMap;
 	private final MapElementPane mapElementPane;
 	private final ExplorerPane explorerPane;
-	private final Observable<UIStatus> uiStatusObs;
+	private final Flowable<UIStatus> uiStatusFlow;
 	private final ControllerFunctions controller;
 
 	/**
@@ -69,16 +69,16 @@ public class MouseController implements Constants {
 	 * @param routeMap       the route map
 	 * @param mapElementPane the map element panel
 	 * @param explorerPane   the explorer panel
-	 * @param uiStatusObs    the observable of ui status
+	 * @param uiStatusFlow   the flowable of ui status
 	 * @param controller     the main controller
 	 */
 	public MouseController(final ScrollMap scrollMap, final RouteMap routeMap, final MapElementPane mapElementPane,
-			final ExplorerPane explorerPane, final Observable<UIStatus> uiStatusObs,
+			final ExplorerPane explorerPane, final Flowable<UIStatus> uiStatusFlow,
 			final ControllerFunctions controller) {
 		this.scrollMap = scrollMap;
 		this.routeMap = routeMap;
 		this.explorerPane = explorerPane;
-		this.uiStatusObs = uiStatusObs;
+		this.uiStatusFlow = uiStatusFlow;
 		this.controller = controller;
 		this.mapElementPane = mapElementPane;
 	}
@@ -86,11 +86,11 @@ public class MouseController implements Constants {
 	/**
 	 * Binds for edge dragging.
 	 *
-	 * @param withPointObs the observable of cursor map point
+	 * @param withPointFlow the flowable of cursor map point
 	 * @return the controller
 	 */
-	private MouseController bindOnDragEdge(final Observable<Tuple3<UIStatus, Point2D, MouseEvent>> withPointObs) {
-		withPointObs.filter(t -> {
+	private MouseController bindOnDragEdge(final Flowable<Tuple3<UIStatus, Point2D, MouseEvent>> withPointFlow) {
+		withPointFlow.filter(t -> {
 			final UIStatus st = t.get1();
 			return st.getMode().equals(MapMode.DRAG_EDGE);
 		}).subscribe(t -> {
@@ -126,11 +126,11 @@ public class MouseController implements Constants {
 	/**
 	 * Binds for module dragging.
 	 *
-	 * @param withPointObs the observable of cursor map point
+	 * @param withPointFlow the flowable of cursor map point
 	 * @return the controller
 	 */
-	private MouseController bindOnDragModule(final Observable<Tuple3<UIStatus, Point2D, MouseEvent>> withPointObs) {
-		withPointObs.filter(t -> {
+	private MouseController bindOnDragModule(final Flowable<Tuple3<UIStatus, Point2D, MouseEvent>> withPointFlow) {
+		withPointFlow.filter(t -> {
 			final UIStatus st = t.get1();
 			return st.getMode().equals(MapMode.DRAG_MODULE);
 		}).subscribe(t -> {
@@ -159,11 +159,11 @@ public class MouseController implements Constants {
 	/**
 	 * Binds for mouse to head up display.
 	 *
-	 * @param withPointObs the observable of cursor map point
+	 * @param withPointFlow the flowable of cursor map point
 	 * @return the controller
 	 */
-	private MouseController bindOnMouseForHud(final Observable<Tuple3<UIStatus, Point2D, MouseEvent>> withPointObs) {
-		withPointObs.subscribe(t -> {
+	private MouseController bindOnMouseForHud(final Flowable<Tuple3<UIStatus, Point2D, MouseEvent>> withPointFlow) {
+		withPointFlow.subscribe(t -> {
 			controller.updateHud(t.get1(), t.get2());
 		}, controller::showError);
 		return this;
@@ -172,11 +172,11 @@ public class MouseController implements Constants {
 	/**
 	 * Binds for mouse selection.
 	 *
-	 * @param withPointObs the observable of cursor map point
+	 * @param withPointFlow the flowable of cursor map point
 	 * @return the controller
 	 */
-	private MouseController bindOnMouseSelection(final Observable<Tuple3<UIStatus, Point2D, MouseEvent>> withPointObs) {
-		withPointObs.filter(t -> {
+	private MouseController bindOnMouseSelection(final Flowable<Tuple3<UIStatus, Point2D, MouseEvent>> withPointFlow) {
+		withPointFlow.filter(t -> {
 			final UIStatus st = t.get1();
 			final MouseEvent ev = t.get3();
 			return st.getMode().equals(MapMode.SELECTION) && ev.getID() == MouseEvent.MOUSE_PRESSED;
@@ -200,11 +200,11 @@ public class MouseController implements Constants {
 	/**
 	 * Binds for module rotation.
 	 *
-	 * @param withPointObs the observable of cursor map point
+	 * @param withPointFlow the flowable of cursor map point
 	 * @return the controller
 	 */
-	private MouseController bindOnRotateModule(final Observable<Tuple3<UIStatus, Point2D, MouseEvent>> withPointObs) {
-		withPointObs.filter(t -> {
+	private MouseController bindOnRotateModule(final Flowable<Tuple3<UIStatus, Point2D, MouseEvent>> withPointFlow) {
+		withPointFlow.filter(t -> {
 			final UIStatus st = t.get1();
 			return st.getMode().equals(MapMode.ROTATE_MODULE);
 		}).subscribe(t -> {
@@ -242,11 +242,11 @@ public class MouseController implements Constants {
 	/**
 	 * Binds for edge start.
 	 *
-	 * @param withPointObs the observable of cursor map point
+	 * @param withPointFlow the flowable of cursor map point
 	 * @return the controller
 	 */
-	private MouseController bindOnStartEdge(final Observable<Tuple3<UIStatus, Point2D, MouseEvent>> withPointObs) {
-		withPointObs.filter(t -> {
+	private MouseController bindOnStartEdge(final Flowable<Tuple3<UIStatus, Point2D, MouseEvent>> withPointFlow) {
+		withPointFlow.filter(t -> {
 			final UIStatus st = t.get1();
 			final MouseEvent ev = t.get3();
 			return st.getMode().equals(MapMode.START_EDGE) && ev.getID() == MouseEvent.MOUSE_PRESSED;
@@ -270,13 +270,15 @@ public class MouseController implements Constants {
 	 * @return the controller
 	 */
 	public MouseController build() {
-		final PublishSubject<Tuple3<UIStatus, Point2D, MouseEvent>> withPointObs1 = PublishSubject.create();
-		routeMap.getMouseObs().withLatestFrom(uiStatusObs, (ev, status) -> {
+//		final MulticastProcessor<Tuple3<UIStatus, Point2D, MouseEvent>> withPointProc = MulticastProcessor.create();
+//		withPointProc.start();
+		final PublishProcessor<Tuple3<UIStatus, Point2D, MouseEvent>> withPointProc = PublishProcessor.create();
+		routeMap.getMouseFlow().withLatestFrom(uiStatusFlow, (ev, status) -> {
 			final Point2D pt = status.toMapPoint(ev.getPoint());
 			return Tuple.of(status, pt, ev);
-		}).subscribe(withPointObs1);
-		final Observable<Tuple3<UIStatus, Point2D, MouseEvent>> withPointObs = withPointObs1;
-		return bindOnMouseForHud(withPointObs).bindOnMouseSelection(withPointObs).bindOnStartEdge(withPointObs)
-				.bindOnRotateModule(withPointObs).bindOnDragModule(withPointObs).bindOnDragEdge(withPointObs);
+		}).subscribe(withPointProc);
+		final Flowable<Tuple3<UIStatus, Point2D, MouseEvent>> withPointFlow = withPointProc;
+		return bindOnMouseForHud(withPointFlow).bindOnMouseSelection(withPointFlow).bindOnStartEdge(withPointFlow)
+				.bindOnRotateModule(withPointFlow).bindOnDragModule(withPointFlow).bindOnDragEdge(withPointFlow);
 	}
 }

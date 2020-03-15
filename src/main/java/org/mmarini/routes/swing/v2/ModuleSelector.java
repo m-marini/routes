@@ -26,8 +26,7 @@ import org.mmarini.routes.model.v2.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import hu.akarnokd.rxjava3.swing.SwingObservable;
-import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * Selector of modules.
@@ -69,7 +68,7 @@ public class ModuleSelector {
 	private final JPopupMenu popupMenu;
 	private final List<JMenuItem> items;
 	private final JButton dropDownButton;
-	private final Observable<Tuple2<ActionEvent, MapModule>> moduleObs;
+	private final Flowable<Tuple2<ActionEvent, MapModule>> moduleFlow;
 
 	/**
 	 * Creates the selector.
@@ -87,17 +86,17 @@ public class ModuleSelector {
 		items = list.stream().map(t -> t.get1()).collect(Collectors.toList());
 		items.forEach(popupMenu::add);
 
-		final List<Observable<Tuple2<ActionEvent, MapModule>>> obs = list.stream().map(t -> {
+		final List<Flowable<Tuple2<ActionEvent, MapModule>>> flow = list.stream().map(t -> {
 			final JMenuItem menu = t.get1();
 			final MapModule module = t.get2();
-			return SwingObservable.actions(menu).map(ev -> {
+			return SwingUtils.actions(menu).map(ev -> {
 				return Tuple.of(ev, module);
 			});
 		}).collect(Collectors.toList());
 
-		moduleObs = Observable.merge(Observable.fromIterable(obs));
+		moduleFlow = Flowable.merge(Flowable.fromIterable(flow));
 
-		SwingObservable.actions(dropDownButton).subscribe(ev -> {
+		SwingUtils.actions(dropDownButton).subscribe(ev -> {
 			final Dimension size = dropDownButton.getSize();
 			popupMenu.show(dropDownButton, 0, size.height);
 		}, e -> {
@@ -115,8 +114,8 @@ public class ModuleSelector {
 		return items;
 	}
 
-	/** Returns the observable of selected module. */
-	public Observable<Tuple2<ActionEvent, MapModule>> getModuleObs() {
-		return moduleObs;
+	/** Returns the flowable of selected module. */
+	public Flowable<Tuple2<ActionEvent, MapModule>> getModuleFlow() {
+		return moduleFlow;
 	}
 }

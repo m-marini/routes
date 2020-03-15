@@ -52,8 +52,7 @@ import org.mmarini.routes.model.v2.MapNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import hu.akarnokd.rxjava3.swing.SwingObservable;
-import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * Panel with the information of a node and its user actions.
@@ -67,8 +66,8 @@ public class MapNodePane extends JPanel {
 	private final JFormattedTextField yField;
 	private final JButton changeButton;
 	private final JButton deleteButton;
-	private final Observable<MapNode> changeObs;
-	private final Observable<MapNode> deleteObs;
+	private final Flowable<MapNode> changeFlow;
+	private final Flowable<MapNode> deleteFlow;
 	private Optional<MapNode> node;
 
 	/** Creates the panel. */
@@ -79,9 +78,9 @@ public class MapNodePane extends JPanel {
 		changeButton = createJButton("MapNodePane.changeAction"); //$NON-NLS-1$
 		deleteButton = createJButton("MapNodePane.deleteAction"); //$NON-NLS-1$
 		node = Optional.empty();
-		changeObs = SwingObservable.actions(changeButton).map(ev -> getNode()).filter(node -> node.isPresent())
+		changeFlow = SwingUtils.actions(changeButton).map(ev -> getNode()).filter(node -> node.isPresent())
 				.map(ed -> ed.get()).doOnNext(ev -> logger.debug("on next change {}", ev));
-		deleteObs = SwingObservable.actions(deleteButton).map(ev -> getNode()).filter(node -> node.isPresent())
+		deleteFlow = SwingUtils.actions(deleteButton).map(ev -> getNode()).filter(node -> node.isPresent())
 				.map(ed -> ed.get()).doOnNext(ev -> logger.debug("on next delete {}", ev));
 
 		setBorder(BorderFactory.createTitledBorder(Messages.getString("MapNodePane.title"))); //$NON-NLS-1$
@@ -135,14 +134,14 @@ public class MapNodePane extends JPanel {
 		return toolbar;
 	}
 
-	/** Returns the observable of change node button. */
-	public Observable<MapNode> getChangeObs() {
-		return changeObs;
+	/** Returns the flowable of change node button. */
+	public Flowable<MapNode> getChangeFlow() {
+		return changeFlow;
 	}
 
-	/** Returns the observable of delete node button. */
-	public Observable<MapNode> getDeleteObs() {
-		return deleteObs;
+	/** Returns the flowable of delete node button. */
+	public Flowable<MapNode> getDeleteFlow() {
+		return deleteFlow;
 	}
 
 	/** Returns the node. */

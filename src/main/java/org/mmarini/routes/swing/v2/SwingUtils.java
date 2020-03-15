@@ -22,6 +22,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,23 +38,30 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFormattedTextField;
+import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
+import javax.swing.JViewport;
 import javax.swing.KeyStroke;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
 
 import org.mmarini.routes.model.v2.MapNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import hu.akarnokd.rxjava3.swing.SwingObservable;
-import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.FlowableTransformer;
 
 /**
  * Various functionalities used in the user interface.
  */
 public abstract class SwingUtils {
+
 	/** Builder of grid bag constraints */
 	public static class GridBagConstraintsBuilder {
 		private final GridBagConstraints constraints;
@@ -527,22 +537,32 @@ public abstract class SwingUtils {
 	static final Logger logger = LoggerFactory.getLogger(SwingUtils.class);
 
 	public static final double BRIGHTNESS_ZERO = 0.7;
+
 	public static final double BRIGHTNESS_ONE = 1;
 	public static final double HUE_ZERO = 0.8;
 	public static final double HUE_ONE = 0;
 	public static final double NODE_SATURATION = 1;
 
 	/**
-	 * Returns the observable of action event for a text field.
+	 * Returns the flowable of action events for an abstract button
+	 *
+	 * @param button the button
+	 */
+	public static Flowable<ActionEvent> actions(final AbstractButton button) {
+		return SwingObservable.actions(button).toFlowable(BackpressureStrategy.BUFFER);
+	}
+
+	/**
+	 * Returns the flowable of action event for a text field.
 	 *
 	 * @param field the field
 	 */
-	public static Observable<ActionEvent> action(final JTextField field) {
+	public static Flowable<ActionEvent> actions(final JTextField field) {
 		assert field != null;
-		return Observable.<ActionEvent>create(emitter -> {
+		return Flowable.create(emitter -> {
 			logger.debug("register listener on {}", field);
 			field.addActionListener(ev -> emitter.onNext(ev));
-		});
+		}, BackpressureStrategy.BUFFER);
 	}
 
 	/**
@@ -574,6 +594,15 @@ public abstract class SwingUtils {
 					}));
 			return result;
 		}
+	}
+
+	/**
+	 * Returns the flowable of change event for a viewport
+	 *
+	 * @param component the viewport
+	 */
+	public static Flowable<ChangeEvent> change(final JViewport component) {
+		return SwingObservable.change(component).toFlowable(BackpressureStrategy.BUFFER);
 	}
 
 	/**
@@ -689,6 +718,15 @@ public abstract class SwingUtils {
 	}
 
 	/**
+	 * Returns the flowable of focus event for a component
+	 *
+	 * @param component the component
+	 */
+	public static Flowable<FocusEvent> focus(final Component component) {
+		return SwingObservable.focus(component).toFlowable(BackpressureStrategy.BUFFER);
+	}
+
+	/**
 	 * Returns the formatted string representing a time interval.
 	 *
 	 * @param t the interval time in seconds
@@ -721,6 +759,24 @@ public abstract class SwingUtils {
 	}
 
 	/**
+	 * Returns the flowable of keyboard event for a component
+	 *
+	 * @param component the component
+	 */
+	public static Flowable<KeyEvent> keyboard(final Component component) {
+		return SwingObservable.keyboard(component).toFlowable(BackpressureStrategy.BUFFER);
+	}
+
+	/**
+	 * Returns the flwable of list selection event for a JList
+	 *
+	 * @param jList the JList
+	 */
+	public static Flowable<ListSelectionEvent> listSelection(final JList<?> jList) {
+		return SwingObservable.listSelection(jList).toFlowable(BackpressureStrategy.BUFFER);
+	}
+
+	/**
 	 * Returns the list of patterns by key.
 	 *
 	 * @param key the key
@@ -737,6 +793,33 @@ public abstract class SwingUtils {
 			++i;
 		}
 		return list;
+	}
+
+	/**
+	 * Returns the flowable of mouse event for a component
+	 *
+	 * @param component the component
+	 */
+	public static Flowable<MouseEvent> mouse(final Component component) {
+		return SwingObservable.mouse(component).toFlowable(BackpressureStrategy.BUFFER);
+	}
+
+	/**
+	 * Returns the flowable of mouse wheel event for a component
+	 *
+	 * @param component the component
+	 */
+	public static Flowable<MouseWheelEvent> mouseWheel(final Component component) {
+		return SwingObservable.mouseWheel(component).toFlowable(BackpressureStrategy.BUFFER);
+	}
+
+	/**
+	 *
+	 * @param <T>
+	 * @return
+	 */
+	public static <T> FlowableTransformer<T, T> observeOnEdt() {
+		return SwingObserveOn::new;
 	}
 
 	/**
@@ -783,17 +866,17 @@ public abstract class SwingUtils {
 	}
 
 	/**
-	 * Returns the observable of value changed of a text field.
+	 * Returns the flowable of value changed of a text field.
 	 *
 	 * @param <T>   the type of value
 	 * @param field the text field
 	 */
-	public static <T> Observable<T> value(final JFormattedTextField field) {
-		final Observable<JFormattedTextField> focusObs = SwingObservable.focus(field)
-				.filter(ev -> ev.getID() == FocusEvent.FOCUS_LOST).map(ev -> field);
-		final Observable<JFormattedTextField> actionObs = action(field).map(ev -> field);
+	public static <T> Flowable<T> value(final JFormattedTextField field) {
+		final Flowable<JFormattedTextField> focusFlow = focus(field).filter(ev -> ev.getID() == FocusEvent.FOCUS_LOST)
+				.map(ev -> field);
+		final Flowable<JFormattedTextField> actionFlow = actions(field).map(ev -> field);
 		@SuppressWarnings("unchecked")
-		final Observable<T> result = focusObs.mergeWith(actionObs).filter(c -> c.isEditValid()).map(c -> {
+		final Flowable<T> result = focusFlow.mergeWith(actionFlow).filter(c -> c.isEditValid()).map(c -> {
 			c.commitEdit();
 			return (T) c.getValue();
 		});
