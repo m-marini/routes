@@ -48,8 +48,6 @@ import org.mmarini.routes.model.v2.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.reactivex.rxjava3.core.Flowable;
-
 /**
  * Controller for the main frame.
  * <p>
@@ -63,8 +61,9 @@ public class MainFrameController {
 	private final MainFrame mainFrame;
 	private final JFileChooser fileChooser;
 	private final MapProfilePane mapProfilePane;
-	private final Flowable<UIStatus> uiStatusFlow;
 	private final Simulator<Traffics> simulator;
+	private final RouteMap routeMap;
+	private final OptimizePane optimizePane;
 	private final ControllerFunctions controller;
 
 	/**
@@ -72,19 +71,21 @@ public class MainFrameController {
 	 *
 	 * @param mainFrame    the main frame
 	 * @param fileChooser  the file chooser
-	 * @param uiStatusFlow the flowable of ui status
 	 * @param simulator    the simulator
+	 * @param optimizePane the optimize panel
+	 * @param routeMap     the route map panel
 	 * @param controller   the main controller
 	 */
 	public MainFrameController(final MainFrame mainFrame, final JFileChooser fileChooser,
-			final Flowable<UIStatus> uiStatusFlow, final Simulator<Traffics> simulator,
+			final Simulator<Traffics> simulator, final OptimizePane optimizePane, final RouteMap routeMap,
 			final ControllerFunctions controller) {
+		this.routeMap = routeMap;
 		this.mainFrame = mainFrame;
 		this.fileChooser = fileChooser;
 		this.mapProfilePane = new MapProfilePane();
-		this.uiStatusFlow = uiStatusFlow;
 		this.simulator = simulator;
 		this.controller = controller;
+		this.optimizePane = optimizePane;
 	}
 
 	/**
@@ -95,38 +96,43 @@ public class MainFrameController {
 	 */
 	public MainFrameController build(final Random random) {
 
-		mainFrame.getOpenMapFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
+		mainFrame.getOpenMapFlow().subscribe(ev -> {
 			controller.withSimulationStop(() -> {
-				final Optional<Tuple2<UIStatus, File>> t = loadProcess(st);
-				t.ifPresent(tup -> {
+				loadProcess().ifPresent(tup -> {
 					mainFrame.setSaveActionEnabled(true);
 					mainFrame.setTitle(tup.get2().getName());
-					final UIStatus uiStatus = tup.get1();
-					controller.mapChanged(uiStatus);
+					controller.mapChanged(tup.get1());
 				});
 			});
 		});
 
-		mainFrame.getSaveMapAsFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
+		mainFrame.getSaveMapAsFlow().subscribe(ev -> {
 			controller.withSimulationStop(() -> {
-				final int choice = fileChooser.showSaveDialog(mainFrame);
-				if (choice == JFileChooser.APPROVE_OPTION) {
-					handleSaveMap(st);
-				}
+				routeMap.getTraffics().ifPresentOrElse(traffics -> {
+					final int choice = fileChooser.showSaveDialog(mainFrame);
+					if (choice == JFileChooser.APPROVE_OPTION) {
+						handleSaveMap(traffics);
+					}
+				}, () -> {
+					logger.error("Missing traffics", new Error());
+				});
 			});
 		}, controller::showError);
 
-		mainFrame.getSaveMapFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
-			handleSaveMap(st);
+		mainFrame.getSaveMapFlow().subscribe(ev -> {
+			routeMap.getTraffics().ifPresentOrElse(traffics -> {
+				handleSaveMap(traffics);
+			}, () -> {
+				logger.error("Missing traffics", new Error());
+			});
 		}, controller::showError);
 
 		mainFrame.getNewMapFlow().subscribe(ev -> {
-			final UIStatus status = UIStatus.create();
 			mainFrame.resetTitle().setSaveActionEnabled(false).repaint();
-			controller.mapChanged(status);
+			controller.mapChanged(Traffics.create());
 		}, controller::showError);
 
-		mainFrame.getNewRandomFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
+		mainFrame.getNewRandomFlow().subscribe(ev -> {
 			controller.withSimulationStop(() -> {
 				mapProfilePane.setDifficultyOnly(false);
 				final int opt = JOptionPane.showConfirmDialog(mainFrame, mapProfilePane,
@@ -134,10 +140,8 @@ public class MainFrameController {
 				if (opt == JOptionPane.OK_OPTION) {
 					final MapProfile profile = mapProfilePane.getProfile();
 					logger.info("Selected {}", profile); //$NON-NLS-1$
-					final Traffics status = Traffics.random(profile, new Random());
-					final UIStatus uiStatus = UIStatus.create().setTraffics(status);
 					mainFrame.resetTitle().setSaveActionEnabled(false).repaint();
-					controller.mapChanged(uiStatus);
+					controller.mapChanged(Traffics.random(profile, new Random()));
 				}
 			});
 		}, controller::showError);
@@ -146,40 +150,40 @@ public class MainFrameController {
 			mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
 		}, controller::showError);
 
-		mainFrame.getOptimizeFlow().withLatestFrom(uiStatusFlow, (ev, status) -> status).subscribe(status -> {
+		mainFrame.getOptimizeFlow().subscribe(ev -> {
 			controller.withSimulationStop(() -> {
-				final OptimizePane optimizePane = new OptimizePane();
-				optimizePane.setSpeedLimit(status.getSpeedLimit());
-				final int opt = JOptionPane.showConfirmDialog(mainFrame, optimizePane,
-						Messages.getString("Controller.optimizerPane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
-				if (opt == JOptionPane.OK_OPTION) {
-					final double speedLimit = optimizePane.getSpeedLimit();
-					if (optimizePane.isOptimizeSpeed()) {
-						final UIStatus newStatus = status.setSpeedLimit(speedLimit).optimizeSpeed();
-						controller.mapChanged(newStatus);
+				routeMap.getTraffics().ifPresentOrElse(traffics -> {
+					final int opt = JOptionPane.showConfirmDialog(mainFrame, optimizePane,
+							Messages.getString("Controller.optimizerPane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
+					if (opt == JOptionPane.OK_OPTION) {
+						final double speedLimit = optimizePane.getSpeedLimit();
+						controller.mapChanged(traffics.optimizeSpeed(speedLimit));
 					}
-				}
+				}, () -> {
+					logger.error("Missing traffics", new Error());
+				});
 			});
 		}, controller::showError);
 
-		mainFrame.getFrequenceFlow().withLatestFrom(uiStatusFlow, (ev, status) -> status).subscribe(status -> {
+		mainFrame.getFrequenceFlow().subscribe(ev -> {
 			controller.withSimulationStop(() -> {
-				final FrequencePane frequencePane = new FrequencePane();
-				final double frequence = status.getTraffics().getMap().getFrequence();
-				frequencePane.setFrequence(frequence);
-				final int opt = JOptionPane.showConfirmDialog(mainFrame, frequencePane,
-						Messages.getString("Controller.frequencePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
-				if (opt == JOptionPane.OK_OPTION) {
-					final UIStatus newStatus = status.setFrequence(frequencePane.getFrequence());
-					controller.mapChanged(newStatus);
-				}
+				routeMap.getTraffics().ifPresentOrElse(traffics -> {
+					final FrequencePane frequencePane = new FrequencePane();
+					final double frequence = traffics.getMap().getFrequence();
+					frequencePane.setFrequence(frequence);
+					final int opt = JOptionPane.showConfirmDialog(mainFrame, frequencePane,
+							Messages.getString("Controller.frequencePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
+					if (opt == JOptionPane.OK_OPTION) {
+						controller.mapChanged(traffics.setFrequence(frequence));
+					}
+				}, () -> {
+					logger.error("Missing traffics", new Error());
+				});
 			});
 		}, controller::showError);
 
-		mainFrame.getSpeedFlow().withLatestFrom(uiStatusFlow, (speed, status) -> {
-			return Tuple.of(status, speed);
-		}).subscribe(t -> {
-			simulator.setSpeed(t.get2());
+		mainFrame.getSpeedFlow().subscribe(speed -> {
+			simulator.setSpeed(speed);
 		}, controller::showError);
 
 		mainFrame.getStopFlow().subscribe(ev -> {
@@ -190,42 +194,53 @@ public class MainFrameController {
 			}
 		}, controller::showError);
 
-		mainFrame.getRoutesFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
+		mainFrame.getRoutesFlow().subscribe(ev -> {
 			controller.withSimulationStop(() -> {
-				final WeightsTable table = new WeightsTable();
-				table.setWeights(st.getTraffics().getMap().getWeights());
-				final JScrollPane pane = new JScrollPane(table);
-				final int opt = JOptionPane.showConfirmDialog(mainFrame, pane,
-						Messages.getString("Controller.routePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
-				if (opt == JOptionPane.OK_OPTION) {
-					final UIStatus newStatus = st.setWeights(table.getWeights());
-					controller.mapChanged(newStatus);
-				}
+				routeMap.getTraffics().ifPresentOrElse(traffics -> {
+					final WeightsTable table = new WeightsTable();
+					table.setWeights(traffics.getMap().getWeights());
+					final JScrollPane pane = new JScrollPane(table);
+					final int opt = JOptionPane.showConfirmDialog(mainFrame, pane,
+							Messages.getString("Controller.routePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
+					if (opt == JOptionPane.OK_OPTION) {
+						controller.mapChanged(traffics.setWeights(table.getWeights()));
+					}
+				}, () -> {
+					logger.error("Missing traffics", new Error());
+				});
 			});
 		}, controller::showError);
 
-		mainFrame.getRandomizeFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
-			mapProfilePane.setDifficultyOnly(true);
-			final int opt = JOptionPane.showConfirmDialog(mainFrame, mapProfilePane,
-					Messages.getString("Controller.mapProfilePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
-			if (opt == JOptionPane.OK_OPTION) {
-				final MapProfile profile = mapProfilePane.getProfile();
-				final UIStatus newStatus = st.randomize(profile.getMinWeight(), random)
-						.setFrequence(profile.getFrequence());
-				controller.mapChanged(newStatus);
-			}
+		mainFrame.getRandomizeFlow().subscribe(ev -> {
+			controller.withSimulationStop(() -> {
+				routeMap.getTraffics().ifPresentOrElse(traffics -> {
+					mapProfilePane.setDifficultyOnly(true);
+					final int opt = JOptionPane.showConfirmDialog(mainFrame, mapProfilePane,
+							Messages.getString("Controller.mapProfilePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
+					if (opt == JOptionPane.OK_OPTION) {
+						final MapProfile profile = mapProfilePane.getProfile();
+						controller.mapChanged(traffics.randomize(profile.getMinWeight(), random)
+								.setFrequence(profile.getFrequence()));
+					}
+				}, () -> {
+					logger.error("Missing traffics", new Error());
+				});
+			});
 		}, controller::showError);
 
-		mainFrame.getVehicleInfoFlow().withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
+		mainFrame.getVehicleInfoFlow().subscribe(ev -> {
 			controller.withSimulationStop(() -> {
-				final Traffics traffics = st.getTraffics();
-				final TrafficsTable table = new TrafficsTable(traffics);
-				final JScrollPane pane = new JScrollPane(table);
-				pane.setBorder(BorderFactory
-						.createTitledBorder(Messages.getString("MainFrameController.trafficsPane.description")));
-				JOptionPane.showMessageDialog(mainFrame, pane,
-						Messages.getString("MainFrameController.trafficsPane.title"), //$NON-NLS-1$
-						JOptionPane.INFORMATION_MESSAGE);
+				routeMap.getTraffics().ifPresentOrElse(traffics -> {
+					final TrafficsTable table = new TrafficsTable(traffics);
+					final JScrollPane pane = new JScrollPane(table);
+					pane.setBorder(BorderFactory
+							.createTitledBorder(Messages.getString("MainFrameController.trafficsPane.description")));
+					JOptionPane.showMessageDialog(mainFrame, pane,
+							Messages.getString("MainFrameController.trafficsPane.title"), //$NON-NLS-1$
+							JOptionPane.INFORMATION_MESSAGE);
+				}, () -> {
+					logger.error("Missing traffics", new Error());
+				});
 			});
 		}, controller::showError);
 
@@ -235,17 +250,17 @@ public class MainFrameController {
 	/**
 	 * Handles of save action.
 	 *
-	 * @param status the status
+	 * @param traffics the traffics to save
 	 * @return the controller
 	 */
-	private MainFrameController handleSaveMap(final UIStatus status) {
+	private MainFrameController handleSaveMap(final Traffics traffics) {
 		final File file = fileChooser.getSelectedFile();
 		if (file.exists() && !file.canWrite()) {
 			controller.showError(Messages.getString("Controller.writeError.message"), file); //$NON-NLS-1$
 		} else {
 			try {
 				logger.info("Saving {} ...", file); //$NON-NLS-1$
-				new GeoMapSerializer(status.getTraffics().getMap()).writeFile(file);
+				new GeoMapSerializer(traffics.getMap()).writeFile(file);
 				mainFrame.setSaveActionEnabled(true);
 				mainFrame.setTitle(file.getPath());
 			} catch (final Throwable e) {
@@ -261,10 +276,8 @@ public class MainFrameController {
 
 	/**
 	 * Returns the new ui status and selected file of the load process.
-	 *
-	 * @param status the initial uistatus
 	 */
-	private Optional<Tuple2<UIStatus, File>> loadProcess(final UIStatus status) {
+	private Optional<Tuple2<Traffics, File>> loadProcess() {
 		final int choice = fileChooser.showOpenDialog(mainFrame);
 		if (choice == JFileChooser.APPROVE_OPTION) {
 			final File file = fileChooser.getSelectedFile();
@@ -275,8 +288,8 @@ public class MainFrameController {
 				try {
 					logger.debug("loadProcess {}", file); //$NON-NLS-1$
 					final GeoMap map = GeoMapDeserializer.create().parse(file);
-					final Traffics newStatus = Traffics.create(map);
-					return Optional.of(Tuple.of(status.setTraffics(newStatus), file));
+					final Traffics traffics = Traffics.create(map);
+					return Optional.of(Tuple.of(traffics, file));
 				} catch (final Throwable ex) {
 					controller.showError(ex);
 					return Optional.empty();

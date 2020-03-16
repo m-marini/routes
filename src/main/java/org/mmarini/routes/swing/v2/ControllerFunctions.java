@@ -29,8 +29,7 @@ package org.mmarini.routes.swing.v2;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 
-import org.mmarini.routes.model.v2.MapEdge;
-import org.mmarini.routes.model.v2.MapNode;
+import org.mmarini.routes.model.v2.Traffics;
 
 import io.reactivex.rxjava3.functions.Action;
 
@@ -41,44 +40,21 @@ public interface ControllerFunctions {
 
 	/**
 	 * Centered map view to a given point.
-	 *
-	 * @param status the ui status the ui status
+	 * 
 	 * @param center the center point
+	 *
 	 * @return the controller
 	 */
-	public ControllerFunctions centerMapTo(UIStatus status, Point2D center);
-
-	/**
-	 * Change the UI status
-	 *
-	 * @param status the status
-	 * @return the controller
-	 */
-	public ControllerFunctions changeStatus(UIStatus status);
-
-	/**
-	 * Returns the ui status deleting an edge.
-	 *
-	 * @param status the initial status
-	 * @param edge   the edge to delete
-	 */
-	public UIStatus deleteEdge(final UIStatus status, final MapEdge edge);
-
-	/**
-	 * Returns the ui status deleting a node.
-	 *
-	 * @param status the initial status
-	 * @param node   the node to delete
-	 */
-	public UIStatus deleteNode(final UIStatus status, final MapNode node);
+	public ControllerFunctions centerMapTo(Point2D center);
 
 	/**
 	 * Upgrades the ui components due to map change.
+	 * 
+	 * @param traffics the traffics
 	 *
-	 * @param status the ui status
 	 * @return the controller
 	 */
-	public ControllerFunctions mapChanged(final UIStatus status);
+	public ControllerFunctions mapChanged(Traffics traffics);
 
 	/**
 	 * Changes the scale.
@@ -86,12 +62,11 @@ public interface ControllerFunctions {
 	 * It computes the viewport position and zoom of scroll map.
 	 * </p>
 	 *
-	 * @param status the initial status
-	 * @param scale  the scale factor
-	 * @param pivot  the pivot point of scale function
+	 * @param scale the scale factor
+	 * @param pivot the pivot point of scale function
 	 * @return the controller
 	 */
-	public ControllerFunctions scaleTo(final UIStatus status, final double scale, final Point pivot);
+	public ControllerFunctions scaleTo(final double scale, final Point pivot);
 
 	/**
 	 * Shows an error message.
@@ -113,11 +88,10 @@ public interface ControllerFunctions {
 	/**
 	 * Upgrades the head up display.
 	 *
-	 * @param status the ui status
-	 * @param point  the cursor location
+	 * @param point the cursor location
 	 * @return the controller
 	 */
-	public ControllerFunctions updateHud(UIStatus status, Point2D point);
+	public ControllerFunctions updateHud(Point2D point);
 
 	/**
 	 * Executes an action with stopped simulator.

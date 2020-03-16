@@ -4,12 +4,10 @@
 package org.mmarini.routes.swing.v2;
 
 import java.awt.event.KeyEvent;
-import java.util.Optional;
 
 import org.mmarini.routes.model.v2.Constants;
-import org.mmarini.routes.model.v2.MapNode;
-
-import io.reactivex.rxjava3.core.Flowable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Controller for the keyboard command.
@@ -19,23 +17,20 @@ import io.reactivex.rxjava3.core.Flowable;
  * </p>
  */
 public class KeyController implements Constants {
+	private static final Logger logger = LoggerFactory.getLogger(KeyController.class);
 
 	private final RouteMap routeMap;
 	private final ControllerFunctions controller;
-	private final Flowable<UIStatus> uiStatusFlow;
 
 	/**
 	 * Creates the controller.
 	 *
-	 * @param routeMap     the route map
-	 * @param uiStatusFlow the flowable of ui status
-	 * @param controller   the main controller
+	 * @param routeMap   the route map
+	 * @param controller the main controller
 	 */
-	public KeyController(final RouteMap routeMap, final Flowable<UIStatus> uiStatusFlow,
-			final ControllerFunctions controller) {
+	public KeyController(final RouteMap routeMap, final ControllerFunctions controller) {
 		this.routeMap = routeMap;
 		this.controller = controller;
-		this.uiStatusFlow = uiStatusFlow;
 	}
 
 	/**
@@ -49,21 +44,28 @@ public class KeyController implements Constants {
 			// Filter for delete keys pressed
 			return ev.getID() == KeyEvent.KEY_PRESSED
 					&& (ev.getKeyCode() == KeyEvent.VK_BACK_SPACE || ev.getKeyCode() == KeyEvent.VK_DELETE);
-		}).withLatestFrom(uiStatusFlow, (ev, st) -> st).subscribe(st -> {
-			final Optional<MapNode> mapNode = routeMap.getSelectedSite().or(() -> {
-				return routeMap.getSelectedNode();
+		}).subscribe(ev -> {
+			routeMap.getTraffics().ifPresentOrElse(tr -> {
+				routeMap.getSelectedSite().or(() -> {
+					return routeMap.getSelectedNode();
+				}).map(node -> {
+					// remove the node or site
+					return tr.removeNode(node);
+				}).or(() -> {
+					// Remove the edge
+					return routeMap.getSelectedEdge().map(edge -> {
+						return tr.removeEdge(edge);
+					});
+				}).ifPresent(tr1 -> {
+					// Update the traffics
+					controller.mapChanged(tr1);
+				});
+			}, () -> {
+				logger.error("Missing traffics", new Error());
 			});
-			final Optional<UIStatus> deleteNodeProcess = mapNode.map(node -> {
-				return controller.deleteNode(st, node);
-			});
-			final Optional<UIStatus> deleteProcess = deleteNodeProcess.or(() -> {
-				final Optional<UIStatus> sta = routeMap.getSelectedEdge().map(edge -> controller.deleteEdge(st, edge));
-				return sta;
-			});
-			final UIStatus nextStatus = deleteProcess.orElse(st);
-			controller.mapChanged(nextStatus);
 		}, controller::showError);
 
 		return this;
 	}
+
 }
