@@ -28,7 +28,6 @@ package org.mmarini.routes.swing.v2;
 
 import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.net.URL;
@@ -48,21 +47,16 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.mmarini.routes.model.v2.Constants;
 import org.mmarini.routes.model.v2.GeoMap;
 import org.mmarini.routes.model.v2.GeoMapDeserializer;
-import org.mmarini.routes.model.v2.MapEdge;
 import org.mmarini.routes.model.v2.MapModule;
-import org.mmarini.routes.model.v2.MapNode;
 import org.mmarini.routes.model.v2.Simulator;
 import org.mmarini.routes.model.v2.Traffics;
 import org.mmarini.routes.model.v2.TrafficsBuilder;
-import org.mmarini.routes.model.v2.Tuple;
-import org.mmarini.routes.swing.v2.UIStatus.MapMode;
-import org.reactivestreams.Subscriber;
+import org.mmarini.routes.swing.v2.RouteMap.MouseMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.functions.Action;
-import io.reactivex.rxjava3.processors.BehaviorProcessor;
 
 /**
  * Main controller of simulation application.
@@ -75,7 +69,7 @@ public class Controller implements Constants, ControllerFunctions {
 	private static final long SIMULATOR_INTERVAL = 5;
 	private static final int FPS = 25;
 	public static final double SCALE_FACTOR = Math.pow(10, 1.0 / 6);
-	private static final String INITIAL_MAP = "/test.yml"; //$NON-NLS-1$
+	private static final String INITIAL_MAP = "/test.yml";
 
 	private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
@@ -100,12 +94,11 @@ public class Controller implements Constants, ControllerFunctions {
 	private final EdgePane edgePane;
 	private final MapElementPane mapElementPane;
 	private final MainFrame mainFrame;
+	private final OptimizePane optimizePane;
 	private final Simulator<Traffics> simulator;
 	private final ScrollMap scrollMap;
 	private final MapViewPane mapViewPane;
 	private final ModuleSelector moduleSelector;
-	private final Subscriber<UIStatus> uiStatusSubs;
-	private final Flowable<UIStatus> uiStatusFlow;
 	private Random random;
 
 	/** Creates the controller. */
@@ -127,12 +120,8 @@ public class Controller implements Constants, ControllerFunctions {
 		this.moduleSelector = new ModuleSelector(modules);
 		this.mapViewPane = new MapViewPane(scrollMap, moduleSelector.getDropDownButton());
 		this.mainFrame = new MainFrame(mapViewPane, explorerPane, mapElementPane);
+		this.optimizePane = new OptimizePane();
 		final Traffics status1 = loadDefault();
-		final UIStatus initStatus = UIStatus.create().setTraffics(status1);
-		final BehaviorProcessor<UIStatus> subj = BehaviorProcessor.createDefault(initStatus);
-		this.uiStatusSubs = subj;
-		this.uiStatusFlow = subj;
-
 		this.fileChooser.setFileFilter(
 				new FileNameExtensionFilter(Messages.getString("Controller.filetype.title"), "yml", "rml")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
@@ -141,7 +130,7 @@ public class Controller implements Constants, ControllerFunctions {
 			mapViewPane.setModuleIcon(moduleSelector.getItems().get(0).getIcon());
 			mapViewPane.setModule(modules.get(0));
 		}
-		mapChanged(initStatus).startSimulator();
+		mapChanged(status1).startSimulator();
 		mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		mainFrame.setVisible(true);
 	}
@@ -152,13 +141,13 @@ public class Controller implements Constants, ControllerFunctions {
 	 * @return the controller
 	 */
 	private Controller bindAll() {
-		new MouseController(scrollMap, routeMap, mapElementPane, explorerPane, uiStatusFlow, this).build();
-		new MainFrameController(mainFrame, fileChooser, uiStatusFlow, simulator, this).build(random);
-		new MapViewPaneController(mapViewPane, scrollMap, routeMap, uiStatusFlow, this).build();
-		new EdgePaneController(edgePane, routeMap, explorerPane, uiStatusFlow, this).build();
-		new MapNodePaneController(nodePane, routeMap, explorerPane, uiStatusFlow, this).build();
-		new ExplorerPaneController(explorerPane, routeMap, mapElementPane, uiStatusFlow, this).build();
-		new KeyController(routeMap, uiStatusFlow, this).build();
+		new MouseController(scrollMap, routeMap, mapElementPane, explorerPane, this).build();
+		new MainFrameController(mainFrame, fileChooser, simulator, optimizePane, routeMap, this).build(random);
+		new MapViewPaneController(mapViewPane, scrollMap, routeMap, this).build();
+		new EdgePaneController(edgePane, routeMap, explorerPane, this).build();
+		new MapNodePaneController(nodePane, routeMap, explorerPane, this).build();
+		new ExplorerPaneController(explorerPane, routeMap, mapElementPane, this).build();
+		new KeyController(routeMap, this).build();
 		return bindOnStatus().bindOnMouseWheel().bindOnModuleSelector();
 	}
 
@@ -168,15 +157,12 @@ public class Controller implements Constants, ControllerFunctions {
 	 * @return the controller
 	 */
 	private Controller bindOnModuleSelector() {
-		moduleSelector.getModuleFlow().withLatestFrom(uiStatusFlow, (t, s) -> {
-			return Tuple.of(s, t.get1(), t.get2());
-		}).subscribe(t -> {
-			final UIStatus st = t.get1();
-			final JMenuItem menuItem = (JMenuItem) t.get2().getSource();
-			final MapModule module = t.get3();
+		moduleSelector.getModuleFlow().subscribe(t -> {
+			final JMenuItem menuItem = (JMenuItem) t.get1().getSource();
+			final MapModule module = t.get2();
 			logger.debug("bindOnModuleSelector module={}", module);
 			mapViewPane.setModuleIcon(menuItem.getIcon()).setModule(module).selectModuleMode();
-			changeStatus(st.setMode(MapMode.DRAG_MODULE));
+			routeMap.setMode(MouseMode.DRAG_MODULE);
 		}, this::showError);
 		return this;
 	}
@@ -187,15 +173,11 @@ public class Controller implements Constants, ControllerFunctions {
 	 * @return the controller
 	 */
 	private Controller bindOnMouseWheel() {
-		routeMap.getMouseWheelFlow().withLatestFrom(uiStatusFlow, (ev, status) -> {
-			return Tuple.of(status, ev);
-		}).subscribe(t -> {
-			final UIStatus st = t.get1();
-			final MouseWheelEvent ev = t.get2();
+		routeMap.getMouseWheelFlow().subscribe(ev -> {
 			final double newScale = routeMap.getScale() * Math.pow(SCALE_FACTOR, -ev.getPreciseWheelRotation());
 			logger.debug("bindOnMouseWheel scale {} -> {}", routeMap.getScale(), newScale);
 			final Point pivot = ev.getPoint();
-			scaleTo(st, newScale, pivot);
+			scaleTo(newScale, pivot);
 		}, this::showError);
 		return this;
 	}
@@ -209,33 +191,19 @@ public class Controller implements Constants, ControllerFunctions {
 		Flowable.interval(1000 / FPS, TimeUnit.MILLISECONDS).withLatestFrom(simulator.getEvents(), (t, status) -> {
 			// Add last simulator status
 			return status;
-		}).withLatestFrom(uiStatusFlow, (simStat, uiStat) -> {
-			// Add last ui status
-			return Tuple.of(simStat, uiStat);
-		}).filter(t -> {
-			// discard no change events
-			return !t.get2().getTraffics().equals(t.get1());
-		}).compose(SwingUtils.observeOnEdt()).subscribe(t -> {
+		}).distinctUntilChanged().compose(SwingUtils.observeOnEdt()).subscribe(t -> {
 			// Update ui status, refresh panels and send new event
-			final UIStatus uiStatus = t.get2().setTraffics(t.get1());
-			trafficChanged(uiStatus);
-			changeStatus(uiStatus);
+			trafficChanged(t);
 		}, this::showError);
 		return this;
 	}
 
 	@Override
-	public Controller centerMapTo(final UIStatus status, final Point2D center) {
-		logger.debug("centerMapTo {} ", center); //$NON-NLS-1$
+	public Controller centerMapTo(final Point2D center) {
+		logger.debug("centerMapTo {} ", center);
 		final Point2D pt = routeMap.toScreenPoint(center);
 		final Point vp = computeViewportPosition(pt);
 		scrollMap.getViewport().setViewPosition(vp);
-		return this;
-	}
-
-	@Override
-	public Controller changeStatus(final UIStatus status) {
-		uiStatusSubs.onNext(status);
 		return this;
 	}
 
@@ -250,20 +218,6 @@ public class Controller implements Constants, ControllerFunctions {
 		final double y = Math.max(0, center.getY() - size.height / 2);
 		final Point result = new Point((int) Math.round(x), (int) Math.round(y));
 		return result;
-	}
-
-	@Override
-	public UIStatus deleteEdge(final UIStatus uiStatus, final MapEdge edge) {
-		logger.debug("deleteEdge {} ", edge); //$NON-NLS-1$
-		final Traffics nextSt = uiStatus.getTraffics().removeEdge(edge);
-		return uiStatus.setTraffics(nextSt);
-	}
-
-	@Override
-	public UIStatus deleteNode(final UIStatus uiStatus, final MapNode node) {
-		logger.debug("deleteNode {} ", node); //$NON-NLS-1$
-		final Traffics nextSt = uiStatus.getTraffics().removeNode(node);
-		return uiStatus.setTraffics(nextSt);
 	}
 
 	/** Returns the explorerPane. */
@@ -310,24 +264,23 @@ public class Controller implements Constants, ControllerFunctions {
 	}
 
 	@Override
-	public Controller mapChanged(final UIStatus uiStatus) {
-		final Traffics traffics = uiStatus.getTraffics();
+	public Controller mapChanged(final Traffics traffics) {
 		routeMap.setTraffics(traffics).clearSelection();
 		scrollMap.repaint();
 		explorerPane.setMap(traffics.getMap());
 		mapElementPane.clearSelection();
 		simulator.setEvent(traffics);
-		return changeStatus(uiStatus);
+		return this;
 	}
 
 	@Override
-	public Controller scaleTo(final UIStatus status, final double scale, final Point pivot) {
+	public Controller scaleTo(final double scale, final Point pivot) {
 		final Point vp = scrollMap.getViewport().getViewPosition();
 		final Point newVp = routeMap.computeViewporPositionWithScale(vp, pivot, scale);
 		routeMap.setScale(scale);
 		scrollMap.getViewport().setViewPosition(newVp);
 		scrollMap.repaint();
-		updateHud(status, routeMap.toMapPoint(pivot));
+		updateHud(routeMap.toMapPoint(pivot));
 		return this;
 	}
 
@@ -355,21 +308,21 @@ public class Controller implements Constants, ControllerFunctions {
 	/**
 	 * Upgrades the component to repaint the new traffic.
 	 *
-	 * @param uiStatus the ui status
+	 * @param traffics the traffic information
 	 * @return the controller
 	 */
-	private Controller trafficChanged(final UIStatus uiStatus) {
-		routeMap.setTraffics(uiStatus.getTraffics());// .requestFocus();
+	private Controller trafficChanged(final Traffics traffics) {
+		routeMap.setTraffics(traffics);
 		scrollMap.repaint();
 		return this;
 	}
 
 	@Override
-	public Controller updateHud(final UIStatus status, final Point2D point) {
-		switch (status.getMode()) {
+	public Controller updateHud(final Point2D point) {
+		switch (routeMap.getMode()) {
 		case START_EDGE:
 		case DRAG_EDGE:
-			scrollMap.setEdgeHud(routeMap.getGridSize(), point, status.getDragEdge(), status.getSpeedLimit());
+			scrollMap.setEdgeHud(routeMap.getGridSize(), point, routeMap.getDragEdge(), optimizePane.getSpeedLimit());
 			break;
 		default:
 			scrollMap.setPointHud(routeMap.getGridSize(), point);

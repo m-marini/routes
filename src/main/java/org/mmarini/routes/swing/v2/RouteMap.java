@@ -64,6 +64,11 @@ import io.reactivex.rxjava3.core.Flowable;
  * Component that renders the traffics map.
  */
 public class RouteMap extends JComponent implements Constants {
+	/** The mouse modes */
+	static enum MouseMode {
+		SELECTION, START_EDGE, DRAG_EDGE, DRAG_MODULE, ROTATE_MODULE
+	}
+
 	private class Painter {
 		private final Graphics2D graphics;
 		private final Map<MapNode, Color> colorMap;
@@ -427,6 +432,28 @@ public class RouteMap extends JComponent implements Constants {
 		return System.currentTimeMillis() % BLINKING_TIME >= BLINKING_ON_TIME;
 	}
 
+	/**
+	 * Returns true if location is in range of an edge.
+	 *
+	 * @param node  edge
+	 * @param point point
+	 */
+	private static boolean isInRange(final MapEdge edge, final Point2D point) {
+		final double distance = edge.getDistance(point);
+		return distance <= RouteMap.EDGE_WIDTH / 2;
+	}
+
+	/**
+	 * Returns true if location is in range of site.
+	 *
+	 * @param node  site
+	 * @param point point
+	 */
+	private static boolean isInRange(final MapNode node, final Point2D point, final double maxDistance) {
+		final double distance = node.getLocation().distance(point);
+		return distance <= maxDistance;
+	}
+
 	private final Flowable<MouseEvent> mouseFlow;
 	private final Flowable<MouseWheelEvent> mouseWheelFlow;
 	private final Flowable<KeyEvent> keyboardFlow;
@@ -440,7 +467,10 @@ public class RouteMap extends JComponent implements Constants {
 	private Optional<MapModule> module;
 	private Optional<Point2D> pivot;
 	private double angle;
+
 	private double scale;
+
+	private MouseMode mode;
 
 	/** Creates the component. */
 	public RouteMap() {
@@ -454,6 +484,7 @@ public class RouteMap extends JComponent implements Constants {
 		this.pivot = Optional.empty();
 		this.angle = 0;
 		this.scale = DEFAULT_SCALE;
+		this.mode = MouseMode.SELECTION;
 		setFocusable(true);
 		setRequestFocusEnabled(true);
 		requestFocus();
@@ -509,9 +540,77 @@ public class RouteMap extends JComponent implements Constants {
 		return result1;
 	}
 
+	/**
+	 * Returns the node at a given point.
+	 *
+	 * @param pt point in the map
+	 */
+	public Optional<MapNode> findAnyNodeAt(final Point2D pt) {
+		return findSiteAt(pt).map(site -> site).or(() -> findNodeAt(pt));
+	}
+
+	/**
+	 * Returns the edge at given point.
+	 *
+	 * @param pt the point in the map
+	 */
+	private Optional<MapEdge> findEdgeAt(final Point2D pt) {
+		final Optional<MapEdge> result = traffics.flatMap(tr -> {
+			return tr.getMap().getEdges().stream().filter(s -> {
+				return isInRange(s, pt);
+			}).findAny();
+		});
+		return result;
+	}
+
+	/**
+	 * Returns the map element at given point.
+	 *
+	 * @param pt the point in the map
+	 */
+	public MapElement findElementAt(final Point2D pt) {
+		final MapElement result = findSiteAt(pt).map(site -> MapElement.create(site))
+				.or(() -> findNodeAt(pt).map(node -> MapElement.create(node)))
+				.or(() -> findEdgeAt(pt).map(edge -> MapElement.create(edge))).orElse(MapElement.empty());
+		return result;
+	}
+
+	/**
+	 * Returns the node at a given point.
+	 *
+	 * @param pt the point in the map
+	 */
+	public Optional<MapNode> findNodeAt(final Point2D pt) {
+		final Optional<MapNode> result = traffics.flatMap(tr -> {
+			return tr.getMap().getNodes().parallelStream().filter(s -> {
+				return isInRange(s, pt, RouteMap.NODE_SIZE / 2);
+			}).findAny();
+		});
+		return result;
+	}
+
+	/**
+	 * Returns the site at a given point.
+	 *
+	 * @param pt the point in the map
+	 */
+	public Optional<MapNode> findSiteAt(final Point2D pt) {
+		final Optional<MapNode> result = traffics.flatMap(tr -> {
+			return tr.getMap().getSites().parallelStream().filter(s -> {
+				return isInRange(s, pt, RouteMap.NODE_SIZE / 2);
+			}).findAny();
+		});
+		return result;
+	}
+
 	/** Returns the angle of module rotation. */
 	public double getAngle() {
 		return angle;
+	}
+
+	/** Returns the drag edge. */
+	public Optional<Tuple2<Point2D, Point2D>> getDragEdge() {
+		return dragEdge;
 	}
 
 	public double getGridSize() {
@@ -528,6 +627,11 @@ public class RouteMap extends JComponent implements Constants {
 	/** Returns the flowable of keyboard. */
 	public Flowable<KeyEvent> getKeyboardFlow() {
 		return keyboardFlow;
+	}
+
+	/** Returns the mouse mode. */
+	public MouseMode getMode() {
+		return mode;
 	}
 
 	/** Returns the selected module. */
@@ -582,6 +686,11 @@ public class RouteMap extends JComponent implements Constants {
 		return selectedSite;
 	}
 
+	/** Returns the traffics */
+	Optional<Traffics> getTraffics() {
+		return traffics;
+	}
+
 	/** Returns true if border is painted. */
 	boolean isBorderPainted() {
 		final boolean borderPainted = scale >= BORDER_SCALE;
@@ -623,7 +732,7 @@ public class RouteMap extends JComponent implements Constants {
 	}
 
 	/**
-	 * Set drag edge.
+	 * Sets drag edge.
 	 *
 	 * @param edge the edge
 	 * @return the map component
@@ -631,6 +740,18 @@ public class RouteMap extends JComponent implements Constants {
 	public RouteMap setDragEdge(final Optional<Tuple2<Point2D, Point2D>> edge) {
 		this.dragEdge = edge;
 		repaint();
+		return this;
+	}
+
+	/**
+	 * Sets the mouse mode.
+	 *
+	 * @param mode the mode to set
+	 * @return the panel
+	 */
+	public RouteMap setMode(final MouseMode mode) {
+		logger.debug("setMode {}", mode);
+		this.mode = mode;
 		return this;
 	}
 

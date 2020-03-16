@@ -6,11 +6,6 @@ package org.mmarini.routes.swing.v2;
 import java.util.Optional;
 
 import org.mmarini.routes.model.v2.Constants;
-import org.mmarini.routes.model.v2.MapEdge;
-import org.mmarini.routes.model.v2.MapNode;
-import org.mmarini.routes.model.v2.Tuple;
-
-import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * Controller for the explorer panel.
@@ -24,7 +19,6 @@ public class ExplorerPaneController implements Constants {
 	private final ExplorerPane explorerPane;
 	private final RouteMap routeMap;
 	private final MapElementPane mapElementPane;
-	private final Flowable<UIStatus> uiStatusFlow;
 	private final ControllerFunctions controller;
 
 	/**
@@ -33,16 +27,13 @@ public class ExplorerPaneController implements Constants {
 	 * @param explorerPane   the explorer panel
 	 * @param routeMap       the route map
 	 * @param mapElementPane the map element panel
-	 * @param uiStatusFlow   the status flowable
 	 * @param controller     the main controller
 	 */
 	public ExplorerPaneController(final ExplorerPane explorerPane, final RouteMap routeMap,
-			final MapElementPane mapElementPane, final Flowable<UIStatus> uiStatusFlow,
-			final ControllerFunctions controller) {
+			final MapElementPane mapElementPane, final ControllerFunctions controller) {
 		this.explorerPane = explorerPane;
 		this.routeMap = routeMap;
 		this.mapElementPane = mapElementPane;
-		this.uiStatusFlow = uiStatusFlow;
 		this.controller = controller;
 	}
 
@@ -52,34 +43,22 @@ public class ExplorerPaneController implements Constants {
 	 * @return the controller
 	 */
 	public ExplorerPaneController build() {
-		explorerPane.getSiteFlow().withLatestFrom(uiStatusFlow, (site, st) -> {
-			return Tuple.of(st, site);
-		}).subscribe(t -> {
-			final UIStatus st = t.get1();
-			final MapNode site = t.get2();
+		explorerPane.getSiteFlow().subscribe(site -> {
 			mapElementPane.setNode(site);
 			routeMap.setSelectedSite(Optional.of(site));
-			controller.centerMapTo(st, site.getLocation()).changeStatus(st);
+			controller.centerMapTo(site.getLocation());
 		}, controller::showError);
 
-		explorerPane.getNodeFlow().withLatestFrom(uiStatusFlow, (node, st) -> {
-			return Tuple.of(st, node);
-		}).subscribe(t -> {
-			final UIStatus st = t.get1();
-			final MapNode node = t.get2();
+		explorerPane.getNodeFlow().subscribe(node -> {
 			mapElementPane.setNode(node);
 			routeMap.setSelectedNode(Optional.of(node));
-			controller.centerMapTo(st, node.getLocation()).changeStatus(st);
+			controller.centerMapTo(node.getLocation());
 		}, controller::showError);
 
-		explorerPane.getEdgeFlow().withLatestFrom(uiStatusFlow, (edge, st) -> {
-			return Tuple.of(st, edge);
-		}).subscribe(t -> {
-			final UIStatus st = t.get1();
-			final MapEdge edge = t.get2();
+		explorerPane.getEdgeFlow().subscribe(edge -> {
 			mapElementPane.setEdge(edge);
 			routeMap.setSelectedEdge(Optional.of(edge));
-			controller.centerMapTo(st, edge.getBeginLocation()).changeStatus(st);
+			controller.centerMapTo(edge.getBeginLocation());
 		}, controller::showError);
 		return this;
 	}

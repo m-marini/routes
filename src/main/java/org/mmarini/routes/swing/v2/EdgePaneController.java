@@ -7,11 +7,9 @@ import java.util.Optional;
 
 import org.mmarini.routes.model.v2.Constants;
 import org.mmarini.routes.model.v2.MapEdge;
-import org.mmarini.routes.model.v2.Tuple;
+import org.mmarini.routes.model.v2.Traffics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * Controller for the edge panel.
@@ -27,7 +25,6 @@ public class EdgePaneController implements Constants {
 	private final EdgePane edgePane;
 	private final RouteMap routeMap;
 	private final ExplorerPane explorerPane;
-	private final Flowable<UIStatus> uiStatusFlow;
 	private final ControllerFunctions controller;
 
 	/**
@@ -36,15 +33,13 @@ public class EdgePaneController implements Constants {
 	 * @param edgePane     the edge panel
 	 * @param routeMap     the route map panel
 	 * @param explorerPane the explorer panel
-	 * @param uiStatusFlow the ui status flowable
 	 * @param controller   the main controller
 	 */
 	public EdgePaneController(final EdgePane edgePane, final RouteMap routeMap, final ExplorerPane explorerPane,
-			final Flowable<UIStatus> uiStatusFlow, final ControllerFunctions controller) {
+			final ControllerFunctions controller) {
 		this.edgePane = edgePane;
 		this.routeMap = routeMap;
 		this.explorerPane = explorerPane;
-		this.uiStatusFlow = uiStatusFlow;
 		this.controller = controller;
 	}
 
@@ -54,57 +49,55 @@ public class EdgePaneController implements Constants {
 	 * @return the controller
 	 */
 	public EdgePaneController build() {
-		edgePane.getDeleteFlow().withLatestFrom(uiStatusFlow, (edge, st) -> {
-			return Tuple.of(st, edge);
-		}).subscribe(t -> {
-			final UIStatus status = t.get1();
-			final MapEdge edge = t.get2();
+		edgePane.getDeleteFlow().subscribe(edge -> {
 			logger.debug("delete edge {}", edge.getShortName());
-			explorerPane.clearSelection();
-			routeMap.clearSelection();
-			final UIStatus nextStatus = controller.deleteEdge(status, edge);
-			controller.mapChanged(nextStatus);
+			routeMap.getTraffics().ifPresentOrElse(tr -> {
+				explorerPane.clearSelection();
+				controller.mapChanged(tr.removeEdge(edge));
+			}, () -> {
+				logger.error("Missing traffics", new Error());
+			});
 		});
-
-		edgePane.getPriorityFlow().withLatestFrom(uiStatusFlow, (p, st) -> {
-			// add last ui status
-			return Tuple.of(st, p);
-		}).filter(t -> {
+		edgePane.getPriorityFlow().filter(p -> {
 			// filter changes
 			return edgePane.getEdge().map(ed -> {
-				return ed.getPriority() != t.get2();
+				return ed.getPriority() != p;
 			}).orElse(false);
-		}).subscribe(t -> {
-			final MapEdge edge = edgePane.getEdge().get();
-			final int priority = t.get2();
-			logger.debug("changePriority {} {}", edge.getShortName(), priority); //$NON-NLS-1$
-			final MapEdge newEdge = edge.setPriority(priority);
-			final UIStatus status = t.get1();
-			final UIStatus newStatus = status.setTraffics(status.getTraffics().change(newEdge));
-			routeMap.setSelectedEdge(Optional.of(newEdge)).repaint();
-			explorerPane.setSelectedEdge(newEdge);
-			controller.mapChanged(newStatus);
+		}).subscribe(priority -> {
+			edgePane.getEdge().ifPresentOrElse(edge -> {
+				logger.debug("changePriority {} {}", edge.getShortName(), priority);
+				routeMap.getTraffics().ifPresentOrElse(tr -> {
+					final MapEdge newEdge = edge.setPriority(priority);
+					routeMap.setSelectedEdge(Optional.of(newEdge)).repaint();
+					explorerPane.setSelectedEdge(newEdge);
+					final Traffics newStatus = tr.change(newEdge);
+					controller.mapChanged(newStatus);
+				}, () -> {
+					logger.error("Missing traffics", new Error());
+				});
+			}, () -> {
+				logger.error("Missing edge", new Error());
+			});
 		}, controller::showError);
 
-		edgePane.getSpeedLimitFlow().withLatestFrom(uiStatusFlow, (speed, st) -> {
-			// add last ui status
-			return Tuple.of(st, speed);
-		}).filter(t -> {
+		edgePane.getSpeedLimitFlow().filter(speed -> {
 			// filter changes
 			return edgePane.getEdge().map(ed -> {
-				return ed.getSpeedLimit() != t.get2();
+				return ed.getSpeedLimit() != speed;
 			}).orElse(false);
-		}).subscribe(t -> {
+		}).subscribe(s -> {
 			// change priority
-			final double speedLimit = t.get2() * KMH_TO_MPS;
-			final UIStatus uiStatus = t.get1();
-			final MapEdge edge = edgePane.getEdge().get();
-			logger.debug("changeSpeedLimit {} {}", edge.getShortName(), speedLimit); //$NON-NLS-1$
-			final MapEdge newEdge = edge.setSpeedLimit(speedLimit);
-			final UIStatus newStatus = uiStatus.setTraffics(uiStatus.getTraffics().change(newEdge));
-			routeMap.setSelectedEdge(Optional.of(newEdge)).repaint();
-			explorerPane.setSelectedEdge(newEdge);
-			controller.mapChanged(newStatus);
+			routeMap.getTraffics().ifPresentOrElse(tr -> {
+				final double speedLimit = s * KMH_TO_MPS;
+				final MapEdge edge = edgePane.getEdge().get();
+				logger.debug("changeSpeedLimit {} {}", edge.getShortName(), speedLimit); //$NON-NLS-1$
+				final MapEdge newEdge = edge.setSpeedLimit(speedLimit);
+				routeMap.setSelectedEdge(Optional.of(newEdge)).repaint();
+				explorerPane.setSelectedEdge(newEdge);
+				controller.mapChanged(tr.change(newEdge));
+			}, () -> {
+				logger.error("Missing edge", new Error());
+			});
 		}, controller::showError);
 		return this;
 	}
