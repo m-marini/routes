@@ -6,7 +6,7 @@
 
 ## Latest release
 
-Latest release [`5.0.1`](https://github.com/m-marini/routes/tree/routes-5.0.1)
+Latest release [`5.0.2`](https://github.com/m-marini/routes/tree/routes-5.0.2)
 
 ## Requirements
 
