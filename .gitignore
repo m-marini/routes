@@ -7,3 +7,5 @@
 /docs/*.toc
 /docs/*.synctex.gz
 /logs/*
+/.idea/
+/routes.iml
