@@ -6,3 +6,6 @@
 /docs/notes.log
 /docs/notes.toc
 /docs/notes.synctex.gz
+/.idea/
+/logs/
+/routes.iml

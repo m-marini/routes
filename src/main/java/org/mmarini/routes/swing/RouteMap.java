@@ -90,7 +90,7 @@ public class RouteMap extends JComponent {
 		}
 
 		/**
-		 * @param gr
+		 *
 		 */
 		public void paintMode() {
 		}
@@ -230,9 +230,6 @@ public class RouteMap extends JComponent {
 				handleEndEdge(e);
 			}
 
-			/**
-			 * @see org.mmarini.routes.swing.RouteMap.Mode#paintMode(java.awt.Graphics2D)
-			 */
 			@Override
 			public void paintMode() {
 				if (isMouseInside()) {
@@ -375,11 +372,11 @@ public class RouteMap extends JComponent {
 	public synchronized void addMapElementListener(final MapElementListener l) {
 		List<MapElementListener> ls = listeners;
 		if (ls == null) {
-			ls = new ArrayList<MapElementListener>(1);
+			ls = new ArrayList<>(1);
 			ls.add(l);
 			listeners = ls;
 		} else if (!ls.contains(l)) {
-			ls = new ArrayList<MapElementListener>(ls);
+			ls = new ArrayList<>(ls);
 			ls.add(l);
 			listeners = ls;
 		}
@@ -659,7 +656,7 @@ public class RouteMap extends JComponent {
 			for (final MapEdge edge : mediator.getMapEdges()) {
 				if (!(edge.equals(selectedElement) && isShowingCursor())) {
 					double trafficLevel = edge.getTrafficLevel();
-					trafficLevel = Math.sqrt(trafficLevel);
+					//trafficLevel = Math.sqrt(trafficLevel);
 					final Color color = SwingUtils.getInstance().computeColor(trafficLevel, TRAFFIC_COLOR_SATURATION);
 					painter.paintEdge(edge, color);
 				}
@@ -719,7 +716,7 @@ public class RouteMap extends JComponent {
 	public synchronized void removeMapElementListener(final MapElementListener l) {
 		List<MapElementListener> ls = listeners;
 		if (ls != null && ls.contains(l)) {
-			ls = new ArrayList<MapElementListener>(ls);
+			ls = new ArrayList<>(ls);
 			ls.remove(l);
 			listeners = ls;
 		}
@@ -753,7 +750,7 @@ public class RouteMap extends JComponent {
 	}
 
 	/**
-	 * @param mediator the mediator to set
+	 * @param handler the mediator to set
 	 */
 	public void setMediator(final RouteMediator handler) {
 		this.mediator = handler;
