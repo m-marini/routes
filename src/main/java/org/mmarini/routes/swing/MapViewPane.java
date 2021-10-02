@@ -167,7 +167,7 @@ public class MapViewPane extends JPanel {
      * It is call whenever the insert module button is pressed.
      */
     private void handleModuleSelected() {
-        final ModuleEntry entry = moduleSelector.getSelectedEntry();
+        final ModuleView entry = moduleSelector.getSelectedEntry();
         moduleButton.setIcon(entry.getIcon());
         moduleButton.doClick();
     }

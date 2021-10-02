@@ -39,7 +39,7 @@ import java.awt.geom.Point2D;
 /**
  * @author marco.marini@mmarini.org
  */
-public class MapNodePane extends JPanel {
+public class NodePane extends JPanel {
     private static final long serialVersionUID = 1L;
 
     private final JTextField nameField;
@@ -50,14 +50,14 @@ public class MapNodePane extends JPanel {
     private final JLabel nameLabel;
     private final JLabel xLabel;
     private final JLabel yLabel;
-    private final Flowable<MapNodeEntry> deleteFlowable;
-    private final Flowable<MapNodeEntry> changeFlowable;
-    private MapNodeEntry node;
+    private final Flowable<NodeView> deleteFlowable;
+    private final Flowable<NodeView> changeFlowable;
+    private NodeView node;
 
     /**
      *
      */
-    public MapNodePane() {
+    public NodePane() {
         nameField = new JTextField(10);
         xField = new JFormattedTextField(new NumberFormatter());
         yField = new JFormattedTextField(new NumberFormatter());
@@ -206,21 +206,21 @@ public class MapNodePane extends JPanel {
     /**
      *
      */
-    public Flowable<MapNodeEntry> getChangeFlowable() {
+    public Flowable<NodeView> getChangeFlowable() {
         return changeFlowable;
     }
 
     /**
      *
      */
-    public Flowable<MapNodeEntry> getDeleteFlowable() {
+    public Flowable<NodeView> getDeleteFlowable() {
         return deleteFlowable;
     }
 
     private void init() {
         final SwingUtils utils = SwingUtils.getInstance();
-        utils.initButton(changeButton, "MapNodePane.changeAction"); //$NON-NLS-1$
-        utils.initButton(deleteButton, "MapNodePane.deleteAction"); //$NON-NLS-1$
+        utils.initButton(changeButton, "NodePane.changeAction"); //$NON-NLS-1$
+        utils.initButton(deleteButton, "NodePane.deleteAction"); //$NON-NLS-1$
 
         setBorder(BorderFactory.createTitledBorder(Messages.getString("MapNodePane.title"))); //$NON-NLS-1$
 
@@ -236,7 +236,7 @@ public class MapNodePane extends JPanel {
     /**
      * @param node the node to set
      */
-    public void setNode(final MapNodeEntry node) {
+    public void setNode(final NodeView node) {
         assert node != null;
         this.node = node;
         final Point2D location = node.getNode().getLocation();

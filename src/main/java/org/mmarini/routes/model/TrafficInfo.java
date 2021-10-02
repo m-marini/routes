@@ -32,84 +32,84 @@ package org.mmarini.routes.model;
  * @author marco.marini@mmarini.org
  */
 public class TrafficInfo {
-	private int veicleCount;
-	private int delayCount;
-	private double totalDelayTime;
-	private SiteNode destination;
+    private int veicleCount;
+    private int delayCount;
+    private double totalDelayTime;
+    private SiteNode destination;
 
-	/**
-	 *
-	 */
-	public TrafficInfo() {
-	}
+    /**
+     *
+     */
+    public TrafficInfo() {
+    }
 
-	/**
-	 * Get the average delay time.
-	 *
-	 * @return the average time
-	 */
-	public double getAverageDelayTime() {
-		final int ct = getDelayCount();
-		if (ct == 0) {
-			return 0.;
-		}
-		return getTotalDelayTime() / ct;
-	}
+    /**
+     * Get the average delay time.
+     *
+     * @return the average time
+     */
+    public double getAverageDelayTime() {
+        final int ct = getDelayCount();
+        if (ct == 0) {
+            return 0.;
+        }
+        return getTotalDelayTime() / ct;
+    }
 
-	/**
-	 * @return the delayCount
-	 */
-	public int getDelayCount() {
-		return delayCount;
-	}
+    /**
+     * @return the delayCount
+     */
+    public int getDelayCount() {
+        return delayCount;
+    }
 
-	/**
-	 * @return the destination
-	 */
-	public SiteNode getDestination() {
-		return destination;
-	}
+    /**
+     * @param delayCount the delayCount to set
+     */
+    public void setDelayCount(final int delayCount) {
+        this.delayCount = delayCount;
+    }
 
-	/**
-	 * @return the totalDelayTime
-	 */
-	public double getTotalDelayTime() {
-		return totalDelayTime;
-	}
+    /**
+     * @return the destination
+     */
+    public SiteNode getDestination() {
+        return destination;
+    }
 
-	/**
-	 * @return the vehicleCount
-	 */
-	public int getVeicleCount() {
-		return veicleCount;
-	}
+    /**
+     * @param destination the destination to set
+     */
+    public void setDestination(final SiteNode destination) {
+        this.destination = destination;
+    }
 
-	/**
-	 * @param delayCount the delayCount to set
-	 */
-	public void setDelayCount(final int delayCount) {
-		this.delayCount = delayCount;
-	}
+    /**
+     * @return the totalDelayTime
+     */
+    public double getTotalDelayTime() {
+        return totalDelayTime;
+    }
 
-	/**
-	 * @param destination the destination to set
-	 */
-	public void setDestination(final SiteNode destination) {
-		this.destination = destination;
-	}
+    /**
+     * @param totalDelayTime the totalDelayTime to set
+     */
+    public void setTotalDelayTime(final double totalDelayTime) {
+        this.totalDelayTime = totalDelayTime;
+    }
 
-	/**
-	 * @param totalDelayTime the totalDelayTime to set
-	 */
-	public void setTotalDelayTime(final double totalDelayTime) {
-		this.totalDelayTime = totalDelayTime;
-	}
+    /**
+     * @return the vehicleCount
+     */
+    public int getVeicleCount() {
+        return veicleCount;
+    }
 
-	/**
-	 * @param veicleCount the veicleCount to set
-	 */
-	public void setVeicleCount(final int veicleCount) {
-		this.veicleCount = veicleCount;
-	}
+    /**
+     * @param veicleCount the veicleCount to set
+     */
+    public void setVeicleCount(final int veicleCount) {
+        this.veicleCount = veicleCount;
+    }
 
 }

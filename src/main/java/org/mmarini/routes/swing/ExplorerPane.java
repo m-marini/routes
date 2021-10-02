@@ -46,12 +46,12 @@ public class ExplorerPane extends JTabbedPane {
     private static final int NODE_TAB_INDEX = 0;
     private static final long serialVersionUID = 1L;
 
-    private final JList<MapNodeEntry> nodeJList;
-    private final JList<EdgeEntry> edgeJList;
+    private final JList<NodeView> nodeJList;
+    private final JList<EdgeView> edgeJList;
     private final String title;
     private final String nodeTabTitle;
     private final String edgeTabTitle;
-    private final Flowable<EdgeEntry> edgeFlowable;
+    private final Flowable<EdgeView> edgeFlowable;
     private final Flowable<SiteNode> siteFlowable;
     private final Flowable<MapNode> nodeFlowable;
 
@@ -119,15 +119,15 @@ public class ExplorerPane extends JTabbedPane {
     /**
      *
      */
-    public Flowable<EdgeEntry> getEdgeFlowable() {
+    public Flowable<EdgeView> getEdgeFlowable() {
         return edgeFlowable;
     }
 
     /**
      *
      */
-    public DefaultListModel<EdgeEntry> getEdgeListModel() {
-        return (DefaultListModel<EdgeEntry>) edgeJList.getModel();
+    public DefaultListModel<EdgeView> getEdgeListModel() {
+        return (DefaultListModel<EdgeView>) edgeJList.getModel();
     }
 
     /**
@@ -140,21 +140,21 @@ public class ExplorerPane extends JTabbedPane {
     /**
      *
      */
-    public DefaultListModel<MapNodeEntry> getNodeListModel() {
-        return (DefaultListModel<MapNodeEntry>) nodeJList.getModel();
+    public DefaultListModel<NodeView> getNodeListModel() {
+        return (DefaultListModel<NodeView>) nodeJList.getModel();
     }
 
     /**
      *
      */
-    public Optional<EdgeEntry> getSelectedEdge() {
+    public Optional<EdgeView> getSelectedEdge() {
         return Optional.ofNullable(edgeJList.getSelectedValue());
     }
 
     /**
      *
      */
-    public void setSelectedEdge(EdgeEntry edge) {
+    public void setSelectedEdge(EdgeView edge) {
         assert edge != null;
         final int idx = findIndex(getEdgeListModel(), edge);
         if (idx >= 0) {
@@ -170,13 +170,13 @@ public class ExplorerPane extends JTabbedPane {
      */
     public Optional<MapNode> getSelectedNode() {
         return Optional.ofNullable(nodeJList.getSelectedValue())
-                .map(MapNodeEntry::getNode);
+                .map(NodeView::getNode);
     }
 
     /**
      *
      */
-    public void setSelectedNode(final MapNodeEntry node) {
+    public void setSelectedNode(final NodeView node) {
         assert node != null;
         int idx = findIndex(getNodeListModel(), node);
         if (idx >= 0) {

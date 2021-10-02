@@ -38,8 +38,8 @@ public class TrafficInfoModel extends AbstractTableModel {
     private static final long serialVersionUID = 1L;
     private static final String[] COLUMN_LABEL_NAME = {"destination", "vehicleCount", "delayedCount", "delayedCountPerc",
             "delayedTime"};
-    private static final Class<?>[] COLUMN_CLASS = {TrafficInfoEntry.class, Integer.class, Integer.class, Double.class, Double.class};
-    private List<TrafficInfoEntry> infos;
+    private static final Class<?>[] COLUMN_CLASS = {TrafficInfoView.class, Integer.class, Integer.class, Double.class, Double.class};
+    private List<TrafficInfoView> infos;
 
     /**
      *
@@ -65,7 +65,7 @@ public class TrafficInfoModel extends AbstractTableModel {
     /**
      * @param index the index
      */
-    public MapNodeEntry getNode(final int index) {
+    public NodeView getNode(final int index) {
         return infos.get(index).getDestination();
     }
 
@@ -76,7 +76,7 @@ public class TrafficInfoModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(final int row, final int col) {
-        final TrafficInfoEntry record = infos.get(row);
+        final TrafficInfoView record = infos.get(row);
         final int veicleCount = record.getInfo().getVeicleCount();
         final int delayCount = record.getInfo().getDelayCount();
         switch (col) {
@@ -98,7 +98,7 @@ public class TrafficInfoModel extends AbstractTableModel {
     /**
      * @param infos the infos
      */
-    public void setInfos(final List<TrafficInfoEntry> infos) {
+    public void setInfos(final List<TrafficInfoView> infos) {
         this.infos = infos;
         fireTableStructureChanged();
     }

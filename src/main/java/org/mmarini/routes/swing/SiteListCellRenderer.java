@@ -46,7 +46,7 @@ public class SiteListCellRenderer extends DefaultListCellRenderer {
     @Override
     public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
                                                   final boolean isSelected, final boolean cellHasFocus) {
-        final MapNodeEntry entry = (MapNodeEntry) value;
+        final NodeView entry = (NodeView) value;
         setText(entry.getName());
         Color bg = entry.getColor();
         Color fg = list.getForeground();

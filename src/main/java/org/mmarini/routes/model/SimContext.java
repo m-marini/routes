@@ -30,25 +30,24 @@ package org.mmarini.routes.model;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: SimContext.java,v 1.5 2010/10/19 20:32:59 marco Exp $
- *
  */
 public interface SimContext {
 
-	/**
-	 * @param from
-	 * @param to
-	 * @return
-	 */
-	public abstract MapEdge findNextEdge(MapNode from, MapNode to);
+    /**
+     * @param from
+     * @param to
+     * @return
+     */
+    MapEdge findNextEdge(MapNode from, MapNode to);
 
-	/**
-	 * @return
-	 */
-	public abstract double getTime();
+    /**
+     * @return
+     */
+    double getTime();
 
-	/**
-	 * @param veicle
-	 */
-	public abstract void removeVeicle(Vehicle veicle);
+    /**
+     * @param veicle
+     */
+    void removeVeicle(Vehicle veicle);
 
 }

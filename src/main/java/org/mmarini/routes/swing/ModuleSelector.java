@@ -47,9 +47,9 @@ public class ModuleSelector extends JButton {
     private static final long serialVersionUID = 263680633302339361L;
     private final JPopupMenu popupMenu;
     private final ActionListener selectionListener;
-    private final List<ModuleEntry> entries;
+    private final List<ModuleView> entries;
     private final List<JMenuItem> items;
-    private ModuleEntry selectedEntry;
+    private ModuleView selectedEntry;
     private List<ListSelectionListener> listeners;
 
     /**
@@ -81,7 +81,7 @@ public class ModuleSelector extends JButton {
      * @param module
      */
     public void add(final Module module) {
-        final ModuleEntry entry = new ModuleEntry();
+        final ModuleView entry = new ModuleView();
         entry.setModule(module);
         entries.add(entry);
         final JMenuItem item = new JMenuItem();
@@ -133,14 +133,14 @@ public class ModuleSelector extends JButton {
     /**
      * @return
      */
-    public ModuleEntry getSelectedEntry() {
+    public ModuleView getSelectedEntry() {
         return selectedEntry;
     }
 
     /**
      * @param selectedEntry the selectedEntry to set
      */
-    private void setSelectedEntry(final ModuleEntry selectedEntry) {
+    private void setSelectedEntry(final ModuleView selectedEntry) {
         this.selectedEntry = selectedEntry;
         fireValueChanged();
     }

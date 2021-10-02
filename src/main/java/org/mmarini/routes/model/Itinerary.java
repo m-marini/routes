@@ -37,41 +37,41 @@ package org.mmarini.routes.model;
  *
  */
 public class Itinerary {
-	private SiteNode destination;
-	private double expectedTime;
+    private SiteNode destination;
+    private double expectedTime;
 
-	/**
-	 *
-	 */
-	public Itinerary() {
-	}
+    /**
+     *
+     */
+    public Itinerary() {
+    }
 
-	/**
-	 * @return the destination
-	 */
-	public SiteNode getDestination() {
-		return destination;
-	}
+    /**
+     * @return the destination
+     */
+    public SiteNode getDestination() {
+        return destination;
+    }
 
-	/**
-	 * @return the expectedTime
-	 */
-	public double getExpectedTime() {
-		return expectedTime;
-	}
+    /**
+     * @param destination the destination to set
+     */
+    public void setDestination(final SiteNode destination) {
+        this.destination = destination;
+    }
 
-	/**
-	 * @param destination the destination to set
-	 */
-	public void setDestination(final SiteNode destination) {
-		this.destination = destination;
-	}
+    /**
+     * @return the expectedTime
+     */
+    public double getExpectedTime() {
+        return expectedTime;
+    }
 
-	/**
-	 * @param expectedTime the expectedTime to set
-	 */
-	public void setExpectedTime(final double expectedTime) {
-		this.expectedTime = expectedTime;
-	}
+    /**
+     * @param expectedTime the expectedTime to set
+     */
+    public void setExpectedTime(final double expectedTime) {
+        this.expectedTime = expectedTime;
+    }
 
 }

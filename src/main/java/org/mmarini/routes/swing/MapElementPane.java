@@ -42,8 +42,8 @@ public class MapElementPane extends JPanel {
 
     private static final long serialVersionUID = 1L;
     private final CardLayout cardLayout;
-    private final SiteNodePane siteNodePane;
-    private final MapNodePane mapNodePane;
+    private final SitePane sitePane;
+    private final NodePane nodePane;
     private final EdgePane edgePane;
 
     /**
@@ -51,8 +51,8 @@ public class MapElementPane extends JPanel {
      */
     public MapElementPane() {
         cardLayout = new CardLayout();
-        mapNodePane = new MapNodePane();
-        siteNodePane = new SiteNodePane();
+        nodePane = new NodePane();
+        sitePane = new SitePane();
         edgePane = new EdgePane();
         createContent();
     }
@@ -72,8 +72,8 @@ public class MapElementPane extends JPanel {
         final Box empty = Box.createVerticalBox();
         empty.setBorder(BorderFactory.createTitledBorder(Messages.getString("MapElementPane.emptyPane.title"))); //$NON-NLS-1$
         add(empty, EMPTY_CARD);
-        add(mapNodePane, NODE_CARD);
-        add(siteNodePane, SITE_CARD);
+        add(nodePane, NODE_CARD);
+        add(sitePane, SITE_CARD);
         add(edgePane, EDGE_CARD);
     }
 
@@ -81,29 +81,29 @@ public class MapElementPane extends JPanel {
         return edgePane;
     }
 
-    public MapNodePane getMapNodePane() {
-        return mapNodePane;
+    public NodePane getMapNodePane() {
+        return nodePane;
     }
 
-    public SiteNodePane getSiteNodePane() {
-        return siteNodePane;
+    public SitePane getSiteNodePane() {
+        return sitePane;
     }
 
-    public void setSelectedEdge(final EdgeEntry edge) {
+    public void setSelectedEdge(final EdgeView edge) {
         assert edge != null;
         edgePane.setEdge(edge);
         cardLayout.show(this, EDGE_CARD);
     }
 
-    public void setSelectedNode(final MapNodeEntry node) {
+    public void setSelectedNode(final NodeView node) {
         assert node != null;
-        mapNodePane.setNode(node);
+        nodePane.setNode(node);
         cardLayout.show(this, NODE_CARD);
     }
 
-    public void setSelectedSite(final MapNodeEntry node) {
+    public void setSelectedSite(final NodeView node) {
         assert node != null;
-        siteNodePane.setNode(node);
+        sitePane.setNode(node);
         cardLayout.show(this, SITE_CARD);
     }
 }

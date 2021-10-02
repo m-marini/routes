@@ -54,11 +54,11 @@ public class EdgePane extends JPanel {
     private final JButton deleteAction;
     private final JButton browseBeginNodeAction;
     private final JButton browseEndNodeAction;
-    private final Flowable<EdgeEntry> changeFlowable;
-    private final Flowable<EdgeEntry> deleteFlowable;
-    private final Flowable<EdgeEntry> endNodeFlowable;
-    private final Flowable<EdgeEntry> beginNodeFlowable;
-    private EdgeEntry edgeModel;
+    private final Flowable<EdgeView> changeFlowable;
+    private final Flowable<EdgeView> deleteFlowable;
+    private final Flowable<EdgeView> endNodeFlowable;
+    private final Flowable<EdgeView> beginNodeFlowable;
+    private EdgeView edgeModel;
 
     /**
      *
@@ -74,12 +74,12 @@ public class EdgePane extends JPanel {
         deleteAction = new JButton();
         browseEndNodeAction = new JButton();
         browseBeginNodeAction = new JButton();
-        Observable<EdgeEntry> priorityObs = SwingObservable.propertyChange(priorityField, "value")
+        Observable<EdgeView> priorityObs = SwingObservable.propertyChange(priorityField, "value")
                 .map(evt -> {
                     int p = ((Number) evt.getNewValue()).intValue();
                     return edgeModel.setPriority(p);
                 });
-        Observable<EdgeEntry> speedObs = SwingObservable.propertyChange(speedLimitField, "value")
+        Observable<EdgeView> speedObs = SwingObservable.propertyChange(speedLimitField, "value")
                 .map(evt -> {
                     double speedLimit = ((Number) evt.getNewValue()).doubleValue() / 3.6;
                     return edgeModel.setSpeedLimit(speedLimit);
@@ -324,19 +324,19 @@ public class EdgePane extends JPanel {
         return bar;
     }
 
-    public Flowable<EdgeEntry> getBeginNodeFlowable() {
+    public Flowable<EdgeView> getBeginNodeFlowable() {
         return beginNodeFlowable;
     }
 
-    public Flowable<EdgeEntry> getChangeFlowable() {
+    public Flowable<EdgeView> getChangeFlowable() {
         return changeFlowable;
     }
 
-    public Flowable<EdgeEntry> getDeleteFlowable() {
+    public Flowable<EdgeView> getDeleteFlowable() {
         return deleteFlowable;
     }
 
-    public Flowable<EdgeEntry> getEndNodeFlowable() {
+    public Flowable<EdgeView> getEndNodeFlowable() {
         return endNodeFlowable;
     }
 
@@ -373,7 +373,7 @@ public class EdgePane extends JPanel {
     /**
      * @param edgeModel the edge model of the panel
      */
-    public void setEdge(final EdgeEntry edgeModel) {
+    public void setEdge(final EdgeView edgeModel) {
         this.edgeModel = edgeModel;
         final MapEdge edge = edgeModel.getEdge();
         nameField.setText(edgeModel.getName());

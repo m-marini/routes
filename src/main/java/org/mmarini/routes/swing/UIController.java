@@ -39,7 +39,6 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -49,9 +48,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static io.reactivex.rxjava3.core.Observable.interval;
+import static org.mmarini.routes.swing.StatusView.DEFAULT_NODE_COLOR;
 
 /**
  * The UIController manages the user views and the user action.
@@ -65,8 +66,75 @@ public class UIController {
     public static final float NANOS = 1e-9f;
     private static final Logger logger = LoggerFactory.getLogger(UIController.class);
     private static final int TIME_INTERVAL = 1;
-    private static final double NODE_SATURATION = 1f;
-    private static final Color DEFAULT_NODE_COLOR = Color.LIGHT_GRAY;
+    private static final double NODE_SATURATION = 1;
+
+    /**
+     * @param handler the handler
+     */
+    public static StatusView create(RouteHandler handler) {
+        List<MapNode> nodes = toList(handler.getNodes());
+        List<SiteNode> sites = toList(handler.getSiteNodes());
+        List<MapEdge> edges = toList(handler.getMapEdges());
+        List<Vehicle> vehicles = toList(handler.getVeicles());
+        List<Path> paths = toList(handler.getPaths());
+        List<TrafficInfo> trafficInfo = new ArrayList<>(0);
+        handler.computeTrafficInfos(trafficInfo);
+        final RouteInfos infos = new RouteInfos();
+        handler.computeRouteInfos(infos);
+
+        // Computes site color map
+        int noSites = sites.size();
+        SwingUtils util = SwingUtils.getInstance();
+        Map<MapNode, Color> colorBySite = streamZipWithIndex(sites).map(entry -> {
+            int i = entry.getKey();
+            SiteNode node = entry.getValue();
+            final double value = (double) i / (noSites - 1);
+            Color color = util.computeColor(value, NODE_SATURATION);
+            return Map.entry(node, color);
+        }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        // Converts to node view
+        String nodeNamePattern = Messages.getString("RouteMediator.nodeNamePattern"); //$NON-NLS-1$
+        List<NodeView> nodeViews = streamZipWithIndex(nodes)
+                .map(entry -> {
+                    int i = entry.getKey();
+                    MapNode node = entry.getValue();
+                    return new NodeView(
+                            MessageFormat.format(nodeNamePattern, i + 1),
+                            node,
+                            Optional.ofNullable(colorBySite.get(node)).orElse(DEFAULT_NODE_COLOR));
+                })
+                .collect(Collectors.toList());
+        Map<MapNode, NodeView> viewByNode = nodeViews.stream().collect(Collectors.toMap(NodeView::getNode, Function.identity()));
+
+        // Converts to edgeView
+        String edgeNamePattern = Messages.getString("RouteMediator.edgeNamePattern"); //$NON-NLS-1$
+        List<EdgeView> edgesViews = streamZipWithIndex(edges)
+                .map(entry -> {
+                    int i = entry.getKey();
+                    MapEdge edge = entry.getValue();
+                    final String begin = Optional.ofNullable(viewByNode.get(edge.getBegin()))
+                            .map(NodeView::getName).orElse("?");
+                    final String end = Optional.ofNullable(viewByNode.get(edge.getEnd()))
+                            .map(NodeView::getName).orElse("?");
+                    final String name = MessageFormat.format(edgeNamePattern, i, begin, end);
+                    return new EdgeView(edge, name, begin, end, edge.getPriority(), edge.getSpeedLimit());
+                })
+                .collect(Collectors.toList());
+        Map<MapEdge, EdgeView> viewByEdge = edgesViews.stream()
+                .collect(Collectors.toMap(EdgeView::getEdge, Function.identity()));
+        return new StatusView(nodes,
+                sites,
+                edges,
+                vehicles,
+                trafficInfo,
+                paths,
+                infos,
+                nodeViews,
+                edgesViews,
+                viewByNode,
+                viewByEdge);
+    }
 
     /**
      * Returns a PathEntry
@@ -74,7 +142,7 @@ public class UIController {
      * @param nodes the nodes
      * @param paths the paths
      */
-    static SquareMatrixModel<MapNodeEntry> createSquareMatrixModel(List<MapNodeEntry> nodes, List<Path> paths) {
+    static SquareMatrixModel<NodeView> createSquareMatrixModel(List<NodeView> nodes, List<Path> paths) {
         final ToIntFunction<MapNode> indexOfNode = node -> {
             final int n = nodes.size();
             int idx = -1;
@@ -101,12 +169,30 @@ public class UIController {
     }
 
     /**
+     * @param list the list
+     * @param <T>  the item type
+     */
+    public static <T> Stream<Map.Entry<Integer, T>> streamZipWithIndex(List<T> list) {
+        return IntStream.range(0, list.size()).mapToObj(i -> Map.entry(i, list.get(i)));
+    }
+
+    /**
+     * @param iterable the iterable
+     * @param <T>      the item type
+     */
+    private static <T> List<T> toList(Iterable<T> iterable) {
+        Stream.Builder<T> b = Stream.builder();
+        iterable.forEach(b::add);
+        return b.build().collect(Collectors.toList());
+    }
+
+    /**
      *
      */
-    public static List<Path> toPathList(SquareMatrixModel<MapNodeEntry> data) {
+    public static List<Path> toPathList(SquareMatrixModel<NodeView> data) {
         final double[][] values = data.getValues();
         final int n = values.length;
-        final List<MapNodeEntry> indices = data.getIndices();
+        final List<NodeView> indices = data.getIndices();
         final List<Path> paths = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             SiteNode dep = (SiteNode) indices.get(i).getNode();
@@ -122,12 +208,8 @@ public class UIController {
 
     private final JFileChooser fileChooser;
     private final RouteHandler handler;
-    private final DefaultListModel<MapNodeEntry> nodeList;
-    private final String nodeNamePattern;
-    private final String defaultNodeName;
     private final OptimizePane optimizePane;
     private final RoutePane routesPane;
-    private final String edgeNamePattern;
     private final NodeChooser nodeChooser;
     private final MapProfilePane mapProfilePane;
     private final FrequencePane frequencePane;
@@ -137,14 +219,12 @@ public class UIController {
     private final ExplorerPane explorerPane;
     private final MapElementPane mapElementPane;
     private final EdgePane edgePane;
-    private final MapNodePane mapNodePane;
-    private final SiteNodePane siteNodePane;
+    private final NodePane nodePane;
+    private final SitePane sitePane;
     private long start;
     private double speedSimulation;
     private boolean running;
-    private List<MapNodeEntry> nodeEntries;
-    private List<EdgeEntry> edgeEntries;
-    private Map<MapNode, MapNodeEntry> entryByNode;
+    private StatusView status;
 
     /**
      *
@@ -157,21 +237,18 @@ public class UIController {
 
         mapElementPane = new MapElementPane();
         this.edgePane = mapElementPane.getEdgePane();
-        this.mapNodePane = mapElementPane.getMapNodePane();
-        this.siteNodePane = mapElementPane.getSiteNodePane();
+        this.nodePane = mapElementPane.getMapNodePane();
+        this.sitePane = mapElementPane.getSiteNodePane();
 
         mapProfilePane = new MapProfilePane();
         frequencePane = new FrequencePane();
         routesPane = new RoutePane();
         fileChooser = new JFileChooser();
         handler = new RouteHandler();
-        nodeList = new DefaultListModel<>();
         nodeChooser = new NodeChooser();
         mainFrame = new MainFrame(mapViewPane, mapElementPane, explorerPane);
 
-        nodeNamePattern = Messages.getString("RouteMediator.nodeNamePattern"); //$NON-NLS-1$
-        defaultNodeName = Messages.getString("RouteMediator.defaultNodeNamePattern"); //$NON-NLS-1$
-        edgeNamePattern = Messages.getString("RouteMediator.edgeNamePattern"); //$NON-NLS-1$
+        //$NON-NLS-1$
         optimizePane = new OptimizePane();
         fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("RouteMediator.filetype.title"), //$NON-NLS-1$
                 "yml", "rml")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -198,7 +275,7 @@ public class UIController {
             refresh();
             mapViewPane.selectSelector();
             mapViewPane.reset();
-            getEdgeModel(edge).ifPresent(mapElementPane::setSelectedEdge);
+            status.getEdgeViews(edge).ifPresent(mapElementPane::setSelectedEdge);
             mapViewPane.setSelectedEdge(edge);
             mainFrame.repaint();
         });
@@ -214,7 +291,7 @@ public class UIController {
             mapViewPane.selectSelector();
             mapViewPane.reset();
             mapViewPane.setSelectedEdge(edge);
-            getEdgeModel(edge).ifPresent(mapElementPane::setSelectedEdge);
+            status.getEdgeViews(edge).ifPresent(mapElementPane::setSelectedEdge);
             mainFrame.repaint();
         });
     }
@@ -236,37 +313,6 @@ public class UIController {
     }
 
     /**
-     * @param bound
-     */
-    public void computeMapBound(final Rectangle2D bound) {
-        handler.computeMapBound(bound);
-    }
-
-    /**
-     * @return
-     */
-    public int computeSiteCount() {
-        return handler.computeSiteCount();
-    }
-
-    /**
-     * Returns the map of colors of nodes
-     */
-    private Map<MapNode, Color> createColorMap() {
-        int n = computeSiteCount();
-        final Map<MapNode, Color> nodeColorMap = new HashMap<>(n);
-        final SwingUtils util = SwingUtils.getInstance();
-        int i = 0;
-        for (final SiteNode node : getSiteNodes()) {
-            final double value = (double) i / (n - 1);
-            final Color color = util.computeColor(value, NODE_SATURATION);
-            nodeColorMap.put(node, color);
-            ++i;
-        }
-        return nodeColorMap;
-    }
-
-    /**
      * @param edge
      */
     private void createEdge(RouteMap.EdgeCreation edge) {
@@ -274,7 +320,7 @@ public class UIController {
         refresh();
         mapViewPane.reset();
         mapViewPane.setSelectedEdge(edge1);
-        getEdgeModel(edge1).ifPresent(mapElementPane::setSelectedEdge);
+        status.getEdgeViews(edge1).ifPresent(mapElementPane::setSelectedEdge);
         mainFrame.repaint();
     }
 
@@ -308,14 +354,14 @@ public class UIController {
         edgePane.getEndNodeFlowable().doOnNext(edg -> changeEndNode(edg.getEdge())
         ).subscribe();
 
-        mapNodePane.getChangeFlowable().doOnNext(node -> transformToSite(node.getNode()))
+        nodePane.getChangeFlowable().doOnNext(node -> transformToSite(node.getNode()))
                 .subscribe();
-        mapNodePane.getDeleteFlowable().doOnNext(node -> remove(node.getNode()))
+        nodePane.getDeleteFlowable().doOnNext(node -> remove(node.getNode()))
                 .subscribe();
 
-        siteNodePane.getChangeFlowable().doOnNext(node -> transformToNode((SiteNode) node.getNode()))
+        sitePane.getChangeFlowable().doOnNext(node -> transformToNode((SiteNode) node.getNode()))
                 .subscribe();
-        siteNodePane.getDeleteFlowable().doOnNext(node -> remove(node.getNode()))
+        sitePane.getDeleteFlowable().doOnNext(node -> remove(node.getNode()))
                 .subscribe();
 
         explorerPane.getSiteFlowable().doOnNext(site -> {
@@ -324,7 +370,7 @@ public class UIController {
             mapViewPane.scrollTo(site);
         }).subscribe();
         explorerPane.getNodeFlowable().doOnNext(node -> {
-            getNodeEntry(node).ifPresent(mapElementPane::setSelectedNode);
+            status.getNodeView(node).ifPresent(mapElementPane::setSelectedNode);
             mapViewPane.setSelectedNode(node);
             mapViewPane.scrollTo(node);
         }).subscribe();
@@ -334,9 +380,8 @@ public class UIController {
             mapViewPane.scrollTo(edge.getEdge());
         }).subscribe();
 
-        routeMap.getEdgeFlowable().doOnNext(this::handleEdgeSelection).subscribe();
-        routeMap.getSiteFlowable().doOnNext(this::handleSiteSelection).subscribe();
-        routeMap.getNodeFlowable().doOnNext(this::handleNodeSelection).subscribe();
+        routeMap.getSelectElementFlowable().doOnNext(this::handleElementSelection).subscribe();
+        routeMap.getUnselectFlowable().doOnNext(this::handleMapUnselection).subscribe();
         routeMap.getDeleteEdgeFlowable().doOnNext(this::remove).subscribe();
         routeMap.getDeleteNodeFlowable().doOnNext(this::remove).subscribe();
         routeMap.getCenterMapFlowable().doOnNext(this::centerMap).subscribe();
@@ -349,34 +394,6 @@ public class UIController {
                         performTimeTick();
                     }
                 }).subscribe();
-    }
-
-    /**
-     * Create the data models
-     */
-    private void createModels() {
-        final Map<MapNode, Color> colorMap = createColorMap();
-        final List<MapNode> nodes = getNodes();
-        nodeEntries = new ArrayList<>(nodes.size());
-        for (int i = 0; i < nodes.size(); i++) {
-            final MapNode node = nodes.get(i);
-            final String name = MessageFormat.format(nodeNamePattern, i + 1);
-            final Color color = colorMap.getOrDefault(node, DEFAULT_NODE_COLOR);
-            nodeEntries.add(new MapNodeEntry(name, node, color));
-        }
-        this.entryByNode = nodeEntries.stream().collect(Collectors.toMap(MapNodeEntry::getNode, Function.identity()));
-
-        final List<MapEdge> edges = getMapEdges();
-        edgeEntries = new ArrayList<>(edges.size());
-        for (int i = 0; i < nodes.size(); i++) {
-            final MapEdge edge = edges.get(i);
-            final String begin = Optional.ofNullable(entryByNode.get(edge.getBegin()))
-                    .map(MapNodeEntry::getName).orElse("?");
-            final String end = Optional.ofNullable(entryByNode.get(edge.getEnd()))
-                    .map(MapNodeEntry::getName).orElse("?");
-            final String name = MessageFormat.format(edgeNamePattern, i, begin, end);
-            edgeEntries.add(new EdgeEntry(edge, name, begin, end, edge.getPriority(), edge.getSpeedLimit()));
-        }
     }
 
     /**
@@ -394,105 +411,60 @@ public class UIController {
     }
 
     /**
-     * @param point
-     * @param precision
-     * @return
-     */
-    public Optional<MapElement> findElement(final Point2D point, final double precision) {
-        return Optional.ofNullable(handler.findElement(point, precision));
-    }
-
-    private Optional<EdgeEntry> getEdgeModel(MapEdge edge) {
-        return edgeEntries.stream().filter(e -> e.getEdge().equals(edge)).findFirst();
-    }
-
-    /**
-     *
-     */
-    public List<MapEdge> getMapEdges() {
-        Stream.Builder<MapEdge> b = Stream.builder();
-        handler.getMapEdges().forEach(b::add);
-        return b.build().collect(Collectors.toList());
-    }
-
-    /**
-     * Return the color of a node
-     *
-     * @param node the node
-     */
-    public Color getNodeColor(final MapNode node) {
-        return Optional.ofNullable(entryByNode.get(node))
-                .map(MapNodeEntry::getColor)
-                .orElse(DEFAULT_NODE_COLOR);
-    }
-
-    /**
-     * @param mapNode the node
-     */
-    private Optional<MapNodeEntry> getNodeEntry(MapNode mapNode) {
-        return Optional.ofNullable(entryByNode.get(mapNode));
-    }
-
-    /**
-     *
-     */
-    public List<MapNode> getNodes() {
-        Stream.Builder<MapNode> b = Stream.builder();
-        handler.getNodes().forEach(b::add);
-        return b.build().collect(Collectors.toList());
-    }
-
-    /**
-     *
-     */
-    public List<Path> getPaths() {
-        Stream.Builder<Path> b = Stream.builder();
-        handler.getPaths().forEach(b::add);
-        return b.build().collect(Collectors.toList());
-    }
-
-    /**
-     *
-     */
-    public List<SiteNode> getSiteNodes() {
-        Stream.Builder<SiteNode> b = Stream.builder();
-        handler.getSiteNodes().forEach(b::add);
-        return b.build().collect(Collectors.toList());
-    }
-
-    /**
-     *
-     */
-    public List<Vehicle> getVehicles() {
-        Stream.Builder<Vehicle> b = Stream.builder();
-        handler.getVeicles().forEach(b::add);
-        return b.build().collect(Collectors.toList());
-    }
-
-    private void handleEdgeSelection(Optional<MapEdge> edge) {
-        edge.ifPresent(this::handleEdgeSelection);
-        edge.flatMap(this::getEdgeModel)
-                .ifPresentOrElse(explorerPane::setSelectedEdge, explorerPane::clearSelection);
-    }
-
-    /**
      * @param edge the edge
      */
     private void handleEdgeSelection(MapEdge edge) {
         assert edge != null;
         handler.setTemplate(edge);
-        getEdgeModel(edge).ifPresent(mapElementPane::setSelectedEdge);
+        status.getEdgeViews(edge).ifPresent(mapElementPane::setSelectedEdge);
     }
 
-    private void handleNodeSelection(Optional<MapNode> node) {
-        Optional<MapNodeEntry> entry = node.flatMap(this::getNodeEntry);
+    /**
+     * @param edge the edge
+     */
+    private void handleEdgeSelection1(MapEdge edge) {
+        this.handleEdgeSelection(edge);
+        status.getEdgeViews(edge).ifPresentOrElse(
+                explorerPane::setSelectedEdge,
+                explorerPane::clearSelection);
+    }
+
+    /**
+     * @param mapElement the selected element
+     */
+    private void handleElementSelection(MapElement mapElement) {
+        mapElement.apply(new MapElementVisitor() {
+            @Override
+            public void visit(MapEdge edge) {
+                handleEdgeSelection1(edge);
+            }
+
+            @Override
+            public void visit(MapNode node) {
+                handleNodeSelection(node);
+            }
+
+            @Override
+            public void visit(SiteNode node) {
+                handleSiteSelection1(node);
+            }
+        });
+    }
+
+    /**
+     * @param element the unselect element
+     */
+    private void handleMapUnselection(MapElement element) {
+        mapElementPane.clearPanel();
+        explorerPane.clearSelection();
+    }
+
+    /**
+     * @param node the node
+     */
+    private void handleNodeSelection(MapNode node) {
+        Optional<NodeView> entry = status.getNodeView(node);
         entry.ifPresentOrElse(mapElementPane::setSelectedNode, mapElementPane::clearPanel);
-        entry.ifPresentOrElse(explorerPane::setSelectedNode, explorerPane::clearSelection);
-    }
-
-    private void handleSiteSelection(Optional<SiteNode> site) {
-        site.ifPresent(this::handleSiteSelection);
-        Optional<MapNodeEntry> entry = site.flatMap(this::getNodeEntry);
         entry.ifPresentOrElse(explorerPane::setSelectedNode, explorerPane::clearSelection);
     }
 
@@ -500,17 +472,22 @@ public class UIController {
      * @param site the site
      */
     private void handleSiteSelection(SiteNode site) {
-        if (site != null) {
-            handler.setTemplate(site);
-            getNodeEntry(site).ifPresent(mapElementPane::setSelectedSite);
-        }
+        assert site != null;
+        handler.setTemplate(site);
+        status.getNodeView(site).ifPresent(mapElementPane::setSelectedSite);
+    }
+
+    private void handleSiteSelection1(SiteNode site) {
+        this.handleSiteSelection(site);
+        status.getNodeView(site).ifPresentOrElse(
+                explorerPane::setSelectedNode,
+                explorerPane::clearSelection);
     }
 
     /**
      *
      */
     private void init() {
-        routeMap.setMediator(this);
         loadDefault();
         final List<Module> modules = new ArrayList<>(0);
         try {
@@ -547,7 +524,7 @@ public class UIController {
         mapViewPane.selectSelector();
         mapViewPane.reset();
         mapViewPane.clearSelection();
-        mapElementPane.setSelectedNode(null);
+        mapElementPane.clearPanel();
         mainFrame.repaint();
     }
 
@@ -633,6 +610,7 @@ public class UIController {
         if (interval > 0) {
             handler.setTimeInterval(interval * NANOS * speedSimulation);
             handler.performSimulation();
+            refresh();
             mapViewPane.repaint();
         }
     }
@@ -660,13 +638,14 @@ public class UIController {
      *
      */
     private void refresh() {
-        createModels();
-        final DefaultListModel<EdgeEntry> nl = explorerPane.getEdgeListModel();
+        this.status = create(handler);
+        final DefaultListModel<EdgeView> nl = explorerPane.getEdgeListModel();
         nl.removeAllElements();
-        nl.addAll(edgeEntries);
-        final DefaultListModel<MapNodeEntry> el = explorerPane.getNodeListModel();
+        nl.addAll(status.getEdgesViews());
+        final DefaultListModel<NodeView> el = explorerPane.getNodeListModel();
         el.removeAllElements();
-        el.addAll(nodeEntries);
+        el.addAll(status.getNodeViews());
+        routeMap.setStatus(status);
     }
 
     /**
@@ -689,21 +668,6 @@ public class UIController {
         mapViewPane.clearSelection();
         mapElementPane.clearPanel();
         mainFrame.repaint();
-    }
-
-    /**
-     * @param node
-     */
-    public String retrieveNodeName(final MapNode node) {
-        final int n = nodeList.getSize();
-        for (int i = 0; i < n; ++i) {
-            final MapNodeEntry entry = nodeList.get(i);
-            if (entry.getNode().equals(node)) {
-                return entry.getName();
-            }
-        }
-        final Point2D location = node.getLocation();
-        return MessageFormat.format(defaultNodeName, location.getX(), location.getY());
     }
 
     /**
@@ -761,11 +725,11 @@ public class UIController {
      */
     public void setRouteSetting() {
         stopSimulation();
-        final SquareMatrixModel<MapNodeEntry> pathEntry = createSquareMatrixModel(
-                getSiteNodes().stream()
-                        .flatMap(s -> getNodeEntry(s).stream())
+        final SquareMatrixModel<NodeView> pathEntry = createSquareMatrixModel(
+                status.getSites().stream()
+                        .flatMap(s -> status.getNodeView(s).stream())
                         .collect(Collectors.toList()),
-                getPaths());
+                status.getPaths());
         routesPane.setPathEntry(pathEntry);
         final int opt = JOptionPane.showConfirmDialog(mainFrame, routesPane,
                 Messages.getString("RouteMediator.routePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
@@ -817,11 +781,10 @@ public class UIController {
      */
     private void showInfos() {
         stopSimulation();
-        final RouteInfos infos = new RouteInfos();
-        handler.computeRouteInfos(infos);
-        final SquareMatrixModel<MapNodeEntry> routeInfo = new SquareMatrixModel<MapNodeEntry>(
+        final RouteInfos infos = status.getRouteInfos();
+        final SquareMatrixModel<NodeView> routeInfo = new SquareMatrixModel<>(
                 infos.getNodes().stream()
-                        .flatMap(s -> getNodeEntry(s).stream())
+                        .flatMap(s -> status.getNodeView(s).stream())
                         .collect(Collectors.toList()),
                 infos.getFrequence());
 
@@ -837,12 +800,11 @@ public class UIController {
      */
     private void showTrafficInfos() {
         stopSimulation();
-        final List<TrafficInfo> map = new ArrayList<>(0);
-        handler.computeTrafficInfos(map);
-        final List<TrafficInfoEntry> data = map.stream().flatMap(info ->
-                        Optional.ofNullable(entryByNode.get(info.getDestination()))
+        final List<TrafficInfo> map = status.getTrafficInfo();
+        final List<TrafficInfoView> data = map.stream().flatMap(info ->
+                        status.getNodeView(info.getDestination())
                                 .map(dest ->
-                                        new TrafficInfoEntry(dest, info))
+                                        new TrafficInfoView(dest, info))
                                 .stream())
                 .sorted(Comparator.comparing(a -> a.getDestination().getName()))
                 .collect(Collectors.toList());
@@ -853,17 +815,6 @@ public class UIController {
         JOptionPane.showMessageDialog(mainFrame, pane, Messages.getString("RouteMediator.trafficInfoPane.title"), //$NON-NLS-1$
                 JOptionPane.INFORMATION_MESSAGE);
         startSimulation();
-    }
-
-    /**
-     * @param point
-     * @param precision
-     */
-    public void snapToNode(final Point2D point, final double precision) {
-        final MapNode elem = handler.findNode(point, precision);
-        if (elem != null) {
-            point.setLocation(elem.getLocation());
-        }
     }
 
     /**
@@ -916,7 +867,7 @@ public class UIController {
         refresh();
         mapViewPane.reset();
         mapViewPane.setSelectedNode(node);
-        getNodeEntry(node).ifPresent(mapElementPane::setSelectedNode);
+        status.getNodeView(node).ifPresent(mapElementPane::setSelectedNode);
         mainFrame.repaint();
     }
 
@@ -928,7 +879,7 @@ public class UIController {
         refresh();
         mapViewPane.reset();
         mapViewPane.setSelectedSite(site);
-        getNodeEntry(site).ifPresent(mapElementPane::setSelectedSite);
+        status.getNodeView(site).ifPresent(mapElementPane::setSelectedSite);
         mainFrame.repaint();
     }
 }

@@ -39,7 +39,7 @@ import java.awt.geom.Point2D;
 /**
  * @author marco.marini@mmarini.org
  */
-public class SiteNodePane extends JPanel {
+public class SitePane extends JPanel {
     private static final long serialVersionUID = 1L;
 
     private final JFormattedTextField xField;
@@ -50,14 +50,14 @@ public class SiteNodePane extends JPanel {
     private final JTextField nameField;
     private final JButton changeButton;
     private final JButton deleteButton;
-    private final Flowable<MapNodeEntry> changeFlowable;
-    private final Flowable<MapNodeEntry> deleteFlowable;
-    private MapNodeEntry node;
+    private final Flowable<NodeView> changeFlowable;
+    private final Flowable<NodeView> deleteFlowable;
+    private NodeView node;
 
     /**
      *
      */
-    public SiteNodePane() {
+    public SitePane() {
         xField = new JFormattedTextField(new NumberFormatter());
         yField = new JFormattedTextField(new NumberFormatter());
         nameField = new JTextField(10);
@@ -206,18 +206,18 @@ public class SiteNodePane extends JPanel {
         return toolbar;
     }
 
-    public Flowable<MapNodeEntry> getChangeFlowable() {
+    public Flowable<NodeView> getChangeFlowable() {
         return changeFlowable;
     }
 
-    public Flowable<MapNodeEntry> getDeleteFlowable() {
+    public Flowable<NodeView> getDeleteFlowable() {
         return deleteFlowable;
     }
 
     private void init() {
         final SwingUtils utils = SwingUtils.getInstance();
-        utils.initButton(changeButton, "SiteNodePane.changeAction"); //$NON-NLS-1$
-        utils.initButton(deleteButton, "SiteNodePane.deleteAction"); //$NON-NLS-1$
+        utils.initButton(changeButton, "SitePane.changeAction"); //$NON-NLS-1$
+        utils.initButton(deleteButton, "SitePane.deleteAction"); //$NON-NLS-1$
 
         setBorder(BorderFactory.createTitledBorder(Messages.getString("SiteNodePane.title"))); //$NON-NLS-1$
 
@@ -235,7 +235,7 @@ public class SiteNodePane extends JPanel {
     /**
      * @param node the node to set
      */
-    public void setNode(final MapNodeEntry node) {
+    public void setNode(final NodeView node) {
         this.node = node;
         final Point2D location = node.getNode().getLocation();
         xField.setValue(location.getX());

@@ -35,13 +35,13 @@ import java.awt.*;
 /**
  *
  */
-public class MapNodeEntryTableCellRenderer extends DefaultTableCellRenderer {
+public class NodeViewTableCellRenderer extends DefaultTableCellRenderer {
     private static final long serialVersionUID = 3743457808802444412L;
 
     /**
      *
      */
-    public MapNodeEntryTableCellRenderer() {
+    public NodeViewTableCellRenderer() {
     }
 
     /**
@@ -50,7 +50,7 @@ public class MapNodeEntryTableCellRenderer extends DefaultTableCellRenderer {
     @Override
     public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
                                                    final boolean hasFocus, final int row, final int column) {
-        MapNodeEntry entry = (MapNodeEntry) value;
+        NodeView entry = (NodeView) value;
         setText(entry.getName());
         setBackground(entry.getColor());
         setBorder(BorderFactory.createMatteBorder(0, 1, 1, 1, Color.GRAY));

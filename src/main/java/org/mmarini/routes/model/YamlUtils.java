@@ -28,63 +28,53 @@
 
 package org.mmarini.routes.model;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 /**
- *
  * @author mmarini
- *
  */
 public class YamlUtils {
 
-	/**
-	 *
-	 * @param node
-	 * @param defaultValue
-	 * @return
-	 */
-	public static double jsonDouble(final JsonNode node, final double defaultValue) {
-		return Optional.ofNullable(node).map(json -> json.asDouble(defaultValue)).orElse(defaultValue);
-	}
+    /**
+     * @param node
+     * @param defaultValue
+     * @return
+     */
+    public static double jsonDouble(final JsonNode node, final double defaultValue) {
+        return Optional.ofNullable(node).map(json -> json.asDouble(defaultValue)).orElse(defaultValue);
+    }
 
-	/**
-	 *
-	 * @param node
-	 * @param defaultValue
-	 * @return
-	 */
-	public static int jsonInt(final JsonNode node, final int defaultValue) {
-		return Optional.ofNullable(node).map(json -> json.asInt(defaultValue)).orElse(defaultValue);
-	}
+    /**
+     * @param node
+     * @param defaultValue
+     * @return
+     */
+    public static int jsonInt(final JsonNode node, final int defaultValue) {
+        return Optional.ofNullable(node).map(json -> json.asInt(defaultValue)).orElse(defaultValue);
+    }
 
-	/**
-	 *
-	 * @param <T>
-	 * @param iterator
-	 * @return
-	 */
-	public static <T> List<T> toList(final Iterator<T> iterator) {
-		final List<T> list = toStream(iterator).collect(Collectors.toList());
-		return list;
-	}
+    /**
+     * @param <T>
+     * @param iterator
+     * @return
+     */
+    public static <T> List<T> toList(final Iterator<T> iterator) {
+        final List<T> list = toStream(iterator).collect(Collectors.toList());
+        return list;
+    }
 
-	/**
-	 *
-	 * @param <T>
-	 * @param iterator
-	 * @return
-	 */
-	public static <T> Stream<T> toStream(final Iterator<T> iterator) {
-		final Spliterator<T> spliterator = Spliterators.spliteratorUnknownSize(iterator, 0);
-		return StreamSupport.stream(spliterator, false);
-	}
+    /**
+     * @param <T>
+     * @param iterator
+     * @return
+     */
+    public static <T> Stream<T> toStream(final Iterator<T> iterator) {
+        final Spliterator<T> spliterator = Spliterators.spliteratorUnknownSize(iterator, 0);
+        return StreamSupport.stream(spliterator, false);
+    }
 }

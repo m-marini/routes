@@ -33,7 +33,7 @@ import org.mmarini.routes.model.MapEdge;
 /**
  *
  */
-public class EdgeEntry {
+public class EdgeView {
     private final MapEdge edge;
     private final String name;
     private final String beginName;
@@ -49,7 +49,7 @@ public class EdgeEntry {
      * @param priority   the priority value
      * @param speedLimit the speed limit
      */
-    public EdgeEntry(MapEdge edge, String name, String beginName, String endName, int priority, double speedLimit) {
+    public EdgeView(MapEdge edge, String name, String beginName, String endName, int priority, double speedLimit) {
         this.edge = edge;
         this.name = name;
         this.beginName = beginName;
@@ -81,8 +81,8 @@ public class EdgeEntry {
     /**
      * @param priority
      */
-    public EdgeEntry setPriority(int priority) {
-        return new EdgeEntry(edge, name, beginName, endName, priority, speedLimit);
+    public EdgeView setPriority(int priority) {
+        return new EdgeView(edge, name, beginName, endName, priority, speedLimit);
     }
 
     public double getSpeedLimit() {
@@ -92,8 +92,8 @@ public class EdgeEntry {
     /**
      * @param speedLimit
      */
-    public EdgeEntry setSpeedLimit(double speedLimit) {
-        return new EdgeEntry(edge, name, beginName, endName, priority, speedLimit);
+    public EdgeView setSpeedLimit(double speedLimit) {
+        return new EdgeView(edge, name, beginName, endName, priority, speedLimit);
     }
 
     @Override

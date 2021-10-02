@@ -30,62 +30,61 @@ package org.mmarini.routes.model;
 /**
  * @author marco.marini@mmarini.org
  * @version $Id: SimContextImpl.java,v 1.6 2010/10/19 20:33:00 marco Exp $
- *
  */
 public class SimContextImpl implements SimContext {
-	private double time;
+    private double time;
 
-	private Simulator simulator;
+    private Simulator simulator;
 
-	/**
-	     *
-	     */
-	public SimContextImpl() {
-	}
+    /**
+     *
+     */
+    public SimContextImpl() {
+    }
 
-	/**
-	 * @see org.mmarini.routes.model.SimContext#findNextEdge(org.mmarini.routes.model.MapNode,
-	 *      org.mmarini.routes.model.MapNode)
-	 */
-	@Override
-	public MapEdge findNextEdge(final MapNode from, final MapNode to) {
-		return getSimulator().findNextEdge(from, to);
-	}
+    /**
+     * @see org.mmarini.routes.model.SimContext#findNextEdge(org.mmarini.routes.model.MapNode,
+     * org.mmarini.routes.model.MapNode)
+     */
+    @Override
+    public MapEdge findNextEdge(final MapNode from, final MapNode to) {
+        return getSimulator().findNextEdge(from, to);
+    }
 
-	/**
-	 * @return the simulator
-	 */
-	private Simulator getSimulator() {
-		return simulator;
-	}
+    /**
+     * @return the simulator
+     */
+    private Simulator getSimulator() {
+        return simulator;
+    }
 
-	/**
-	 * @see org.mmarini.routes.model.SimContext#getTime()
-	 */
-	@Override
-	public double getTime() {
-		return time;
-	}
+    /**
+     * @param simulator the simulator to set
+     */
+    public void setSimulator(final Simulator simulator) {
+        this.simulator = simulator;
+    }
 
-	/**
-	 * @see org.mmarini.routes.model.SimContext#removeVeicle(Vehicle)
-	 */
-	@Override
-	public void removeVeicle(final Vehicle veicle) {
-		getSimulator().remove(veicle);
-	}
+    /**
+     * @see org.mmarini.routes.model.SimContext#getTime()
+     */
+    @Override
+    public double getTime() {
+        return time;
+    }
 
-	/**
-	 * @param simulator the simulator to set
-	 */
-	public void setSimulator(final Simulator simulator) {
-		this.simulator = simulator;
-	}
+    /**
+     * @param time the time to set
+     */
+    public void setTime(final double time) {
+        this.time = time;
+    }
 
-	/**
-	 * @param time the time to set
-	 */
-	public void setTime(final double time) {
-		this.time = time;
-	}
+    /**
+     * @see org.mmarini.routes.model.SimContext#removeVeicle(Vehicle)
+     */
+    @Override
+    public void removeVeicle(final Vehicle veicle) {
+        getSimulator().remove(veicle);
+    }
 }

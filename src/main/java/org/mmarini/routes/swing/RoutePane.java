@@ -40,11 +40,11 @@ import javax.swing.*;
  */
 public class RoutePane extends Box {
     private static final long serialVersionUID = 1L;
-    private final DefaultListModel<MapNodeEntry> departureListModel;
+    private final DefaultListModel<NodeView> departureListModel;
     private final RouteTableModel routeTableModel;
-    private final JList<MapNodeEntry> departureList;
+    private final JList<NodeView> departureList;
     private final JTable routeTable;
-    private SquareMatrixModel<MapNodeEntry> pathEntry;
+    private SquareMatrixModel<NodeView> pathEntry;
 
     /**
      *
@@ -97,7 +97,7 @@ public class RoutePane extends Box {
     /**
      *
      */
-    public SquareMatrixModel<MapNodeEntry> getPathEntry() {
+    public SquareMatrixModel<NodeView> getPathEntry() {
         return pathEntry;
     }
 
@@ -106,7 +106,7 @@ public class RoutePane extends Box {
      *
      * @param entries the path entries
      */
-    public void setPathEntry(SquareMatrixModel<MapNodeEntry> entries) {
+    public void setPathEntry(SquareMatrixModel<NodeView> entries) {
         this.pathEntry = entries;
         departureListModel.clear();
         departureListModel.addAll(entries.getIndices());
@@ -116,7 +116,7 @@ public class RoutePane extends Box {
     }
 
     private void init() {
-        routeTable.setDefaultRenderer(MapNodeEntry.class, new MapNodeEntryTableCellRenderer());
+        routeTable.setDefaultRenderer(NodeView.class, new NodeViewTableCellRenderer());
         departureList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         departureList.setCellRenderer(new SiteListCellRenderer());
     }

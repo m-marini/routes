@@ -38,7 +38,7 @@ public class RouteInfoModel extends AbstractTableModel {
 
     private double maximumFlux;
     private double minimumFlux;
-    private SquareMatrixModel<MapNodeEntry> routeInfo;
+    private SquareMatrixModel<NodeView> routeInfo;
 
     /**
      *
@@ -79,7 +79,7 @@ public class RouteInfoModel extends AbstractTableModel {
 
     @Override
     public Class<?> getColumnClass(final int columnIndex) {
-        return columnIndex == 0 ? MapNodeEntry.class : Double.class;
+        return columnIndex == 0 ? NodeView.class : Double.class;
     }
 
     @Override
@@ -104,14 +104,14 @@ public class RouteInfoModel extends AbstractTableModel {
     /**
      *
      */
-    public SquareMatrixModel<MapNodeEntry> getRouteInfo() {
+    public SquareMatrixModel<NodeView> getRouteInfo() {
         return routeInfo;
     }
 
     /**
      * @param routeInfo the route information
      */
-    public void setRouteInfo(SquareMatrixModel<MapNodeEntry> routeInfo) {
+    public void setRouteInfo(SquareMatrixModel<NodeView> routeInfo) {
         this.routeInfo = routeInfo;
         computeMinMax();
         fireTableStructureChanged();

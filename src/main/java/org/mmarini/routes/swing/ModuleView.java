@@ -39,7 +39,7 @@ import java.awt.image.BufferedImage;
 /**
  * @author Marco
  */
-public class ModuleEntry {
+public class ModuleView {
     private static final int ICON_HEIGHT = 16;
     private static final int ICON_WIDTH = 16;
     private Module module;
@@ -48,7 +48,7 @@ public class ModuleEntry {
     /**
      *
      */
-    public ModuleEntry() {
+    public ModuleView() {
     }
 
     /**

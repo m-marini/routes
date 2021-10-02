@@ -40,7 +40,7 @@ public class NodeChooser extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private final JList<MapNodeEntry> nodeList;
+    private final JList<NodeView> nodeList;
 
     /**
      *
@@ -71,7 +71,7 @@ public class NodeChooser extends JPanel {
      *
      */
     public Optional<MapNode> getSelectedNode() {
-        return Optional.ofNullable(nodeList.getSelectedValue()).map(MapNodeEntry::getNode);
+        return Optional.ofNullable(nodeList.getSelectedValue()).map(NodeView::getNode);
     }
 
     /**
@@ -79,7 +79,7 @@ public class NodeChooser extends JPanel {
      *
      * @param nodeList2
      */
-    public void setNodeList(final DefaultListModel<MapNodeEntry> nodeList2) {
+    public void setNodeList(final DefaultListModel<NodeView> nodeList2) {
         nodeList.setModel(nodeList2);
     }
 }

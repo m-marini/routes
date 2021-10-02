@@ -43,7 +43,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.Optional;
+
+import static org.mmarini.routes.swing.StatusView.DEFAULT_NODE_COLOR;
 
 /**
  * @author marco.marini@mmarini.org
@@ -63,10 +64,9 @@ public class RouteMap extends JComponent {
     private final Point2D point;
     private final AffineTransform transform;
     private final AffineTransform inverse;
-    private final CursorPainter cursorPainter;
+    private final MapElementVisitor cursorPainter;
     private final Point2D begin;
     private final Point2D end;
-    private final MapElementVisitor eventFirer;
     private final Painter painter;
     private final Mode selectingMode;
     private final Mode startEdgeMode;
@@ -76,22 +76,21 @@ public class RouteMap extends JComponent {
     private final Mode centerMode;
     private final Flowable<MouseWheelEvent> mouseWheelFlowable;
     private final Flowable<MouseEvent> mouseFlowable;
-    private final PublishProcessor<Optional<SiteNode>> siteProcessor;
-    private final PublishProcessor<Optional<MapNode>> nodeProcessor;
-    private final PublishProcessor<Optional<MapEdge>> edgeProcessor;
     private final PublishProcessor<MapEdge> deleteEdgeProcessor;
     private final PublishProcessor<MapNode> deleteNodeProcessor;
     private final PublishProcessor<Point2D> centerMapProcessor;
     private final PublishProcessor<EdgeCreation> newEdgeProcessor;
     private final PublishProcessor<ModuleParameters> newModuleProcessor;
-    public Module module;
+    private final PublishProcessor<MapElement> unselectProcessor;
+    private final PublishProcessor<MapElement> selectElementProcessor;
+    private Module module;
     private boolean mouseInside;
-    private UIController mediator;
     private double scale;
     private double gridSize;
     private MapElement selectedElement;
     private boolean trafficView;
     private Mode currentMode;
+    private StatusView status;
 
     /**
      *
@@ -104,22 +103,60 @@ public class RouteMap extends JComponent {
         end = new Point2D.Double();
         transform = new AffineTransform();
         inverse = new AffineTransform();
-        cursorPainter = new CursorPainter();
+        cursorPainter = new MapElementVisitor() {
+
+            @Override
+            public void visit(final MapEdge edge) {
+                painter.paintCursorEdge(edge);
+                painter.paintCursorEdgeEnds(edge);
+            }
+
+            @Override
+            public void visit(final MapNode node) {
+                painter.paintNodeCursor(node.getLocation());
+            }
+
+            @Override
+            public void visit(final SiteNode node) {
+            }
+        };
         scale = 1;
-        siteProcessor = PublishProcessor.create();
-        nodeProcessor = PublishProcessor.create();
-        edgeProcessor = PublishProcessor.create();
-        selectingMode = new Mode();
+        selectingMode = new Mode() {
+            @Override
+            public void handleMouseMoved(MouseEvent ev) {
+            }
+
+            @Override
+            public void handleMousePressed(MouseEvent ev) {
+                computeMapLocation(point, ev.getPoint());
+                status.findElement(point, (CURSOR_SELECTION_PRECISION / scale))
+                        .ifPresentOrElse(RouteMap.this::setSelectedElement, RouteMap.this::clearSelection);
+            }
+
+            @Override
+            public void paintMode() {
+            }
+        };
 
         startEdgeMode = new Mode() {
 
             @Override
-            public void handleMousePressed(final MouseEvent e) {
-                computeMapLocation(begin, e.getPoint());
-                RouteMap.this.mediator.snapToNode(begin, (CURSOR_SELECTION_PRECISION / scale));
+            public void handleMouseMoved(MouseEvent ev) {
+
+            }
+
+            @Override
+            public void handleMousePressed(final MouseEvent ev) {
+                computeMapLocation(begin, ev.getPoint());
+                begin.setLocation(status.snapToNode(begin, (CURSOR_SELECTION_PRECISION / scale)));
                 end.setLocation(begin);
                 currentMode = endEdgeMode;
                 repaint();
+            }
+
+            @Override
+            public void paintMode() {
+
             }
 
         };
@@ -128,13 +165,13 @@ public class RouteMap extends JComponent {
             @Override
             public void handleMouseMoved(final MouseEvent ev) {
                 computeMapLocation(end, ev.getPoint());
-                RouteMap.this.mediator.snapToNode(end, (CURSOR_SELECTION_PRECISION / scale));
+                end.setLocation(status.snapToNode(end, (CURSOR_SELECTION_PRECISION / scale)));
                 repaint();
             }
 
             @Override
-            public void handleMousePressed(final MouseEvent e) {
-                handleEndEdge(e);
+            public void handleMousePressed(final MouseEvent ev) {
+                handleEndEdge(ev);
             }
 
             @Override
@@ -152,8 +189,8 @@ public class RouteMap extends JComponent {
             }
 
             @Override
-            public void handleMousePressed(final MouseEvent e) {
-                computeMapLocation(begin, e.getPoint());
+            public void handleMousePressed(final MouseEvent ev) {
+                computeMapLocation(begin, ev.getPoint());
                 currentMode = moduleRotationMode;
                 repaint();
             }
@@ -175,8 +212,8 @@ public class RouteMap extends JComponent {
             }
 
             @Override
-            public void handleMousePressed(final MouseEvent e) {
-                computeMapLocation(point, e.getPoint());
+            public void handleMousePressed(final MouseEvent ev) {
+                computeMapLocation(point, ev.getPoint());
                 newModuleProcessor.onNext(new ModuleParameters(
                         module,
                         begin,
@@ -200,30 +237,20 @@ public class RouteMap extends JComponent {
             }
 
         };
-        eventFirer = new MapElementVisitor() {
-
-            @Override
-            public void visit(final MapEdge edge) {
-                edgeProcessor.onNext(Optional.of(edge));
-            }
-
-            @Override
-            public void visit(final MapNode node) {
-                nodeProcessor.onNext(Optional.of(node));
-            }
-
-            @Override
-            public void visit(final SiteNode site) {
-                siteProcessor.onNext(Optional.of(site));
-            }
-
-        };
         centerMode = new Mode() {
             @Override
-            public void handleMousePressed(final MouseEvent e) {
-                computeMapLocation(point, e.getPoint());
+            public void handleMouseMoved(MouseEvent ev) {
+            }
+
+            @Override
+            public void handleMousePressed(final MouseEvent ev) {
+                computeMapLocation(point, ev.getPoint());
                 startSelectMode();
                 centerMapProcessor.onNext(point);
+            }
+
+            @Override
+            public void paintMode() {
             }
 
         };
@@ -235,6 +262,8 @@ public class RouteMap extends JComponent {
         this.centerMapProcessor = PublishProcessor.create();
         this.newEdgeProcessor = PublishProcessor.create();
         this.newModuleProcessor = PublishProcessor.create();
+        this.unselectProcessor = PublishProcessor.create();
+        this.selectElementProcessor = PublishProcessor.create();
         init();
         createFlows();
     }
@@ -246,7 +275,7 @@ public class RouteMap extends JComponent {
         final MapElement oldSelectedElement = this.selectedElement;
         this.selectedElement = null;
         if (oldSelectedElement != null) {
-            nodeProcessor.onNext(Optional.empty());
+            unselectProcessor.onNext(oldSelectedElement);
         }
         repaint();
     }
@@ -266,8 +295,10 @@ public class RouteMap extends JComponent {
      *
      */
     private void computeMapBound() {
-        mediator.computeMapBound(mapBound);
-        computeGridSize();
+        if (status != null) {
+            mapBound.setFrame(status.computeMapBound());
+            computeGridSize();
+        }
     }
 
     /**
@@ -312,6 +343,9 @@ public class RouteMap extends JComponent {
         transform.transform(point, result);
     }
 
+    /**
+     *
+     */
     private void createFlows() {
         getActionMap().put(DELETE_ACTION, new AbstractAction() {
 
@@ -367,13 +401,6 @@ public class RouteMap extends JComponent {
     /**
      *
      */
-    public Flowable<Optional<MapEdge>> getEdgeFlowable() {
-        return edgeProcessor;
-    }
-
-    /**
-     *
-     */
     public double getEdgeLength() {
         return begin.distance(end);
     }
@@ -411,13 +438,6 @@ public class RouteMap extends JComponent {
     }
 
     /**
-     *
-     */
-    public Flowable<Optional<MapNode>> getNodeFlowable() {
-        return nodeProcessor;
-    }
-
-    /**
      * Return the current view scale
      *
      * @return the current view scale (real px/virtual px)
@@ -435,21 +455,28 @@ public class RouteMap extends JComponent {
     }
 
     /**
-     * @return the selectedElement
+     *
+     */
+    public Flowable<MapElement> getSelectElementFlowable() {
+        return selectElementProcessor;
+    }
+
+    /**
+     * Returns the selectedElement
      */
     public MapElement getSelectedElement() {
         return selectedElement;
     }
 
     /**
-     * @param selectedElement the selectedElement to set
+     * @param selectedElement the selected element to set
      */
     public void setSelectedElement(final MapElement selectedElement) {
         assert selectedElement != null;
         final MapElement oldSelectedElement = this.selectedElement;
         this.selectedElement = selectedElement;
         if (!selectedElement.equals(oldSelectedElement)) {
-            selectedElement.apply(eventFirer);
+            selectElementProcessor.onNext(selectedElement);
             repaint();
         }
     }
@@ -457,16 +484,16 @@ public class RouteMap extends JComponent {
     /**
      *
      */
-    public Flowable<Optional<SiteNode>> getSiteFlowable() {
-        return siteProcessor;
+    public Flowable<MapElement> getUnselectFlowable() {
+        return unselectProcessor;
     }
 
     /**
-     * @param e
+     * @param ev the mouse event
      */
-    private void handleEndEdge(final MouseEvent e) {
-        computeMapLocation(end, e.getPoint());
-        mediator.snapToNode(end, (CURSOR_SELECTION_PRECISION / scale));
+    private void handleEndEdge(final MouseEvent ev) {
+        computeMapLocation(end, ev.getPoint());
+        end.setLocation(status.snapToNode(end, (CURSOR_SELECTION_PRECISION / scale)));
         newEdgeProcessor.onNext(new EdgeCreation(begin, end));
         begin.setLocation(end);
         repaint();
@@ -523,7 +550,7 @@ public class RouteMap extends JComponent {
         }
         g.setColor(bg);
         g.fillRect(0, 0, size.width, size.height);
-        if (mediator != null) {
+        if (status != null) {
             final Graphics2D gr = (Graphics2D) g.create();
             gr.transform(transform);
             painter.setGraphics(gr);
@@ -555,7 +582,7 @@ public class RouteMap extends JComponent {
      */
     private void paintEdges() {
         if (trafficView) {
-            for (final MapEdge edge : mediator.getMapEdges()) {
+            for (final MapEdge edge : status.getEdges()) {
                 if (!(edge.equals(selectedElement) && isShowingCursor())) {
                     double trafficLevel = edge.getTrafficLevel();
                     //trafficLevel = Math.sqrt(trafficLevel);
@@ -564,7 +591,7 @@ public class RouteMap extends JComponent {
                 }
             }
         } else {
-            for (final MapEdge edge : mediator.getMapEdges()) {
+            for (final MapEdge edge : status.getEdges()) {
                 if (!(edge.equals(selectedElement) && isShowingCursor())) {
                     painter.paintEdge(edge);
                 }
@@ -587,11 +614,14 @@ public class RouteMap extends JComponent {
      *
      */
     private void paintSites() {
-        for (final SiteNode node : mediator.getSiteNodes()) {
+        for (final SiteNode node : status.getSites()) {
             if (node.equals(selectedElement) && isShowingCursor()) {
                 painter.paintSiteCursor(node.getLocation());
             } else {
-                painter.paintSite(node.getLocation(), mediator.getNodeColor(node));
+                painter.paintSite(node.getLocation(),
+                        status.getNodeView(node)
+                                .map(NodeView::getColor)
+                                .orElse(DEFAULT_NODE_COLOR));
             }
 
         }
@@ -601,10 +631,12 @@ public class RouteMap extends JComponent {
      *
      */
     private void paintVehicles() {
-        for (final Vehicle vehicle : mediator.getVehicles()) {
+        for (final Vehicle vehicle : status.getVehicles()) {
             if (vehicle.isRunning()) {
                 vehicle.retrieveLocation(point);
-                final Color color = mediator.getNodeColor(vehicle.getDestination());
+                final Color color = status.getNodeView(vehicle.getDestination())
+                        .map(NodeView::getColor)
+                        .orElse(DEFAULT_NODE_COLOR);
                 painter.paintVehicle(point, vehicle.getVector(), color);
             }
         }
@@ -630,11 +662,9 @@ public class RouteMap extends JComponent {
         setScale(scale);
     }
 
-    /**
-     * @param handler the mediator to set
-     */
-    public void setMediator(final UIController handler) {
-        this.mediator = handler;
+    public void setStatus(StatusView status) {
+        this.status = status;
+        repaint();
     }
 
     /**
@@ -680,6 +710,24 @@ public class RouteMap extends JComponent {
         repaint();
     }
 
+    interface Mode {
+
+        /**
+         * @param ev
+         */
+        void handleMouseMoved(final MouseEvent ev);
+
+        /**
+         * @param ev
+         */
+        void handleMousePressed(final MouseEvent ev);
+
+        /**
+         *
+         */
+        void paintMode();
+    }
+
     public static class ModuleParameters {
         private final Module module;
         private final Point2D location;
@@ -719,48 +767,6 @@ public class RouteMap extends JComponent {
 
         public Point2D getEnd() {
             return end;
-        }
-    }
-
-    class CursorPainter implements MapElementVisitor {
-
-        @Override
-        public void visit(final MapEdge edge) {
-            painter.paintCursorEdge(edge);
-            painter.paintCursorEdgeEnds(edge);
-        }
-
-        @Override
-        public void visit(final MapNode node) {
-            painter.paintNodeCursor(node.getLocation());
-        }
-
-        @Override
-        public void visit(final SiteNode node) {
-        }
-    }
-
-    class Mode {
-
-        /**
-         * @param ev
-         */
-        public void handleMouseMoved(final MouseEvent ev) {
-        }
-
-        /**
-         * @param e
-         */
-        public void handleMousePressed(final MouseEvent e) {
-            computeMapLocation(point, e.getPoint());
-            mediator.findElement(point, (CURSOR_SELECTION_PRECISION / scale))
-                    .ifPresentOrElse(RouteMap.this::setSelectedElement, RouteMap.this::clearSelection);
-        }
-
-        /**
-         *
-         */
-        public void paintMode() {
         }
     }
 }

@@ -45,7 +45,7 @@ public class InfosTable extends JTable {
     /**
      * @param routeInfo the route information
      */
-    public static InfosTable create(SquareMatrixModel<MapNodeEntry> routeInfo) {
+    public static InfosTable create(SquareMatrixModel<NodeView> routeInfo) {
         final RouteInfoModel model = new RouteInfoModel();
         model.setRouteInfo(routeInfo);
         return new InfosTable(model);
@@ -56,7 +56,7 @@ public class InfosTable extends JTable {
      */
     public InfosTable(final TableModel model) {
         super(model);
-        MapNodeEntryTableCellRenderer siteTableCellRenderer = new MapNodeEntryTableCellRenderer();
+        NodeViewTableCellRenderer siteTableCellRenderer = new NodeViewTableCellRenderer();
         setDefaultRenderer(Double.class, new DefaultTableCellRenderer() {
             private static final long serialVersionUID = 1L;
 
@@ -85,7 +85,7 @@ public class InfosTable extends JTable {
             }
 
         });
-        setDefaultRenderer(MapNodeEntry.class, siteTableCellRenderer);
+        setDefaultRenderer(NodeView.class, siteTableCellRenderer);
         setRowSelectionAllowed(false);
         final JTableHeader header = getTableHeader();
         header.setDefaultRenderer(new DefaultTableCellRenderer() {
@@ -107,7 +107,7 @@ public class InfosTable extends JTable {
                     setBorder(BorderFactory.createRaisedBevelBorder());
                     setBackground(bg);
                 } else {
-                    final MapNodeEntry node = model.getRouteInfo().getIndices().get(column - 1);
+                    final NodeView node = model.getRouteInfo().getIndices().get(column - 1);
                     setText(node.getName());
                     setBackground(node.getColor());
                     setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.GRAY));

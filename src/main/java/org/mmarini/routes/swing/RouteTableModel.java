@@ -40,7 +40,7 @@ public class RouteTableModel extends AbstractTableModel {
     private static final long serialVersionUID = -2634066472823732066L;
     private static final String[] COLUMN_NAMES = {"Destination", "Weight"};
     private static final Logger logger = LoggerFactory.getLogger(RouteTableModel.class);
-    private SquareMatrixModel<MapNodeEntry> pathEntry;
+    private SquareMatrixModel<NodeView> pathEntry;
     private int row;
 
     /**
@@ -51,7 +51,7 @@ public class RouteTableModel extends AbstractTableModel {
 
     @Override
     public Class<?> getColumnClass(final int columnIndex) {
-        return columnIndex == 1 ? Double.class : MapNodeEntry.class;
+        return columnIndex == 1 ? Double.class : NodeView.class;
     }
 
     @Override
@@ -86,7 +86,7 @@ public class RouteTableModel extends AbstractTableModel {
     /**
      * @param pathEntry the path entry
      */
-    public void setPathEntry(SquareMatrixModel<MapNodeEntry> pathEntry) {
+    public void setPathEntry(SquareMatrixModel<NodeView> pathEntry) {
         this.pathEntry = pathEntry;
         fireTableDataChanged();
     }

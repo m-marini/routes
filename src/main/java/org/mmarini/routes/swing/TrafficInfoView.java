@@ -35,8 +35,8 @@ import java.util.StringJoiner;
 /**
  * The traffic information record is rendered in traffic information table
  */
-public class TrafficInfoEntry {
-    private final MapNodeEntry destination;
+public class TrafficInfoView {
+    private final NodeView destination;
     private final TrafficInfo info;
 
     /**
@@ -45,7 +45,7 @@ public class TrafficInfoEntry {
      * @param destination the destination information
      * @param info        the traffic information
      */
-    public TrafficInfoEntry(MapNodeEntry destination, TrafficInfo info) {
+    public TrafficInfoView(NodeView destination, TrafficInfo info) {
         this.destination = destination;
         this.info = info;
     }
@@ -53,7 +53,7 @@ public class TrafficInfoEntry {
     /**
      * Returns the destination information
      */
-    public MapNodeEntry getDestination() {
+    public NodeView getDestination() {
         return destination;
     }
 
@@ -66,7 +66,7 @@ public class TrafficInfoEntry {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", TrafficInfoEntry.class.getSimpleName() + "[", "]")
+        return new StringJoiner(", ", TrafficInfoView.class.getSimpleName() + "[", "]")
                 .add("destination=" + destination)
                 .toString();
     }

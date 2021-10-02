@@ -90,14 +90,14 @@ public class TrafficInfoTable extends JTable {
             }
 
         });
-        setDefaultRenderer(TrafficInfoEntry.class, new DefaultTableCellRenderer() {
+        setDefaultRenderer(TrafficInfoView.class, new DefaultTableCellRenderer() {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public Component getTableCellRendererComponent(final JTable table, final Object value,
                                                            final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-                final MapNodeEntry entry = ((TrafficInfoEntry) value).getDestination();
+                final NodeView entry = ((TrafficInfoView) value).getDestination();
                 setText(entry.getName());
                 setBackground(entry.getColor());
                 setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.GRAY));

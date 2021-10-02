@@ -34,7 +34,7 @@ import java.awt.*;
 /**
  * @author marco.marini@mmarini.org
  */
-public class MapNodeEntry {
+public class NodeView {
     private final MapNode node;
     private final String name;
     private final Color color;
@@ -44,7 +44,7 @@ public class MapNodeEntry {
      * @param node  the node
      * @param color the node color
      */
-    public MapNodeEntry(final String name, final MapNode node, Color color) {
+    public NodeView(final String name, final MapNode node, Color color) {
         this.node = node;
         this.name = name;
         this.color = color;

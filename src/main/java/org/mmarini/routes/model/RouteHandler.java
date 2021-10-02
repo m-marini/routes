@@ -71,7 +71,6 @@ public class RouteHandler {
     }
 
     /**
-     *
      * @param edge
      * @param priority
      * @param speedLimit
