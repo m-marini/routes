@@ -4,16 +4,17 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>Routes</groupId>
 	<artifactId>routes</artifactId>
-	<version>4.2.0</version>
+	<version>4.2.1</version>
 	<name>routes</name>
 	<description>Routes - Traffic simulator</description>
 	<properties>
 		<java.version>11</java.version>
 		<rxjava.version>3.0.0-RC2</rxjava.version>
-		<slf4j.version>1.7.30</slf4j.version>
-		<logback.version>1.2.3</logback.version>
+		<jackson.version>2.12.5</jackson.version>
+		<slf4j.version>1.7.32</slf4j.version>
+		<logback.version>1.2.6</logback.version>
 		<junit.version>5.5.2</junit.version>
-		<hamcrest.version>2.1</hamcrest.version>
+		<hamcrest.version>2.2</hamcrest.version>
 	</properties>
 	<build>
 		<resources>
@@ -35,23 +36,30 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.8.1</version>
 				<configuration>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
+					<release>${java.version}</release>
 				</configuration>
 			</plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.4</version>
+				<!--<version>3.2.0</version> -->
 				<configuration>
-					<descriptor>src/assemble/dep.xml</descriptor>
+					<descriptors>src/assemble/dep.xml</descriptors>
 				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.4</version>
+				<version>3.2.0</version>
 				<configuration>
 					<archive>
 						<manifest>
@@ -67,12 +75,22 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-yaml</artifactId>
-			<version>2.10.1</version>
+			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.10.1</version>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.reactivex.rxjava3</groupId>
+			<artifactId>rxjava</artifactId>
+			<version>${rxjava.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.akarnokd</groupId>
+			<artifactId>rxjava3-swing</artifactId>
+			<version>3.0.0-RC6</version>
 		</dependency>
 
 		<dependency>
@@ -87,8 +105,21 @@
 		</dependency>
 
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-params</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
