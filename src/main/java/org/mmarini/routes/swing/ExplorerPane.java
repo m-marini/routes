@@ -1,304 +1,205 @@
 /*
- * ExplorerPane.java
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
  *
- * $Id: ExplorerPane.java,v 1.9 2010/10/19 20:32:59 marco Exp $
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * 06/gen/09
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * Copyright notice
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
+ *
  */
 package org.mmarini.routes.swing;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.ListModel;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
-import org.mmarini.routes.model.MapEdge;
-import org.mmarini.routes.model.MapElementVisitor;
+import hu.akarnokd.rxjava3.swing.SwingObservable;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Observable;
 import org.mmarini.routes.model.MapNode;
 import org.mmarini.routes.model.SiteNode;
 
+import javax.swing.*;
+import java.util.Optional;
+
 /**
  * @author marco.marini@mmarini.org
- * @version $Id: ExplorerPane.java,v 1.9 2010/10/19 20:32:59 marco Exp $
- *
  */
 public class ExplorerPane extends JTabbedPane {
 
-	private static final int EDGE_TAB_INDEX = 1;
+    private static final int EDGE_TAB_INDEX = 1;
+    private static final int NODE_TAB_INDEX = 0;
+    private static final long serialVersionUID = 1L;
 
-	private static final int NODE_TAB_INDEX = 0;
+    private final JList<MapNodeEntry> nodeJList;
+    private final JList<EdgeEntry> edgeJList;
+    private final String title;
+    private final String nodeTabTitle;
+    private final String edgeTabTitle;
+    private final Flowable<EdgeEntry> edgeFlowable;
+    private final Flowable<SiteNode> siteFlowable;
+    private final Flowable<MapNode> nodeFlowable;
 
-	private static final long serialVersionUID = 1L;
+    /**
+     *
+     */
+    public ExplorerPane() {
+        this.nodeJList = new JList<>(new DefaultListModel<>());
+        this.edgeJList = new JList<>(new DefaultListModel<>());
+        title = Messages.getString("ExplorerPane.title"); //$NON-NLS-1$
+        nodeTabTitle = Messages.getString("ExplorerPane.nodeTabe.title"); //$NON-NLS-1$
+        edgeTabTitle = Messages.getString("ExplorerPane.edgeTab.title"); //$NON-NLS-1$
+        edgeFlowable = SwingObservable.listSelection(edgeJList.getSelectionModel())
+                .map(ev -> getSelectedEdge())
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toFlowable(BackpressureStrategy.MISSING);
+        Observable<MapNode> nodeObservable = SwingObservable.listSelection(nodeJList.getSelectionModel())
+                .map(ev -> getSelectedNode())
+                .filter(Optional::isPresent)
+                .map(Optional::get);
+        siteFlowable = nodeObservable
+                .filter(n -> (n instanceof SiteNode))
+                .map(n -> (SiteNode) n)
+                .toFlowable(BackpressureStrategy.MISSING);
+        nodeFlowable = nodeObservable
+                .filter(n -> !(n instanceof SiteNode))
+                .toFlowable(BackpressureStrategy.MISSING);
+        init();
+        createContent();
+    }
 
-	private final DefaultListModel<MapEdgeEntry> edgeList;
+    /**
+     *
+     */
+    public void clearSelection() {
+        edgeJList.setSelectedIndex(edgeJList.getSelectedIndex());
+    }
 
-	private RouteMediator mediator;
+    /**
+     *
+     */
+    private void createContent() {
+        addTab(nodeTabTitle, new JScrollPane(nodeJList));
+        addTab(edgeTabTitle, new JScrollPane(edgeJList));
+    }
 
-	private final JList<MapNodeEntry> nodeJList;
+    /**
+     * @param model list model
+     * @param item  item
+     * @param <T>   item type
+     */
+    private <T> int findIndex(ListModel<T> model, T item) {
+        int idx = -1;
+        final int n = model.getSize();
+        for (int i = 0; i < n; i++) {
+            if (model.getElementAt(i).equals(item)) {
+                idx = i;
+                break;
+            }
+        }
+        return idx;
+    }
 
-	private final JList<MapEdgeEntry> edgeJList;
+    /**
+     *
+     */
+    public Flowable<EdgeEntry> getEdgeFlowable() {
+        return edgeFlowable;
+    }
 
-	private List<MapElementListener> listeners;
+    /**
+     *
+     */
+    public DefaultListModel<EdgeEntry> getEdgeListModel() {
+        return (DefaultListModel<EdgeEntry>) edgeJList.getModel();
+    }
 
-	private final MapElementEvent mapElementEvent;
+    /**
+     *
+     */
+    public Flowable<MapNode> getNodeFlowable() {
+        return nodeFlowable;
+    }
 
-	private final String title;
+    /**
+     *
+     */
+    public DefaultListModel<MapNodeEntry> getNodeListModel() {
+        return (DefaultListModel<MapNodeEntry>) nodeJList.getModel();
+    }
 
-	private final String nodeTabTitle;
+    /**
+     *
+     */
+    public Optional<EdgeEntry> getSelectedEdge() {
+        return Optional.ofNullable(edgeJList.getSelectedValue());
+    }
 
-	private final String edgeTabTitle;
+    /**
+     *
+     */
+    public void setSelectedEdge(EdgeEntry edge) {
+        assert edge != null;
+        final int idx = findIndex(getEdgeListModel(), edge);
+        if (idx >= 0) {
+            edgeJList.setSelectedIndex(idx);
+            setSelectedIndex(EDGE_TAB_INDEX);
+        } else {
+            clearSelection();
+        }
+    }
 
-	private final MapElementVisitor eventFirer;
+    /**
+     *
+     */
+    public Optional<MapNode> getSelectedNode() {
+        return Optional.ofNullable(nodeJList.getSelectedValue())
+                .map(MapNodeEntry::getNode);
+    }
 
-	/**
-	     *
-	     */
-	public ExplorerPane() {
-		edgeList = new DefaultListModel<>();
-		nodeJList = new JList<>();
-		edgeJList = new JList<>(edgeList);
-		mapElementEvent = new MapElementEvent(this);
-		title = Messages.getString("ExplorerPane.title"); //$NON-NLS-1$
-		nodeTabTitle = Messages.getString("ExplorerPane.nodeTabe.title"); //$NON-NLS-1$
-		edgeTabTitle = Messages.getString("ExplorerPane.edgeTab.title"); //$NON-NLS-1$
-		eventFirer = new MapElementVisitor() {
+    /**
+     *
+     */
+    public void setSelectedNode(final MapNodeEntry node) {
+        assert node != null;
+        int idx = findIndex(getNodeListModel(), node);
+        if (idx >= 0) {
+            nodeJList.setSelectedIndex(idx);
+            setSelectedIndex(NODE_TAB_INDEX);
+        } else {
+            clearSelection();
+        }
+    }
 
-			@Override
-			public void visit(final MapEdge edge) {
-			}
+    /**
+     *
+     */
+    public Flowable<SiteNode> getSiteFlowable() {
+        return siteFlowable;
+    }
 
-			@Override
-			public void visit(final MapNode node) {
-				fireMapNodeSelected(node);
-			}
-
-			@Override
-			public void visit(final SiteNode site) {
-				fireSiteSelected(site);
-			}
-
-		};
-		init();
-		createContent();
-	}
-
-	/**
-	 *
-	 * @param l
-	 */
-	public synchronized void addMapElementListener(final MapElementListener l) {
-		List<MapElementListener> ls = listeners;
-		if (ls == null) {
-			ls = new ArrayList<MapElementListener>(1);
-			ls.add(l);
-			listeners = ls;
-		} else if (!ls.contains(l)) {
-			ls = new ArrayList<MapElementListener>(ls);
-			ls.add(l);
-			listeners = ls;
-		}
-	}
-
-	/**
-	     *
-	     */
-	private void createContent() {
-		addTab(nodeTabTitle, new JScrollPane(nodeJList));
-		addTab(edgeTabTitle, new JScrollPane(edgeJList));
-	}
-
-	/**
-	 *
-	 * @param edge
-	 */
-	private void fireMapEdgeSelected(final MapEdge edge) {
-		mapElementEvent.setSite(null);
-		mapElementEvent.setEdge(edge);
-		mapElementEvent.setNode(null);
-		final List<MapElementListener> ls = listeners;
-		if (ls != null) {
-			for (final MapElementListener l : listeners) {
-				l.edgeSelected(mapElementEvent);
-			}
-		}
-	}
-
-	/**
-	 *
-	 * @param node
-	 */
-	private void fireMapNodeSelected(final MapNode node) {
-		mapElementEvent.setSite(null);
-		mapElementEvent.setEdge(null);
-		mapElementEvent.setNode(node);
-		final List<MapElementListener> ls = listeners;
-		if (ls != null) {
-			for (final MapElementListener l : listeners) {
-				l.nodeSelected(mapElementEvent);
-			}
-		}
-	}
-
-	/**
-	 *
-	 * @param site
-	 */
-	private void fireSiteSelected(final SiteNode site) {
-		mapElementEvent.setSite(site);
-		mapElementEvent.setEdge(null);
-		mapElementEvent.setNode(null);
-		final List<MapElementListener> ls = listeners;
-		if (ls != null) {
-			for (final MapElementListener l : listeners) {
-				l.siteSelected(mapElementEvent);
-			}
-		}
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	public MapEdge getSelectedEdge() {
-		final MapEdgeEntry entry = edgeJList.getSelectedValue();
-		if (entry != null) {
-			return entry.getEdge();
-		}
-		return null;
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	public MapNode getSelectedNode() {
-		final MapNodeEntry entry = nodeJList.getSelectedValue();
-		if (entry != null) {
-			return entry.getNode();
-		}
-		return null;
-	}
-
-	/**
-	     *
-	     */
-	protected void handleEdgeSelection() {
-		fireMapEdgeSelected(getSelectedEdge());
-	}
-
-	/**
-	     *
-	     */
-	protected void handleNodeSelection() {
-		final MapNode node = getSelectedNode();
-		if (node != null) {
-			node.apply(eventFirer);
-		} else {
-			fireMapNodeSelected(null);
-		}
-	}
-
-	/**
-	     *
-	     */
-	private void init() {
-		setBorder(BorderFactory.createTitledBorder(title));
-		nodeJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		nodeJList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
-			@Override
-			public void valueChanged(final ListSelectionEvent ev) {
-				if (!ev.getValueIsAdjusting()) {
-					handleNodeSelection();
-				}
-			}
-
-		});
-		edgeJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		edgeJList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
-			@Override
-			public void valueChanged(final ListSelectionEvent ev) {
-				if (!ev.getValueIsAdjusting()) {
-					handleEdgeSelection();
-				}
-			}
-
-		});
-	}
-
-	/**
-	 *
-	 * @param l
-	 */
-	public synchronized void removeMapElementListener(final MapElementListener l) {
-		List<MapElementListener> ls = listeners;
-		if (ls != null && ls.contains(l)) {
-			ls = new ArrayList<MapElementListener>(ls);
-			ls.remove(l);
-			listeners = ls;
-		}
-	}
-
-	/**
-	 *
-	 * @param edgeList
-	 */
-	public void setEdgeList(final ListModel<MapEdgeEntry> edgeList) {
-		edgeJList.setModel(edgeList);
-	}
-
-	/**
-	 * @param mediator the mediator to set
-	 */
-	public void setMediator(final RouteMediator mediator) {
-		this.mediator = mediator;
-	}
-
-	/**
-	 *
-	 * @param nodeList
-	 */
-	public void setNodeList(final ListModel<MapNodeEntry> nodeList) {
-		nodeJList.setModel(nodeList);
-	}
-
-	/**
-	     *
-	     *
-	     */
-	public void setSelectedElement(final MapEdge edge) {
-		final int idx = mediator.getEdgeListIndex(edge);
-		if (idx >= 0) {
-			edgeJList.setSelectedIndex(idx);
-			setSelectedIndex(EDGE_TAB_INDEX);
-			return;
-		}
-		edgeJList.setSelectedIndex(edgeJList.getSelectedIndex());
-	}
-
-	/**
-	     *
-	     *
-	     */
-	public void setSelectedElement(final MapNode node) {
-		final int idx = mediator.getNodeListIndex(node);
-		if (idx >= 0) {
-			nodeJList.setSelectedIndex(idx);
-			setSelectedIndex(NODE_TAB_INDEX);
-			return;
-		}
-		nodeJList.setSelectedIndex(nodeJList.getSelectedIndex());
-	}
-
+    /**
+     *
+     */
+    private void init() {
+        setBorder(BorderFactory.createTitledBorder(title));
+        nodeJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        edgeJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    }
 }

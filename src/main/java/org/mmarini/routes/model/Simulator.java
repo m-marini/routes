@@ -1,11 +1,29 @@
 /*
- * RouteHandler.java
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
  *
- * $Id: Simulator.java,v 1.18 2010/10/19 20:32:59 marco Exp $
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * 28/dic/08
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * Copyright notice
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
+ *
  */
 package org.mmarini.routes.model;
 
@@ -39,10 +57,10 @@ public class Simulator implements Constants {
 	private final List<MapNode> nodes;
 	private final List<SiteNode> sites;
 	private final List<MapEdge> edges;
-	private final List<Veicle> veicleList;
+	private final List<Vehicle> veicleList;
 	private final SimContextImpl context;
 	private final ExtendedRandom random;
-	private final List<Veicle> temporaryList;
+	private final List<Vehicle> temporaryList;
 	private double[][] timeMatrix;
 	private int[][] previousMatrix;
 	private MapEdge[][] edgeMap;
@@ -61,8 +79,8 @@ public class Simulator implements Constants {
 		sites = new ArrayList<SiteNode>(0);
 		path = new ArrayList<Path>(0);
 		transitTime = new HashMap<SiteNode, Map<SiteNode, Double>>();
-		veicleList = new ArrayList<Veicle>(0);
-		temporaryList = new ArrayList<Veicle>(0);
+		veicleList = new ArrayList<Vehicle>(0);
+		temporaryList = new ArrayList<Vehicle>(0);
 		context = new SimContextImpl();
 		context.setSimulator(this);
 		random = new ExtendedRandom();
@@ -265,7 +283,7 @@ public class Simulator implements Constants {
 	public void computeTrafficInfos(final List<TrafficInfo> infos) {
 		infos.clear();
 		final Map<SiteNode, TrafficInfo> map = new HashMap<SiteNode, TrafficInfo>();
-		for (final Veicle v : veicleList) {
+		for (final Vehicle v : veicleList) {
 			final SiteNode site = (SiteNode) v.getDestination();
 			TrafficInfo info = map.get(site);
 			if (info == null) {
@@ -428,7 +446,7 @@ public class Simulator implements Constants {
 	private void createVeicleFrom(final SiteNode departure, final SiteNode destination) {
 		final MapEdge edge = findNextEdge(departure, destination);
 		if (edge != null && !edge.isBusy()) {
-			final Veicle veicle = new Veicle();
+			final Vehicle veicle = new Vehicle();
 			if (!destination.equals(departure)) {
 				final Itinerary it = new Itinerary();
 				it.setDestination(departure);
@@ -443,7 +461,7 @@ public class Simulator implements Constants {
 	}
 
 	/**
-	 * @param context
+	 *
 	 */
 	private void createVeicles() {
 		final double freq = context.getTime() * frequence / (getSiteCount() - 1) / 2;
@@ -611,7 +629,7 @@ public class Simulator implements Constants {
 	/**
 	 * @see org.mmarini.routes.model.RouteHandler#getVeicles()
 	 */
-	public Iterable<Veicle> getVeicles() {
+	public Iterable<Vehicle> getVeicles() {
 		return veicleList;
 	}
 
@@ -690,7 +708,7 @@ public class Simulator implements Constants {
 		computeConnectionMatrix();
 		temporaryList.clear();
 		temporaryList.addAll(veicleList);
-		for (final Veicle veicle : temporaryList) {
+		for (final Vehicle veicle : temporaryList) {
 			veicle.move(context);
 		}
 		temporaryList.clear();
@@ -707,7 +725,7 @@ public class Simulator implements Constants {
 	 */
 	public void randomize(final MapProfile profile) {
 		path.clear();
-		setFrequence(profile.getFrequence());
+		setFrequence(profile.getFrequency());
 		for (final SiteNode departure : sites) {
 			for (final SiteNode destination : sites) {
 				if (departure != destination) {
@@ -741,7 +759,7 @@ public class Simulator implements Constants {
 	/**
 	 * @param veicle
 	 */
-	public void remove(final Veicle veicle) {
+	public void remove(final Vehicle veicle) {
 		veicleList.remove(veicle);
 	}
 
@@ -797,7 +815,7 @@ public class Simulator implements Constants {
 	 * @param newNode
 	 */
 	private void replaceNodeInVeicles(final MapNode oldNode, final MapNode newNode) {
-		for (final Veicle veicle : veicleList) {
+		for (final Vehicle veicle : veicleList) {
 			veicle.replaceNode(oldNode, newNode);
 		}
 	}

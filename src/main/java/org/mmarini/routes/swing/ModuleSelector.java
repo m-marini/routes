@@ -1,6 +1,33 @@
+/*
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
+ *
+ */
+
 package org.mmarini.routes.swing;
 
-import hu.akarnokd.rxjava3.swing.SwingObservable;
 import org.mmarini.routes.model.Module;
 
 import javax.swing.*;
@@ -62,7 +89,7 @@ public class ModuleSelector extends JButton {
         item.addActionListener(selectionListener);
         items.add(item);
         popupMenu.add(item);
-        if (selectedEntry==null) {
+        if (selectedEntry == null) {
             item.doClick();
         }
     }
@@ -72,7 +99,7 @@ public class ModuleSelector extends JButton {
      */
     public synchronized void addListSelectionListener(final ListSelectionListener l) {
         List<ListSelectionListener> ll = listeners;
-        if (ll==null) {
+        if (ll == null) {
             ll = new ArrayList<>(0);
             ll.add(l);
         } else if (!ll.contains(l)) {
@@ -95,7 +122,7 @@ public class ModuleSelector extends JButton {
      */
     private void fireValueChanged() {
         final List<ListSelectionListener> ll = listeners;
-        if (ll!=null) {
+        if (ll != null) {
             final ListSelectionEvent ev = new ListSelectionEvent(this, 0, 0, false);
             for (final ListSelectionListener l : ll) {
                 l.valueChanged(ev);

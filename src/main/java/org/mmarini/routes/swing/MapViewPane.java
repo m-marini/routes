@@ -1,33 +1,41 @@
 /*
- * ScrollMap.java
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
  *
- * $Id: MapViewPane.java,v 1.11 2010/10/19 20:32:59 marco Exp $
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * 06/gen/09
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * Copyright notice
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
+ *
  */
 package org.mmarini.routes.swing;
 
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.util.List;
-
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.ButtonGroup;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.JToggleButton;
-import javax.swing.JToolBar;
-import javax.swing.SwingConstants;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
+import hu.akarnokd.rxjava3.swing.SwingObservable;
 import org.mmarini.routes.model.MapEdge;
 import org.mmarini.routes.model.MapNode;
 import org.mmarini.routes.model.Module;
 import org.mmarini.routes.model.SiteNode;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
 
 /**
  * The MapViewPane allows the user to view and interact with the map.
@@ -41,359 +49,236 @@ import org.mmarini.routes.model.SiteNode;
  * </p>
  *
  * @author marco.marini@mmarini.org
- * @version $Id: MapViewPane.java,v 1.11 2010/10/19 20:32:59 marco Exp $
- *
  */
 public class MapViewPane extends JPanel {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
+    private final ScrollMap scrollMap;
+    private final JToggleButton selectButton;
+    private final JToggleButton edgeButton;
+    private final JToggleButton moduleButton;
+    private final JToggleButton centerButton;
+    private final ButtonGroup toolGroup;
+    private final ModuleSelector moduleSelector;
+    private final JToggleButton normalViewButton;
+    private final JToggleButton trafficViewButton;
+    private final ButtonGroup viewGroup;
+    private final JButton zoomInButton;
+    private final JButton zoomOutButton;
+    private final JButton fitInWindowButton;
+    private final JButton zoomDefaultButton;
 
-	private final AbstractAction zoomInAction;
+    /**
+     * Create the component
+     *
+     * @param scrollMap the scroll Map
+     */
+    public MapViewPane(final ScrollMap scrollMap) {
+        this.scrollMap = scrollMap;
+        selectButton = new JToggleButton();
+        edgeButton = new JToggleButton();
+        moduleButton = new JToggleButton();
+        centerButton = new JToggleButton();
+        toolGroup = new ButtonGroup();
+        viewGroup = new ButtonGroup();
+        normalViewButton = new JToggleButton();
+        trafficViewButton = new JToggleButton();
+        moduleSelector = new ModuleSelector();
+        moduleSelector.addListSelectionListener(e -> handleModuleSelected());
+        zoomInButton = new JButton();
+        zoomOutButton = new JButton();
+        fitInWindowButton = new JButton();
+        zoomDefaultButton = new JButton();
 
-	private final AbstractAction zoomOutAction;
+        createFlows();
+        init();
+        setOpaque(false);
+    }
 
-	private final AbstractAction zoomDefaultAction;
+    public void clearSelection() {
+        scrollMap.clearSelection();
+    }
 
-	private final AbstractAction fitInWindowAction;
+    /**
+     * Create the content
+     */
+    private void createContent() {
+        setLayout(new BorderLayout());
+        add(createToolbar(), BorderLayout.NORTH);
+        add(scrollMap, BorderLayout.CENTER);
+    }
 
-	private final AbstractAction selectAction;
+    /**
+     *
+     */
+    private void createFlows() {
+        SwingObservable.actions(normalViewButton).doOnNext(ev ->
+                MapViewPane.this.scrollMap.setTrafficView(false)).subscribe();
+        SwingObservable.actions(trafficViewButton).doOnNext(ev ->
+                MapViewPane.this.scrollMap.setTrafficView(true)).subscribe();
+        SwingObservable.actions(selectButton).doOnNext(ev ->
+                MapViewPane.this.scrollMap.startSelectMode()).subscribe();
+        SwingObservable.actions(edgeButton).doOnNext(ev ->
+                MapViewPane.this.scrollMap.startEdgeMode()).subscribe();
+        SwingObservable.actions(moduleButton).doOnNext(ev ->
+                MapViewPane.this.scrollMap.startModuleMode(moduleSelector.getSelectedEntry().getModule())).subscribe();
+        SwingObservable.actions(centerButton).doOnNext(ev ->
+                MapViewPane.this.scrollMap.startCenterMode()).subscribe();
+        SwingObservable.actions(zoomInButton).doOnNext(ev -> {
+            MapViewPane.this.scrollMap.zoomIn();
+            repaint();
+        }).subscribe();
+        SwingObservable.actions(zoomOutButton).doOnNext(ev -> {
+            MapViewPane.this.scrollMap.zoomOut();
+            repaint();
+        }).subscribe();
+        SwingObservable.actions(fitInWindowButton).doOnNext(ev -> scaleToFit()).subscribe();
+        SwingObservable.actions(zoomDefaultButton).doOnNext(ev -> {
+            MapViewPane.this.scrollMap.setScale(1);
+            repaint();
+        }).subscribe();
+    }
 
-	private final AbstractAction edgeAction;
+    /**
+     * Create the toolbar
+     *
+     * @return the toolbar
+     */
+    private JToolBar createToolbar() {
+        final JToolBar bar = new JToolBar();
+        bar.add(selectButton);
+        bar.add(edgeButton);
+        bar.add(centerButton);
+        bar.add(moduleButton);
+        bar.add(moduleSelector);
+        bar.add(new JSeparator(SwingConstants.VERTICAL));
+        bar.add(zoomDefaultButton);
+        bar.add(zoomInButton);
+        bar.add(zoomOutButton);
+        bar.add(fitInWindowButton);
+        bar.add(new JSeparator(SwingConstants.VERTICAL));
+        bar.add(normalViewButton);
+        bar.add(trafficViewButton);
+        return bar;
+    }
 
-	private final AbstractAction moduleAction;
+    /**
+     * Handle of the selection of a module. <br>
+     * It is call whenever the insert module button is pressed.
+     */
+    private void handleModuleSelected() {
+        final ModuleEntry entry = moduleSelector.getSelectedEntry();
+        moduleButton.setIcon(entry.getIcon());
+        moduleButton.doClick();
+    }
 
-	private final AbstractAction centerAction;
+    /**
+     * Initialize the component
+     */
+    private void init() {
+        final SwingUtils utils = SwingUtils.getInstance();
+        utils.initButton(zoomInButton, "MapViewPane.zoomInAction"); //$NON-NLS-1$
+        utils.initButton(zoomOutButton, "MapViewPane.zoomOutAction"); //$NON-NLS-1$
+        utils.initButton(zoomDefaultButton, "MapViewPane.zoomDefaultAction"); //$NON-NLS-1$
+        utils.initButton(fitInWindowButton, "MapViewPane.fitInWindowAction"); //$NON-NLS-1$
+        utils.initButton(selectButton, "MapViewPane.selectAction"); //$NON-NLS-1$
+        utils.initButton(edgeButton, "MapViewPane.edgeAction"); //$NON-NLS-1$
+        utils.initButton(moduleButton, "MapViewPane.moduleAction"); //$NON-NLS-1$
+        utils.initButton(centerButton, "MapViewPane.centerAction"); //$NON-NLS-1$
+        utils.initButton(normalViewButton, "MapViewPane.normalViewAction"); //$NON-NLS-1$
+        utils.initButton(trafficViewButton, "MapViewPane.trafficViewAction"); //$NON-NLS-1$
+        toolGroup.add(selectButton);
+        toolGroup.add(edgeButton);
+        toolGroup.add(moduleButton);
+        toolGroup.add(centerButton);
 
-	private final ScrollMap scrollPane;
+        viewGroup.add(normalViewButton);
+        viewGroup.add(trafficViewButton);
 
-	private final JToggleButton selectButton;
+        createContent();
+        selectButton.doClick();
+        normalViewButton.doClick();
+    }
 
-	private final JToggleButton edgeButton;
+    /**
+     * Reset the status of the view.<br>
+     * This method reset the map view. It must be call when a map is changed.
+     */
+    public void reset() {
+        scrollMap.reset();
+    }
 
-	private final JToggleButton moduleButton;
+    /**
+     * Scale the view to fit the current component size
+     */
+    public void scaleToFit() {
+        scrollMap.scaleToFit();
+        repaint();
+    }
 
-	private final JToggleButton centerButton;
+    /**
+     * Scroll the map view and center to an edge
+     *
+     * @param edge the edge element to center the view to
+     */
+    public void scrollTo(final MapEdge edge) {
+        scrollMap.scrollTo(edge);
+    }
 
-	private final ButtonGroup toolGroup;
+    /**
+     * Scroll the map view and center to a node
+     *
+     * @param node the node element to center the view to
+     */
+    public void scrollTo(final MapNode node) {
+        scrollMap.scrollTo(node);
+    }
 
-	private final ModuleSelector moduleSelector;
+    /**
+     * Set the selector mode.<br>
+     * It restores the modality to selection.
+     */
+    public void selectSelector() {
+        toolGroup.setSelected(selectButton.getModel(), true);
+    }
 
-	private final AbstractAction normalViewAction;
+    /**
+     * Set the list of modules.<br>
+     * It loads the module button list.
+     *
+     * @param modules te module list
+     */
+    public void setModule(final List<Module> modules) {
+        for (final Module module : modules) {
+            moduleSelector.add(module);
+        }
+        selectButton.doClick();
+    }
 
-	private final AbstractAction trafficViewAction;
+    /**
+     * Set an edge as selected map element
+     *
+     * @param edge the edge
+     */
+    public void setSelectedEdge(final MapEdge edge) {
+        scrollMap.setSelectedElement(edge);
+    }
 
-	private final JToggleButton normalViewButton;
+    /**
+     * Set a node as selected map element
+     *
+     * @param node the node
+     */
+    public void setSelectedNode(final MapNode node) {
+        scrollMap.setSelectedElement(node);
+    }
 
-	private final JToggleButton trafficViewButton;
-
-	private final ButtonGroup viewGroup;
-
-	/**
-	 * Create the component
-	 */
-	public MapViewPane() {
-		scrollPane = new ScrollMap();
-		selectButton = new JToggleButton();
-		edgeButton = new JToggleButton();
-		moduleButton = new JToggleButton();
-		centerButton = new JToggleButton();
-
-		toolGroup = new ButtonGroup();
-		viewGroup = new ButtonGroup();
-
-		normalViewButton = new JToggleButton();
-		trafficViewButton = new JToggleButton();
-		moduleSelector = new ModuleSelector();
-		moduleSelector.addListSelectionListener(new ListSelectionListener() {
-
-			@Override
-			public void valueChanged(final ListSelectionEvent e) {
-				handleModuleSelected();
-			}
-
-		});
-		zoomInAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				scrollPane.zoomIn();
-				repaint();
-			}
-		};
-		zoomOutAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				scrollPane.zoomOut();
-				repaint();
-			}
-		};
-		fitInWindowAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				scaleToFit();
-			}
-		};
-		zoomDefaultAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				scrollPane.setScale(1);
-				repaint();
-			}
-		};
-		selectAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				scrollPane.startSelectMode();
-			}
-		};
-		edgeAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				scrollPane.startEdgeMode();
-			}
-
-		};
-		moduleAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				scrollPane.startModuleMode(moduleSelector.getSelectedEntry().getModule());
-			}
-		};
-		centerAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				scrollPane.startCenterMode();
-			}
-		};
-
-		normalViewAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				scrollPane.setTrafficView(false);
-			}
-		};
-		trafficViewAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				scrollPane.setTrafficView(true);
-			}
-		};
-
-		init();
-		setOpaque(false);
-	}
-
-	/**
-	 * Add a MapElementListener
-	 *
-	 * @param listener the listener
-	 */
-	public void addMapElementListener(final MapElementListener listener) {
-		scrollPane.addMapElementListener(listener);
-	}
-
-	/**
-	 * Create the content
-	 */
-	private void createContent() {
-		setLayout(new BorderLayout());
-		add(createToolbar(), BorderLayout.NORTH);
-		add(scrollPane, BorderLayout.CENTER);
-	}
-
-	/**
-	 * Create the tool bar
-	 *
-	 * @return the tool bar
-	 */
-	private JToolBar createToolbar() {
-		final JToolBar bar = new JToolBar();
-		bar.add(selectButton);
-		bar.add(edgeButton);
-		bar.add(centerButton);
-		bar.add(moduleButton);
-		bar.add(moduleSelector);
-		bar.add(new JSeparator(SwingConstants.VERTICAL));
-		bar.add(zoomDefaultAction);
-		bar.add(zoomInAction);
-		bar.add(zoomOutAction);
-		bar.add(fitInWindowAction);
-		bar.add(new JSeparator(SwingConstants.VERTICAL));
-		bar.add(normalViewButton);
-		bar.add(trafficViewButton);
-		return bar;
-	}
-
-	/**
-	 * Return the current view scale
-	 *
-	 * @return the current view scale (real px/virtual px)
-	 */
-	public double getScale() {
-		return scrollPane.getScale();
-	}
-
-	/**
-	 * Handle of the selection of a module. <br>
-	 * It is call whenever the insert module button is pressed.
-	 */
-	private void handleModuleSelected() {
-		final ModuleEntry entry = moduleSelector.getSelectedEntry();
-		moduleAction.putValue(Action.SMALL_ICON, entry.getIcon());
-		moduleButton.doClick();
-	}
-
-	/**
-	 * Initialize the component
-	 */
-	private void init() {
-		final SwingUtils utils = SwingUtils.getInstance();
-		utils.initAction(zoomInAction, "MapViewPane.zoomInAction"); //$NON-NLS-1$
-		utils.initAction(zoomOutAction, "MapViewPane.zoomOutAction"); //$NON-NLS-1$
-		utils.initAction(zoomDefaultAction, "MapViewPane.zoomDefaultAction"); //$NON-NLS-1$
-		utils.initAction(fitInWindowAction, "MapViewPane.fitInWindowAction"); //$NON-NLS-1$
-		utils.initAction(selectAction, "MapViewPane.selectAction"); //$NON-NLS-1$
-		utils.initAction(edgeAction, "MapViewPane.edgeAction"); //$NON-NLS-1$
-		utils.initAction(moduleAction, "MapViewPane.moduleAction"); //$NON-NLS-1$
-		utils.initAction(centerAction, "MapViewPane.centerAction"); //$NON-NLS-1$
-		utils.initAction(normalViewAction, "MapViewPane.normalViewAction"); //$NON-NLS-1$
-		utils.initAction(trafficViewAction, "MapViewPane.trafficViewAction"); //$NON-NLS-1$
-		selectButton.setAction(selectAction);
-		edgeButton.setAction(edgeAction);
-		moduleButton.setAction(moduleAction);
-		centerButton.setAction(centerAction);
-		toolGroup.add(selectButton);
-		toolGroup.add(edgeButton);
-		toolGroup.add(moduleButton);
-		toolGroup.add(centerButton);
-
-		normalViewButton.setAction(normalViewAction);
-		trafficViewButton.setAction(trafficViewAction);
-		viewGroup.add(normalViewButton);
-		viewGroup.add(trafficViewButton);
-
-		createContent();
-		selectButton.doClick();
-		normalViewButton.doClick();
-	}
-
-	/**
-	 * Reset the status of the view.<br>
-	 * This method reset the map view. It must be call when a map is changed.
-	 */
-	public void reset() {
-		scrollPane.reset();
-	}
-
-	/**
-	 * Scale the view to fit the current component size
-	 */
-	public void scaleToFit() {
-		scrollPane.scaleToFit();
-		repaint();
-	}
-
-	/**
-	 * Scroll the map view and center to an edge
-	 *
-	 * @param edge the edge element to center the view to
-	 */
-	public void scrollTo(final MapEdge edge) {
-		scrollPane.scrollTo(edge);
-	}
-
-	/**
-	 * Scroll the map view and center to a node
-	 *
-	 * @param node the node element to center the view to
-	 */
-	public void scrollTo(final MapNode node) {
-		scrollPane.scrollTo(node);
-	}
-
-	/**
-	 * Set the selector mode.<br>
-	 * It restore the modality to selection.
-	 */
-	public void selectSelector() {
-		toolGroup.setSelected(selectButton.getModel(), true);
-	}
-
-	/**
-	 * Set the mediator.<br>
-	 * The mediator is used by ScrollPane subcomponent of this component.
-	 *
-	 * @param mediator the mediator
-	 */
-	public void setMediator(final RouteMediator mediator) {
-		scrollPane.setMediator(mediator);
-	}
-
-	/**
-	 * Set the list of modules.<br>
-	 * It loads the module button list.
-	 *
-	 * @param modules te module list
-	 */
-	public void setModule(final List<Module> modules) {
-		for (final Module module : modules) {
-			moduleSelector.add(module);
-		}
-		selectButton.doClick();
-	}
-
-	/**
-	 * Sets the view scale
-	 *
-	 * @param scale the scale (real px/virtual px)
-	 */
-	public void setScale(final double scale) {
-		scrollPane.setScale(scale);
-	}
-
-	/**
-	 * Set an edge as selected map element
-	 *
-	 * @param edge the edge
-	 */
-	public void setSelectedElement(final MapEdge edge) {
-		scrollPane.setSelectedElement(edge);
-	}
-
-	/**
-	 * Set a node as selected map element
-	 *
-	 * @param node the node
-	 */
-	public void setSelectedElement(final MapNode node) {
-		scrollPane.setSelectedElement(node);
-	}
-
-	/**
-	 * Set a site as selected map element
-	 *
-	 * @param site the site
-	 */
-	public void setSelectedElement(final SiteNode site) {
-		scrollPane.setSelectedElement(site);
-	}
+    /**
+     * Set a site as selected map element
+     *
+     * @param site the site
+     */
+    public void setSelectedSite(final SiteNode site) {
+        scrollMap.setSelectedElement(site);
+    }
 }

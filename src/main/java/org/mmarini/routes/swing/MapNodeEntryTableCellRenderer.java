@@ -25,17 +25,37 @@
  *    END OF TERMS AND CONDITIONS
  *
  */
-package org.mmarini.routes.model;
+
+package org.mmarini.routes.swing;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import java.awt.*;
 
 /**
- * @author marco.marini@mmarini.org
- * @version $Id: MapElement.java,v 1.3 2009/05/08 21:28:51 marco Exp $
  *
  */
-public interface MapElement {
-	/**
-	 *
-	 * @param visitor
-	 */
-	public abstract void apply(MapElementVisitor visitor);
+public class MapNodeEntryTableCellRenderer extends DefaultTableCellRenderer {
+    private static final long serialVersionUID = 3743457808802444412L;
+
+    /**
+     *
+     */
+    public MapNodeEntryTableCellRenderer() {
+    }
+
+    /**
+     *
+     */
+    @Override
+    public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
+                                                   final boolean hasFocus, final int row, final int column) {
+        MapNodeEntry entry = (MapNodeEntry) value;
+        setText(entry.getName());
+        setBackground(entry.getColor());
+        setBorder(BorderFactory.createMatteBorder(0, 1, 1, 1, Color.GRAY));
+        setHorizontalAlignment(SwingConstants.CENTER);
+        return this;
+    }
+
 }

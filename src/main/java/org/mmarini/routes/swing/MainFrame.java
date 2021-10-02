@@ -1,413 +1,383 @@
 /*
- * MainFrame.java
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
  *
- * $Id: MainFrame.java,v 1.14 2010/10/19 20:32:59 marco Exp $
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * 28/dic/08
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * Copyright notice
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
+ *
  */
 package org.mmarini.routes.swing;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.HeadlessException;
-import java.awt.Toolkit;
+import hu.akarnokd.rxjava3.swing.SwingObservable;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Observable;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.URL;
-
-import javax.swing.AbstractAction;
-import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JSeparator;
-import javax.swing.JSplitPane;
-import javax.swing.JToolBar;
-import javax.swing.WindowConstants;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This is the main frame of the simulation.
  * <p>
  * It contains the menu actions, the route map panel, the edge panel and the
- * explorer panel. It comunicates with RouteMediator to manage the simualtion.
+ * explorer panel. It communicates with RouteMediator to manage the simulation.
  * All the menu actions are redirected to the mediator to be resolved.
  * </p>
  *
  * @author marco.marini@mmarini.org
- * @version $Id: MainFrame.java,v 1.14 2010/10/19 20:32:59 marco Exp $
- *
  */
 public class MainFrame extends JFrame {
-	private static Logger log = LoggerFactory.getLogger(MainFrame.class);
+    private static final String IMAGES_ROUTES = "/images/routes.gif";
+    private static final long serialVersionUID = 1L;
 
-	private static final String IMAGES_ROUTES = "/images/routes.gif";
-	private static final long serialVersionUID = 1L;
+    private final MapViewPane mapViewPane;
 
-	/**
-	 * Application entry point
-	 *
-	 * @param args unused
-	 */
-	public static void main(final String[] args) throws Throwable {
-		log.info("MainFrame started.");
-		final MainFrame frame = new MainFrame();
-		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		frame.setVisible(true);
-	}
+    private final JMenuItem vehicleInfoMenuItem;
+    private final JMenuItem infosMenuItem;
+    private final JMenuItem newRandomAction;
+    private final JMenuItem newMenuItem;
+    private final JMenuItem openMenuItem;
+    private final JMenuItem saveMenuItem;
+    private final JMenuItem exitMenuItem;
+    private final JMenuItem saveAsMenuItem;
+    private final JMenuItem optimizeMenuItem;
+    private final JMenuItem frequencyMenuItem;
+    private final JMenuItem randomizeMenuItem;
+    private final JMenuItem routesMenuItem;
 
-	private final MapViewPane routeMap;
-	private final AbstractAction newRandomAction;
-	private final AbstractAction newAction;
-	private final AbstractAction infosAction;
-	private final AbstractAction veicleInfosAction;
-	private final AbstractAction exitAction;
-	private final AbstractAction openAction;
-	private final AbstractAction saveAction;
-	private final AbstractAction saveAsAction;
-	private final AbstractAction optimizeAction;
-	private final AbstractAction frequenceAction;
-	private final AbstractAction randomizeAction;
-	private final AbstractAction routesAction;
-	private final AbstractAction stopAction;
-	private final AbstractAction speedx1Action;
-	private final AbstractAction speedx2Action;
-	private final AbstractAction speedx5Action;
-	private final AbstractAction speedx10Action;
-	private final MapElementPane mapElementPane;
-	private final JSplitPane splitPane;
-	private final JSplitPane rightSplitPane;
-	private final ExplorerPane explorerPane;
-	private final RouteMediator mediator;
+    private final JCheckBoxMenuItem stopMenuItem;
+    private final JRadioButtonMenuItem speedx1MenuItem;
+    private final JRadioButtonMenuItem speedx2MenuItem;
+    private final JRadioButtonMenuItem speedx5MenuItem;
+    private final JRadioButtonMenuItem speedx10MenuItem;
+    private final MapElementPane mapElementPane;
+    private final JSplitPane splitPane;
+    private final JSplitPane rightSplitPane;
+    private final ExplorerPane explorerPane;
 
-	/**
-	 * @throws HeadlessException
-	 */
-	public MainFrame() throws HeadlessException {
-		routeMap = new MapViewPane();
-		mapElementPane = new MapElementPane();
-		splitPane = new JSplitPane();
-		rightSplitPane = new JSplitPane();
-		explorerPane = new ExplorerPane();
-		mediator = new RouteMediator();
+    private final JButton newButton;
+    private final JButton openButton;
+    private final JButton saveButton;
 
-		infosAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+    private final Flowable<ActionEvent> infosFlowable;
+    private final Flowable<ActionEvent> vehicleInfoFlowable;
+    private final Flowable<ActionEvent> stopFlowable;
+    private final Flowable<Float> simSpeedFlowable;
+    private final Flowable<ActionEvent> newMapFlowable;
+    private final Flowable<ActionEvent> openMapFlowable;
+    private final Flowable<ActionEvent> saveMapFlowable;
+    private final Flowable<ActionEvent> exitFlowable;
+    private final Flowable<ActionEvent> optimizeFlowable;
+    private final Flowable<ActionEvent> randomizeFlowable;
+    private final Flowable<ActionEvent> frequenceFlowable;
+    private final Flowable<ActionEvent> routesFlowable;
+    private final Flowable<ActionEvent> newRandomFlowable;
+    private final Flowable<ActionEvent> saveAsFlowable;
+    private final Flowable<WindowEvent> windowFlowable;
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.showInfos();
-			}
-		};
-		veicleInfosAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+    /**
+     * @param mapViewPane    the map view panel
+     * @param mapElementPane the element panel
+     * @param explorerPane   the explorer panel
+     * @throws HeadlessException in caso of error
+     */
+    public MainFrame(MapViewPane mapViewPane, MapElementPane mapElementPane, ExplorerPane explorerPane) throws HeadlessException {
+        this.mapViewPane = mapViewPane;
+        this.mapElementPane = mapElementPane;
+        this.explorerPane = explorerPane;
+        splitPane = new JSplitPane();
+        rightSplitPane = new JSplitPane();
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.showTrafficInfos();
-			}
-		};
-		stopAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+        infosMenuItem = new JMenuItem();
+        vehicleInfoMenuItem = new JMenuItem();
+        stopMenuItem = new JCheckBoxMenuItem();
+        speedx1MenuItem = new JRadioButtonMenuItem();
+        speedx2MenuItem = new JRadioButtonMenuItem();
+        speedx5MenuItem = new JRadioButtonMenuItem();
+        speedx10MenuItem = new JRadioButtonMenuItem();
+        newMenuItem = new JMenuItem();
+        openMenuItem = new JMenuItem();
+        saveMenuItem = new JMenuItem();
+        newRandomAction = new JMenuItem();
+        exitMenuItem = new JMenuItem();
+        saveAsMenuItem = new JMenuItem();
+        optimizeMenuItem = new JMenuItem();
+        frequencyMenuItem = new JMenuItem();
+        randomizeMenuItem = new JMenuItem();
+        routesMenuItem = new JMenuItem();
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.toogleSimulation();
-			}
-		};
-		speedx1Action = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+        newButton = new JButton();
+        openButton = new JButton();
+        saveButton = new JButton();
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.setSpeedSimulation(1f);
-			}
-		};
-		speedx2Action = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+        infosFlowable = SwingObservable.actions(infosMenuItem).toFlowable(BackpressureStrategy.MISSING);
+        vehicleInfoFlowable = SwingObservable.actions(vehicleInfoMenuItem).toFlowable(BackpressureStrategy.MISSING);
+        stopFlowable = SwingObservable.actions(stopMenuItem).toFlowable(BackpressureStrategy.MISSING);
+        final Observable<Float> x1 = SwingObservable.actions(speedx1MenuItem).map(e -> 1f);
+        final Observable<Float> x2 = SwingObservable.actions(speedx2MenuItem).map(e -> 2f);
+        final Observable<Float> x5 = SwingObservable.actions(speedx5MenuItem).map(e -> 5f);
+        final Observable<Float> x10 = SwingObservable.actions(speedx10MenuItem).map(e -> 10f);
+        simSpeedFlowable = x1.mergeWith(x2).mergeWith(x5).mergeWith(x10)
+                .toFlowable(BackpressureStrategy.MISSING);
+        newMapFlowable = SwingObservable.actions(newMenuItem)
+                .mergeWith(SwingObservable.actions(newButton))
+                .toFlowable(BackpressureStrategy.MISSING);
+        openMapFlowable = SwingObservable.actions(openMenuItem)
+                .mergeWith(SwingObservable.actions(openButton))
+                .toFlowable(BackpressureStrategy.MISSING);
+        saveMapFlowable = SwingObservable.actions(saveMenuItem)
+                .mergeWith(SwingObservable.actions(saveButton))
+                .toFlowable(BackpressureStrategy.MISSING);
+        exitFlowable = SwingObservable.actions(exitMenuItem)
+                .toFlowable(BackpressureStrategy.MISSING);
+        optimizeFlowable = SwingObservable.actions(optimizeMenuItem)
+                .toFlowable(BackpressureStrategy.MISSING);
+        randomizeFlowable = SwingObservable.actions(randomizeMenuItem)
+                .toFlowable(BackpressureStrategy.MISSING);
+        frequenceFlowable = SwingObservable.actions(frequencyMenuItem)
+                .toFlowable(BackpressureStrategy.MISSING);
+        routesFlowable = SwingObservable.actions(routesMenuItem)
+                .toFlowable(BackpressureStrategy.MISSING);
+        newRandomFlowable = SwingObservable.actions(newRandomAction)
+                .toFlowable(BackpressureStrategy.MISSING);
+        saveAsFlowable = SwingObservable.actions(saveAsMenuItem)
+                .toFlowable(BackpressureStrategy.MISSING);
+        windowFlowable = SwingObservable.window(this)
+                .toFlowable(BackpressureStrategy.MISSING);
+        final URL url = getClass().getResource(IMAGES_ROUTES);
+        if (url != null) {
+            final ImageIcon img = new ImageIcon(url);
+            setIconImage(img.getImage());
+        }
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        init();
+    }
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.setSpeedSimulation(2f);
-			}
-		};
-		speedx5Action = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+    /**
+     *
+     */
+    private void createContent() {
+        final Container pane = getContentPane();
+        pane.setLayout(new BorderLayout());
+        pane.add(createToolBar(), BorderLayout.NORTH);
+        pane.add(splitPane, BorderLayout.CENTER);
+    }
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.setSpeedSimulation(5f);
-			}
-		};
-		speedx10Action = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+    /**
+     *
+     */
+    private void createMenuBar() {
+        final JMenuBar bar = new JMenuBar();
+        JMenu menu = new JMenu(Messages.getString("MainFrame.fileMenu.text")); //$NON-NLS-1$
+        menu.setMnemonic(Integer.valueOf(Messages.getString("MainFrame.fileMenu.mnemonic").charAt(0))); //$NON-NLS-1$
+        JMenuItem item = newMenuItem;
+        menu.add(item);
+        item = newRandomAction;
+        menu.add(item);
+        item = openMenuItem;
+        menu.add(item);
+        menu.add(new JSeparator());
+        item = saveMenuItem;
+        menu.add(item);
+        item = saveAsMenuItem;
+        menu.add(item);
+        menu.add(new JSeparator());
+        item = exitMenuItem;
+        menu.add(item);
+        bar.add(menu);
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.setSpeedSimulation(10f);
-			}
-		};
-		exitAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+        menu = new JMenu(Messages.getString("MainFrame.viewMenu.text")); //$NON-NLS-1$
+        menu.setMnemonic(Integer.valueOf(Messages.getString("MainFrame.viewMenu.mnemonic").charAt(0))); //$NON-NLS-1$
+        item = infosMenuItem;
+        menu.add(item);
+        item = vehicleInfoMenuItem;
+        menu.add(item);
+        bar.add(menu);
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.exit();
-			}
-		};
-		optimizeAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+        menu = new JMenu(Messages.getString("MainFrame.optionMenu.text")); //$NON-NLS-1$
+        menu.setMnemonic(Integer.valueOf(Messages.getString("MainFrame.optionMenu.mnemonic").charAt(0))); //$NON-NLS-1$
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.optimize();
-			}
-		};
-		randomizeAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+        menu.add(optimizeMenuItem);
+        menu.add(randomizeMenuItem);
+        menu.add(frequencyMenuItem);
+        menu.add(routesMenuItem);
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.randomize();
-			}
-		};
-		frequenceAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+        menu.add(new JSeparator());
+        menu.add(stopMenuItem);
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.setFrequence();
-			}
-		};
-		routesAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+        final ButtonGroup group = new ButtonGroup();
+        JRadioButtonMenuItem item1 = speedx1MenuItem;
+        menu.add(item1);
+        group.add(item1);
+        item1.setSelected(true);
+        item1 = speedx2MenuItem;
+        menu.add(item1);
+        group.add(item1);
+        item1 = speedx5MenuItem;
+        menu.add(item1);
+        group.add(item1);
+        item1 = speedx10MenuItem;
+        menu.add(item1);
+        group.add(item1);
+        bar.add(menu);
+        setJMenuBar(bar);
+    }
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.setRouteSetting();
-			}
-		};
-		newAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+    /**
+     *
+     */
+    private Component createToolBar() {
+        final JToolBar toolBar = new JToolBar();
+        toolBar.add(newButton);
+        toolBar.add(openButton);
+        toolBar.add(saveButton);
+        return toolBar;
+    }
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.newMap();
-				resetTitle();
-			}
-		};
-		newRandomAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+    public Flowable<ActionEvent> getExitFlowable() {
+        return exitFlowable;
+    }
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.newRandomMap();
-				resetTitle();
-			}
-		};
-		openAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+    public Flowable<ActionEvent> getFrequenceFlowable() {
+        return frequenceFlowable;
+    }
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.open();
-			}
-		};
-		saveAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+    public Flowable<ActionEvent> getInfosFlowable() {
+        return infosFlowable;
+    }
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.save();
-			}
-		};
-		saveAsAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+    public Flowable<ActionEvent> getNewMapFlowable() {
+        return newMapFlowable;
+    }
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				mediator.saveAs();
-			}
-		};
-		addWindowListener(new WindowAdapter() {
+    public Flowable<ActionEvent> getNewRandomFlowable() {
+        return newRandomFlowable;
+    }
 
-			/**
-			 * @see java.awt.event.WindowAdapter#windowOpened(java.awt.event.WindowEvent)
-			 */
-			@Override
-			public void windowOpened(final WindowEvent arg0) {
-				mediator.start();
-			}
-		});
-		final URL url = getClass().getResource(IMAGES_ROUTES);
-		if (url != null) {
-			final ImageIcon img = new ImageIcon(url);
-			setIconImage(img.getImage());
-		}
+    public Flowable<ActionEvent> getOpenMapFlowable() {
+        return openMapFlowable;
+    }
 
-		init();
-	}
+    public Flowable<ActionEvent> getOptimizeFlowable() {
+        return optimizeFlowable;
+    }
 
-	/**
-	     *
-	     */
-	private void createContent() {
-		final Container pane = getContentPane();
-		pane.setLayout(new BorderLayout());
-		pane.add(createToolBar(), BorderLayout.NORTH);
-		pane.add(splitPane, BorderLayout.CENTER);
-	}
+    public Flowable<ActionEvent> getRandomizeFlowable() {
+        return randomizeFlowable;
+    }
 
-	/**
-	     *
-	     */
-	private void createMenuBar() {
-		final JMenuBar bar = new JMenuBar();
-		JMenu menu = new JMenu(Messages.getString("MainFrame.fileMenu.text")); //$NON-NLS-1$
-		menu.setMnemonic(Integer.valueOf(Messages.getString("MainFrame.fileMenu.mnemonic").charAt(0))); //$NON-NLS-1$
-		JMenuItem item = new JMenuItem(newAction);
-		menu.add(item);
-		item = new JMenuItem(newRandomAction);
-		menu.add(item);
-		item = new JMenuItem(openAction);
-		menu.add(item);
-		menu.add(new JSeparator());
-		item = new JMenuItem(saveAction);
-		menu.add(item);
-		item = new JMenuItem(saveAsAction);
-		menu.add(item);
-		menu.add(new JSeparator());
-		item = new JMenuItem(exitAction);
-		menu.add(item);
-		bar.add(menu);
+    public Flowable<ActionEvent> getRoutesFlowable() {
+        return routesFlowable;
+    }
 
-		menu = new JMenu(Messages.getString("MainFrame.viewMenu.text")); //$NON-NLS-1$
-		menu.setMnemonic(Integer.valueOf(Messages.getString("MainFrame.viewMenu.mnemonic").charAt(0))); //$NON-NLS-1$
-		item = new JMenuItem(infosAction);
-		menu.add(item);
-		item = new JMenuItem(veicleInfosAction);
-		menu.add(item);
-		bar.add(menu);
+    public Flowable<ActionEvent> getSaveAsFlowable() {
+        return saveAsFlowable;
+    }
 
-		menu = new JMenu(Messages.getString("MainFrame.optionMenu.text")); //$NON-NLS-1$
-		menu.setMnemonic(Integer.valueOf(Messages.getString("MainFrame.optionMenu.mnemonic").charAt(0))); //$NON-NLS-1$
+    public Flowable<ActionEvent> getSaveMapFlowable() {
+        return saveMapFlowable;
+    }
 
-		item = new JMenuItem(optimizeAction);
-		menu.add(item);
-		item = new JMenuItem(randomizeAction);
-		menu.add(item);
-		item = new JMenuItem(frequenceAction);
-		menu.add(item);
-		item = new JMenuItem(routesAction);
-		menu.add(item);
+    public Flowable<Float> getSimSpeedFlowable() {
+        return simSpeedFlowable;
+    }
 
-		menu.add(new JSeparator());
+    public Flowable<ActionEvent> getStopFlowable() {
+        return stopFlowable;
+    }
 
-		final JCheckBoxMenuItem item2 = new JCheckBoxMenuItem(stopAction);
-		menu.add(item2);
+    public Flowable<ActionEvent> getVehicleInfoFlowable() {
+        return vehicleInfoFlowable;
+    }
 
-		final ButtonGroup group = new ButtonGroup();
-		JRadioButtonMenuItem item1 = new JRadioButtonMenuItem(speedx1Action);
-		menu.add(item1);
-		group.add(item1);
-		item1.setSelected(true);
-		item1 = new JRadioButtonMenuItem(speedx2Action);
-		menu.add(item1);
-		group.add(item1);
-		item1 = new JRadioButtonMenuItem(speedx5Action);
-		menu.add(item1);
-		group.add(item1);
-		item1 = new JRadioButtonMenuItem(speedx10Action);
-		menu.add(item1);
-		group.add(item1);
-		bar.add(menu);
-		setJMenuBar(bar);
-	}
+    public Flowable<WindowEvent> getWindowFlowable() {
+        return windowFlowable;
+    }
 
-	/**
-	 * @return
-	 */
-	private Component createToolBar() {
-		final JToolBar toolBar = new JToolBar();
-		toolBar.add(newAction);
-		toolBar.add(openAction);
-		toolBar.add(saveAction);
-		return toolBar;
-	}
+    /**
+     * Initialize the content of the main frame
+     */
+    private void init() {
+        resetTitle();
+        final SwingUtils utils = SwingUtils.getInstance();
+        utils.initMenuItem(newMenuItem, "MainFrame.newAction"); //$NON-NLS-1$
+        utils.initMenuItem(openMenuItem, "MainFrame.openAction"); //$NON-NLS-1$
+        utils.initMenuItem(saveMenuItem, "MainFrame.saveAction"); //$NON-NLS-1$
 
-	/**
-	 * Initialize the content of the main frame
-	 */
-	private void init() {
-		resetTitle();
-		final SwingUtils utils = SwingUtils.getInstance();
-		utils.initAction(newRandomAction, "MainFrame.newRandomAction"); //$NON-NLS-1$
-		utils.initAction(newAction, "MainFrame.newAction"); //$NON-NLS-1$
-		utils.initAction(exitAction, "MainFrame.exitAction"); //$NON-NLS-1$
-		utils.initAction(openAction, "MainFrame.openAction"); //$NON-NLS-1$
-		utils.initAction(saveAction, "MainFrame.saveAction"); //$NON-NLS-1$
-		utils.initAction(saveAsAction, "MainFrame.saveAsAction"); //$NON-NLS-1$
-		utils.initAction(optimizeAction, "MainFrame.optimizeAction"); //$NON-NLS-1$
-		utils.initAction(randomizeAction, "MainFrame.randomizeAction"); //$NON-NLS-1$
-		utils.initAction(frequenceAction, "MainFrame.frequenceAction"); //$NON-NLS-1$
-		utils.initAction(routesAction, "MainFrame.routesAction"); //$NON-NLS-1$
-		utils.initAction(stopAction, "MainFrame.stopAction"); //$NON-NLS-1$
-		utils.initAction(speedx1Action, "MainFrame.speedx1Action"); //$NON-NLS-1$
-		utils.initAction(speedx2Action, "MainFrame.speedx2Action"); //$NON-NLS-1$
-		utils.initAction(speedx5Action, "MainFrame.speedx5Action"); //$NON-NLS-1$
-		utils.initAction(speedx10Action, "MainFrame.speedx10Action"); //$NON-NLS-1$
-		utils.initAction(infosAction, "MainFrame.infosAction"); //$NON-NLS-1$
-		utils.initAction(veicleInfosAction, "MainFrame.veicleInfosAction"); //$NON-NLS-1$
+        utils.initButton(newButton, "MainFrame.newAction"); //$NON-NLS-1$
+        utils.initButton(openButton, "MainFrame.openAction"); //$NON-NLS-1$
+        utils.initButton(saveButton, "MainFrame.saveAction"); //$NON-NLS-1$
 
-		saveAction.setEnabled(false);
+        utils.initMenuItem(newRandomAction, "MainFrame.newRandomAction"); //$NON-NLS-1$
+        utils.initMenuItem(exitMenuItem, "MainFrame.exitAction"); //$NON-NLS-1$
+        utils.initMenuItem(saveAsMenuItem, "MainFrame.saveAsAction"); //$NON-NLS-1$
+        utils.initMenuItem(optimizeMenuItem, "MainFrame.optimizeAction"); //$NON-NLS-1$
+        utils.initMenuItem(randomizeMenuItem, "MainFrame.randomizeAction"); //$NON-NLS-1$
+        utils.initMenuItem(frequencyMenuItem, "MainFrame.frequenceAction"); //$NON-NLS-1$
+        utils.initMenuItem(routesMenuItem, "MainFrame.routesAction"); //$NON-NLS-1$
+        utils.initMenuItem(stopMenuItem, "MainFrame.stopAction"); //$NON-NLS-1$
+        utils.initMenuItem(speedx1MenuItem, "MainFrame.speedx1Action"); //$NON-NLS-1$
+        utils.initMenuItem(speedx2MenuItem, "MainFrame.speedx2Action"); //$NON-NLS-1$
+        utils.initMenuItem(speedx5MenuItem, "MainFrame.speedx5Action"); //$NON-NLS-1$
+        utils.initMenuItem(speedx10MenuItem, "MainFrame.speedx10Action"); //$NON-NLS-1$
+        utils.initMenuItem(infosMenuItem, "MainFrame.infosAction"); //$NON-NLS-1$
+        utils.initMenuItem(vehicleInfoMenuItem, "MainFrame.vehicleInfosAction"); //$NON-NLS-1$
 
-		splitPane.setOneTouchExpandable(true);
-		splitPane.setResizeWeight(1);
-		splitPane.setLeftComponent(routeMap);
-		splitPane.setRightComponent(rightSplitPane);
+        setSaveActionEnabled(false);
 
-		rightSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
-		rightSplitPane.setOneTouchExpandable(true);
-		rightSplitPane.setResizeWeight(1);
-		rightSplitPane.setTopComponent(explorerPane);
-		rightSplitPane.setBottomComponent(mapElementPane);
+        splitPane.setOneTouchExpandable(true);
+        splitPane.setResizeWeight(1);
+        splitPane.setLeftComponent(mapViewPane);
+        splitPane.setRightComponent(rightSplitPane);
 
-		createMenuBar();
-		createContent();
+        rightSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+        rightSplitPane.setOneTouchExpandable(true);
+        rightSplitPane.setResizeWeight(1);
+        rightSplitPane.setTopComponent(explorerPane);
+        rightSplitPane.setBottomComponent(mapElementPane);
 
-		mediator.setMainFrame(this);
-		mediator.setExplorerPane(explorerPane);
-		mediator.setMapViewPane(routeMap);
-		mediator.setMapElementPane(mapElementPane);
+        createMenuBar();
+        createContent();
 
-		mediator.init();
-		final Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-		size.height -= 50;
-		setSize(size);
-	}
+        final Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+        size.height -= 50;
+        setSize(size);
+    }
 
-	/**
-	     *
-	     */
-	private void resetTitle() {
-		setTitle(Messages.getString("MainFrame.title")); //$NON-NLS-1$
-	}
+    /**
+     *
+     */
+    private void resetTitle() {
+        setTitle(Messages.getString("MainFrame.title")); //$NON-NLS-1$
+    }
 
-	/**
-	 * @param b
-	 */
-	public void setSaveActionEnabled(final boolean b) {
-		saveAction.setEnabled(true);
-	}
+    /**
+     * @param b true if save action enabled
+     */
+    public void setSaveActionEnabled(final boolean b) {
+        saveMenuItem.setEnabled(b);
+        saveButton.setEnabled(b);
+    }
 }

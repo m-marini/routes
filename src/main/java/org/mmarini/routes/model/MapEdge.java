@@ -1,11 +1,29 @@
 /*
- * MapEdge.java
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
  *
- * $Id: MapEdge.java,v 1.14 2010/10/19 20:33:00 marco Exp $
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * 28/dic/08
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * Copyright notice
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
+ *
  */
 package org.mmarini.routes.model;
 
@@ -43,27 +61,27 @@ public class MapEdge implements MapElement, Constants {
 	private double distance;
 	private double security;
 	private int priority;
-	private List<Veicle> veicleList;
+	private List<Vehicle> veicleList;
 	private AbstractSimulationFunctions functions;
 	private Point2D vector;
 	private double transitTime;
-	private Veicle nextVeicle;
-	private Comparator<Veicle> priorityComparator;
+	private Vehicle nextVeicle;
+	private Comparator<Vehicle> priorityComparator;
 
 	/**
 	     *
 	     */
 	public MapEdge() {
-		veicleList = new ArrayList<Veicle>(0);
+		veicleList = new ArrayList<Vehicle>(0);
 		functions = AbstractSimulationFunctions.createInstance();
 		vector = new Point2D.Double();
-		priorityComparator = new Comparator<Veicle>() {
+		priorityComparator = new Comparator<Vehicle>() {
 
 			/**
 			 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 			 */
 			@Override
-			public int compare(final Veicle v1, final Veicle v2) {
+			public int compare(final Vehicle v1, final Vehicle v2) {
 				return v2.getPriority() - v1.getPriority();
 			}
 
@@ -74,7 +92,7 @@ public class MapEdge implements MapElement, Constants {
 	 * @param veicle
 	 *
 	 */
-	private void add(final Veicle veicle) {
+	private void add(final Vehicle veicle) {
 		if (veicleList.isEmpty()) {
 			transitTime = 0;
 		}
@@ -206,7 +224,7 @@ public class MapEdge implements MapElement, Constants {
 	 *
 	 */
 	public void dequeue(final SimContext context) {
-		final Veicle veicle = nextVeicle;
+		final Vehicle veicle = nextVeicle;
 		if (veicle != null && !isBusy()) {
 			final int priority = begin.computeIncomeMaxPriority();
 			if (veicle.getPriority() >= priority) {
@@ -237,7 +255,7 @@ public class MapEdge implements MapElement, Constants {
 	 */
 	private double findNextTransitTime() {
 		double time = 0;
-		for (final Veicle veicle : veicleList) {
+		for (final Vehicle veicle : veicleList) {
 			time = Math.max(time, veicle.getTransitTime());
 		}
 		return time;
@@ -247,7 +265,7 @@ public class MapEdge implements MapElement, Constants {
 	 * @param veicle
 	 * @return
 	 */
-	public Veicle findNextVeicle(final Veicle veicle) {
+	public Vehicle findNextVeicle(final Vehicle veicle) {
 		final int i = veicleList.indexOf(veicle);
 		if (i >= 1) {
 			return veicleList.get(i - 1);
@@ -303,7 +321,7 @@ public class MapEdge implements MapElement, Constants {
 	/**
 	 * @return
 	 */
-	private Veicle getFirstVeicle() {
+	private Vehicle getFirstVeicle() {
 		if (veicleList.isEmpty()) {
 			return null;
 		}
@@ -313,7 +331,7 @@ public class MapEdge implements MapElement, Constants {
 	/**
 	 * @return
 	 */
-	private Veicle getLastVeicle() {
+	private Vehicle getLastVeicle() {
 		if (veicleList.isEmpty()) {
 			return null;
 		}
@@ -367,7 +385,7 @@ public class MapEdge implements MapElement, Constants {
 	 * @return
 	 */
 	public boolean isBusy() {
-		final Veicle last = getLastVeicle();
+		final Vehicle last = getLastVeicle();
 		if (last == null) {
 			return false;
 		}
@@ -378,7 +396,7 @@ public class MapEdge implements MapElement, Constants {
 	 * @return
 	 */
 	public boolean isVeicleExiting() {
-		final Veicle veicle = getFirstVeicle();
+		final Vehicle veicle = getFirstVeicle();
 		if (veicle != null && veicle.getDistance() + security >= distance) {
 			return true;
 		}
@@ -388,8 +406,8 @@ public class MapEdge implements MapElement, Constants {
 	/**
 	 * @param veicle
 	 */
-	public void push(final Veicle veicle) {
-		final Veicle nextVeicle = this.nextVeicle;
+	public void push(final Vehicle veicle) {
+		final Vehicle nextVeicle = this.nextVeicle;
 		if (nextVeicle == null || priorityComparator.compare(veicle, nextVeicle) < 0) {
 			this.nextVeicle = veicle;
 		}
@@ -399,7 +417,7 @@ public class MapEdge implements MapElement, Constants {
 	 * @param veicle
 	 *
 	 */
-	public void remove(final Veicle veicle) {
+	public void remove(final Vehicle veicle) {
 		double tt = transitTime;
 		if (tt > veicle.getTransitTime()) {
 			tt = findNextTransitTime();
@@ -426,7 +444,7 @@ public class MapEdge implements MapElement, Constants {
 	 *
 	 */
 	public void reset(final SimContext context) {
-		for (final Veicle veicle : veicleList) {
+		for (final Vehicle veicle : veicleList) {
 			context.removeVeicle(veicle);
 		}
 		veicleList.clear();
@@ -468,7 +486,7 @@ public class MapEdge implements MapElement, Constants {
 	 */
 	public void setPriority(final int priority) {
 		this.priority = priority;
-		for (final Veicle veicle : veicleList) {
+		for (final Vehicle veicle : veicleList) {
 			veicle.setPriority(priority);
 		}
 	}

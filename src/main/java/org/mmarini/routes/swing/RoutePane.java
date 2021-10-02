@@ -1,175 +1,123 @@
-/**
+/*
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
  *
  */
+
 package org.mmarini.routes.swing;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import hu.akarnokd.rxjava3.swing.SwingObservable;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
-import org.mmarini.routes.model.Path;
-import org.mmarini.routes.model.SiteNode;
+import javax.swing.*;
 
 /**
- * Pannello di selezione del profilo di generazione delle mappe casuali
+ * Shows the parameters of the profile to generate random map.
+ * Allows to enter the information
  *
- * @author Marco
- *
+ * @author marco.marini@mmarini.org
  */
 public class RoutePane extends Box {
-	class PathComparator implements Comparator<Path> {
-		private RouteMediator mediator;
+    private static final long serialVersionUID = 1L;
+    private final DefaultListModel<MapNodeEntry> departureListModel;
+    private final RouteTableModel routeTableModel;
+    private final JList<MapNodeEntry> departureList;
+    private final JTable routeTable;
+    private SquareMatrixModel<MapNodeEntry> pathEntry;
 
-		/**
-		 *
-		 */
-		@Override
-		public int compare(final Path o1, final Path o2) {
-			return mediator.createNodeName(o1.getDestination()).compareTo(mediator.createNodeName(o2.getDestination()));
-		}
+    /**
+     *
+     */
+    public RoutePane() {
+        super(BoxLayout.LINE_AXIS);
+        departureListModel = new DefaultListModel<>();
+        routeTableModel = new RouteTableModel();
+        departureList = new JList<>(departureListModel);
+        routeTable = new JTable(routeTableModel);
 
-		/**
-		 * @param mediator the mediator to set
-		 */
-		public void setMediator(final RouteMediator mediator) {
-			this.mediator = mediator;
-		}
+        init();
+        createContent();
+        createFlows();
+    }
 
-	}
+    /**
+     *
+     */
+    private void createContent() {
+        final JScrollPane departureScrollPane = new JScrollPane(departureList);
+        departureScrollPane
+                .setBorder(BorderFactory.createTitledBorder(Messages.getString("RoutePane.departure.title"))); //$NON-NLS-1$
 
-	private static final long serialVersionUID = 1L;
-	private final DefaultListModel<String> departureListModel;
-	private final RouteTableModel routeTableModel;
-	private final Map<String, List<Path>> routeMap;
-	private final JList<String> departureList;
-	private final JTable routeTable;
-	private RouteMediator mediator;
-	private final PathComparator pathComparator;
-	private final SiteTableCellRenderer siteTableCellRenderer;
+        final JScrollPane routeScrollPane = new JScrollPane(routeTable);
+        routeScrollPane.setBorder(BorderFactory.createTitledBorder(Messages.getString("RoutePane.route.title"))); //$NON-NLS-1$
 
-	private final SiteListCellRenderer cellRenderer;
+        add(departureScrollPane);
+        add(routeScrollPane);
+    }
 
-	/**
-	     *
-	     */
-	public RoutePane() {
-		super(BoxLayout.LINE_AXIS);
-		departureListModel = new DefaultListModel<>();
-		routeTableModel = new RouteTableModel();
-		routeMap = new HashMap<String, List<Path>>();
-		departureList = new JList<>(departureListModel);
-		routeTable = new JTable(routeTableModel);
-		pathComparator = new PathComparator();
-		siteTableCellRenderer = new SiteTableCellRenderer();
-		cellRenderer = new SiteListCellRenderer();
+    /**
+     *
+     */
+    private void createFlows() {
+        SwingObservable.listSelection(departureList)
+                .filter(ev -> !ev.getValueIsAdjusting())
+                .doOnNext(ev ->
+                        departureSelected()).subscribe();
+    }
 
-		routeTable.setDefaultRenderer(SiteNode.class, siteTableCellRenderer);
-		departureList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		departureList.addListSelectionListener(new ListSelectionListener() {
+    /**
+     *
+     */
+    private void departureSelected() {
+        final int idx = departureList.getSelectedIndex();
+        routeTableModel.setRow(idx);
+    }
 
-			@Override
-			public void valueChanged(final ListSelectionEvent e) {
-				if (!e.getValueIsAdjusting()) {
-					departureSelected();
-				}
-			}
+    /**
+     *
+     */
+    public SquareMatrixModel<MapNodeEntry> getPathEntry() {
+        return pathEntry;
+    }
 
-		});
-		departureList.setCellRenderer(cellRenderer);
-		createContent();
-	}
+    /**
+     * Sets the path entries
+     *
+     * @param entries the path entries
+     */
+    public void setPathEntry(SquareMatrixModel<MapNodeEntry> entries) {
+        this.pathEntry = entries;
+        departureListModel.clear();
+        departureListModel.addAll(entries.getIndices());
+        routeTableModel.setRow(0);
+        routeTableModel.setPathEntry(entries);
+        departureList.setSelectedIndex(0);
+    }
 
-	/**
-	 *
-	 * @param path
-	 */
-	private void add(final Path path) {
-		final String name = mediator.createNodeName(path.getDeparture());
-		List<Path> paths = routeMap.get(name);
-		if (paths == null) {
-			paths = new ArrayList<Path>();
-			routeMap.put(name, paths);
-		}
-		paths.add(path);
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	public void copyPathsTo() {
-		final List<Path> list = new ArrayList<Path>();
-		for (final List<Path> l : routeMap.values()) {
-			list.addAll(l);
-		}
-		mediator.loadPaths(list);
-	}
-
-	/**
-	     *
-	     *
-	     */
-	private void createContent() {
-		final JScrollPane departureScrollPane = new JScrollPane(departureList);
-		departureScrollPane
-				.setBorder(BorderFactory.createTitledBorder(Messages.getString("RoutePane.departure.title"))); //$NON-NLS-1$
-
-		final JScrollPane routeScrollPane = new JScrollPane(routeTable);
-		routeScrollPane.setBorder(BorderFactory.createTitledBorder(Messages.getString("RoutePane.route.title"))); //$NON-NLS-1$
-
-		add(departureScrollPane);
-		add(routeScrollPane);
-	}
-
-	/**
-	 *
-	 */
-	private void departureSelected() {
-		final String name = departureList.getSelectedValue();
-		final List<Path> paths = routeMap.get(name);
-		routeTableModel.setPaths(paths);
-	}
-
-	/**
-	 *
-	 */
-	public void loadPath() {
-		routeMap.clear();
-		for (final Path p : mediator.getPaths()) {
-			add(p.clone());
-		}
-		for (final List<Path> list : routeMap.values()) {
-			Collections.sort(list, pathComparator);
-		}
-		final List<String> list = new ArrayList<String>(routeMap.keySet());
-		Collections.sort(list);
-		departureListModel.clear();
-		for (final String p : list) {
-			departureListModel.addElement(p);
-		}
-	}
-
-	/**
-	 * @param mediator the mediator to set
-	 */
-	public void setMediator(final RouteMediator mediator) {
-		this.mediator = mediator;
-		siteTableCellRenderer.setMediator(mediator);
-		pathComparator.setMediator(mediator);
-		cellRenderer.setMediator(mediator);
-	}
+    private void init() {
+        routeTable.setDefaultRenderer(MapNodeEntry.class, new MapNodeEntryTableCellRenderer());
+        departureList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        departureList.setCellRenderer(new SiteListCellRenderer());
+    }
 }
