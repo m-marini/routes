@@ -39,7 +39,7 @@ public class TrafficInfoModel extends AbstractTableModel {
     private static final String[] COLUMN_LABEL_NAME = {"destination", "vehicleCount", "delayedCount", "delayedCountPerc",
             "delayedTime"};
     private static final Class<?>[] COLUMN_CLASS = {TrafficInfoView.class, Integer.class, Integer.class, Double.class, Double.class};
-    private List<TrafficInfoView> infos;
+    private List<TrafficInfoView> info;
 
     /**
      *
@@ -66,28 +66,28 @@ public class TrafficInfoModel extends AbstractTableModel {
      * @param index the index
      */
     public NodeView getNode(final int index) {
-        return infos.get(index).getDestination();
+        return info.get(index).getDestination();
     }
 
     @Override
     public int getRowCount() {
-        return infos.size();
+        return info.size();
     }
 
     @Override
     public Object getValueAt(final int row, final int col) {
-        final TrafficInfoView record = infos.get(row);
-        final int veicleCount = record.getInfo().getVeicleCount();
+        final TrafficInfoView record = info.get(row);
+        final int vehicleCount = record.getInfo().getVeicleCount();
         final int delayCount = record.getInfo().getDelayCount();
         switch (col) {
             case 0:
                 return record;
             case 1:
-                return veicleCount;
+                return vehicleCount;
             case 2:
                 return delayCount;
             case 3:
-                return veicleCount > 0 ? (double) delayCount / veicleCount : 0;
+                return vehicleCount > 0 ? (double) delayCount / vehicleCount : 0;
             case 4:
                 return record.getInfo().getAverageDelayTime();
             default:
@@ -96,10 +96,10 @@ public class TrafficInfoModel extends AbstractTableModel {
     }
 
     /**
-     * @param infos the infos
+     * @param info the info
      */
-    public void setInfos(final List<TrafficInfoView> infos) {
-        this.infos = infos;
+    public void setInfo(final List<TrafficInfoView> info) {
+        this.info = info;
         fireTableStructureChanged();
     }
 }

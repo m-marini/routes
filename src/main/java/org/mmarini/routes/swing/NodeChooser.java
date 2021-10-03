@@ -31,6 +31,7 @@ import org.mmarini.routes.model.MapNode;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -46,7 +47,7 @@ public class NodeChooser extends JPanel {
      *
      */
     public NodeChooser() {
-        nodeList = new JList<>();
+        nodeList = new JList<>(new DefaultListModel<NodeView>());
         nodeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         createContent();
     }
@@ -77,9 +78,11 @@ public class NodeChooser extends JPanel {
     /**
      * MapNodeEntry
      *
-     * @param nodeList2
+     * @param nodeList the node list
      */
-    public void setNodeList(final DefaultListModel<NodeView> nodeList2) {
-        nodeList.setModel(nodeList2);
+    public void setNodeList(final List<NodeView> nodeList) {
+        DefaultListModel<NodeView> model = (DefaultListModel<NodeView>) this.nodeList.getModel();
+        model.clear();
+        model.addAll(nodeList);
     }
 }

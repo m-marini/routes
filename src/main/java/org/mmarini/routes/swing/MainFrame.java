@@ -91,7 +91,7 @@ public class MainFrame extends JFrame {
     private final Flowable<ActionEvent> exitFlowable;
     private final Flowable<ActionEvent> optimizeFlowable;
     private final Flowable<ActionEvent> randomizeFlowable;
-    private final Flowable<ActionEvent> frequenceFlowable;
+    private final Flowable<ActionEvent> frequencyFlowable;
     private final Flowable<ActionEvent> routesFlowable;
     private final Flowable<ActionEvent> newRandomFlowable;
     private final Flowable<ActionEvent> saveAsFlowable;
@@ -156,7 +156,7 @@ public class MainFrame extends JFrame {
                 .toFlowable(BackpressureStrategy.MISSING);
         randomizeFlowable = SwingObservable.actions(randomizeMenuItem)
                 .toFlowable(BackpressureStrategy.MISSING);
-        frequenceFlowable = SwingObservable.actions(frequencyMenuItem)
+        frequencyFlowable = SwingObservable.actions(frequencyMenuItem)
                 .toFlowable(BackpressureStrategy.MISSING);
         routesFlowable = SwingObservable.actions(routesMenuItem)
                 .toFlowable(BackpressureStrategy.MISSING);
@@ -260,8 +260,8 @@ public class MainFrame extends JFrame {
         return exitFlowable;
     }
 
-    public Flowable<ActionEvent> getFrequenceFlowable() {
-        return frequenceFlowable;
+    public Flowable<ActionEvent> getFrequencyFlowable() {
+        return frequencyFlowable;
     }
 
     public Flowable<ActionEvent> getInfosFlowable() {

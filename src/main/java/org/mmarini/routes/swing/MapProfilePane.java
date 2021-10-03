@@ -33,7 +33,7 @@ import org.mmarini.routes.model.MapProfile;
 import javax.swing.*;
 
 /**
- * Pannello di selezione del profilo di generazione delle mappe casuali
+ * Manages the panel of parameters for random map generation profile
  */
 public class MapProfilePane extends Box {
     private static final double LARGE_SIZE = 15000.;

@@ -51,7 +51,7 @@ import static org.mmarini.routes.swing.StatusView.DEFAULT_NODE_COLOR;
  */
 public class RouteMap extends JComponent {
 
-    private static final long BLINKING_ON = 500;
+    private static final long BLINKING_ON = 450;
     private static final long BLINKING_TIME = 500;
     private static final String DELETE_ACTION = "DELETE";
     private static final double TRAFFIC_COLOR_SATURATION = 0.9;
@@ -336,8 +336,8 @@ public class RouteMap extends JComponent {
     }
 
     /**
-     * @param result
-     * @param point
+     * @param result the resulting view location
+     * @param point  the point
      */
     public void computeViewLocation(final Point result, final Point2D point) {
         transform.transform(point, result);
@@ -600,9 +600,9 @@ public class RouteMap extends JComponent {
     }
 
     /**
-     * @param location
-     * @param x
-     * @param y
+     * @param location the location
+     * @param x        the x coordinate
+     * @param y        the y coordinate
      */
     private void paintModule(final Point2D location, final double x, final double y) {
         if (module != null) {
@@ -652,7 +652,7 @@ public class RouteMap extends JComponent {
     }
 
     /**
-     * @param size
+     * @param size the size
      */
     public void scaleToFit(final Dimension size) {
         computeMapBound();
@@ -662,13 +662,16 @@ public class RouteMap extends JComponent {
         setScale(scale);
     }
 
+    /**
+     * @param status the status
+     */
     public void setStatus(StatusView status) {
         this.status = status;
         repaint();
     }
 
     /**
-     * @param trafficView
+     * @param trafficView the traffic view
      */
     public void setTrafficView(final boolean trafficView) {
         this.trafficView = trafficView;
@@ -693,7 +696,7 @@ public class RouteMap extends JComponent {
     }
 
     /**
-     * @param module
+     * @param module the module
      */
     public void startModuleMode(final Module module) {
         this.module = module;
@@ -712,19 +715,10 @@ public class RouteMap extends JComponent {
 
     interface Mode {
 
-        /**
-         * @param ev
-         */
         void handleMouseMoved(final MouseEvent ev);
 
-        /**
-         * @param ev
-         */
         void handleMousePressed(final MouseEvent ev);
 
-        /**
-         *
-         */
         void paintMode();
     }
 

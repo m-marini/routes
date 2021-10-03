@@ -33,11 +33,11 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 
 /**
- * Pannello di selezione del profilo di generazione delle mappe casuali
+ * Manages the panel of frequency parameters for vehicle creation
  *
  * @author Marco
  */
-public class FrequencePane extends Box {
+public class FrequencyPane extends Box {
     private static final double[] FREQUENCES = {0.4, 0.7, 1.5, 2.2, 10. / 3.};
     private static final long serialVersionUID = 1L;
     private final BoundedRangeModel frequenceModel;
@@ -45,7 +45,7 @@ public class FrequencePane extends Box {
     /**
      *
      */
-    public FrequencePane() {
+    public FrequencyPane() {
         super(BoxLayout.PAGE_AXIS);
         frequenceModel = new DefaultBoundedRangeModel(0, 0, 0, FREQUENCES.length - 1);
         createContent();
@@ -65,7 +65,7 @@ public class FrequencePane extends Box {
         freqSlider.setPaintTicks(true);
         freqSlider.setPaintTrack(false);
         freqSlider.setSnapToTicks(true);
-        final Dictionary<Integer, JComponent> labels = new Hashtable<Integer, JComponent>();
+        final Dictionary<Integer, JComponent> labels = new Hashtable<>();
         final NumberFormat format = NumberFormat.getNumberInstance();
         for (int i = 0; i < FREQUENCES.length; ++i) {
             labels.put(i, new JLabel(format.format(FREQUENCES[i])));
@@ -76,20 +76,20 @@ public class FrequencePane extends Box {
     }
 
     /**
-     * @return
+     *
      */
     public double getFrequence() {
         return FREQUENCES[frequenceModel.getValue()];
     }
 
     /**
-     * @param frequence
+     * @param frequency the frequency
      */
-    public void setFrequence(final double frequence) {
+    public void setFrequency(final double frequency) {
         int idx = 0;
         double error = Double.POSITIVE_INFINITY;
         for (int i = 0; i < FREQUENCES.length; ++i) {
-            final double e = Math.abs(frequence - FREQUENCES[i]);
+            final double e = Math.abs(frequency - FREQUENCES[i]);
             if (e < error) {
                 idx = i;
                 error = e;

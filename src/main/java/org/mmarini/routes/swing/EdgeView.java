@@ -44,7 +44,7 @@ public class EdgeView {
     /**
      * @param edge       the edge
      * @param name       the edge name
-     * @param beginName  the begin node name
+     * @param beginName  the beginning node name
      * @param endName    the end node name
      * @param priority   the priority value
      * @param speedLimit the speed limit
@@ -79,18 +79,21 @@ public class EdgeView {
     }
 
     /**
-     * @param priority
+     * @param priority the priority
      */
     public EdgeView setPriority(int priority) {
         return new EdgeView(edge, name, beginName, endName, priority, speedLimit);
     }
 
+    /**
+     *
+     */
     public double getSpeedLimit() {
         return speedLimit;
     }
 
     /**
-     * @param speedLimit
+     * @param speedLimit the speed limit
      */
     public EdgeView setSpeedLimit(double speedLimit) {
         return new EdgeView(edge, name, beginName, endName, priority, speedLimit);

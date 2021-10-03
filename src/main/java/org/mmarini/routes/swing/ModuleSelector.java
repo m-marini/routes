@@ -78,7 +78,7 @@ public class ModuleSelector extends JButton {
     }
 
     /**
-     * @param module
+     * @param module the module to add
      */
     public void add(final Module module) {
         final ModuleView entry = new ModuleView();

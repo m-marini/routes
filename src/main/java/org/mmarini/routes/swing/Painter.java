@@ -71,9 +71,9 @@ public class Painter {
     }
 
     /**
-     * @param graphics
-     * @param borderPainted
-     * @param reversed
+     * @param graphics      the graphics
+     * @param borderPainted true if painting the border
+     * @param reversed      true if painting in reverse
      */
     public Painter(Graphics2D graphics, boolean borderPainted, boolean reversed) {
         this.graphics = graphics;
@@ -88,7 +88,7 @@ public class Painter {
     }
 
     /**
-     * @param edge
+     * @param edge the edge
      */
     public void paintCursorEdge(final MapEdge edge) {
         final Point2D beginLocation = edge.getBeginLocation();
@@ -97,7 +97,7 @@ public class Painter {
     }
 
     /**
-     * @param edge
+     * @param edge the edge
      */
     public void paintCursorEdgeEnds(final MapEdge edge) {
         final Point2D beginLocation = edge.getBeginLocation();
@@ -107,24 +107,24 @@ public class Painter {
     }
 
     /**
-     * @param edge
+     * @param edge the edge
      */
     public void paintEdge(final MapEdge edge) {
         paintEdge(edge, EDGE_COLOR);
     }
 
     /**
-     * @param edge
-     * @param color
+     * @param edge  the edge
+     * @param color the color
      */
     public void paintEdge(final MapEdge edge, final Color color) {
         paintEdge(edge.getBeginLocation(), edge.getEndLocation(), color);
     }
 
     /**
-     * @param from
-     * @param to
-     * @param color
+     * @param from  the begining point
+     * @param to    the end point
+     * @param color the color
      */
     public void paintEdge(final Point2D from, final Point2D to, final Color color) {
         line.setLine(from, to);
@@ -134,8 +134,8 @@ public class Painter {
     }
 
     /**
-     * @param bound
-     * @param size
+     * @param bound the bound
+     * @param size  the size
      */
     public void paintGrid(final Rectangle2D bound, final double size) {
         final double x0 = bound.getMinX();
@@ -169,10 +169,10 @@ public class Painter {
     }
 
     /**
-     * @param module
-     * @param location
-     * @param vecx
-     * @param vecy
+     * @param module   the module
+     * @param location the location
+     * @param vecx     the x direction vector
+     * @param vecy     the y direction vector
      */
     public void paintModule(final Module module, final Point2D location, final double vecx, final double vecy) {
         final AffineTransform old = graphics.getTransform();
@@ -187,16 +187,16 @@ public class Painter {
     }
 
     /**
-     * @param center
+     * @param center the center
      */
     public void paintNodeCursor(final Point2D center) {
         paintShape(edgeEndPoint, center, SELECTED_NODE_COLOR);
     }
 
     /**
-     * @param shape
-     * @param location
-     * @param color
+     * @param shape    the shape
+     * @param location the location
+     * @param color    the color
      */
     private void paintShape(final Shape shape, final Point2D location, final Color color) {
         graphics.setColor(color);
@@ -212,24 +212,24 @@ public class Painter {
     }
 
     /**
-     * @param location
-     * @param color
+     * @param location the location
+     * @param color    the color
      */
     public void paintSite(final Point2D location, final Color color) {
         paintShape(siteShape, location, color);
     }
 
     /**
-     * @param center
+     * @param center the center
      */
     public void paintSiteCursor(final Point2D center) {
         paintSite(center, SELECTED_SITE_COLOR);
     }
 
     /**
-     * @param location
-     * @param vec
-     * @param color
+     * @param location the location
+     * @param vec      the direction vector
+     * @param color    the color
      */
     public void paintVehicle(final Point2D location, final Point2D vec, final Color color) {
         graphics.setColor(color);

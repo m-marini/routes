@@ -79,8 +79,8 @@ public class UIController {
         List<Path> paths = toList(handler.getPaths());
         List<TrafficInfo> trafficInfo = new ArrayList<>(0);
         handler.computeTrafficInfos(trafficInfo);
-        final RouteInfos infos = new RouteInfos();
-        handler.computeRouteInfos(infos);
+        final RouteInfos info = new RouteInfos();
+        handler.computeRouteInfos(info);
 
         // Computes site color map
         int noSites = sites.size();
@@ -129,7 +129,7 @@ public class UIController {
                 vehicles,
                 trafficInfo,
                 paths,
-                infos,
+                info,
                 nodeViews,
                 edgesViews,
                 viewByNode,
@@ -212,7 +212,7 @@ public class UIController {
     private final RoutePane routesPane;
     private final NodeChooser nodeChooser;
     private final MapProfilePane mapProfilePane;
-    private final FrequencePane frequencePane;
+    private final FrequencyPane frequencyPane;
     private final RouteMap routeMap;
     private final MainFrame mainFrame;
     private final MapViewPane mapViewPane;
@@ -241,7 +241,7 @@ public class UIController {
         this.sitePane = mapElementPane.getSiteNodePane();
 
         mapProfilePane = new MapProfilePane();
-        frequencePane = new FrequencePane();
+        frequencyPane = new FrequencyPane();
         routesPane = new RoutePane();
         fileChooser = new JFileChooser();
         handler = new RouteHandler();
@@ -256,7 +256,7 @@ public class UIController {
     }
 
     /**
-     * @param point
+     * @param point the point
      */
     public void centerMap(final Point2D point) {
         handler.centerMap(point);
@@ -266,7 +266,7 @@ public class UIController {
     }
 
     /**
-     * @param edge
+     * @param edge the edge
      */
     public void changeBeginNode(final MapEdge edge) {
         Optional<MapNode> mapNode = chooseNode();
@@ -282,7 +282,7 @@ public class UIController {
     }
 
     /**
-     * @param edge
+     * @param edge the edge
      */
     public void changeEndNode(final MapEdge edge) {
         chooseNode().ifPresent(node -> {
@@ -301,7 +301,7 @@ public class UIController {
      */
     private Optional<MapNode> chooseNode() {
         stopSimulation();
-        nodeChooser.clearSelection();
+        nodeChooser.setNodeList(status.getNodeViews());
         final int opt = JOptionPane.showConfirmDialog(mainFrame, nodeChooser,
                 Messages.getString("RouteMediator.nodeChooser.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
         startSimulation();
@@ -313,7 +313,7 @@ public class UIController {
     }
 
     /**
-     * @param edge
+     * @param edge the edge
      */
     private void createEdge(RouteMap.EdgeCreation edge) {
         final MapEdge edge1 = handler.createEdge(edge.getBegin(), edge.getEnd());
@@ -328,8 +328,8 @@ public class UIController {
      *
      */
     private void createFlows() {
-        mainFrame.getInfosFlowable().doOnNext(e -> showInfos()).subscribe();
-        mainFrame.getVehicleInfoFlowable().doOnNext(e -> showTrafficInfos()).subscribe();
+        mainFrame.getInfosFlowable().doOnNext(e -> showInfo()).subscribe();
+        mainFrame.getVehicleInfoFlowable().doOnNext(e -> showTrafficInfo()).subscribe();
         mainFrame.getStopFlowable().doOnNext(e -> toggleSimulation()).subscribe();
         mainFrame.getSimSpeedFlowable().doOnNext(this::setSpeedSimulation).subscribe();
         mainFrame.getNewMapFlowable().doOnNext(e -> newMap()).subscribe();
@@ -338,7 +338,7 @@ public class UIController {
         mainFrame.getExitFlowable().doOnNext(e -> System.exit(0)).subscribe();
         mainFrame.getOptimizeFlowable().doOnNext(e -> optimize()).subscribe();
         mainFrame.getRandomizeFlowable().doOnNext(e -> randomize()).subscribe();
-        mainFrame.getFrequenceFlowable().doOnNext(e -> setFrequency()).subscribe();
+        mainFrame.getFrequencyFlowable().doOnNext(e -> setFrequency()).subscribe();
         mainFrame.getRoutesFlowable().doOnNext(e -> setRouteSetting()).subscribe();
         mainFrame.getNewRandomFlowable().doOnNext(e -> newRandomMap()).subscribe();
         mainFrame.getSaveAsFlowable().doOnNext(e -> saveAs()).subscribe();
@@ -381,7 +381,7 @@ public class UIController {
         }).subscribe();
 
         routeMap.getSelectElementFlowable().doOnNext(this::handleElementSelection).subscribe();
-        routeMap.getUnselectFlowable().doOnNext(this::handleMapUnselection).subscribe();
+        routeMap.getUnselectFlowable().doOnNext(this::handleMapUnselecting).subscribe();
         routeMap.getDeleteEdgeFlowable().doOnNext(this::remove).subscribe();
         routeMap.getDeleteNodeFlowable().doOnNext(this::remove).subscribe();
         routeMap.getCenterMapFlowable().doOnNext(this::centerMap).subscribe();
@@ -397,7 +397,7 @@ public class UIController {
     }
 
     /**
-     * @param moduleParameters
+     * @param moduleParameters the module parameters
      */
     private void createModule(RouteMap.ModuleParameters moduleParameters) {
         handler.addModule(moduleParameters.getModule(),
@@ -454,7 +454,7 @@ public class UIController {
     /**
      * @param element the unselect element
      */
-    private void handleMapUnselection(MapElement element) {
+    private void handleMapUnselecting(MapElement element) {
         mapElementPane.clearPanel();
         explorerPane.clearSelection();
     }
@@ -649,7 +649,7 @@ public class UIController {
     }
 
     /**
-     * @param edge
+     * @param edge the edge
      */
     public void remove(final MapEdge edge) {
         handler.remove(edge);
@@ -660,7 +660,7 @@ public class UIController {
     }
 
     /**
-     * @param node
+     * @param node the node
      */
     public void remove(final MapNode node) {
         handler.remove(node);
@@ -706,12 +706,12 @@ public class UIController {
      */
     private void setFrequency() {
         final double frequency = handler.getFrequence();
-        frequencePane.setFrequence(frequency);
-        final int opt = JOptionPane.showConfirmDialog(mainFrame, frequencePane,
+        frequencyPane.setFrequency(frequency);
+        final int opt = JOptionPane.showConfirmDialog(mainFrame, frequencyPane,
                 Messages.getString("RouteMediator.frequencePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
         if (opt == JOptionPane.OK_OPTION) {
             stopSimulation();
-            handler.setFrequence(frequencePane.getFrequence());
+            handler.setFrequence(frequencyPane.getFrequence());
             refresh();
             mapViewPane.selectSelector();
             mapViewPane.reset();
@@ -745,14 +745,14 @@ public class UIController {
     }
 
     /**
-     * @param speedSimulation
+     * @param speedSimulation the speed simulation
      */
     public void setSpeedSimulation(final double speedSimulation) {
         this.speedSimulation = speedSimulation;
     }
 
     /**
-     * @param message
+     * @param message the message
      */
     private void showError(final String message) {
         JOptionPane.showMessageDialog(mainFrame, message, Messages.getString("RouteMediator.error.title"), //$NON-NLS-1$
@@ -760,15 +760,15 @@ public class UIController {
     }
 
     /**
-     * @param pattern
-     * @param arguments
+     * @param pattern   the message pattern
+     * @param arguments the arguments
      */
     private void showError(final String pattern, final Object[] arguments) {
         showError(MessageFormat.format(pattern, arguments));
     }
 
     /**
-     * @param e
+     * @param e the error
      */
     private void showError(final Throwable e) {
         logger.error(e.getMessage(), e);
@@ -779,14 +779,14 @@ public class UIController {
     /**
      *
      */
-    private void showInfos() {
+    private void showInfo() {
         stopSimulation();
-        final RouteInfos infos = status.getRouteInfos();
+        final RouteInfos info = status.getRouteInfos();
         final SquareMatrixModel<NodeView> routeInfo = new SquareMatrixModel<>(
-                infos.getNodes().stream()
+                info.getNodes().stream()
                         .flatMap(s -> status.getNodeView(s).stream())
                         .collect(Collectors.toList()),
-                infos.getFrequence());
+                info.getFrequence());
 
         final InfosTable table = InfosTable.create(routeInfo);
         final JScrollPane sp = new JScrollPane(table);
@@ -798,7 +798,7 @@ public class UIController {
     /**
      *
      */
-    private void showTrafficInfos() {
+    private void showTrafficInfo() {
         stopSimulation();
         final List<TrafficInfo> map = status.getTrafficInfo();
         final List<TrafficInfoView> data = map.stream().flatMap(info ->
@@ -809,7 +809,7 @@ public class UIController {
                 .sorted(Comparator.comparing(a -> a.getDestination().getName()))
                 .collect(Collectors.toList());
         final TrafficInfoModel model = new TrafficInfoModel();
-        model.setInfos(data);
+        model.setInfo(data);
         final TrafficInfoTable table = new TrafficInfoTable(model);
         final Component pane = new JScrollPane(table);
         JOptionPane.showMessageDialog(mainFrame, pane, Messages.getString("RouteMediator.trafficInfoPane.title"), //$NON-NLS-1$

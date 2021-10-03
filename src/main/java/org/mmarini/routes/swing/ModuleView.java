@@ -52,15 +52,14 @@ public class ModuleView {
     }
 
     /**
-     * Returns the Icon for a moduòe
+     * Returns the Icon for a module
      *
      * @param module the module
      */
     private Icon createIcon(final Module module) {
         final BufferedImage image = new BufferedImage(ICON_WIDTH, ICON_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         final Graphics2D gr = image.createGraphics();
-        Rectangle2D bound = new Rectangle2D.Double(0, 0, ICON_WIDTH, ICON_HEIGHT);
-        bound = module.getBound();
+        Rectangle2D bound = module.getBound();
         final double scale = Math.min(ICON_WIDTH / bound.getWidth(), ICON_HEIGHT / bound.getHeight());
         gr.translate(ICON_WIDTH * 0.5, ICON_HEIGHT * 0.5);
         gr.scale(scale, scale);
@@ -74,8 +73,7 @@ public class ModuleView {
             painter.paintEdge(edge);
         }
 
-        final Icon icon = new ImageIcon(image);
-        return icon;
+        return new ImageIcon(image);
     }
 
     /**

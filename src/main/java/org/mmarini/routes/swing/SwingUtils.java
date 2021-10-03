@@ -32,7 +32,7 @@ import java.awt.*;
 import java.net.URL;
 
 /**
- * Variuous functionalities used in the user interface.
+ * Various functionalities used in the user interface.
  *
  * @author marco.marini@mmarini.org
  */
@@ -44,7 +44,7 @@ public class SwingUtils {
     private static final SwingUtils instance = new SwingUtils();
 
     /**
-     * Returns the singleton instance of the utilites
+     * Returns the singleton instance of the utilities
      *
      * @return the instance
      */
@@ -53,25 +53,24 @@ public class SwingUtils {
     }
 
     /**
-     * Create the utilitties
+     * Create the utilities
      */
     protected SwingUtils() {
     }
 
     /**
-     * Compute the iride color depending on a control value.<br>
+     * Compute the irides color depending on a control value.<br>
      * The result color are between violet color to red color varying from zero
      * level to one level of the control value <br>
      *
      * @param value      the control value
      * @param saturation the saturation of result color
-     * @return the iride color
+     * @return the irides color
      */
     public Color computeColor(final double value, final double saturation) {
         final double b = interpolate(value, BRIGHTNESS_ZERO, BRIGHTNESS_ONE);
         final double h = interpolate(value, HUE_ZERO, HUE_ONE);
-        final Color color = Color.getHSBColor((float) h, (float) saturation, (float) b);
-        return color;
+        return Color.getHSBColor((float) h, (float) saturation, (float) b);
     }
 
     /**
@@ -104,7 +103,7 @@ public class SwingUtils {
         }
         msg = Messages.getString(key + ".mnemonic"); //$NON-NLS-1$
         if (!msg.startsWith("!")) { //$NON-NLS-1$
-            action.putValue(Action.MNEMONIC_KEY, Integer.valueOf(msg.charAt(0)));
+            action.putValue(Action.MNEMONIC_KEY, (int) msg.charAt(0));
         }
         msg = Messages.getString(key + ".smallIcon"); //$NON-NLS-1$
         if (!msg.startsWith("!")) { //$NON-NLS-1$
@@ -125,10 +124,9 @@ public class SwingUtils {
     }
 
     /**
-     * @param button
-     * @param key
-     * @param <T>
-     * @return
+     * @param button the button
+     * @param key    the key
+     * @param <T>    the type of button
      */
     public <T extends AbstractButton> T initButton(final T button, final String key) {
         final String name = Messages.getString(key + ".name"); //$NON-NLS-1$

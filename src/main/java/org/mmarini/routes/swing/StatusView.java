@@ -102,9 +102,8 @@ public class StatusView {
     }
 
     /**
-     * @param point
-     * @param precision
-     * @return
+     * @param point     the point
+     * @param precision the precision
      */
     public Optional<MapEdge> findEdge(final Point2D point, final double precision) {
         double dist = precision * precision;
@@ -120,8 +119,8 @@ public class StatusView {
     }
 
     /**
-     * @param point
-     * @param precision
+     * @param point     the point
+     * @param precision the precision
      */
     public Optional<MapElement> findElement(final Point2D point, final double precision) {
         return findNode(point, precision)
@@ -130,8 +129,8 @@ public class StatusView {
     }
 
     /**
-     * @param point
-     * @param precision
+     * @param point     the point
+     * @param precision the precision
      */
     public Optional<MapNode> findNode(final Point2D point, final double precision) {
         double dist = precision * precision;
