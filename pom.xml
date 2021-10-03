@@ -91,7 +91,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>org.mmarini.routes.swing.MainFrame</mainClass>
+							<mainClass>org.mmarini.routes.swing.Main</mainClass>
 							<addClasspath>true</addClasspath>
 						</manifest>
 					</archive>
