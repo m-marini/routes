@@ -1,106 +1,108 @@
-/**
+/*
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
  *
  */
+
 package org.mmarini.routes.swing;
 
-import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.table.AbstractTableModel;
 
-import org.mmarini.routes.model.Path;
-import org.mmarini.routes.model.SiteNode;
-
 /**
- * @author US00852
  *
  */
 public class RouteTableModel extends AbstractTableModel {
-	private static final long serialVersionUID = -2634066472823732066L;
-	private static final String[] COLUMN_NAMES = { "Destination", "Weight" };
-	private List<Path> routes;
+    private static final long serialVersionUID = -2634066472823732066L;
+    private static final String[] COLUMN_NAMES = {"Destination", "Weight"};
+    private static final Logger logger = LoggerFactory.getLogger(RouteTableModel.class);
+    private SquareMatrixModel<NodeView> pathEntry;
+    private int row;
 
-	/**
-	 *
-	 */
-	public RouteTableModel() {
-	}
+    /**
+     *
+     */
+    public RouteTableModel() {
+    }
 
-	/**
-	 * @see javax.swing.table.AbstractTableModel#getColumnClass(int)
-	 */
-	@Override
-	public Class<?> getColumnClass(final int columnIndex) {
-		if (columnIndex == 1) {
-			return Double.class;
-		} else {
-			return SiteNode.class;
-		}
-	}
+    @Override
+    public Class<?> getColumnClass(final int columnIndex) {
+        return columnIndex == 1 ? Double.class : NodeView.class;
+    }
 
-	/**
-	 * @see javax.swing.table.TableModel#getColumnCount()
-	 */
-	@Override
-	public int getColumnCount() {
-		return COLUMN_NAMES.length;
-	}
+    @Override
+    public int getColumnCount() {
+        return COLUMN_NAMES.length;
+    }
 
-	/**
-	 * @see javax.swing.table.AbstractTableModel#getColumnName(int)
-	 */
-	@Override
-	public String getColumnName(final int column) {
-		return COLUMN_NAMES[column];
-	}
+    @Override
+    public String getColumnName(final int column) {
+        return COLUMN_NAMES[column];
+    }
 
-	/**
-	 * @see javax.swing.table.TableModel#getRowCount()
-	 */
-	@Override
-	public int getRowCount() {
-		if (routes == null) {
-			return 0;
-		}
-		return routes.size();
-	}
+    @Override
+    public int getRowCount() {
+        return pathEntry == null ? 0 : pathEntry.getIndices().size();
+    }
 
-	/**
-	 * @see javax.swing.table.TableModel#getValueAt(int, int)
-	 */
-	@Override
-	public Object getValueAt(final int row, final int col) {
-		final Path p = routes.get(row);
-		switch (col) {
-		case 0:
-			return p.getDestination();
-		default:
-			return p.getWeight();
-		}
-	}
+    @Override
+    public Object getValueAt(final int row, final int col) {
+        if (col == 0) {
+            return pathEntry.getIndices().get(row);
+        } else {
+            return pathEntry.getValues()[this.row][row];
+        }
+    }
 
-	/**
-	 * @see javax.swing.table.AbstractTableModel#isCellEditable(int, int)
-	 */
-	@Override
-	public boolean isCellEditable(final int rowIndex, final int columnIndex) {
-		return columnIndex == 1;
-	}
+    @Override
+    public boolean isCellEditable(final int rowIndex, final int columnIndex) {
+        return columnIndex == 1;
+    }
 
-	/**
-	 *
-	 * @param paths
-	 */
-	public void setPaths(final List<Path> paths) {
-		routes = paths;
-		fireTableDataChanged();
-	}
+    /**
+     * @param pathEntry the path entry
+     */
+    public void setPathEntry(SquareMatrixModel<NodeView> pathEntry) {
+        this.pathEntry = pathEntry;
+        fireTableDataChanged();
+    }
 
-	/**
-	 * @see javax.swing.table.AbstractTableModel#setValueAt(java.lang.Object, int,
-	 *      int)
-	 */
-	@Override
-	public void setValueAt(final Object value, final int rowIndex, final int columnIndex) {
-		routes.get(rowIndex).setWeight((Double) value);
-	}
+    /**
+     * @param row the departure index
+     */
+    public void setRow(int row) {
+        this.row = row;
+        fireTableDataChanged();
+    }
+
+    @Override
+    public void setValueAt(final Object value, final int rowIndex, final int columnIndex) {
+        assert columnIndex == 1;
+        logger.info("set value={}, rowIndex={}, row={}", value, rowIndex, this.row);
+        pathEntry.getValues()[this.row][rowIndex] = (Double) value;
+    }
 }

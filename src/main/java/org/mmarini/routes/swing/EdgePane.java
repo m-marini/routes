@@ -1,440 +1,386 @@
 /*
- * SiteNodePane.java
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
  *
- * $Id: EdgePane.java,v 1.11 2010/10/19 20:32:59 marco Exp $
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * 05/gen/09
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * Copyright notice
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
+ *
  */
 package org.mmarini.routes.swing;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.text.NumberFormat;
-
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.JButton;
-import javax.swing.JFormattedTextField;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.JToolBar;
-import javax.swing.SwingConstants;
-import javax.swing.text.NumberFormatter;
-
+import hu.akarnokd.rxjava3.swing.SwingObservable;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Observable;
 import org.mmarini.routes.model.MapEdge;
+
+import javax.swing.*;
+import javax.swing.text.NumberFormatter;
+import java.awt.*;
+import java.text.NumberFormat;
 
 /**
  * @author marco.marini@mmarini.org
- * @version $Id: EdgePane.java,v 1.11 2010/10/19 20:32:59 marco Exp $
- *
  */
 public class EdgePane extends JPanel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private MapEdge edge;
+    private final JFormattedTextField priorityField;
+    private final JFormattedTextField speedLimitField;
+    private final JFormattedTextField incomeQueueField;
+    private final JFormattedTextField distanceField;
+    private final JTextField nameField;
+    private final JTextField beginField;
+    private final JTextField endField;
+    private final JButton deleteAction;
+    private final JButton browseBeginNodeAction;
+    private final JButton browseEndNodeAction;
+    private final Flowable<EdgeView> changeFlowable;
+    private final Flowable<EdgeView> deleteFlowable;
+    private final Flowable<EdgeView> endNodeFlowable;
+    private final Flowable<EdgeView> beginNodeFlowable;
+    private EdgeView edgeModel;
 
-	private final JFormattedTextField priorityField;
+    /**
+     *
+     */
+    public EdgePane() {
+        priorityField = new JFormattedTextField(new NumberFormatter(NumberFormat.getIntegerInstance()));
+        speedLimitField = new JFormattedTextField(new NumberFormatter(NumberFormat.getNumberInstance()));
+        incomeQueueField = new JFormattedTextField(new NumberFormatter(NumberFormat.getIntegerInstance()));
+        distanceField = new JFormattedTextField(new NumberFormatter(NumberFormat.getNumberInstance()));
+        nameField = new JTextField(20);
+        beginField = new JTextField(10);
+        endField = new JTextField(10);
+        deleteAction = new JButton();
+        browseEndNodeAction = new JButton();
+        browseBeginNodeAction = new JButton();
+        Observable<EdgeView> priorityObs = SwingObservable.propertyChange(priorityField, "value")
+                .map(evt -> {
+                    int p = ((Number) evt.getNewValue()).intValue();
+                    return edgeModel.setPriority(p);
+                });
+        Observable<EdgeView> speedObs = SwingObservable.propertyChange(speedLimitField, "value")
+                .map(evt -> {
+                    double speedLimit = ((Number) evt.getNewValue()).doubleValue() / 3.6;
+                    return edgeModel.setSpeedLimit(speedLimit);
+                });
+        this.changeFlowable = priorityObs.mergeWith(speedObs)
+                .toFlowable(BackpressureStrategy.MISSING);
+        this.deleteFlowable = SwingObservable.actions(deleteAction).map(ev -> edgeModel)
+                .toFlowable(BackpressureStrategy.MISSING);
+        this.endNodeFlowable = SwingObservable.actions(browseEndNodeAction).map(ev -> edgeModel)
+                .toFlowable(BackpressureStrategy.MISSING);
+        this.beginNodeFlowable = SwingObservable.actions(browseBeginNodeAction).map(ev -> edgeModel)
+                .toFlowable(BackpressureStrategy.MISSING);
+        createContent();
+        init();
+    }
 
-	private final JFormattedTextField speedLimitField;
+    /**
+     *
+     */
+    private void createContent() {
+        setLayout(new BorderLayout());
+        add(createToolbar(), BorderLayout.NORTH);
+        add(createInfoPane(), BorderLayout.CENTER);
+    }
 
-	private final JFormattedTextField incomeQueueField;
+    /**
+     *
+     */
+    private Component createInfoPane() {
+        final JPanel pane = new JPanel();
+        final GridBagLayout layout = new GridBagLayout();
+        pane.setLayout(layout);
+        final GridBagConstraints cons = new GridBagConstraints();
+        cons.insets = new Insets(2, 2, 2, 2);
 
-	private final JFormattedTextField distanceField;
+        Component c;
+        c = new JLabel(Messages.getString("EdgePane.name.label")); //$NON-NLS-1$
+        cons.gridx = 0;
+        cons.gridy = 0;
+        cons.gridwidth = 1;
+        cons.gridheight = 1;
+        cons.anchor = GridBagConstraints.EAST;
+        cons.fill = GridBagConstraints.NONE;
+        cons.weightx = 0;
+        cons.weighty = 0;
+        layout.setConstraints(c, cons);
+        pane.add(c);
 
-	private final JTextField nameField;
+        c = nameField;
+        cons.gridx = 1;
+        cons.gridy = 0;
+        cons.gridwidth = 2;
+        cons.gridheight = 1;
+        cons.anchor = GridBagConstraints.WEST;
+        cons.fill = GridBagConstraints.HORIZONTAL;
+        cons.weightx = 0;
+        cons.weighty = 0;
+        layout.setConstraints(c, cons);
+        pane.add(c);
 
-	private final JTextField beginField;
+        c = Box.createGlue();
+        cons.gridx = 3;
+        cons.gridy = 0;
+        cons.gridwidth = 1;
+        cons.gridheight = 7;
+        cons.anchor = GridBagConstraints.EAST;
+        cons.fill = GridBagConstraints.NONE;
+        cons.weightx = 1;
+        cons.weighty = 0;
+        layout.setConstraints(c, cons);
+        pane.add(c);
 
-	private final JTextField endField;
+        c = new JLabel(Messages.getString("EdgePane.begin.label")); //$NON-NLS-1$
+        cons.gridx = 0;
+        cons.gridy = 1;
+        cons.gridwidth = 1;
+        cons.gridheight = 1;
+        cons.anchor = GridBagConstraints.EAST;
+        cons.fill = GridBagConstraints.NONE;
+        cons.weightx = 0;
+        cons.weighty = 0;
+        layout.setConstraints(c, cons);
+        pane.add(c);
 
-	private final Action deleteAction;
+        c = beginField;
+        cons.gridx = 1;
+        cons.gridy = 1;
+        cons.gridwidth = 1;
+        cons.gridheight = 1;
+        cons.anchor = GridBagConstraints.WEST;
+        cons.fill = GridBagConstraints.NONE;
+        cons.weightx = 0;
+        cons.weighty = 0;
+        layout.setConstraints(c, cons);
+        pane.add(c);
 
-	private RouteMediator mediator;
+        JButton btn = browseBeginNodeAction;
+        btn.setBorder(BorderFactory.createEmptyBorder());
+        c = btn;
+        cons.gridx = 2;
+        cons.gridy = 1;
+        cons.gridwidth = 1;
+        cons.gridheight = 1;
+        cons.anchor = GridBagConstraints.WEST;
+        cons.fill = GridBagConstraints.NONE;
+        cons.weightx = 0;
+        cons.weighty = 0;
+        layout.setConstraints(c, cons);
+        pane.add(c);
 
-	private final Action browseBeginNodeAction;
+        c = new JLabel(Messages.getString("EdgePane.end.label")); //$NON-NLS-1$
+        cons.gridx = 0;
+        cons.gridy = 2;
+        cons.gridwidth = 1;
+        cons.gridheight = 1;
+        cons.anchor = GridBagConstraints.EAST;
+        cons.fill = GridBagConstraints.NONE;
+        cons.weightx = 0;
+        cons.weighty = 0;
+        layout.setConstraints(c, cons);
+        pane.add(c);
 
-	private final Action browseEndNodeAction;
+        c = endField;
+        cons.gridx = 1;
+        cons.gridy = 2;
+        cons.gridwidth = 1;
+        cons.gridheight = 1;
+        cons.anchor = GridBagConstraints.WEST;
+        cons.fill = GridBagConstraints.NONE;
+        cons.weightx = 0;
+        cons.weighty = 0;
+        layout.setConstraints(c, cons);
+        pane.add(c);
 
-	/**
-	     *
-	     */
-	public EdgePane() {
-		priorityField = new JFormattedTextField(new NumberFormatter(NumberFormat.getIntegerInstance()));
-		speedLimitField = new JFormattedTextField(new NumberFormatter(NumberFormat.getNumberInstance()));
-		incomeQueueField = new JFormattedTextField(new NumberFormatter(NumberFormat.getIntegerInstance()));
-		distanceField = new JFormattedTextField(new NumberFormatter(NumberFormat.getNumberInstance()));
-		nameField = new JTextField(20);
-		beginField = new JTextField(10);
-		endField = new JTextField(10);
+        btn = browseEndNodeAction;
+        btn.setBorder(BorderFactory.createEmptyBorder());
+        c = btn;
+        cons.gridx = 2;
+        cons.gridy = 2;
+        cons.gridwidth = 1;
+        cons.gridheight = 1;
+        cons.anchor = GridBagConstraints.WEST;
+        cons.fill = GridBagConstraints.NONE;
+        cons.weightx = 0;
+        cons.weighty = 0;
+        layout.setConstraints(c, cons);
+        pane.add(c);
 
-		deleteAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+        c = new JLabel(Messages.getString("EdgePane.distance.label")); //$NON-NLS-1$
+        cons.gridx = 0;
+        cons.gridy = 3;
+        cons.gridwidth = 1;
+        cons.gridheight = 1;
+        cons.anchor = GridBagConstraints.EAST;
+        cons.fill = GridBagConstraints.NONE;
+        cons.weightx = 0;
+        cons.weighty = 0;
+        layout.setConstraints(c, cons);
+        pane.add(c);
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				delete();
-			}
+        c = distanceField;
+        cons.gridx = 1;
+        cons.gridy = 3;
+        cons.gridwidth = 2;
+        cons.gridheight = 1;
+        cons.anchor = GridBagConstraints.WEST;
+        cons.fill = GridBagConstraints.NONE;
+        cons.weightx = 0;
+        cons.weighty = 0;
+        layout.setConstraints(c, cons);
+        pane.add(c);
 
-		};
-		browseBeginNodeAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+        c = new JLabel(Messages.getString("EdgePane.speedLimit.label")); //$NON-NLS-1$
+        cons.gridx = 0;
+        cons.gridy = 4;
+        cons.gridwidth = 1;
+        cons.gridheight = 1;
+        cons.anchor = GridBagConstraints.EAST;
+        cons.fill = GridBagConstraints.NONE;
+        cons.weightx = 0;
+        cons.weighty = 0;
+        layout.setConstraints(c, cons);
+        pane.add(c);
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				handleBrowseBegin();
-			}
+        c = speedLimitField;
+        cons.gridx = 1;
+        cons.gridy = 4;
+        cons.gridwidth = 2;
+        cons.gridheight = 1;
+        cons.anchor = GridBagConstraints.WEST;
+        cons.fill = GridBagConstraints.NONE;
+        cons.weightx = 0;
+        cons.weighty = 0;
+        layout.setConstraints(c, cons);
+        pane.add(c);
 
-		};
-		browseEndNodeAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
+        c = new JLabel(Messages.getString("EdgePane.priority.label")); //$NON-NLS-1$
+        cons.gridx = 0;
+        cons.gridy = 5;
+        cons.gridwidth = 1;
+        cons.gridheight = 1;
+        cons.anchor = GridBagConstraints.EAST;
+        cons.fill = GridBagConstraints.NONE;
+        cons.weightx = 0;
+        cons.weighty = 0;
+        layout.setConstraints(c, cons);
+        pane.add(c);
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				handleBrowseEnd();
-			}
+        c = priorityField;
+        cons.gridx = 1;
+        cons.gridy = 5;
+        cons.gridwidth = 2;
+        cons.gridheight = 1;
+        cons.anchor = GridBagConstraints.WEST;
+        cons.fill = GridBagConstraints.NONE;
+        cons.weightx = 0;
+        cons.weighty = 0;
+        layout.setConstraints(c, cons);
+        pane.add(c);
 
-		};
-		init();
-		createContent();
-	}
+        c = Box.createGlue();
+        cons.gridx = 0;
+        cons.gridy = 6;
+        cons.gridwidth = 3;
+        cons.gridheight = 1;
+        cons.anchor = GridBagConstraints.EAST;
+        cons.fill = GridBagConstraints.NONE;
+        cons.weightx = 0;
+        cons.weighty = 1;
+        layout.setConstraints(c, cons);
+        pane.add(c);
 
-	/**
-	     *
-	     */
-	private void createContent() {
-		setLayout(new BorderLayout());
-		add(createToolbar(), BorderLayout.NORTH);
-		add(createInfoPane(), BorderLayout.CENTER);
-	}
+        return pane;
+    }
 
-	/**
-	 * @return
-	 */
-	private Component createInfoPane() {
-		final JPanel pane = new JPanel();
-		final GridBagLayout layout = new GridBagLayout();
-		pane.setLayout(layout);
-		final GridBagConstraints cons = new GridBagConstraints();
-		cons.insets = new Insets(2, 2, 2, 2);
+    /**
+     *
+     */
+    private JToolBar createToolbar() {
+        final JToolBar bar = new JToolBar();
+        bar.add(deleteAction);
+        return bar;
+    }
 
-		Component c;
-		c = new JLabel(Messages.getString("EdgePane.name.label")); //$NON-NLS-1$
-		cons.gridx = 0;
-		cons.gridy = 0;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
+    public Flowable<EdgeView> getBeginNodeFlowable() {
+        return beginNodeFlowable;
+    }
 
-		c = nameField;
-		cons.gridx = 1;
-		cons.gridy = 0;
-		cons.gridwidth = 2;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.HORIZONTAL;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
+    public Flowable<EdgeView> getChangeFlowable() {
+        return changeFlowable;
+    }
 
-		c = Box.createGlue();
-		cons.gridx = 3;
-		cons.gridy = 0;
-		cons.gridwidth = 1;
-		cons.gridheight = 7;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 1;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
+    public Flowable<EdgeView> getDeleteFlowable() {
+        return deleteFlowable;
+    }
 
-		c = new JLabel(Messages.getString("EdgePane.begin.label")); //$NON-NLS-1$
-		cons.gridx = 0;
-		cons.gridy = 1;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
+    public Flowable<EdgeView> getEndNodeFlowable() {
+        return endNodeFlowable;
+    }
 
-		c = beginField;
-		cons.gridx = 1;
-		cons.gridy = 1;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
+    /**
+     *
+     */
+    private void init() {
+        setBorder(BorderFactory.createTitledBorder(Messages.getString("EdgePane.title"))); //$NON-NLS-1$
+        final SwingUtils utils = SwingUtils.getInstance();
+        utils.initButton(deleteAction, "EdgePane.deleteAction"); //$NON-NLS-1$
+        utils.initButton(browseBeginNodeAction, "EdgePane.browseBeginNodeAction"); //$NON-NLS-1$
+        utils.initButton(browseEndNodeAction, "EdgePane.browseEndNodeAction"); //$NON-NLS-1$
 
-		JButton btn = new JButton(browseBeginNodeAction);
-		btn.setBorder(BorderFactory.createEmptyBorder());
-		c = btn;
-		cons.gridx = 2;
-		cons.gridy = 1;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
+        priorityField.setHorizontalAlignment(SwingConstants.RIGHT);
+        priorityField.setColumns(5);
 
-		c = new JLabel(Messages.getString("EdgePane.end.label")); //$NON-NLS-1$
-		cons.gridx = 0;
-		cons.gridy = 2;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
+        speedLimitField.setHorizontalAlignment(SwingConstants.RIGHT);
+        speedLimitField.setColumns(5);
+        incomeQueueField.setHorizontalAlignment(SwingConstants.RIGHT);
+        incomeQueueField.setColumns(3);
+        incomeQueueField.setEditable(false);
 
-		c = endField;
-		cons.gridx = 1;
-		cons.gridy = 2;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
+        distanceField.setHorizontalAlignment(SwingConstants.RIGHT);
+        distanceField.setColumns(5);
+        distanceField.setEditable(false);
 
-		btn = new JButton(browseEndNodeAction);
-		btn.setBorder(BorderFactory.createEmptyBorder());
-		c = btn;
-		cons.gridx = 2;
-		cons.gridy = 2;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
+        nameField.setEditable(false);
 
-		c = new JLabel(Messages.getString("EdgePane.distance.label")); //$NON-NLS-1$
-		cons.gridx = 0;
-		cons.gridy = 3;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
+        beginField.setEditable(false);
 
-		c = distanceField;
-		cons.gridx = 1;
-		cons.gridy = 3;
-		cons.gridwidth = 2;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
+        endField.setEditable(false);
+    }
 
-		c = new JLabel(Messages.getString("EdgePane.speedLimit.label")); //$NON-NLS-1$
-		cons.gridx = 0;
-		cons.gridy = 4;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		c = speedLimitField;
-		cons.gridx = 1;
-		cons.gridy = 4;
-		cons.gridwidth = 2;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		c = new JLabel(Messages.getString("EdgePane.priority.label")); //$NON-NLS-1$
-		cons.gridx = 0;
-		cons.gridy = 5;
-		cons.gridwidth = 1;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		c = priorityField;
-		cons.gridx = 1;
-		cons.gridy = 5;
-		cons.gridwidth = 2;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.WEST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 0;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		c = Box.createGlue();
-		cons.gridx = 0;
-		cons.gridy = 6;
-		cons.gridwidth = 3;
-		cons.gridheight = 1;
-		cons.anchor = GridBagConstraints.EAST;
-		cons.fill = GridBagConstraints.NONE;
-		cons.weightx = 0;
-		cons.weighty = 1;
-		layout.setConstraints(c, cons);
-		pane.add(c);
-
-		return pane;
-	}
-
-	/**
-	 * @return
-	 */
-	private JToolBar createToolbar() {
-		final JToolBar bar = new JToolBar();
-		bar.add(deleteAction);
-		return bar;
-	}
-
-	/**
-	     *
-	     */
-	protected void delete() {
-		mediator.remove(edge);
-	}
-
-	/**
-	     *
-	     */
-	protected void handleBrowseBegin() {
-		mediator.changeBeginNode(edge);
-	}
-
-	/**
-	     *
-	     */
-	protected void handleBrowseEnd() {
-		mediator.changeEndNode(edge);
-	}
-
-	/**
-	     *
-	     */
-	private void init() {
-		setBorder(BorderFactory.createTitledBorder(Messages.getString("EdgePane.title"))); //$NON-NLS-1$
-		final SwingUtils utils = SwingUtils.getInstance();
-		utils.initAction(deleteAction, "EdgePane.deleteAction"); //$NON-NLS-1$
-		utils.initAction(browseBeginNodeAction, "EdgePane.browseBeginNodeAction"); //$NON-NLS-1$
-		utils.initAction(browseEndNodeAction, "EdgePane.browseEndNodeAction"); //$NON-NLS-1$
-
-		priorityField.setHorizontalAlignment(SwingConstants.RIGHT);
-		priorityField.setColumns(5);
-		priorityField.addPropertyChangeListener("value", //$NON-NLS-1$
-				new PropertyChangeListener() {
-
-					@Override
-					public void propertyChange(final PropertyChangeEvent evt) {
-						setPriority(((Number) evt.getNewValue()).intValue());
-					}
-				});
-
-		speedLimitField.setHorizontalAlignment(SwingConstants.RIGHT);
-		speedLimitField.setColumns(5);
-		speedLimitField.addPropertyChangeListener("value", //$NON-NLS-1$
-				new PropertyChangeListener() {
-
-					@Override
-					public void propertyChange(final PropertyChangeEvent evt) {
-						setSpeedLimit(((Number) evt.getNewValue()).doubleValue() / 3.6f);
-					}
-				});
-		incomeQueueField.setHorizontalAlignment(SwingConstants.RIGHT);
-		incomeQueueField.setColumns(3);
-		incomeQueueField.setEditable(false);
-
-		distanceField.setHorizontalAlignment(SwingConstants.RIGHT);
-		distanceField.setColumns(5);
-		distanceField.setEditable(false);
-
-		nameField.setEditable(false);
-
-		beginField.setEditable(false);
-
-		endField.setEditable(false);
-	}
-
-	/**
-	 * @param edge the edge to set
-	 */
-	public void setEdge(final MapEdge edge) {
-		this.edge = edge;
-		priorityField.setValue(edge.getPriority());
-		speedLimitField.setValue(edge.getSpeedLimit() * 3.6);
-		beginField.setText(mediator.retrieveNodeName(edge.getBegin()));
-		endField.setText(mediator.retrieveNodeName(edge.getEnd()));
-		distanceField.setValue(edge.getDistance());
-		nameField.setText(mediator.retrieveEdgeName(edge));
-	}
-
-	/**
-	 * @param mediator the mediator to set
-	 */
-	public void setMediator(final RouteMediator mediator) {
-		this.mediator = mediator;
-	}
-
-	/**
-	 * @param priority
-	 */
-	protected void setPriority(final int priority) {
-		mediator.changePriority(edge, priority);
-	}
-
-	/**
-	 * @param speedLimit
-	 */
-	protected void setSpeedLimit(final double speedLimit) {
-		mediator.changeSpeedLimit(edge, speedLimit);
-	}
+    /**
+     * @param edgeModel the edge model of the panel
+     */
+    public void setEdge(final EdgeView edgeModel) {
+        this.edgeModel = edgeModel;
+        final MapEdge edge = edgeModel.getEdge();
+        nameField.setText(edgeModel.getName());
+        beginField.setText(edgeModel.getBeginName());
+        endField.setText(edgeModel.getEndName());
+        priorityField.setValue(edge.getPriority());
+        speedLimitField.setValue(edge.getSpeedLimit() * 3.6);
+        distanceField.setValue(edge.getDistance());
+    }
 }

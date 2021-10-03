@@ -1,115 +1,109 @@
 /*
- * MapElementPane.java
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
  *
- * $Id: MapElementPane.java,v 1.6 2010/10/19 20:32:59 marco Exp $
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * 05/gen/09
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * Copyright notice
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
+ *
  */
 package org.mmarini.routes.swing;
 
-import java.awt.CardLayout;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.JPanel;
-
-import org.mmarini.routes.model.MapEdge;
-import org.mmarini.routes.model.MapNode;
-import org.mmarini.routes.model.SiteNode;
+import javax.swing.*;
+import java.awt.*;
 
 /**
  * @author marco.marini@mmarini.org
- * @version $Id: MapElementPane.java,v 1.6 2010/10/19 20:32:59 marco Exp $
- *
  */
 public class MapElementPane extends JPanel {
 
-	private static final String EMPTY_CARD = "Empty"; //$NON-NLS-1$
+    private static final String EMPTY_CARD = "Empty"; //$NON-NLS-1$
+    private static final String NODE_CARD = "Node"; //$NON-NLS-1$
+    private static final String EDGE_CARD = "Edge"; //$NON-NLS-1$
+    private static final String SITE_CARD = "Site"; //$NON-NLS-1$
 
-	private static final String NODE_CARD = "Node"; //$NON-NLS-1$
+    private static final long serialVersionUID = 1L;
+    private final CardLayout cardLayout;
+    private final SitePane sitePane;
+    private final NodePane nodePane;
+    private final EdgePane edgePane;
 
-	private static final String EDGE_CARD = "Edge"; //$NON-NLS-1$
+    /**
+     *
+     */
+    public MapElementPane() {
+        cardLayout = new CardLayout();
+        nodePane = new NodePane();
+        sitePane = new SitePane();
+        edgePane = new EdgePane();
+        createContent();
+    }
 
-	private static final String SITE_CARD = "Site"; //$NON-NLS-1$
+    /**
+     *
+     */
+    public void clearPanel() {
+        cardLayout.show(this, EMPTY_CARD);
+    }
 
-	private static final long serialVersionUID = 1L;
+    /**
+     *
+     */
+    private void createContent() {
+        setLayout(cardLayout);
+        final Box empty = Box.createVerticalBox();
+        empty.setBorder(BorderFactory.createTitledBorder(Messages.getString("MapElementPane.emptyPane.title"))); //$NON-NLS-1$
+        add(empty, EMPTY_CARD);
+        add(nodePane, NODE_CARD);
+        add(sitePane, SITE_CARD);
+        add(edgePane, EDGE_CARD);
+    }
 
-	private final CardLayout cardLayout;
+    public EdgePane getEdgePane() {
+        return edgePane;
+    }
 
-	private final SiteNodePane siteNodePane;
+    public NodePane getMapNodePane() {
+        return nodePane;
+    }
 
-	private final MapNodePane mapNodePane;
+    public SitePane getSiteNodePane() {
+        return sitePane;
+    }
 
-	private final EdgePane edgePane;
+    public void setSelectedEdge(final EdgeView edge) {
+        assert edge != null;
+        edgePane.setEdge(edge);
+        cardLayout.show(this, EDGE_CARD);
+    }
 
-	/**
-	     *
-	     */
-	public MapElementPane() {
-		cardLayout = new CardLayout();
-		mapNodePane = new MapNodePane();
-		siteNodePane = new SiteNodePane();
-		edgePane = new EdgePane();
-		createContent();
-	}
+    public void setSelectedNode(final NodeView node) {
+        assert node != null;
+        nodePane.setNode(node);
+        cardLayout.show(this, NODE_CARD);
+    }
 
-	/**
-	     *
-	     */
-	private void createContent() {
-		setLayout(cardLayout);
-		final Box empty = Box.createVerticalBox();
-		empty.setBorder(BorderFactory.createTitledBorder(Messages.getString("MapElementPane.emptyPane.title"))); //$NON-NLS-1$
-		add(empty, EMPTY_CARD);
-		add(mapNodePane, NODE_CARD);
-		add(siteNodePane, SITE_CARD);
-		add(edgePane, EDGE_CARD);
-	}
-
-	/**
-	 * @param mediator
-	 */
-	public void setMediator(final RouteMediator mediator) {
-		mapNodePane.setMediator(mediator);
-		siteNodePane.setMediator(mediator);
-		edgePane.setMediator(mediator);
-	}
-
-	/**
-	 * @see org.mmarini.routes.model.MapElementVisitor#visit(org.mmarini.routes.model.MapEdge)
-	 */
-	public void setSelectedElement(final MapEdge edge) {
-		if (edge != null) {
-			edgePane.setEdge(edge);
-			cardLayout.show(this, EDGE_CARD);
-		} else {
-			cardLayout.show(this, EMPTY_CARD);
-		}
-	}
-
-	/**
-	 * @see org.mmarini.routes.model.MapElementVisitor#visit(org.mmarini.routes.model.MapNode)
-	 */
-	public void setSelectedElement(final MapNode node) {
-		if (node != null) {
-			mapNodePane.setNode(node);
-			cardLayout.show(this, NODE_CARD);
-		} else {
-			cardLayout.show(this, EMPTY_CARD);
-		}
-	}
-
-	/**
-	 * @see org.mmarini.routes.model.MapElementVisitor#visit(org.mmarini.routes.model.SiteNode)
-	 */
-	public void setSelectedElement(final SiteNode node) {
-		if (node != null) {
-			siteNodePane.setNode(node);
-			cardLayout.show(this, SITE_CARD);
-		} else {
-			cardLayout.show(this, EMPTY_CARD);
-		}
-	}
+    public void setSelectedSite(final NodeView node) {
+        assert node != null;
+        sitePane.setNode(node);
+        cardLayout.show(this, SITE_CARD);
+    }
 }

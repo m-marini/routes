@@ -25,65 +25,55 @@
  *    END OF TERMS AND CONDITIONS
  *
  */
-package org.mmarini.routes.model;
+package org.mmarini.routes.swing;
 
-import java.awt.geom.Point2D;
+import org.mmarini.routes.model.MapNode;
+
+import java.awt.*;
 
 /**
  * @author marco.marini@mmarini.org
- * @version $Id: SiteNode.java,v 1.10 2010/10/19 20:33:00 marco Exp $
  */
-public class SiteNode extends MapNode {
+public class NodeView {
+    private final MapNode node;
+    private final String name;
+    private final Color color;
+
+    /**
+     * @param name  the node name
+     * @param node  the node
+     * @param color the node color
+     */
+    public NodeView(final String name, final MapNode node, Color color) {
+        this.node = node;
+        this.name = name;
+        this.color = color;
+    }
 
     /**
      *
      */
-    public SiteNode() {
+    public Color getColor() {
+        return color;
     }
 
     /**
-     * @param node
+     * Returns the name
      */
-    public SiteNode(final SiteNode node) {
-        super(node);
+    public String getName() {
+        return name;
     }
 
     /**
-     * @see org.mmarini.routes.model.MapElement#apply(org.mmarini.routes.model.MapElementVisitor)
+     * Returns the node
      */
-    @Override
-    public void apply(final MapElementVisitor visitor) {
-        visitor.visit(this);
+    public MapNode getNode() {
+        return node;
     }
 
-    /**
-     * @see org.mmarini.routes.model.MapNode#clone()
-     */
-    @Override
-    public Object clone() {
-        return new SiteNode(this);
-    }
-
-    /**
-     * @return
-     */
-    public SiteNode createClone() {
-        final SiteNode site = new SiteNode();
-        return site;
-    }
-
-    /**
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("Site(");
-        final Point2D location = getLocation();
-        builder.append(location.getX());
-        builder.append(",");
-        builder.append(location.getY());
-        builder.append(")");
-        return builder.toString();
+        return name;
     }
+
 }

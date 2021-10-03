@@ -25,65 +25,37 @@
  *    END OF TERMS AND CONDITIONS
  *
  */
-package org.mmarini.routes.model;
 
-import java.awt.geom.Point2D;
+package org.mmarini.routes.swing;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import java.awt.*;
 
 /**
- * @author marco.marini@mmarini.org
- * @version $Id: SiteNode.java,v 1.10 2010/10/19 20:33:00 marco Exp $
+ *
  */
-public class SiteNode extends MapNode {
+public class NodeViewTableCellRenderer extends DefaultTableCellRenderer {
+    private static final long serialVersionUID = 3743457808802444412L;
 
     /**
      *
      */
-    public SiteNode() {
+    public NodeViewTableCellRenderer() {
     }
 
     /**
-     * @param node
-     */
-    public SiteNode(final SiteNode node) {
-        super(node);
-    }
-
-    /**
-     * @see org.mmarini.routes.model.MapElement#apply(org.mmarini.routes.model.MapElementVisitor)
+     *
      */
     @Override
-    public void apply(final MapElementVisitor visitor) {
-        visitor.visit(this);
+    public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
+                                                   final boolean hasFocus, final int row, final int column) {
+        NodeView entry = (NodeView) value;
+        setText(entry.getName());
+        setBackground(entry.getColor());
+        setBorder(BorderFactory.createMatteBorder(0, 1, 1, 1, Color.GRAY));
+        setHorizontalAlignment(SwingConstants.CENTER);
+        return this;
     }
 
-    /**
-     * @see org.mmarini.routes.model.MapNode#clone()
-     */
-    @Override
-    public Object clone() {
-        return new SiteNode(this);
-    }
-
-    /**
-     * @return
-     */
-    public SiteNode createClone() {
-        final SiteNode site = new SiteNode();
-        return site;
-    }
-
-    /**
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("Site(");
-        final Point2D location = getLocation();
-        builder.append(location.getX());
-        builder.append(",");
-        builder.append(location.getY());
-        builder.append(")");
-        return builder.toString();
-    }
 }

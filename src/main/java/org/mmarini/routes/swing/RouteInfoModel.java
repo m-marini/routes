@@ -1,148 +1,137 @@
-/**
+/*
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
  *
  */
+
 package org.mmarini.routes.swing;
 
 import javax.swing.table.AbstractTableModel;
 
-import org.mmarini.routes.model.RouteInfos;
-import org.mmarini.routes.model.SiteNode;
-
 /**
  * @author Marco
- *
  */
 public class RouteInfoModel extends AbstractTableModel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private RouteInfos infos;
+    private double maximumFlux;
+    private double minimumFlux;
+    private SquareMatrixModel<NodeView> routeInfo;
 
-	private double maximumFlux;
+    /**
+     *
+     */
+    public RouteInfoModel() {
+    }
 
-	private double minimumFlux;
+    /**
+     * @param row the row
+     */
+    private double computeColSum(final int row) {
+        double sum = 0.;
+        final double[][] values = routeInfo.getValues();
+        for (int i = 0; i < values.length; ++i) {
+            sum += values[row][i];
+        }
+        return sum;
+    }
 
-	/**
-	     *
-	     */
-	public RouteInfoModel() {
-	}
+    /**
+     *
+     */
+    private void computeMinMax() {
+        final double[][] values = routeInfo.getValues();
+        final int n = values.length;
+        double max = Double.NEGATIVE_INFINITY;
+        double min = Double.POSITIVE_INFINITY;
+        for (int i = 0; i < n; ++i) {
+            for (int j = i + 1; j < n; ++j) {
+                final double value = values[i][j];
+                max = Math.max(max, value);
+                min = Math.min(min, value);
+            }
+        }
+        this.minimumFlux = min;
+        this.maximumFlux = max;
+    }
 
-	/**
-	 *
-	 * @param row
-	 * @return
-	 */
-	private double computeColSum(final int row) {
-		double sum = 0.;
-		final int n = infos.getNodesCount();
-		for (int i = 0; i < n; ++i) {
-			sum += infos.getFrequence(row, i);
-		}
-		return sum;
-	}
+    @Override
+    public Class<?> getColumnClass(final int columnIndex) {
+        return columnIndex == 0 ? NodeView.class : Double.class;
+    }
 
-	/**
-	     *
-	     *
-	     */
-	private void computeMinMax() {
-		final int n = infos.getNodesCount();
-		double max = 0;
-		double min = Double.POSITIVE_INFINITY;
-		for (int i = 0; i < n; ++i) {
-			for (int j = i + 1; j < n; ++j) {
-				final double value = infos.getFrequence(i, j);
-				max = Math.max(max, value);
-				min = Math.min(min, value);
-			}
-		}
-		setMinimumFlux(min);
-		setMaximumFlux(max);
-	}
+    @Override
+    public int getColumnCount() {
+        return routeInfo.getIndices().size() + 2;
+    }
 
-	/**
-	 * @see javax.swing.table.AbstractTableModel#getColumnClass(int)
-	 */
-	@Override
-	public Class<?> getColumnClass(final int columnIndex) {
-		if (columnIndex == 0) {
-			return SiteNode.class;
-		}
-		return Double.class;
-	}
+    /**
+     *
+     */
+    public double getMaximumFlux() {
+        return maximumFlux;
+    }
 
-	/**
-	 * @see javax.swing.table.TableModel#getColumnCount()
-	 */
-	@Override
-	public int getColumnCount() {
-		return infos.getNodesCount() + 2;
-	}
+    /**
+     *
+     */
+    public double getMinimumFlux() {
+        return minimumFlux;
+    }
 
-	/**
-	 * @return
-	 */
-	public double getMaximumFlux() {
-		return maximumFlux;
-	}
+    /**
+     *
+     */
+    public SquareMatrixModel<NodeView> getRouteInfo() {
+        return routeInfo;
+    }
 
-	/**
-	 * @return
-	 */
-	public double getMinimumFlux() {
-		return minimumFlux;
-	}
+    /**
+     * @param routeInfo the route information
+     */
+    public void setRouteInfo(SquareMatrixModel<NodeView> routeInfo) {
+        this.routeInfo = routeInfo;
+        computeMinMax();
+        fireTableStructureChanged();
+    }
 
-	/**
-	 * @param index
-	 * @return
-	 */
-	public SiteNode getNode(final int index) {
-		return infos.getNode(index);
-	}
+    @Override
+    public int getRowCount() {
+        return routeInfo.getIndices().size();
+    }
 
-	/**
-	 * @see javax.swing.table.TableModel#getRowCount()
-	 */
-	@Override
-	public int getRowCount() {
-		return infos.getNodesCount();
-	}
-
-	/**
-	 * @see javax.swing.table.TableModel#getValueAt(int, int)
-	 */
-	@Override
-	public Object getValueAt(final int row, final int col) {
-		if (col == 0) {
-			return infos.getNode(row);
-		}
-		if (col == infos.getNodesCount() + 1) {
-			return computeColSum(row);
-		}
-		return infos.getFrequence(row, col - 1);
-	}
-
-	/**
-	 * @param infos the infos to set
-	 */
-	public void setInfos(final RouteInfos infos) {
-		this.infos = infos;
-		computeMinMax();
-		fireTableStructureChanged();
-	}
-
-	/**
-	 * @param maximumFlux the maximumFlux to set
-	 */
-	private void setMaximumFlux(final double maximumFlux) {
-		this.maximumFlux = maximumFlux;
-	}
-
-	/**
-	 * @param minimumFlux the minimumFlux to set
-	 */
-	private void setMinimumFlux(final double minimumFlux) {
-		this.minimumFlux = minimumFlux;
-	}
+    @Override
+    public Object getValueAt(final int row, final int col) {
+        if (col == 0) {
+            // First column legend
+            return routeInfo.getIndices().get(row);
+        } else if (col == routeInfo.getIndices().size() + 1) {
+            // Last column total
+            return computeColSum(row);
+        } else {
+            return routeInfo.getValues()[row][col - 1];
+        }
+    }
 }

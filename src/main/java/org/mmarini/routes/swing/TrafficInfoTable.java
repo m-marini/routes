@@ -1,121 +1,111 @@
 /*
- * InfosTable.java
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
  *
- * $Id: TrafficInfoTable.java,v 1.3 2010/10/19 20:32:59 marco Exp $
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * 01/feb/09
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * Copyright notice
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
+ *
  */
+
 package org.mmarini.routes.swing;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.text.NumberFormat;
-
-import javax.swing.BorderFactory;
-import javax.swing.JTable;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableModel;
+import java.awt.*;
+import java.text.NumberFormat;
 
 /**
  * @author marco.marini@mmarini.org
- * @version $Id: TrafficInfoTable.java,v 1.3 2010/10/19 20:32:59 marco Exp $
- *
  */
 public class TrafficInfoTable extends JTable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private RouteMediator mediator;
+    /**
+     * @param model the model
+     */
+    public TrafficInfoTable(final TableModel model) {
+        super(model);
+        setRowSelectionAllowed(false);
+        final JTableHeader header = getTableHeader();
+        header.setReorderingAllowed(false);
+        header.setResizingAllowed(true);
+        setDefaultRenderer(Double.class, new DefaultTableCellRenderer() {
 
-	/**
-	 * @param model
-	 */
-	public TrafficInfoTable(final TableModel model) {
-		super(model);
-		setRowSelectionAllowed(false);
-		final JTableHeader header = getTableHeader();
-		header.setReorderingAllowed(false);
-		header.setResizingAllowed(true);
-		setDefaultRenderer(Double.class, new DefaultTableCellRenderer() {
+            private static final long serialVersionUID = 1L;
 
-			private static final long serialVersionUID = 1L;
+            /**
+             * @see javax.swing.table.DefaultTableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
+             *      java.lang.Object, boolean, boolean, int, int)
+             */
+            @Override
+            public Component getTableCellRendererComponent(final JTable table, final Object value,
+                                                           final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+                NumberFormat formatter = NumberFormat.getNumberInstance();
+                if (column == 3) {
+                    formatter = NumberFormat.getPercentInstance();
+                }
+                setText(formatter.format(value));
+                setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.GRAY));
+                setBackground(TrafficInfoTable.this.getBackground());
+                setHorizontalAlignment(SwingConstants.RIGHT);
+                return this;
+            }
 
-			/**
-			 * @see javax.swing.table.DefaultTableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
-			 *      java.lang.Object, boolean, boolean, int, int)
-			 */
-			@Override
-			public Component getTableCellRendererComponent(final JTable table, final Object value,
-					final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-				NumberFormat formatter = NumberFormat.getNumberInstance();
-				switch (column) {
-				case 3:
-					formatter = NumberFormat.getPercentInstance();
-					break;
-				default:
-					break;
-				}
-				setText(formatter.format(value));
-				setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.GRAY));
-				setBackground(TrafficInfoTable.this.getBackground());
-				setHorizontalAlignment(SwingConstants.RIGHT);
-				return this;
-			}
+        });
+        setDefaultRenderer(Integer.class, new DefaultTableCellRenderer() {
 
-		});
-		setDefaultRenderer(Integer.class, new DefaultTableCellRenderer() {
+            private static final long serialVersionUID = 1L;
 
-			private static final long serialVersionUID = 1L;
+            @Override
+            public Component getTableCellRendererComponent(final JTable table, final Object value,
+                                                           final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+                final NumberFormat formatter = NumberFormat.getIntegerInstance();
+                setText(formatter.format(value));
+                setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.GRAY));
+                setBackground(TrafficInfoTable.this.getBackground());
+                setHorizontalAlignment(SwingConstants.RIGHT);
+                return this;
+            }
 
-			/**
-			 * @see javax.swing.table.DefaultTableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
-			 *      java.lang.Object, boolean, boolean, int, int)
-			 */
-			@Override
-			public Component getTableCellRendererComponent(final JTable table, final Object value,
-					final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-				final NumberFormat formatter = NumberFormat.getIntegerInstance();
-				setText(formatter.format(value));
-				setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.GRAY));
-				setBackground(TrafficInfoTable.this.getBackground());
-				setHorizontalAlignment(SwingConstants.RIGHT);
-				return this;
-			}
+        });
+        setDefaultRenderer(TrafficInfoView.class, new DefaultTableCellRenderer() {
 
-		});
-		setDefaultRenderer(String.class, new DefaultTableCellRenderer() {
+            private static final long serialVersionUID = 1L;
 
-			private static final long serialVersionUID = 1L;
+            @Override
+            public Component getTableCellRendererComponent(final JTable table, final Object value,
+                                                           final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+                final NodeView entry = ((TrafficInfoView) value).getDestination();
+                setText(entry.getName());
+                setBackground(entry.getColor());
+                setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.GRAY));
+                setHorizontalAlignment(SwingConstants.CENTER);
+                return this;
+            }
 
-			/**
-			 * @see javax.swing.table.DefaultTableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
-			 *      java.lang.Object, boolean, boolean, int, int)
-			 */
-			@Override
-			public Component getTableCellRendererComponent(final JTable table, final Object value,
-					final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-				setText(String.valueOf(value));
-				final TrafficInfoModel model = (TrafficInfoModel) table.getModel();
-				final int modelRow = table.convertRowIndexToModel(row);
-				setBackground(mediator.getNodeColor(model.getNode(modelRow)));
-				setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.GRAY));
-				setHorizontalAlignment(SwingConstants.CENTER);
-				return this;
-			}
-
-		});
-		setAutoCreateRowSorter(true);
-	}
-
-	/**
-	 * @param mediator the mediator to set
-	 */
-	public void setMediator(final RouteMediator mediator) {
-		this.mediator = mediator;
-	}
-
+        });
+        setAutoCreateRowSorter(true);
+    }
 }

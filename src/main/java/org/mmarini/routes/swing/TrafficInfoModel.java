@@ -1,108 +1,105 @@
-/**
+/*
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
  *
  */
+
 package org.mmarini.routes.swing;
 
-import java.util.List;
-
 import javax.swing.table.AbstractTableModel;
-
-import org.mmarini.routes.model.SiteNode;
-import org.mmarini.routes.model.TrafficInfo;
+import java.util.List;
 
 /**
  * @author marco.marini@mmarini.org
- * @version $Id: TrafficInfoModel.java,v 1.3 2010/10/19 20:32:59 marco Exp $
  */
 public class TrafficInfoModel extends AbstractTableModel {
-	private static final long serialVersionUID = 1L;
-	private static String[] columnLabelName = { "destination", "veicleCount", "delayedCount", "delayedCountPerc",
-			"delayedTime" };
-	private List<TrafficInfo> infos;
-	private final Class<?>[] columnClass = { String.class, Integer.class, Integer.class, Double.class, Double.class };
-	private RouteMediator mediator;
+    private static final long serialVersionUID = 1L;
+    private static final String[] COLUMN_LABEL_NAME = {"destination", "vehicleCount", "delayedCount", "delayedCountPerc",
+            "delayedTime"};
+    private static final Class<?>[] COLUMN_CLASS = {TrafficInfoView.class, Integer.class, Integer.class, Double.class, Double.class};
+    private List<TrafficInfoView> info;
 
-	/**
-	     *
-	     */
-	public TrafficInfoModel() {
-	}
+    /**
+     *
+     */
+    public TrafficInfoModel() {
+    }
 
-	/**
-	 * @see javax.swing.table.AbstractTableModel#getColumnClass(int)
-	 */
-	@Override
-	public Class<?> getColumnClass(final int columnIndex) {
-		return columnClass[columnIndex];
-	}
+    @Override
+    public Class<?> getColumnClass(final int columnIndex) {
+        return COLUMN_CLASS[columnIndex];
+    }
 
-	/**
-	 * @see javax.swing.table.TableModel#getColumnCount()
-	 */
-	@Override
-	public int getColumnCount() {
-		return columnLabelName.length;
-	}
+    @Override
+    public int getColumnCount() {
+        return COLUMN_LABEL_NAME.length;
+    }
 
-	/**
-	 * @see javax.swing.table.AbstractTableModel#getColumnName(int)
-	 */
-	@Override
-	public String getColumnName(final int column) {
-		return Messages.getString("TrafficInfoModel." + columnLabelName[column] + ".label"); //$NON-NLS-1$
-	}
+    @Override
+    public String getColumnName(final int column) {
+        return Messages.getString("TrafficInfoModel." + COLUMN_LABEL_NAME[column] + ".label"); //$NON-NLS-1$
+    }
 
-	/**
-	 *
-	 * @param index
-	 * @return
-	 */
-	public SiteNode getNode(final int index) {
-		return infos.get(index).getDestination();
-	}
+    /**
+     * @param index the index
+     */
+    public NodeView getNode(final int index) {
+        return info.get(index).getDestination();
+    }
 
-	/**
-	 * @see javax.swing.table.TableModel#getRowCount()
-	 */
-	@Override
-	public int getRowCount() {
-		return infos.size();
-	}
+    @Override
+    public int getRowCount() {
+        return info.size();
+    }
 
-	/**
-	 * @see javax.swing.table.TableModel#getValueAt(int, int)
-	 */
-	@Override
-	public Object getValueAt(final int row, final int col) {
-		final TrafficInfo record = infos.get(row);
-		switch (col) {
-		case 0:
-			return mediator.retrieveNodeName(record.getDestination());
-		case 1:
-			return record.getVeicleCount();
-		case 2:
-			return record.getDelayCount();
-		case 3:
-			return (double) record.getDelayCount() / record.getVeicleCount();
-		case 4:
-			return record.getAverageDelayTime();
-		default:
-			return "?";
-		}
-	}
+    @Override
+    public Object getValueAt(final int row, final int col) {
+        final TrafficInfoView record = info.get(row);
+        final int vehicleCount = record.getInfo().getVeicleCount();
+        final int delayCount = record.getInfo().getDelayCount();
+        switch (col) {
+            case 0:
+                return record;
+            case 1:
+                return vehicleCount;
+            case 2:
+                return delayCount;
+            case 3:
+                return vehicleCount > 0 ? (double) delayCount / vehicleCount : 0;
+            case 4:
+                return record.getInfo().getAverageDelayTime();
+            default:
+                return "?";
+        }
+    }
 
-	/**
-	 * @param infos the info to set
-	 */
-	public void setInfos(final List<TrafficInfo> infos) {
-		this.infos = infos;
-		fireTableStructureChanged();
-	}
-
-	/**
-	 * @param mediator the mediator to set
-	 */
-	public void setMediator(final RouteMediator mediator) {
-		this.mediator = mediator;
-	}
+    /**
+     * @param info the info
+     */
+    public void setInfo(final List<TrafficInfoView> info) {
+        this.info = info;
+        fireTableStructureChanged();
+    }
 }

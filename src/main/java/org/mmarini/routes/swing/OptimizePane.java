@@ -1,11 +1,29 @@
 /*
- * OptimizePane.java
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
  *
- * $Id: OptimizePane.java,v 1.6 2010/10/19 20:32:59 marco Exp $
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * 11/gen/09
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * Copyright notice
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
+ *
  */
 package org.mmarini.routes.swing;
 
@@ -15,7 +33,6 @@ import static hu.akarnokd.rxjava3.swing.SwingObservable.change;
 
 /**
  * @author marco.marini@mmarini.org
- * @version $Id: OptimizePane.java,v 1.6 2010/10/19 20:32:59 marco Exp $
  */
 public class OptimizePane extends Box {
 
@@ -35,24 +52,9 @@ public class OptimizePane extends Box {
         speedLabel = new JLabel(Messages.getString("OptimizePane.speed.label")); //$NON-NLS-1$
         speedField = new JSpinner();
 
-        speedField.setModel(new SpinnerNumberModel(130., 10., 300., 10.));
-
-		/*
-		optimizeSpeed.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(final ChangeEvent e) {
-				handleOptimizeSpeedChange();
-			}
-
-		});
-		*/
-        optimizeSpeed.setSelected(true);
-        optimizeNodes.setSelected(true);
-        speedField.setValue(130.);
+        init();
         createContext();
-        change(optimizeSpeed)
-                .doOnNext(e -> handleOptimizeSpeedChange())
-                .subscribe();
+        createFlows();
     }
 
     /**
@@ -78,7 +80,16 @@ public class OptimizePane extends Box {
     }
 
     /**
-     * @return
+     *
+     */
+    private void createFlows() {
+        change(optimizeSpeed)
+                .doOnNext(e -> handleOptimizeSpeedChange())
+                .subscribe();
+    }
+
+    /**
+     *
      */
     public double getSpeedLimit() {
         return ((Number) speedField.getValue()).doubleValue() / 3.6f;
@@ -94,14 +105,25 @@ public class OptimizePane extends Box {
     }
 
     /**
-     * @return
+     *
+     */
+    private void init() {
+        speedField.setModel(new SpinnerNumberModel(130., 10., 300., 10.));
+
+        optimizeSpeed.setSelected(true);
+        optimizeNodes.setSelected(true);
+        speedField.setValue(130.);
+    }
+
+    /**
+     *
      */
     public boolean isOptimizeNodes() {
         return optimizeNodes.isSelected();
     }
 
     /**
-     * @return
+     *
      */
     public boolean isOptimizeSpeed() {
         return optimizeSpeed.isSelected();

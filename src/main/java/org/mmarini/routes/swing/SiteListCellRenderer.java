@@ -1,60 +1,63 @@
-/**
+/*
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
  *
  */
+
 package org.mmarini.routes.swing;
 
-import java.awt.Color;
-import java.awt.Component;
-
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JList;
-import javax.swing.SwingConstants;
-
-import org.mmarini.routes.model.MapNode;
+import javax.swing.*;
+import java.awt.*;
 
 /**
- * @author US00852
  *
  */
 public class SiteListCellRenderer extends DefaultListCellRenderer {
-	private static final long serialVersionUID = 3743457808802444412L;
-	private RouteMediator mediator;
+    private static final long serialVersionUID = 3743457808802444412L;
 
-	/**
-	 *
-	 */
-	public SiteListCellRenderer() {
-	}
+    /**
+     *
+     */
+    public SiteListCellRenderer() {
+    }
 
-	/**
-	 * @see javax.swing.DefaultListCellRenderer#getListCellRendererComponent(javax.swing.JList,
-	 *      java.lang.Object, int, boolean, boolean)
-	 */
-	@Override
-	public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
-			final boolean isSelected, final boolean cellHasFocus) {
-		final String name = (String) value;
-		setText(name);
-		final MapNode node = mediator.findSiteNode(name);
-		Color bg = mediator.getNodeColor(node);
-		Color fg = list.getForeground();
-		if (isSelected) {
-			bg = bg.darker();
-			fg = Color.WHITE;
-		}
-		setForeground(fg);
-		setBackground(bg);
-		setBorder(BorderFactory.createMatteBorder(0, 1, 1, 1, Color.GRAY));
-		setHorizontalAlignment(SwingConstants.CENTER);
-		return this;
-	}
-
-	/**
-	 * @param mediator the mediator to set
-	 */
-	public void setMediator(final RouteMediator mediator) {
-		this.mediator = mediator;
-	}
-
+    @Override
+    public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+                                                  final boolean isSelected, final boolean cellHasFocus) {
+        final NodeView entry = (NodeView) value;
+        setText(entry.getName());
+        Color bg = entry.getColor();
+        Color fg = list.getForeground();
+        if (isSelected) {
+            bg = bg.darker();
+            fg = Color.WHITE;
+        }
+        setForeground(fg);
+        setBackground(bg);
+        setBorder(BorderFactory.createMatteBorder(0, 1, 1, 1, Color.GRAY));
+        setHorizontalAlignment(SwingConstants.CENTER);
+        return this;
+    }
 }

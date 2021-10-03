@@ -26,55 +26,48 @@
  *
  */
 
-package org.mmarini.routes.model;
+package org.mmarini.routes.swing;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.mmarini.routes.model.TrafficInfo;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.StringJoiner;
 
 /**
- * @author mmarini
+ * The traffic information record is rendered in traffic information table
  */
-public class YamlUtils {
+public class TrafficInfoView {
+    private final NodeView destination;
+    private final TrafficInfo info;
 
     /**
-     * @param node
-     * @param defaultValue
-     * @return
+     * Creates the traffic information record
+     *
+     * @param destination the destination information
+     * @param info        the traffic information
      */
-    public static double jsonDouble(final JsonNode node, final double defaultValue) {
-        return Optional.ofNullable(node).map(json -> json.asDouble(defaultValue)).orElse(defaultValue);
+    public TrafficInfoView(NodeView destination, TrafficInfo info) {
+        this.destination = destination;
+        this.info = info;
     }
 
     /**
-     * @param node
-     * @param defaultValue
-     * @return
+     * Returns the destination information
      */
-    public static int jsonInt(final JsonNode node, final int defaultValue) {
-        return Optional.ofNullable(node).map(json -> json.asInt(defaultValue)).orElse(defaultValue);
+    public NodeView getDestination() {
+        return destination;
     }
 
     /**
-     * @param <T>
-     * @param iterator
-     * @return
+     * Returns the traffic information
      */
-    public static <T> List<T> toList(final Iterator<T> iterator) {
-        final List<T> list = toStream(iterator).collect(Collectors.toList());
-        return list;
+    public TrafficInfo getInfo() {
+        return info;
     }
 
-    /**
-     * @param <T>
-     * @param iterator
-     * @return
-     */
-    public static <T> Stream<T> toStream(final Iterator<T> iterator) {
-        final Spliterator<T> spliterator = Spliterators.spliteratorUnknownSize(iterator, 0);
-        return StreamSupport.stream(spliterator, false);
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", TrafficInfoView.class.getSimpleName() + "[", "]")
+                .add("destination=" + destination)
+                .toString();
     }
 }

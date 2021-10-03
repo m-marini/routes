@@ -1,282 +1,270 @@
 /*
- * RouteMap.java
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
  *
- * $Id: Painter.java,v 1.6 2010/10/19 20:32:59 marco Exp $
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * 28/dic/08
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * Copyright notice
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
+ *
  */
 package org.mmarini.routes.swing;
-
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Shape;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 
 import org.mmarini.routes.model.MapEdge;
 import org.mmarini.routes.model.Module;
 
+import java.awt.*;
+import java.awt.geom.*;
+
 /**
- * @author marco.marini@mmarini.org
- * @version $Id: Painter.java,v 1.6 2010/10/19 20:32:59 marco Exp $
  *
  */
 public class Painter {
 
-	private static final Color END_NODE_COLOR = Color.RED;
+    private static final Color END_NODE_COLOR = Color.RED;
+    private static final Color BEGIN_NODE_COLOR = Color.GREEN;
+    private static final Color SELECTED_SITE_COLOR = Color.WHITE;
+    private static final Color EDGE_COLOR = Color.LIGHT_GRAY;
+    private static final Color MAJOR_GRID_COLOR = new Color(0xd0d0d0);
+    private static final Color MINOR_GRID_COLOR = new Color(0xe0e0e0);
+    private static final Color MAJOR_GRID_REVERSED_COLOR = new Color(0x202020);
+    private static final Color MINOR_GRID_REVERSED_COLOR = new Color(0x101010);
+    private static final Color SELECTED_NODE_COLOR = Color.RED;
+    private static final Color SELECTED_EDGE_COLOR = Color.YELLOW;
+    private static final double VEHICLE_LENGTH = 5;
+    private static final double VEHICLE_WIDTH = 3;
+    private static final double EDGE_WIDTH = 5;
+    private static final double NODE_SIZE = 10;
 
-	private static final Color BEGIN_NODE_COLOR = Color.GREEN;
+    private final BasicStroke thinStroke;
+    private final Line2D line;
+    private final BasicStroke stroke;
+    private final Shape vehicleShape;
+    private final Shape siteShape;
+    private final Shape edgeEndPoint;
+    private Graphics2D graphics;
+    private boolean borderPainted;
+    private boolean reversed;
 
-	private static final Color SELECTED_SITE_COLOR = Color.WHITE;
+    /**
+     *
+     */
+    public Painter() {
+        this(null, false, false);
+    }
 
-	private static final Color EDGE_COLOR = Color.LIGHT_GRAY;
+    /**
+     * @param graphics      the graphics
+     * @param borderPainted true if painting the border
+     * @param reversed      true if painting in reverse
+     */
+    public Painter(Graphics2D graphics, boolean borderPainted, boolean reversed) {
+        this.graphics = graphics;
+        this.borderPainted = borderPainted;
+        this.reversed = reversed;
+        stroke = new BasicStroke((float) EDGE_WIDTH, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+        thinStroke = new BasicStroke(0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+        line = new Line2D.Double();
+        vehicleShape = new Rectangle2D.Double(-VEHICLE_LENGTH * 0.5, -VEHICLE_WIDTH * 0.5, VEHICLE_LENGTH, VEHICLE_WIDTH);
+        siteShape = new Ellipse2D.Double(-NODE_SIZE * 0.5, -NODE_SIZE * 0.5, NODE_SIZE, NODE_SIZE);
+        edgeEndPoint = new Ellipse2D.Double(-EDGE_WIDTH * 0.5, -EDGE_WIDTH * 0.5, EDGE_WIDTH, EDGE_WIDTH);
+    }
 
-	private static final Color MAJOR_GRID_COLOR = new Color(0xd0d0d0);
+    /**
+     * @param edge the edge
+     */
+    public void paintCursorEdge(final MapEdge edge) {
+        final Point2D beginLocation = edge.getBeginLocation();
+        final Point2D endLocation = edge.getEndLocation();
+        paintEdge(beginLocation, endLocation, SELECTED_EDGE_COLOR);
+    }
 
-	private static final Color MINOR_GRID_COLOR = new Color(0xe0e0e0);
+    /**
+     * @param edge the edge
+     */
+    public void paintCursorEdgeEnds(final MapEdge edge) {
+        final Point2D beginLocation = edge.getBeginLocation();
+        final Point2D endLocation = edge.getEndLocation();
+        paintShape(edgeEndPoint, beginLocation, BEGIN_NODE_COLOR);
+        paintShape(edgeEndPoint, endLocation, END_NODE_COLOR);
+    }
 
-	private static final Color MAJOR_GRID_REVERSED_COLOR = new Color(0x202020);
+    /**
+     * @param edge the edge
+     */
+    public void paintEdge(final MapEdge edge) {
+        paintEdge(edge, EDGE_COLOR);
+    }
 
-	private static final Color MINOR_GRID_REVERSED_COLOR = new Color(0x101010);
+    /**
+     * @param edge  the edge
+     * @param color the color
+     */
+    public void paintEdge(final MapEdge edge, final Color color) {
+        paintEdge(edge.getBeginLocation(), edge.getEndLocation(), color);
+    }
 
-	private static final Color SELECTED_NODE_COLOR = Color.RED;
+    /**
+     * @param from  the begining point
+     * @param to    the end point
+     * @param color the color
+     */
+    public void paintEdge(final Point2D from, final Point2D to, final Color color) {
+        line.setLine(from, to);
+        graphics.setColor(color);
+        graphics.setStroke(stroke);
+        graphics.draw(line);
+    }
 
-	private static final Color SELECTED_EDGE_COLOR = Color.YELLOW;
+    /**
+     * @param bound the bound
+     * @param size  the size
+     */
+    public void paintGrid(final Rectangle2D bound, final double size) {
+        final double x0 = bound.getMinX();
+        final double x1 = bound.getMaxX();
+        final double y1 = bound.getMaxY();
+        final double y0 = bound.getMinY();
+        final Color minorColor = reversed ? MINOR_GRID_REVERSED_COLOR : MINOR_GRID_COLOR;
+        final Color majorColor = reversed ? MAJOR_GRID_REVERSED_COLOR : MAJOR_GRID_COLOR;
+        graphics.setColor(minorColor);
+        graphics.setStroke(thinStroke);
+        for (double x = Math.floor(x0 / size) * size; x <= x1; x += size) {
+            final double xg = Math.floor(x / size / 10.) * 10. * size;
+            if (x == xg) {
+                graphics.setColor(majorColor);
+            } else {
+                graphics.setColor(minorColor);
+            }
+            line.setLine(x, y0, x, y1);
+            graphics.draw(line);
+        }
+        for (double y = Math.floor(y0 / size) * size; y <= y1; y += size) {
+            final double xg = Math.floor(y / size / 10.) * 10. * size;
+            if (y == xg) {
+                graphics.setColor(majorColor);
+            } else {
+                graphics.setColor(minorColor);
+            }
+            line.setLine(x0, y, x1, y);
+            graphics.draw(line);
+        }
+    }
 
-	private static final double VEICLE_LENGTH = 5;
+    /**
+     * @param module   the module
+     * @param location the location
+     * @param vecx     the x direction vector
+     * @param vecy     the y direction vector
+     */
+    public void paintModule(final Module module, final Point2D location, final double vecx, final double vecy) {
+        final AffineTransform old = graphics.getTransform();
+        final AffineTransform tr = graphics.getTransform();
+        tr.translate(location.getX(), location.getY());
+        tr.rotate(vecx, vecy);
+        graphics.setTransform(tr);
+        for (final MapEdge edge : module.getEdges()) {
+            paintEdge(edge);
+        }
+        graphics.setTransform(old);
+    }
 
-	private static final double VEICLE_WIDTH = 3;
+    /**
+     * @param center the center
+     */
+    public void paintNodeCursor(final Point2D center) {
+        paintShape(edgeEndPoint, center, SELECTED_NODE_COLOR);
+    }
 
-	private static final double EDGE_WIDTH = 5;
+    /**
+     * @param shape    the shape
+     * @param location the location
+     * @param color    the color
+     */
+    private void paintShape(final Shape shape, final Point2D location, final Color color) {
+        graphics.setColor(color);
+        final AffineTransform tr = graphics.getTransform();
+        graphics.translate(location.getX(), location.getY());
+        graphics.fill(shape);
+        if (borderPainted) {
+            graphics.setStroke(thinStroke);
+            graphics.setColor(reversed ? Color.WHITE : Color.BLACK);
+            graphics.draw(shape);
+        }
+        graphics.setTransform(tr);
+    }
 
-	private static final double NODE_SIZE = 10;
+    /**
+     * @param location the location
+     * @param color    the color
+     */
+    public void paintSite(final Point2D location, final Color color) {
+        paintShape(siteShape, location, color);
+    }
 
-	private Graphics2D graphics;
+    /**
+     * @param center the center
+     */
+    public void paintSiteCursor(final Point2D center) {
+        paintSite(center, SELECTED_SITE_COLOR);
+    }
 
-	private final BasicStroke thinStroke;
+    /**
+     * @param location the location
+     * @param vec      the direction vector
+     * @param color    the color
+     */
+    public void paintVehicle(final Point2D location, final Point2D vec, final Color color) {
+        graphics.setColor(color);
+        final AffineTransform old = graphics.getTransform();
+        final AffineTransform tr = graphics.getTransform();
+        tr.setToTranslation(location.getX(), location.getY());
+        tr.rotate(vec.getX(), vec.getY());
+        graphics.transform(tr);
+        graphics.fill(vehicleShape);
+        if (borderPainted) {
+            graphics.setStroke(thinStroke);
+            graphics.setColor(Color.BLACK);
+            graphics.draw(vehicleShape);
+        }
+        graphics.setTransform(old);
+    }
 
-	private final Line2D line;
+    /**
+     * @param borderPainted the borderPainted to set
+     */
+    public void setBorderPainted(final boolean borderPainted) {
+        this.borderPainted = borderPainted;
+    }
 
-	private final BasicStroke stroke;
+    /**
+     * @param graphics the graphics to set
+     */
+    public void setGraphics(final Graphics2D graphics) {
+        this.graphics = graphics;
+    }
 
-	private boolean borderPainted;
-
-	private final Shape veicleShape;
-
-	private final Shape siteShape;
-
-	private final Shape edgeEndPoint;
-
-	private boolean reversed;
-
-	/**
-	     *
-	     */
-	public Painter() {
-		stroke = new BasicStroke((float) EDGE_WIDTH, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
-		thinStroke = new BasicStroke(0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
-		line = new Line2D.Double();
-		veicleShape = new Rectangle2D.Double(-VEICLE_LENGTH * 0.5, -VEICLE_WIDTH * 0.5, VEICLE_LENGTH, VEICLE_WIDTH);
-		siteShape = new Ellipse2D.Double(-NODE_SIZE * 0.5, -NODE_SIZE * 0.5, NODE_SIZE, NODE_SIZE);
-		edgeEndPoint = new Ellipse2D.Double(-EDGE_WIDTH * 0.5, -EDGE_WIDTH * 0.5, EDGE_WIDTH, EDGE_WIDTH);
-	}
-
-	/**
-	 * @param g
-	 * @param tr
-	 * @param edge
-	 */
-	public void paintCursorEdge(final MapEdge edge) {
-		final Point2D beginLocation = edge.getBeginLocation();
-		final Point2D endLocation = edge.getEndLocation();
-		paintEdge(beginLocation, endLocation, SELECTED_EDGE_COLOR);
-	}
-
-	/**
-	 *
-	 * @param edge
-	 */
-	public void paintCursorEdgeEnds(final MapEdge edge) {
-		final Point2D beginLocation = edge.getBeginLocation();
-		final Point2D endLocation = edge.getEndLocation();
-		paintShape(edgeEndPoint, beginLocation, BEGIN_NODE_COLOR);
-		paintShape(edgeEndPoint, endLocation, END_NODE_COLOR);
-	}
-
-	/**
-	 *
-	 * @param edge
-	 */
-	public void paintEdge(final MapEdge edge) {
-		paintEdge(edge, EDGE_COLOR);
-	}
-
-	/**
-	 *
-	 * @param edge
-	 * @param color
-	 */
-	public void paintEdge(final MapEdge edge, final Color color) {
-		paintEdge(edge.getBeginLocation(), edge.getEndLocation(), color);
-	}
-
-	/**
-	 *
-	 * @param from
-	 * @param to
-	 * @param color
-	 */
-	public void paintEdge(final Point2D from, final Point2D to, final Color color) {
-		line.setLine(from, to);
-		graphics.setColor(color);
-		graphics.setStroke(stroke);
-		graphics.draw(line);
-	}
-
-	/**
-	 *
-	 * @param bound
-	 * @param size
-	 */
-	public void paintGrid(final Rectangle2D bound, final double size) {
-		final double x0 = bound.getMinX();
-		final double x1 = bound.getMaxX();
-		final double y1 = bound.getMaxY();
-		final double y0 = bound.getMinY();
-		final Color minorColor = reversed ? MINOR_GRID_REVERSED_COLOR : MINOR_GRID_COLOR;
-		final Color majorColor = reversed ? MAJOR_GRID_REVERSED_COLOR : MAJOR_GRID_COLOR;
-		graphics.setColor(minorColor);
-		graphics.setStroke(thinStroke);
-		for (double x = Math.floor(x0 / size) * size; x <= x1; x += size) {
-			final double xg = Math.floor(x / size / 10.) * 10. * size;
-			if (x == xg) {
-				graphics.setColor(majorColor);
-			} else {
-				graphics.setColor(minorColor);
-			}
-			line.setLine(x, y0, x, y1);
-			graphics.draw(line);
-		}
-		for (double y = Math.floor(y0 / size) * size; y <= y1; y += size) {
-			final double xg = Math.floor(y / size / 10.) * 10. * size;
-			if (y == xg) {
-				graphics.setColor(majorColor);
-			} else {
-				graphics.setColor(minorColor);
-			}
-			line.setLine(x0, y, x1, y);
-			graphics.draw(line);
-		}
-	}
-
-	/**
-	 * @param module
-	 * @param location
-	 * @param vecx
-	 * @param vecy
-	 */
-	public void paintModule(final Module module, final Point2D location, final double vecx, final double vecy) {
-		final AffineTransform old = graphics.getTransform();
-		final AffineTransform tr = graphics.getTransform();
-		tr.translate(location.getX(), location.getY());
-		tr.rotate(vecx, vecy);
-		graphics.setTransform(tr);
-		for (final MapEdge edge : module.getEdges()) {
-			paintEdge(edge);
-		}
-		graphics.setTransform(old);
-	}
-
-	/**
-	 *
-	 * @param center
-	 */
-	public void paintNodeCursor(final Point2D center) {
-		paintShape(edgeEndPoint, center, SELECTED_NODE_COLOR);
-	}
-
-	/**
-	 *
-	 * @param shape
-	 * @param location
-	 * @param color
-	 */
-	private void paintShape(final Shape shape, final Point2D location, final Color color) {
-		graphics.setColor(color);
-		final AffineTransform tr = graphics.getTransform();
-		graphics.translate(location.getX(), location.getY());
-		graphics.fill(shape);
-		if (borderPainted) {
-			graphics.setStroke(thinStroke);
-			graphics.setColor(reversed ? Color.WHITE : Color.BLACK);
-			graphics.draw(shape);
-		}
-		graphics.setTransform(tr);
-	}
-
-	/**
-	 *
-	 * @param location
-	 * @param color
-	 */
-	public void paintSite(final Point2D location, final Color color) {
-		paintShape(siteShape, location, color);
-	}
-
-	/**
-	 *
-	 * @param center
-	 */
-	public void paintSiteCursor(final Point2D center) {
-		paintSite(center, SELECTED_SITE_COLOR);
-	}
-
-	/**
-	 *
-	 * @param location
-	 * @param vec
-	 * @param color
-	 */
-	public void paintVeicle(final Point2D location, final Point2D vec, final Color color) {
-		graphics.setColor(color);
-		final AffineTransform old = graphics.getTransform();
-		final AffineTransform tr = graphics.getTransform();
-		tr.setToTranslation(location.getX(), location.getY());
-		tr.rotate(vec.getX(), vec.getY());
-		graphics.transform(tr);
-		graphics.fill(veicleShape);
-		if (borderPainted) {
-			graphics.setStroke(thinStroke);
-			graphics.setColor(Color.BLACK);
-			graphics.draw(veicleShape);
-		}
-		graphics.setTransform(old);
-	}
-
-	/**
-	 * @param borderPainted the borderPainted to set
-	 */
-	public void setBorderPainted(final boolean borderPainted) {
-		this.borderPainted = borderPainted;
-	}
-
-	/**
-	 * @param graphics the graphics to set
-	 */
-	public void setGraphics(final Graphics2D graphics) {
-		this.graphics = graphics;
-	}
-
-	/**
-	 * @param reversed the reversed to set
-	 */
-	public void setReversed(final boolean reversed) {
-		this.reversed = reversed;
-	}
+    /**
+     * @param reversed the reversed to set
+     */
+    public void setReversed(final boolean reversed) {
+        this.reversed = reversed;
+    }
 }
