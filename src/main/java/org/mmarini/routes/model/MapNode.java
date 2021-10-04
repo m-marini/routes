@@ -30,6 +30,7 @@ package org.mmarini.routes.model;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author marco.marini@mmarini.org
@@ -54,7 +55,6 @@ public class MapNode implements MapElement, Cloneable {
     public MapNode(final MapNode node) {
         this();
         location.setLocation(node.location);
-
     }
 
     /**
@@ -68,8 +68,8 @@ public class MapNode implements MapElement, Cloneable {
      * @see org.mmarini.routes.model.MapElement#apply(org.mmarini.routes.model.MapElementVisitor)
      */
     @Override
-    public void apply(final MapElementVisitor visitor) {
-        visitor.visit(this);
+    public <T> T apply(final MapElementVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 
     /**
@@ -94,6 +94,14 @@ public class MapNode implements MapElement, Cloneable {
         return priority;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MapNode mapNode = (MapNode) o;
+        return location.equals(mapNode.location);
+    }
+
     /**
      * @param point
      * @return
@@ -114,6 +122,11 @@ public class MapNode implements MapElement, Cloneable {
      */
     public void setLocation(final Point2D location) {
         this.location.setLocation(location);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(location);
     }
 
     /**

@@ -31,6 +31,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
+import java.util.stream.IntStream;
 
 /**
  * @author marco.marini@mmarini.org
@@ -68,13 +69,13 @@ public class Simulator implements Constants {
      *
      */
     public Simulator() {
-        nodes = new ArrayList<MapNode>(0);
-        edges = new ArrayList<MapEdge>(0);
-        sites = new ArrayList<SiteNode>(0);
-        path = new ArrayList<Path>(0);
-        transitTime = new HashMap<SiteNode, Map<SiteNode, Double>>();
-        veicleList = new ArrayList<Vehicle>(0);
-        temporaryList = new ArrayList<Vehicle>(0);
+        nodes = new ArrayList<>(0);
+        edges = new ArrayList<>(0);
+        sites = new ArrayList<>(0);
+        path = new ArrayList<>(0);
+        transitTime = new HashMap<>();
+        veicleList = new ArrayList<>(0);
+        temporaryList = new ArrayList<>(0);
         context = new SimContextImpl();
         context.setSimulator(this);
         random = new ExtendedRandom();
@@ -108,7 +109,7 @@ public class Simulator implements Constants {
      * @param vecy
      */
     public void add(final Module module, final Point2D location, final double vecx, final double vecy) {
-        final Map<MapNode, MapNode> table = new HashMap<MapNode, MapNode>(0);
+        final Map<MapNode, MapNode> table = new HashMap<>(0);
         final AffineTransform tr = new AffineTransform();
         tr.translate(location.getX(), location.getY());
         tr.rotate(vecx, vecy);
@@ -273,7 +274,7 @@ public class Simulator implements Constants {
      */
     public void computeTrafficInfos(final List<TrafficInfo> infos) {
         infos.clear();
-        final Map<SiteNode, TrafficInfo> map = new HashMap<SiteNode, TrafficInfo>();
+        final Map<SiteNode, TrafficInfo> map = new HashMap<>();
         for (final Vehicle v : veicleList) {
             final SiteNode site = (SiteNode) v.getDestination();
             TrafficInfo info = map.get(site);
@@ -335,7 +336,7 @@ public class Simulator implements Constants {
                         if (to instanceof SiteNode && time[i][j] != NO_CONNECTION) {
                             Map<SiteNode, Double> map1 = transitTime.get(from);
                             if (map1 == null) {
-                                map1 = new HashMap<SiteNode, Double>();
+                                map1 = new HashMap<>();
                                 transitTime.put((SiteNode) from, map1);
                             }
                             map1.put((SiteNode) to, time[i][j]);
@@ -349,7 +350,6 @@ public class Simulator implements Constants {
     /**
      * @param begin
      * @param end
-     * @return
      */
     public MapEdge createEdge(final Point2D begin, final Point2D end) {
         MapNode bnode = findNode(begin, DEFAULT_PRECISION);
@@ -412,15 +412,22 @@ public class Simulator implements Constants {
      * @param profile
      */
     public void createRandomMap(final MapProfile profile) {
+        int n = profile.getSiteCount();
+        double mapWidth = profile.getWidth();
+        double mapHeight = profile.getHeight();
+        double[] xr = IntStream.range(0, n).mapToDouble(i -> random.nextDouble()).toArray();
+        double[] yr = IntStream.range(0, n).mapToDouble(i -> random.nextDouble()).toArray();
+        double x0 = Arrays.stream(xr).min().orElse(0);
+        double x1 = Arrays.stream(xr).max().orElse(1);
+        double y0 = Arrays.stream(yr).min().orElse(0);
+        double y1 = Arrays.stream(yr).max().orElse(1);
+        double[] xc = Arrays.stream(xr).map(x -> (x - x0) * mapWidth / (x1 - x0)).toArray();
+        double[] yc = Arrays.stream(yr).map(y -> (y - y0) * mapHeight / (y1 - y0)).toArray();
+
         clear();
-        final int n = profile.getSiteCount();
-        final double mapWidth = profile.getWidth();
-        final double mapHeight = profile.getHeight();
         for (int i = 0; i < n; ++i) {
             final SiteNode site = new SiteNode();
-            final double x = random.nextDouble() * mapWidth;
-            final double y = random.nextDouble() * mapHeight;
-            site.setLocation(x, y);
+            site.setLocation(xc[i], yc[i]);
             add(site);
         }
         randomize(profile);
@@ -466,7 +473,6 @@ public class Simulator implements Constants {
     /**
      * @param begin
      * @param end
-     * @return
      */
     private MapEdge findEdge(final MapNode begin, final MapNode end) {
         return edgeMap[getNodeIndex(begin)][getNodeIndex(end)];
@@ -475,7 +481,6 @@ public class Simulator implements Constants {
     /**
      * @param point
      * @param precision
-     * @return
      */
     public MapElement findElement(final Point2D point, final double precision) {
         MapElement element = findNode(point, precision);
@@ -495,7 +500,6 @@ public class Simulator implements Constants {
     /**
      * @param from
      * @param to
-     * @return
      */
     public MapEdge findNextEdge(final MapNode from, final MapNode to) {
         final int i = getNodeIndex(from);
@@ -520,7 +524,6 @@ public class Simulator implements Constants {
     /**
      * @param point
      * @param precision
-     * @return
      */
     public MapNode findNode(final Point2D point, final double precision) {
         double dist = precision * precision;
@@ -538,7 +541,6 @@ public class Simulator implements Constants {
     /**
      * @param source
      * @param dest
-     * @return
      */
     private double getExpectedTime(final SiteNode source, final SiteNode dest) {
         final Map<SiteNode, Double> map = transitTime.get(source);
@@ -566,15 +568,12 @@ public class Simulator implements Constants {
         this.frequence = frequence;
     }
 
-    /**
-     * @see org.mmarini.routes.model.RouteHandler#getMapEdges()
-     */
     public List<MapEdge> getMapEdges() {
         return edges;
     }
 
     /**
-     * @return
+     *
      */
     public List<MapNode> getMapNodes() {
         return nodes;
@@ -582,7 +581,6 @@ public class Simulator implements Constants {
 
     /**
      * @param index
-     * @return
      */
     private MapNode getNode(final int index) {
         return nodes.get(index);
@@ -590,36 +588,29 @@ public class Simulator implements Constants {
 
     /**
      * @param site
-     * @return
      */
     public int getNodeIndex(final MapNode site) {
         return nodes.indexOf(site);
     }
 
     /**
-     * @return
+     *
      */
     public List<Path> getPaths() {
         return path;
     }
 
     /**
-     * @return
+     *
      */
     private int getSiteCount() {
         return sites.size();
     }
 
-    /**
-     * @see org.mmarini.routes.model.RouteHandler#getSiteNodes()
-     */
     public List<SiteNode> getSiteNodes() {
         return sites;
     }
 
-    /**
-     * @see org.mmarini.routes.model.RouteHandler#getVeicles()
-     */
     public Iterable<Vehicle> getVeicles() {
         return veicleList;
     }
@@ -655,7 +646,7 @@ public class Simulator implements Constants {
      *
      */
     public void optimizeNodes() {
-        final List<MapNode> nodes = new ArrayList<MapNode>(0);
+        final List<MapNode> nodes = new ArrayList<>(0);
         final int n = previousMatrix.length;
         for (int i = 0; i < n; ++i) {
             boolean connected = false;
@@ -757,7 +748,7 @@ public class Simulator implements Constants {
      * @param node
      */
     private void removeEdgeByNode(final MapNode node) {
-        final List<MapEdge> list = new ArrayList<MapEdge>(0);
+        final List<MapEdge> list = new ArrayList<>(0);
         for (final MapEdge edge : edges) {
             if (edge.getBegin().equals(node) || edge.getEnd().equals(node)) {
                 list.add(edge);
@@ -772,12 +763,7 @@ public class Simulator implements Constants {
      * @param site
      */
     private void removePathForSite(final SiteNode site) {
-        for (final Iterator<Path> it = path.iterator(); it.hasNext(); ) {
-            final Path path = it.next();
-            if (site.equals(path.getDeparture()) || site.equals(path.getDestination())) {
-                it.remove();
-            }
-        }
+        path.removeIf(path -> site.equals(path.getDeparture()) || site.equals(path.getDestination()));
     }
 
     /**
@@ -832,7 +818,6 @@ public class Simulator implements Constants {
 
     /**
      * @param site
-     * @return
      */
     public MapNode transformToNode(final SiteNode site) {
         final MapNode node = new MapNode();
@@ -847,7 +832,6 @@ public class Simulator implements Constants {
 
     /**
      * @param node
-     * @return
      */
     public SiteNode transformToSite(final MapNode node) {
         final SiteNode site = siteTemplate.createClone();

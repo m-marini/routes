@@ -36,12 +36,12 @@ import org.mmarini.routes.model.SiteNode;
 
 import javax.swing.*;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * @author marco.marini@mmarini.org
  */
 public class ExplorerPane extends JTabbedPane {
-
     private static final int EDGE_TAB_INDEX = 1;
     private static final int NODE_TAB_INDEX = 0;
     private static final long serialVersionUID = 1L;
@@ -101,14 +101,14 @@ public class ExplorerPane extends JTabbedPane {
 
     /**
      * @param model list model
-     * @param item  item
+     * @param test  predicate
      * @param <T>   item type
      */
-    private <T> int findIndex(ListModel<T> model, T item) {
+    private <T> int findIndex(ListModel<T> model, Predicate<T> test) {
         int idx = -1;
         final int n = model.getSize();
         for (int i = 0; i < n; i++) {
-            if (model.getElementAt(i).equals(item)) {
+            if (test.test(model.getElementAt(i))) {
                 idx = i;
                 break;
             }
@@ -156,7 +156,7 @@ public class ExplorerPane extends JTabbedPane {
      */
     public void setSelectedEdge(EdgeView edge) {
         assert edge != null;
-        final int idx = findIndex(getEdgeListModel(), edge);
+        final int idx = findIndex(getEdgeListModel(), view -> view.equals(edge));
         if (idx >= 0) {
             edgeJList.setSelectedIndex(idx);
             setSelectedIndex(EDGE_TAB_INDEX);
@@ -178,7 +178,7 @@ public class ExplorerPane extends JTabbedPane {
      */
     public void setSelectedNode(final NodeView node) {
         assert node != null;
-        int idx = findIndex(getNodeListModel(), node);
+        int idx = findIndex(getNodeListModel(), view -> view.equals(node));
         if (idx >= 0) {
             nodeJList.setSelectedIndex(idx);
             setSelectedIndex(NODE_TAB_INDEX);

@@ -272,7 +272,7 @@ public class UIController {
         Optional<MapNode> mapNode = chooseNode();
         mapNode.ifPresent(node -> {
             handler.changeBeginNode(edge, node);
-            refresh();
+            refreshTopology();
             mapViewPane.selectSelector();
             mapViewPane.reset();
             status.getEdgeViews(edge).ifPresent(mapElementPane::setSelectedEdge);
@@ -287,7 +287,7 @@ public class UIController {
     public void changeEndNode(final MapEdge edge) {
         chooseNode().ifPresent(node -> {
             handler.changeEndNode(edge, node);
-            refresh();
+            refreshTopology();
             mapViewPane.selectSelector();
             mapViewPane.reset();
             mapViewPane.setSelectedEdge(edge);
@@ -317,7 +317,7 @@ public class UIController {
      */
     private void createEdge(RouteMap.EdgeCreation edge) {
         final MapEdge edge1 = handler.createEdge(edge.getBegin(), edge.getEnd());
-        refresh();
+        refreshTopology();
         mapViewPane.reset();
         mapViewPane.setSelectedEdge(edge1);
         status.getEdgeViews(edge1).ifPresent(mapElementPane::setSelectedEdge);
@@ -404,7 +404,7 @@ public class UIController {
                 moduleParameters.getLocation(),
                 moduleParameters.getDirection().getX(),
                 moduleParameters.getDirection().getY());
-        refresh();
+        refreshTopology();
         mapViewPane.reset();
         mapViewPane.selectSelector();
         mainFrame.repaint();
@@ -433,20 +433,23 @@ public class UIController {
      * @param mapElement the selected element
      */
     private void handleElementSelection(MapElement mapElement) {
-        mapElement.apply(new MapElementVisitor() {
+        mapElement.apply(new MapElementVisitor<Void>() {
             @Override
-            public void visit(MapEdge edge) {
+            public Void visit(MapEdge edge) {
                 handleEdgeSelection1(edge);
+                return null;
             }
 
             @Override
-            public void visit(MapNode node) {
+            public Void visit(MapNode node) {
                 handleNodeSelection(node);
+                return null;
             }
 
             @Override
-            public void visit(SiteNode node) {
+            public Void visit(SiteNode node) {
                 handleSiteSelection1(node);
+                return null;
             }
         });
     }
@@ -498,7 +501,7 @@ public class UIController {
         mapViewPane.setModule(modules);
         mapViewPane.reset();
         createFlows();
-        refresh();
+        refreshTopology();
     }
 
     /**
@@ -520,7 +523,7 @@ public class UIController {
      */
     private void newMap() {
         handler.clearMap();
-        refresh();
+        refreshTopology();
         mapViewPane.selectSelector();
         mapViewPane.reset();
         mapViewPane.clearSelection();
@@ -539,7 +542,7 @@ public class UIController {
             stopSimulation();
             final MapProfile profile = mapProfilePane.getProfile();
             handler.createRandomMap(profile);
-            refresh();
+            refreshTopology();
             mapViewPane.selectSelector();
             mapViewPane.reset();
             mapViewPane.clearSelection();
@@ -575,7 +578,7 @@ public class UIController {
                     logger.error(e.getMessage(), e);
                     showError(e);
                 }
-                refresh();
+                refreshTopology();
                 mapViewPane.reset();
                 startSimulation();
             }
@@ -594,7 +597,7 @@ public class UIController {
             final boolean optimizeNodes = optimizePane.isOptimizeNodes();
             stopSimulation();
             handler.optimize(optimizeNodes, optimizeSpeed, speedLimit);
-            refresh();
+            refreshTopology();
             mapViewPane.reset();
             startSimulation();
         }
@@ -626,7 +629,7 @@ public class UIController {
             stopSimulation();
             final MapProfile profile = mapProfilePane.getProfile();
             handler.randomize(profile);
-            refresh();
+            refreshTopology();
             mapViewPane.selectSelector();
             mapViewPane.reset();
             mainFrame.repaint();
@@ -638,6 +641,14 @@ public class UIController {
      *
      */
     private void refresh() {
+        this.status = create(handler);
+        routeMap.setStatus(status);
+    }
+
+    /**
+     *
+     */
+    private void refreshTopology() {
         this.status = create(handler);
         final DefaultListModel<EdgeView> nl = explorerPane.getEdgeListModel();
         nl.removeAllElements();
@@ -653,7 +664,7 @@ public class UIController {
      */
     public void remove(final MapEdge edge) {
         handler.remove(edge);
-        refresh();
+        refreshTopology();
         mapViewPane.clearSelection();
         mapElementPane.clearPanel();
         mainFrame.repaint();
@@ -664,7 +675,7 @@ public class UIController {
      */
     public void remove(final MapNode node) {
         handler.remove(node);
-        refresh();
+        refreshTopology();
         mapViewPane.clearSelection();
         mapElementPane.clearPanel();
         mainFrame.repaint();
@@ -864,7 +875,7 @@ public class UIController {
      */
     public void transformToNode(final SiteNode site) {
         final MapNode node = handler.transformToNode(site);
-        refresh();
+        refreshTopology();
         mapViewPane.reset();
         mapViewPane.setSelectedNode(node);
         status.getNodeView(node).ifPresent(mapElementPane::setSelectedNode);
@@ -876,7 +887,7 @@ public class UIController {
      */
     public void transformToSite(final MapNode node) {
         final SiteNode site = handler.transformToSite(node);
-        refresh();
+        refreshTopology();
         mapViewPane.reset();
         mapViewPane.setSelectedSite(site);
         status.getNodeView(site).ifPresent(mapElementPane::setSelectedSite);

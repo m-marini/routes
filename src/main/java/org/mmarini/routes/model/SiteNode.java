@@ -52,8 +52,8 @@ public class SiteNode extends MapNode {
      * @see org.mmarini.routes.model.MapElement#apply(org.mmarini.routes.model.MapElementVisitor)
      */
     @Override
-    public void apply(final MapElementVisitor visitor) {
-        visitor.visit(this);
+    public <T> T apply(final MapElementVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 
     /**

@@ -53,12 +53,12 @@ public class ScrollMap extends JScrollPane {
     private static final Insets LEGEND_INSETS = new Insets(3, 3, 3, 3);
 
     private final RouteMap routeMap;
-    private final Point point;
-    private final Point2D mapPoint;
     private final Rectangle rect;
     private final String[] pointLegendPattern;
     private final String[] gridLegendPattern;
     private final String[] edgeLegendPattern;
+    private Point point;
+    private Point2D mapPoint;
 
     /**
      * @param routeMap the route map
@@ -79,7 +79,7 @@ public class ScrollMap extends JScrollPane {
      * @param location the location
      */
     private void centerTo(final Point2D location) {
-        routeMap.computeViewLocation(point, location);
+        point = routeMap.computeViewLocation(location);
         final JViewport viewport = getViewport();
         final Rectangle rec = viewport.getVisibleRect();
         point.x -= rec.width / 2;
@@ -175,7 +175,8 @@ public class ScrollMap extends JScrollPane {
         /*
          * Top right visible point
          */
-        routeMap.computeMapLocation(mapPoint, rect.getLocation());
+        mapPoint = routeMap.computeMapLocation(rect.getLocation());
+//        mapPoint.setLocation(routeMap.computeMapLocation(rect.getLocation()));
         final double x0 = mapPoint.getX();
         final double y0 = mapPoint.getY();
 
@@ -184,7 +185,8 @@ public class ScrollMap extends JScrollPane {
          */
         point.x = (int) rect.getMaxX();
         point.y = (int) rect.getMaxY();
-        routeMap.computeMapLocation(mapPoint, point);
+        mapPoint = routeMap.computeMapLocation(point);
+//        mapPoint.setLocation(routeMap.computeMapLocation(point));
         final double x1 = mapPoint.getX();
         final double y1 = mapPoint.getY();
 
@@ -254,7 +256,7 @@ public class ScrollMap extends JScrollPane {
      */
     private boolean isShown(final MapNode node) {
         final Rectangle rect = getViewport().getViewRect();
-        routeMap.computeViewLocation(point, node.getLocation());
+        point = routeMap.computeViewLocation(node.getLocation());
         return rect.contains(point);
     }
 
@@ -293,7 +295,8 @@ public class ScrollMap extends JScrollPane {
          */
         final Point pt = routeMap.getMousePosition();
         if (pt != null) {
-            routeMap.computeMapLocation(mapPoint, pt);
+            mapPoint = routeMap.computeMapLocation(pt);
+//            mapPoint.setLocation(routeMap.computeMapLocation(pt));
         }
         /*
          * Compute the pattern
@@ -355,9 +358,9 @@ public class ScrollMap extends JScrollPane {
         final Point pt = viewport.getViewPosition();
         final int dx = ref.x - pt.x;
         final int dy = ref.y - pt.y;
-        routeMap.computeMapLocation(mapPoint, ref);
+        mapPoint = routeMap.computeMapLocation(ref);
         routeMap.setScale(scale);
-        routeMap.computeViewLocation(point, mapPoint);
+        point = routeMap.computeViewLocation(mapPoint);
         point.x -= dx;
         point.y -= dy;
         viewport.setViewPosition(point);
@@ -382,7 +385,7 @@ public class ScrollMap extends JScrollPane {
             final Point2D e = edge.getEndLocation();
             final double x = (b.getX() + e.getX()) * 0.5;
             final double y = (b.getY() + e.getY()) * 0.5;
-            mapPoint.setLocation(x, y);
+            mapPoint = new Point2D.Double(x, y);
             centerTo(mapPoint);
         }
     }

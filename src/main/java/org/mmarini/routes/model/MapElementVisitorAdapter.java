@@ -35,7 +35,7 @@ package org.mmarini.routes.model;
  * @author Marco
  *
  */
-public class MapElementVisitorAdapter implements MapElementVisitor {
+public class MapElementVisitorAdapter<T> implements MapElementVisitor<T> {
 
     /**
      *
@@ -43,24 +43,18 @@ public class MapElementVisitorAdapter implements MapElementVisitor {
     public MapElementVisitorAdapter() {
     }
 
-    /**
-     * @see org.mmarini.routes.model.MapElementVisitor#visit(org.mmarini.routes.model.MapEdge)
-     */
     @Override
-    public void visit(final MapEdge edge) {
+    public T visit(final MapEdge edge) {
+        return null;
     }
 
-    /**
-     * @see org.mmarini.routes.model.MapElementVisitor#visit(org.mmarini.routes.model.MapNode)
-     */
     @Override
-    public void visit(final MapNode node) {
+    public T visit(final MapNode node) {
+        return null;
     }
 
-    /**
-     * @see org.mmarini.routes.model.MapElementVisitor#visit(org.mmarini.routes.model.SiteNode)
-     */
     @Override
-    public void visit(final SiteNode node) {
+    public T visit(final SiteNode node) {
+        return null;
     }
 }
