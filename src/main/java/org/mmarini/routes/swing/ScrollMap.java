@@ -59,6 +59,8 @@ public class ScrollMap extends JScrollPane {
     private final String[] edgeLegendPattern;
     private Point point;
     private Point2D mapPoint;
+    private double fps;
+    private long numVehicles;
 
     /**
      * @param routeMap the route map
@@ -95,7 +97,7 @@ public class ScrollMap extends JScrollPane {
     /**
      * @param text the text
      */
-    private void computeRect(final String[] text) {
+    private void computeRect(final String... text) {
         final FontMetrics fm = getFontMetrics(getFont());
         rect.x = LEGEND_LOCATION.x;
         rect.y = LEGEND_LOCATION.y;
@@ -161,7 +163,6 @@ public class ScrollMap extends JScrollPane {
                 scaleToFit();
             }
         }));
-
 
         setDoubleBuffered(true);
         setOpaque(false);
@@ -286,6 +287,28 @@ public class ScrollMap extends JScrollPane {
         paintInfo(g);
     }
 
+    private void paintFps(Graphics g) {
+        final FontMetrics fm = getFontMetrics(getFont());
+        String[] msg = new String[]{
+                String.format("FPS: %.2f", fps),
+                String.format("Vehicles: %d", this.numVehicles)
+        };
+        computeRect(msg);
+        rect.x = LEGEND_LOCATION.x;
+        rect.y = getHeight() - getInsets().bottom - rect.height - fm.getHeight() - LEGEND_INSETS.bottom - LEGEND_INSETS.bottom;
+        g.setColor(Color.WHITE);
+        g.fillRect(rect.x, rect.y, rect.width, rect.height);
+        g.setColor(Color.BLACK);
+        g.drawRect(rect.x, rect.y, rect.width, rect.height);
+        final int x = rect.x + LEGEND_INSETS.left;
+        final int fh = fm.getHeight();
+        int y = rect.y + LEGEND_INSETS.top + fh - fm.getDescent();
+        for (final String text : msg) {
+            g.drawString(text, x, y);
+            y += fh;
+        }
+    }
+
     /**
      * @param g graphics
      */
@@ -319,6 +342,7 @@ public class ScrollMap extends JScrollPane {
         ).toArray(String[]::new);
 
         paintMessageBox(g, text);
+        paintFps(g);
     }
 
     /**
@@ -397,6 +421,17 @@ public class ScrollMap extends JScrollPane {
         if (!isShown(node)) {
             centerTo(node.getLocation());
         }
+    }
+
+    /**
+     * @param fps the frames per second
+     */
+    public void setFps(double fps) {
+        this.fps = fps;
+    }
+
+    public void setNumVehicles(long numVehicles) {
+        this.numVehicles = numVehicles;
     }
 
     /**

@@ -63,7 +63,9 @@ import static org.mmarini.routes.swing.StatusView.DEFAULT_NODE_COLOR;
  */
 public class UIController {
 
-    public static final float NANOS = 1e-9f;
+    public static final float SECS_PER_NANO = 1e-9f;
+    public static final long MAX_FPS_MILLIS = 300l;
+    private static final double SECS_PER_MILLIS = 1e-3;
     private static final Logger logger = LoggerFactory.getLogger(UIController.class);
     private static final int TIME_INTERVAL = 1;
     private static final double NODE_SATURATION = 1;
@@ -221,17 +223,21 @@ public class UIController {
     private final EdgePane edgePane;
     private final NodePane nodePane;
     private final SitePane sitePane;
+    private final ScrollMap scrollMap;
     private long start;
     private double speedSimulation;
     private boolean running;
     private StatusView status;
+    private long frameStartIstant;
+    private long frameCount;
+    private double fps;
 
     /**
      *
      */
     public UIController() {
         routeMap = new RouteMap();
-        ScrollMap scrollMap = new ScrollMap(this.routeMap);
+        this.scrollMap = new ScrollMap(this.routeMap);
         mapViewPane = new MapViewPane(scrollMap);
         explorerPane = new ExplorerPane();
 
@@ -608,13 +614,23 @@ public class UIController {
      */
     private void performTimeTick() {
         final long now = System.nanoTime();
+        long nowMs = System.currentTimeMillis();
         long interval = now - start;
         start = now;
         if (interval > 0) {
-            handler.setTimeInterval(interval * NANOS * speedSimulation);
+            handler.setTimeInterval(interval * SECS_PER_NANO * speedSimulation);
             handler.performSimulation();
             refresh();
             mapViewPane.repaint();
+            // Computes fps
+            frameCount++;
+            long frameElaps = nowMs - frameStartIstant;
+            if (frameElaps > MAX_FPS_MILLIS) {
+                fps = (double) frameCount / frameElaps / SECS_PER_MILLIS;
+                frameCount = 0;
+                frameStartIstant = nowMs;
+                scrollMap.setFps(fps);
+            }
         }
     }
 
@@ -643,6 +659,7 @@ public class UIController {
     private void refresh() {
         this.status = create(handler);
         routeMap.setStatus(status);
+        scrollMap.setNumVehicles(status.getVehicles().size());
     }
 
     /**
@@ -845,11 +862,12 @@ public class UIController {
      *
      */
     private void startSimulation() {
-        if (running) {
-            start = System.nanoTime();
-        } else {
+        if (!running) {
             running = true;
+            frameCount = 0;
+            frameStartIstant = System.currentTimeMillis();
         }
+        start = System.nanoTime();
     }
 
     /**
