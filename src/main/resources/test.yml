@@ -1,224 +1,255 @@
 ---
 default:
-  speedLimit: 36.71294
-  frequence: 1
+  frequence: 1.0
 sites:
-  Node_0:
-    x: 250.0
-    y: 0.0
-  Node_1:
-    x: 0.0
-    y: 250.0
-  Node_2:
-    x: 500.0
-    y: 250.0
-  Node_3:
-    x: 250.0
-    y: 500.0
-paths:
-  - departure: Node_0
-    destination: Node_1
-    weight: 1
-  - departure: Node_0
-    destination: Node_2
-    weight: 1
-  - departure: Node_0
-    destination: Node_3
-    weight: 1
-  - departure: Node_1
-    destination: Node_0
-    weight: 1
-  - departure: Node_1
-    destination: Node_2
-    weight: 1
-  - departure: Node_1
-    destination: Node_3
-    weight: 1
-  - departure: Node_2
-    destination: Node_0
-    weight: 1
-  - departure: Node_2
-    destination: Node_1
-    weight: 1
-  - departure: Node_2
-    destination: Node_3
-    weight: 1
-  - departure: Node_3
-    destination: Node_1
-    weight: 1
-  - departure: Node_3
-    destination: Node_2
-    weight: 1
-  - departure: Node_3
-    destination: Node_0
-    weight: 1
-nodes:
   Node_4:
-    x: 245.0
-    y: 238.0
+    x: 500.0
+    "y": 250.0
   Node_5:
-    x: 238.0
-    y: 245.0
+    x: 250.0
+    "y": 500.0
   Node_6:
-    x: 238.0
-    y: 255.0
+    x: 0.0
+    "y": 250.0
   Node_7:
-    x: 245.0
-    y: 262.0
+    x: 250.0
+    "y": 0.0
+paths:
+- departure: "Node_7"
+  destination: "Node_6"
+  weight: 1.0
+- departure: "Node_7"
+  destination: "Node_4"
+  weight: 1.0
+- departure: "Node_7"
+  destination: "Node_5"
+  weight: 1.0
+- departure: "Node_6"
+  destination: "Node_7"
+  weight: 1.0
+- departure: "Node_6"
+  destination: "Node_4"
+  weight: 1.0
+- departure: "Node_6"
+  destination: "Node_5"
+  weight: 1.0
+- departure: "Node_4"
+  destination: "Node_7"
+  weight: 1.0
+- departure: "Node_4"
+  destination: "Node_6"
+  weight: 1.0
+- departure: "Node_4"
+  destination: "Node_5"
+  weight: 1.0
+- departure: "Node_5"
+  destination: "Node_6"
+  weight: 1.0
+- departure: "Node_5"
+  destination: "Node_4"
+  weight: 1.0
+- departure: "Node_5"
+  destination: "Node_7"
+  weight: 1.0
+nodes:
   Node_8:
-    x: 255.0
-    y: 262.0
+    x: 250.0
+    "y": 232.0
   Node_9:
-    x: 262.0
-    y: 255.0
+    x: 237.0
+    "y": 237.0
   Node_10:
-    x: 262.0
-    y: 245.0
+    x: 232.0
+    "y": 250.0
   Node_11:
-    x: 255.0
-    y: 238.0
+    x: 237.0
+    "y": 263.0
   Node_12:
-    x: 252.0
-    y: 230.0
+    x: 250.0
+    "y": 268.0
   Node_13:
-    x: 252.0
-    y: 10.0
+    x: 263.0
+    "y": 263.0
   Node_14:
-    x: 248.0
-    y: 10.0
+    x: 268.0
+    "y": 250.0
   Node_15:
-    x: 248.0
-    y: 230.0
+    x: 247.0
+    "y": 226.0
   Node_16:
-    x: 270.0
-    y: 252.0
+    x: 263.0
+    "y": 237.0
   Node_17:
-    x: 490.0
-    y: 252.0
+    x: 14.0
+    "y": 253.0
   Node_18:
-    x: 490.0
-    y: 248.0
+    x: 274.0
+    "y": 253.0
   Node_19:
-    x: 270.0
-    y: 248.0
+    x: 226.0
+    "y": 253.0
   Node_20:
-    x: 248.0
-    y: 270.0
+    x: 486.0
+    "y": 253.0
   Node_21:
-    x: 248.0
-    y: 490.0
+    x: 486.0
+    "y": 247.0
   Node_22:
-    x: 252.0
-    y: 490.0
+    x: 274.0
+    "y": 247.0
   Node_23:
-    x: 252.0
-    y: 270.0
+    x: 247.0
+    "y": 274.0
   Node_24:
-    x: 230.0
-    y: 248.0
+    x: 247.0
+    "y": 486.0
   Node_25:
-    x: 10.0
-    y: 248.0
+    x: 253.0
+    "y": 486.0
   Node_26:
-    x: 10.0
-    y: 252.0
+    x: 14.0
+    "y": 247.0
   Node_27:
-    x: 230.0
-    y: 252.0
+    x: 253.0
+    "y": 226.0
+  Node_28:
+    x: 253.0
+    "y": 274.0
+  Node_29:
+    x: 253.0
+    "y": 14.0
+  Node_30:
+    x: 247.0
+    "y": 14.0
+  Node_31:
+    x: 226.0
+    "y": 247.0
 edges:
-  - start: Node_4
-    end: Node_5
-    speedLimit: 35.63818
-    priority: 1
-  - start: Node_5
-    end: Node_6
-    speedLimit: 36.0
-    priority: 1
-  - start: Node_6
-    end: Node_7
-    speedLimit: 35.63818
-    priority: 1
-  - start: Node_7
-    end: Node_8
-    speedLimit: 36.0
-    priority: 1
-  - start: Node_8
-    end: Node_9
-    speedLimit: 35.63818
-    priority: 1
-  - start: Node_9
-    end: Node_10
-    speedLimit: 36.0
-    priority: 1
-  - start: Node_10
-    end: Node_11
-    speedLimit: 35.63818
-    priority: 1
-  - start: Node_11
-    end: Node_4
-    speedLimit: 36.0
-    priority: 1
-  - start: Node_11
-    end: Node_12
-    speedLimit: 30.758411
-  - start: Node_12
-    end: Node_13
-    speedLimit: 130.0
-  - start: Node_13
-    end: Node_0
-  - start: Node_0
-    end: Node_14
-  - start: Node_14
-    end: Node_15
-    speedLimit: 130.0
-  - start: Node_15
-    end: Node_4
-    speedLimit: 30.758411
-  - start: Node_9
-    end: Node_16
-    speedLimit: 30.758411
-  - start: Node_16
-    end: Node_17
-    speedLimit: 130.0
-  - start: Node_17
-    end: Node_2
-  - start: Node_2
-    end: Node_18
-  - start: Node_18
-    end: Node_19
-    speedLimit: 130.0
-  - start: Node_19
-    end: Node_10
-    speedLimit: 30.758411
-  - start: Node_7
-    end: Node_20
-    speedLimit: 30.758411
-  - start: Node_20
-    end: Node_21
-    speedLimit: 130.0
-  - start: Node_21
-    end: Node_3
-  - start: Node_3
-    end: Node_22
-  - start: Node_22
-    end: Node_23
-    speedLimit: 130.0
-  - start: Node_23
-    end: Node_8
-    speedLimit: 30.758411
-  - start: Node_5
-    end: Node_24
-    speedLimit: 30.758411
-  - start: Node_24
-    end: Node_25
-    speedLimit: 130.0
-  - start: Node_25
-    end: Node_1
-  - start: Node_1
-    end: Node_26
-  - start: Node_26
-    end: Node_27
-    speedLimit: 130.0
-  - start: Node_27
-    end: Node_6
-    speedLimit: 30.758411
+- start: "Node_27"
+  end: "Node_29"
+  priority: 0
+  speedLimit: 130.000003443824
+- start: "Node_29"
+  end: "Node_7"
+  priority: 0
+  speedLimit: 51.544155827794874
+- start: "Node_7"
+  end: "Node_30"
+  priority: 0
+  speedLimit: 51.544155827794874
+- start: "Node_30"
+  end: "Node_15"
+  priority: 0
+  speedLimit: 130.000003443824
+- start: "Node_18"
+  end: "Node_20"
+  priority: 0
+  speedLimit: 130.000003443824
+- start: "Node_20"
+  end: "Node_4"
+  priority: 0
+  speedLimit: 51.544155827794874
+- start: "Node_4"
+  end: "Node_21"
+  priority: 0
+  speedLimit: 51.544155827794874
+- start: "Node_21"
+  end: "Node_22"
+  priority: 0
+  speedLimit: 130.000003443824
+- start: "Node_23"
+  end: "Node_24"
+  priority: 0
+  speedLimit: 130.000003443824
+- start: "Node_24"
+  end: "Node_5"
+  priority: 0
+  speedLimit: 51.544155827794874
+- start: "Node_5"
+  end: "Node_25"
+  priority: 0
+  speedLimit: 51.544155827794874
+- start: "Node_25"
+  end: "Node_28"
+  priority: 0
+  speedLimit: 130.000003443824
+- start: "Node_31"
+  end: "Node_26"
+  priority: 0
+  speedLimit: 130.000003443824
+- start: "Node_26"
+  end: "Node_6"
+  priority: 0
+  speedLimit: 51.544155827794874
+- start: "Node_6"
+  end: "Node_17"
+  priority: 0
+  speedLimit: 51.544155827794874
+- start: "Node_17"
+  end: "Node_19"
+  priority: 0
+  speedLimit: 130.000003443824
+- start: "Node_8"
+  end: "Node_9"
+  priority: 1
+  speedLimit: 50.14219779786283
+- start: "Node_9"
+  end: "Node_10"
+  priority: 1
+  speedLimit: 50.14219779786283
+- start: "Node_10"
+  end: "Node_11"
+  priority: 1
+  speedLimit: 50.14219779786283
+- start: "Node_11"
+  end: "Node_12"
+  priority: 1
+  speedLimit: 50.14219779786283
+- start: "Node_12"
+  end: "Node_13"
+  priority: 1
+  speedLimit: 50.14219779786283
+- start: "Node_13"
+  end: "Node_14"
+  priority: 1
+  speedLimit: 50.14219779786283
+- start: "Node_14"
+  end: "Node_16"
+  priority: 1
+  speedLimit: 50.14219779786283
+- start: "Node_16"
+  end: "Node_8"
+  priority: 1
+  speedLimit: 50.14219779786283
+- start: "Node_15"
+  end: "Node_9"
+  priority: 0
+  speedLimit: 53.517847490346625
+- start: "Node_9"
+  end: "Node_31"
+  priority: 0
+  speedLimit: 53.517847490346625
+- start: "Node_19"
+  end: "Node_11"
+  priority: 0
+  speedLimit: 53.517847490346625
+- start: "Node_11"
+  end: "Node_23"
+  priority: 0
+  speedLimit: 53.517847490346625
+- start: "Node_28"
+  end: "Node_13"
+  priority: 0
+  speedLimit: 53.517847490346625
+- start: "Node_13"
+  end: "Node_18"
+  priority: 0
+  speedLimit: 53.517847490346625
+- start: "Node_22"
+  end: "Node_16"
+  priority: 0
+  speedLimit: 53.517847490346625
+- start: "Node_16"
+  end: "Node_27"
+  priority: 0
+  speedLimit: 53.517847490346625

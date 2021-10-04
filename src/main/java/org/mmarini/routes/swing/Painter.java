@@ -33,6 +33,8 @@ import org.mmarini.routes.model.Module;
 import java.awt.*;
 import java.awt.geom.*;
 
+import static org.mmarini.routes.model.Constants.VEICLE_LENGTH;
+
 /**
  *
  */
@@ -48,7 +50,6 @@ public class Painter {
     private static final Color MINOR_GRID_REVERSED_COLOR = new Color(0x101010);
     private static final Color SELECTED_NODE_COLOR = Color.RED;
     private static final Color SELECTED_EDGE_COLOR = Color.YELLOW;
-    private static final double VEHICLE_LENGTH = 5;
     private static final double VEHICLE_WIDTH = 3;
     private static final double EDGE_WIDTH = 5;
     private static final double NODE_SIZE = 10;
@@ -82,7 +83,7 @@ public class Painter {
         stroke = new BasicStroke((float) EDGE_WIDTH, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
         thinStroke = new BasicStroke(0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
         line = new Line2D.Double();
-        vehicleShape = new Rectangle2D.Double(-VEHICLE_LENGTH * 0.5, -VEHICLE_WIDTH * 0.5, VEHICLE_LENGTH, VEHICLE_WIDTH);
+        vehicleShape = new Rectangle2D.Double(-VEICLE_LENGTH * 0.5, -VEHICLE_WIDTH * 0.5, VEICLE_LENGTH, VEHICLE_WIDTH);
         siteShape = new Ellipse2D.Double(-NODE_SIZE * 0.5, -NODE_SIZE * 0.5, NODE_SIZE, NODE_SIZE);
         edgeEndPoint = new Ellipse2D.Double(-EDGE_WIDTH * 0.5, -EDGE_WIDTH * 0.5, EDGE_WIDTH, EDGE_WIDTH);
     }

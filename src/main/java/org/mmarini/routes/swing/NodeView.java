@@ -30,6 +30,7 @@ package org.mmarini.routes.swing;
 import org.mmarini.routes.model.MapNode;
 
 import java.awt.*;
+import java.util.Objects;
 
 /**
  * @author marco.marini@mmarini.org
@@ -45,9 +46,20 @@ public class NodeView {
      * @param color the node color
      */
     public NodeView(final String name, final MapNode node, Color color) {
+        assert node != null;
+        assert name != null;
+        assert color != null;
         this.node = node;
         this.name = name;
         this.color = color;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        NodeView nodeView = (NodeView) o;
+        return node.equals(nodeView.node);
     }
 
     /**
@@ -72,8 +84,12 @@ public class NodeView {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(node);
+    }
+
+    @Override
     public String toString() {
         return name;
     }
-
 }

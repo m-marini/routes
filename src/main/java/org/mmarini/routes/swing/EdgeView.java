@@ -30,6 +30,8 @@ package org.mmarini.routes.swing;
 
 import org.mmarini.routes.model.MapEdge;
 
+import java.util.Objects;
+
 /**
  *
  */
@@ -50,12 +52,24 @@ public class EdgeView {
      * @param speedLimit the speed limit
      */
     public EdgeView(MapEdge edge, String name, String beginName, String endName, int priority, double speedLimit) {
+        assert edge != null;
+        assert name != null;
+        assert beginName != null;
+        assert endName != null;
         this.edge = edge;
         this.name = name;
         this.beginName = beginName;
         this.endName = endName;
         this.priority = priority;
         this.speedLimit = speedLimit;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EdgeView edgeView = (EdgeView) o;
+        return edge.equals(edgeView.edge);
     }
 
     public String getBeginName() {
@@ -97,6 +111,11 @@ public class EdgeView {
      */
     public EdgeView setSpeedLimit(double speedLimit) {
         return new EdgeView(edge, name, beginName, endName, priority, speedLimit);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(edge);
     }
 
     @Override

@@ -35,5 +35,5 @@ public interface MapElement {
     /**
      * @param visitor
      */
-    void apply(MapElementVisitor visitor);
+    <T> T apply(MapElementVisitor<T> visitor);
 }

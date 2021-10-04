@@ -31,6 +31,7 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Al tratto di strada associamo la velocità corrente dei veicoli. La velocità
@@ -54,18 +55,18 @@ import java.util.List;
  * @version $Id: MapEdge.java,v 1.14 2010/10/19 20:33:00 marco Exp $
  */
 public class MapEdge implements MapElement, Constants {
+    private final List<Vehicle> veicleList;
+    private final AbstractSimulationFunctions functions;
+    private final Point2D vector;
+    private final Comparator<Vehicle> priorityComparator;
     private MapNode begin;
     private MapNode end;
     private double speedLimit;
     private double distance;
     private double security;
     private int priority;
-    private final List<Vehicle> veicleList;
-    private final AbstractSimulationFunctions functions;
-    private final Point2D vector;
     private double transitTime;
     private Vehicle nextVeicle;
-    private final Comparator<Vehicle> priorityComparator;
 
     /**
      *
@@ -101,8 +102,8 @@ public class MapEdge implements MapElement, Constants {
      * @see org.mmarini.routes.model.MapElement#apply(org.mmarini.routes.model.MapElementVisitor)
      */
     @Override
-    public void apply(final MapElementVisitor visitor) {
-        visitor.visit(this);
+    public <T> T apply(final MapElementVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 
     /**
@@ -227,6 +228,14 @@ public class MapEdge implements MapElement, Constants {
             }
         }
         nextVeicle = null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MapEdge mapEdge = (MapEdge) o;
+        return begin.equals(mapEdge.begin) && end.equals(mapEdge.end);
     }
 
     /**
@@ -422,6 +431,11 @@ public class MapEdge implements MapElement, Constants {
      */
     public Point2D getVector() {
         return vector;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(begin, end);
     }
 
     /**

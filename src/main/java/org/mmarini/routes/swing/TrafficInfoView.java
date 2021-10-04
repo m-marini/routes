@@ -46,6 +46,8 @@ public class TrafficInfoView {
      * @param info        the traffic information
      */
     public TrafficInfoView(NodeView destination, TrafficInfo info) {
+        assert destination != null;
+        assert info != null;
         this.destination = destination;
         this.info = info;
     }
