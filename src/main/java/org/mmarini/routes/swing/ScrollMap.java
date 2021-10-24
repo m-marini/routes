@@ -61,6 +61,7 @@ public class ScrollMap extends JScrollPane {
     private Point2D mapPoint;
     private double fps;
     private long numVehicles;
+    private double tps;
 
     /**
      * @param routeMap the route map
@@ -290,6 +291,7 @@ public class ScrollMap extends JScrollPane {
     private void paintFps(Graphics g) {
         final FontMetrics fm = getFontMetrics(getFont());
         String[] msg = new String[]{
+                String.format("TPS: %.2f", tps),
                 String.format("FPS: %.2f", fps),
                 String.format("Vehicles: %d", this.numVehicles)
         };
@@ -415,6 +417,8 @@ public class ScrollMap extends JScrollPane {
     }
 
     /**
+     * Scroll the map to the node
+     *
      * @param node the node
      */
     public void scrollTo(final MapNode node) {
@@ -424,6 +428,8 @@ public class ScrollMap extends JScrollPane {
     }
 
     /**
+     * Sets the frames per second
+     *
      * @param fps the frames per second
      */
     public void setFps(double fps) {
@@ -435,10 +441,21 @@ public class ScrollMap extends JScrollPane {
     }
 
     /**
+     * Sets the selected element
+     *
      * @param element the element
      */
     public void setSelectedElement(final MapElement element) {
         routeMap.setSelectedElement(element);
+    }
+
+    /**
+     * Sets the transitions per second
+     *
+     * @param tps the transitions per second
+     */
+    public void setTps(double tps) {
+        this.tps = tps;
     }
 
     /**
