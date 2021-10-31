@@ -251,7 +251,7 @@ public class Vehicle implements Constants {
     }
 
     /**
-     * @param context
+     * @param edge
      */
     public void moveToEdge(final MapEdge edge) {
         if (currentEdge != null) {

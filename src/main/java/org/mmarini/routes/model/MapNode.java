@@ -34,7 +34,7 @@ import java.util.Objects;
 
 /**
  * @author marco.marini@mmarini.org
- * @version $Id: MapNode.java,v 1.9 2010/10/19 20:33:00 marco Exp $
+ * @version $Id: CrossNode.java,v 1.9 2010/10/19 20:33:00 marco Exp $
  */
 public class MapNode implements MapElement, Cloneable {
     private final Point2D location;

@@ -27,8 +27,8 @@
   ~
   -->
 
-<xsl:stylesheet version="1.0"
-    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                version="1.0">
     <xsl:output method="text" omit-xml-declaration="yes" indent="no"/>
 
     <xsl:template match="/rts:routes/default">
@@ -112,19 +112,19 @@ default:</xsl:text>
 
     <xsl:template match="/">
         <xsl:text>---</xsl:text>
-        <xsl:apply-templates select="/rts:routes/default" />
+        <xsl:apply-templates select="/rts:routes/default"/>
         <xsl:text>
 sites:</xsl:text>
-        <xsl:apply-templates select="/rts:routes/site" />
+        <xsl:apply-templates select="/rts:routes/site"/>
         <xsl:text>
 paths:</xsl:text>
-        <xsl:apply-templates select="/rts:routes/path" />
+        <xsl:apply-templates select="/rts:routes/path"/>
         <xsl:text>
 nodes:</xsl:text>
-        <xsl:apply-templates select="/rts:routes/node" />
+        <xsl:apply-templates select="/rts:routes/node"/>
         <xsl:text>
 edges:</xsl:text>
-        <xsl:apply-templates select="/rts:routes/edge" />
+        <xsl:apply-templates select="/rts:routes/edge"/>
         <xsl:text>
 </xsl:text>
     </xsl:template>

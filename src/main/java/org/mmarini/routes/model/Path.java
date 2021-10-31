@@ -33,7 +33,7 @@ package org.mmarini.routes.model;
 
 /**
  * @author marco.marini@mmarini.org
- * @version $Id: Path.java,v 1.3 2010/10/19 20:33:00 marco Exp $
+ * @version $Id: Routes.java,v 1.3 2010/10/19 20:33:00 marco Exp $
  *
  */
 public class Path implements Cloneable {

@@ -48,10 +48,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static io.reactivex.rxjava3.core.Observable.interval;
+import static org.mmarini.Utils.*;
 import static org.mmarini.routes.swing.StatusView.DEFAULT_NODE_COLOR;
 
 /**
@@ -85,17 +84,17 @@ public class UIController {
         // Computes site color map
         int noSites = sites.size();
         SwingUtils util = SwingUtils.getInstance();
-        Map<MapNode, Color> colorBySite = streamZipWithIndex(sites).map(entry -> {
+        Map<SiteNode, Color> colorBySite = zipWithIndex(sites).map(entry -> {
             int i = entry.getKey();
             SiteNode node = entry.getValue();
             final double value = (double) i / (noSites - 1);
             Color color = util.computeColor(value, NODE_SATURATION);
             return Map.entry(node, color);
-        }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }).collect(toMap());
 
         // Converts to node view
         String nodeNamePattern = Messages.getString("RouteMediator.nodeNamePattern"); //$NON-NLS-1$
-        List<NodeView> nodeViews = streamZipWithIndex(nodes)
+        List<NodeView> nodeViews = zipWithIndex(nodes)
                 .map(entry -> {
                     int i = entry.getKey();
                     MapNode node = entry.getValue();
@@ -109,7 +108,7 @@ public class UIController {
 
         // Converts to edgeView
         String edgeNamePattern = Messages.getString("RouteMediator.edgeNamePattern"); //$NON-NLS-1$
-        List<EdgeView> edgesViews = streamZipWithIndex(edges)
+        List<EdgeView> edgesViews = zipWithIndex(edges)
                 .map(entry -> {
                     int i = entry.getKey();
                     MapEdge edge = entry.getValue();
@@ -166,24 +165,6 @@ public class UIController {
                     weights[indices[0]][indices[1]] = path.getWeight());
         }
         return new SquareMatrixModel<>(nodes, weights);
-    }
-
-    /**
-     * @param list the list
-     * @param <T>  the item type
-     */
-    public static <T> Stream<Map.Entry<Integer, T>> streamZipWithIndex(List<T> list) {
-        return IntStream.range(0, list.size()).mapToObj(i -> Map.entry(i, list.get(i)));
-    }
-
-    /**
-     * @param iterable the iterable
-     * @param <T>      the item type
-     */
-    private static <T> List<T> toList(Iterable<T> iterable) {
-        Stream.Builder<T> b = Stream.builder();
-        iterable.forEach(b::add);
-        return b.build().collect(Collectors.toList());
     }
 
     /**
@@ -391,7 +372,7 @@ public class UIController {
         routeMap.getDeleteNodeFlowable().doOnNext(this::remove).subscribe();
         routeMap.getCenterMapFlowable().doOnNext(this::centerMap).subscribe();
         routeMap.getNewEdgeFlowable().doOnNext(this::createEdge).subscribe();
-        routeMap.getNewModuleProcessor().doOnNext(this::createModule).subscribe();
+        routeMap.getNewModuleFlowable().doOnNext(this::createModule).subscribe();
 
         fpsMeter.getFlowable().doOnNext(scrollMap::setFps).subscribe();
         tpsMeter.getFlowable().doOnNext(scrollMap::setTps).subscribe();
