@@ -37,15 +37,16 @@ import static org.mmarini.routes.model2.Constants.gridPoint;
 /**
  * @author marco.marini@mmarini.org
  */
-public class SiteNode implements MapNode {
+public class CrossNode implements MapNode {
+
     /**
-     * Returns a site node at a location
+     * Returns a map node at a location
      *
      * @param x coordinate
      * @param y y coordinate
      */
-    public static SiteNode createSite(double x, double y) {
-        return new SiteNode(gridPoint(x, y));
+    public static CrossNode createNode(double x, double y) {
+        return new CrossNode(gridPoint(x, y));
     }
 
     private final Point2D location;
@@ -55,7 +56,7 @@ public class SiteNode implements MapNode {
      *
      * @param location the location of node
      */
-    public SiteNode(Point2D location) {
+    public CrossNode(Point2D location) {
         this.location = requireNonNull(location);
     }
 
@@ -68,17 +69,17 @@ public class SiteNode implements MapNode {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        SiteNode siteNode = (SiteNode) o;
-        return location.equals(siteNode.location);
+        CrossNode mapNode = (CrossNode) o;
+        return location.equals(mapNode.location);
     }
 
     /**
-     * Returns the distance squared to a point
+     * Returns the square of distance of the node from a point
      *
      * @param point the point
      */
-    public double getDistanceSq(Point2D point) {
-        return getLocation().distanceSq(point);
+    public double getDistanceSq(final Point2D point) {
+        return location.distanceSq(point);
     }
 
     @Override
@@ -87,8 +88,8 @@ public class SiteNode implements MapNode {
     }
 
     @Override
-    public SiteNode setLocation(Point2D location) {
-        return new SiteNode(location);
+    public CrossNode setLocation(Point2D location) {
+        return new CrossNode(location);
     }
 
     @Override
@@ -103,9 +104,9 @@ public class SiteNode implements MapNode {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", SiteNode.class.getSimpleName() + "[", "]")
-                .add("" + getLocation().getX())
-                .add("" + getLocation().getY())
+        return new StringJoiner(", ", CrossNode.class.getSimpleName() + "[", "]")
+                .add("" + location.getX())
+                .add("" + location.getY())
                 .toString();
     }
 }

@@ -31,7 +31,10 @@ package org.mmarini;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Random;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -61,6 +64,42 @@ public interface Utils {
             }
             return cumulative;
         }
+    }
+
+    static <T> Optional<T> find(Stream<T> stream, Predicate<T> test) {
+        return stream.dropWhile(Predicate.not(test)).limit(1).findAny();
+    }
+
+    static <K, V> Optional<V> getValue(Map<K, V> map, K value) {
+        return Optional.ofNullable(map.get(value));
+    }
+
+    static <K, V> Function<K, Optional<V>> getValue(Map<K, V> map) {
+        return key -> getValue(map, key);
+    }
+
+    static <K, V> Function<Map.Entry<K, V>, Map.Entry<V, K>> invertEntry() {
+        return entry -> Map.entry(entry.getValue(), entry.getKey());
+    }
+
+    static <K, V> Stream<Tuple2<K, V>> join(List<K> list1, List<V> list2) {
+        return list1.stream().flatMap(k ->
+                list2.stream().map(v -> Tuple2.of(k, v))
+        );
+    }
+
+    static <K, V> Stream<Entry<K, V>> joinToEntries(List<K> list1, List<V> list2) {
+        return list1.stream().flatMap(k ->
+                list2.stream().map(v -> entry(k, v))
+        );
+    }
+
+    static <K, K1, V> Function<Map.Entry<K, V>, Map.Entry<K1, V>> mapKey(Function<K, K1> mapper) {
+        return entry -> Map.entry(mapper.apply(entry.getKey()), entry.getValue());
+    }
+
+    static <K, V, V1> Function<Map.Entry<K, V>, Map.Entry<K, V1>> mapValue(Function<V, V1> mapper) {
+        return entry -> Map.entry(entry.getKey(), mapper.apply(entry.getValue()));
     }
 
     /**
@@ -99,6 +138,21 @@ public interface Utils {
     }
 
     /**
+     * Returns the preferences from cumulative function values
+     *
+     * @param cdf the cumulative function values
+     */
+    static double[] preferences(double... cdf) {
+        int n = cdf.length;
+        double[] preferences = new double[n];
+        preferences[0] = cdf[0];
+        for (int i = 1; i < n; i++) {
+            preferences[i] = cdf[i] - cdf[i - 1];
+        }
+        return preferences;
+    }
+
+    /**
      * Returns the list of an iterable
      *
      * @param iterable the iterable
@@ -127,7 +181,7 @@ public interface Utils {
      * @param <T>  the item type
      */
     static <T> Stream<Entry<Integer, T>> zipWithIndex(List<T> list) {
-        return IntStream.range(0, list.size()).mapToObj(i -> entry(i, list.get(i)));
-
+        return IntStream.range(0, list.size())
+                .mapToObj(i -> entry(i, list.get(i)));
     }
 }

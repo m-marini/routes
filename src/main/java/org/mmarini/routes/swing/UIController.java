@@ -372,7 +372,7 @@ public class UIController {
         routeMap.getDeleteNodeFlowable().doOnNext(this::remove).subscribe();
         routeMap.getCenterMapFlowable().doOnNext(this::centerMap).subscribe();
         routeMap.getNewEdgeFlowable().doOnNext(this::createEdge).subscribe();
-        routeMap.getNewModuleProcessor().doOnNext(this::createModule).subscribe();
+        routeMap.getNewModuleFlowable().doOnNext(this::createModule).subscribe();
 
         fpsMeter.getFlowable().doOnNext(scrollMap::setFps).subscribe();
         tpsMeter.getFlowable().doOnNext(scrollMap::setTps).subscribe();

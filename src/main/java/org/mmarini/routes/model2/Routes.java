@@ -28,24 +28,29 @@
 
 package org.mmarini.routes.model2;
 
+import org.mmarini.Tuple2;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Map.entry;
-import static org.mmarini.Utils.toMap;
-import static org.mmarini.Utils.zipWithIndex;
+import static org.mmarini.Utils.*;
 
 /**
  *
  */
-public class Path {
-    static Map<Path, MapEdge> create(List<MapNode> nodes, List<MapEdge> edges, Map<MapEdge, Double> edgeTravelTimes) {
+public interface Routes {
+
+    static Map<Tuple2<MapNode, MapNode>, MapEdge> computeRoutes(List<MapEdge> edges, Map<MapEdge, Double> edgeTravelTimes) {
+        List<MapNode> nodes = edges.stream()
+                .flatMap(edge -> Stream.of(edge.getBegin(), edge.getEnd()))
+                .distinct()
+                .collect(Collectors.toList());
+
         Map<MapNode, Integer> indexByNode = zipWithIndex(nodes)
-                .map(entry -> entry(entry.getValue(), entry.getKey()))
+                .map(invertEntry())
                 .collect(toMap());
         int n = nodes.size();
         // Create initial adjacent matrices
@@ -65,39 +70,28 @@ public class Path {
             previousMatrix[i][j] = i;
             edgeMatrix[i][j] = edge;
         });
-        /*
-        zipWithIndex(edges).forEach(entry -> {
-            int idx = entry.getKey();
-            MapEdge edge = entry.getValue();
-            int i = indexByNode.get(edge.getBegin());
-            int j = indexByNode.get(edge.getEnd());
-            travelMatrix[i][j] = edgeTravelTimes.get(edge);
-            previousMatrix[i][j] = i;
-            edgeMatrix[i][j] = edge;
-        });
-         */
 
         // Computes the optimal paths
         int[][] nextMatrix = nextMatrix(floydWarshall(previousMatrix, travelMatrix));
 
         // Convert to path map
-        return createPathMap(nodes, edgeMatrix, nextMatrix);
+        return createRoutes(nodes, edgeMatrix, nextMatrix);
     }
 
-    static Map<Path, MapEdge> createPathMap(List<MapNode> nodes, MapEdge[][] edgeMatrix, int[][] nextMatrix) {
+    static Map<Tuple2<MapNode, MapNode>, MapEdge> createRoutes(List<MapNode> nodes, MapEdge[][] edgeMatrix, int[][] nextMatrix) {
         int n = nodes.size();
-        Stream.Builder<Entry<Path, MapEdge>> builder = Stream.builder();
+        Stream.Builder<Tuple2<Tuple2<MapNode, MapNode>, MapEdge>> builder = Stream.builder();
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 MapNode to = nodes.get(j);
                 int next = nextMatrix[i][j];
                 if (next >= 0 && to instanceof SiteNode) {
                     MapNode from = nodes.get(i);
-                    builder.add(entry(new Path(from, to), edgeMatrix[i][next]));
+                    builder.add(Tuple2.of(Tuple2.of(from, to), edgeMatrix[i][next]));
                 }
             }
         }
-        return builder.build().collect(toMap());
+        return builder.build().collect(Tuple2.toMap());
     }
 
     /**
@@ -121,7 +115,7 @@ public class Path {
         return previousNode;
     }
 
-    public static int[][] nextMatrix(int[][] previousMatrix) {
+    static int[][] nextMatrix(int[][] previousMatrix) {
         int n = previousMatrix.length;
         int[][] nextMatrix = new int[n][n];
         for (int i = 0; i < n; i++) {
@@ -142,34 +136,5 @@ public class Path {
             }
         }
         return nextMatrix;
-    }
-
-    private final MapNode from;
-    private final MapNode to;
-
-    Path(MapNode from, MapNode to) {
-        this.from = from;
-        this.to = to;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Path path = (Path) o;
-        return from.equals(path.from) && to.equals(path.to);
-    }
-
-    public MapNode getFrom() {
-        return from;
-    }
-
-    public MapNode getTo() {
-        return to;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(from, to);
     }
 }

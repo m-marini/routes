@@ -84,8 +84,9 @@ public class Utils {
      */
     static <T> Stream<T> iter2Stream(Iterator<T> iterator) {
         return Stream.iterate(iterator,
-                Iterator::hasNext,
-                y -> y).map(Iterator::next);
+                        Iterator::hasNext,
+                        y -> y)
+                .map(Iterator::next);
     }
 
     /**

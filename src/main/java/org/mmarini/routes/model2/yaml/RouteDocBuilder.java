@@ -33,18 +33,15 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import org.mmarini.routes.model2.MapEdge;
-import org.mmarini.routes.model2.MapNode;
-import org.mmarini.routes.model2.SiteNode;
-import org.mmarini.routes.model2.StatusImpl;
+import org.mmarini.routes.model2.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.mmarini.Utils.toMap;
-import static org.mmarini.Utils.zipWithIndex;
+import static java.util.Objects.requireNonNull;
+import static org.mmarini.Utils.*;
 
 public class RouteDocBuilder {
     static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
@@ -58,7 +55,8 @@ public class RouteDocBuilder {
      *
      * @param status the status
      */
-    static ObjectNode build(StatusImpl status) {
+    static ObjectNode build(Status status) {
+        requireNonNull(status);
         Map<MapNode, String> nameByNodes = zipWithIndex(status.getNodes())
                 .map(entry -> Map.entry(entry.getValue(),
                         "Node_" + entry.getKey()
@@ -78,14 +76,18 @@ public class RouteDocBuilder {
      *
      * @param status the status
      */
-    static ObjectNode createDefault(StatusImpl status) {
+    static ObjectNode createDefault(Status status) {
+        requireNonNull(status);
         return mapper.createObjectNode()
-                .put("frequence", status.getFrequency());
+                .put("frequence", status.getFrequency())
+                .put("speedLimit", status.getSpeedLimit() * 3.6);
     }
 
     static ArrayNode createEdges(List<MapEdge> edges, Map<MapNode, String> nameByNodes) {
+        requireNonNull(edges);
+        requireNonNull(nameByNodes);
         ArrayNode result = mapper.createArrayNode();
-        edges.stream().forEach(edge -> {
+        edges.forEach(edge -> {
             String begin = nameByNodes.get(edge.getBegin());
             String end = nameByNodes.get(edge.getEnd());
             ObjectNode jsonEdge = mapper.createObjectNode()
@@ -99,50 +101,48 @@ public class RouteDocBuilder {
     }
 
     static ObjectNode createNode(MapNode node) {
+        requireNonNull(node);
         return mapper.createObjectNode()
                 .put("x", node.getLocation().getX())
                 .put("y", node.getLocation().getY());
     }
 
     static ObjectNode createNodes(List<MapNode> nodes, Map<MapNode, String> nameByNodes) {
+        requireNonNull(nodes);
+        requireNonNull(nameByNodes);
         ObjectNode result = mapper.createObjectNode();
         nodes.stream()
-                .filter(node -> !(node instanceof SiteNode))
+                .filter(CrossNode.class::isInstance)
                 .forEach(node ->
                         result.set(nameByNodes.get(node), createNode(node)));
         return result;
     }
 
-    static ArrayNode createPaths(StatusImpl status, Map<MapNode, String> nameByNodes) {
+    static ArrayNode createPaths(Status status, Map<MapNode, String> nameByNodes) {
+        requireNonNull(status);
+        requireNonNull(nameByNodes);
         ArrayNode result = mapper.createArrayNode();
-        double[][] cdf = status.getPathCdf();
-        int n = cdf.length;
         // Rebuild the weights from cdf
-        double[][] weights = new double[n][n];
-        for (int i = 0; i < n; i++) {
-            weights[i][0] = cdf[i][0];
-            for (int j = 1; j < n; j++) {
-                weights[i][j] = cdf[i][j] - cdf[i][j - 1];
-            }
-        }
-        for (int i = 0; i < n; i++) {
-            String departure = nameByNodes.get(status.getSites().get(i));
-            for (int j = 0; j < n; j++) {
-                if (i != j && weights[i][j] != 0) {
-                    String destination = nameByNodes.get(status.getSites().get(j));
-                    ObjectNode path = mapper.createObjectNode()
-                            .put("departure", departure)
-                            .put("destination", destination)
-                            .put("weight", weights[i][j]);
-                    result.add(path);
-                }
-            }
-        }
-
+        DoubleMatrix<SiteNode> x = status.getWeightMatrix();
+        x.entries()
+                .flatMap(entry ->
+                        getValue(nameByNodes, entry._1._1)
+                                .flatMap(dep ->
+                                        getValue(nameByNodes, entry._1._2)
+                                                .map(dest ->
+                                                        mapper.createObjectNode()
+                                                                .put("departure", dep)
+                                                                .put("destination", dest)
+                                                                .put("weight", entry._2.doubleValue())
+                                                ))
+                                .stream())
+                .forEach(result::add);
         return result;
     }
 
     static ObjectNode createSites(List<SiteNode> nodes, Map<MapNode, String> nameByNodes) {
+        requireNonNull(nodes);
+        requireNonNull(nameByNodes);
         ObjectNode result = mapper.createObjectNode();
         for (SiteNode node : nodes) {
             result.set(nameByNodes.get(node), createNode(node));
@@ -157,7 +157,9 @@ public class RouteDocBuilder {
      * @param status the status
      * @throws IOException in case of error
      */
-    static void write(File file, StatusImpl status) throws IOException {
+    static void write(File file, Status status) throws IOException {
+        requireNonNull(file);
+        requireNonNull(status);
         mapper.writeValue(file, build(status));
     }
 }

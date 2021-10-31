@@ -30,12 +30,19 @@ package org.mmarini.routes.model2.yaml;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
-import org.mmarini.routes.model2.*;
+import org.mmarini.routes.model2.CrossNode;
+import org.mmarini.routes.model2.MapEdge;
+import org.mmarini.routes.model2.SiteNode;
+import org.mmarini.routes.model2.StatusImpl;
 
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.mmarini.routes.model2.CrossNode.createNode;
+import static org.mmarini.routes.model2.SiteNode.createSite;
+import static org.mmarini.routes.model2.StatusImpl.createStatus;
+import static org.mmarini.routes.model2.Topology.createTopology;
 
 class RouteDocBuilderTest {
     static final double SPEED_LIMIT = 10.0;
@@ -49,20 +56,19 @@ class RouteDocBuilderTest {
         0 --1--> 1 -----> 2
           <-----   <--0--
          */
-        SiteNode node0 = SiteNode.createSite(0, 0);
-        SiteNode node2 = SiteNode.createSite(100, 0);
-        MapNode node1 = MapNode.createNode(50, 0);
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(node0, node2),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
-                List.of(), FREQUENCY);
+                List.of(), SPEED_LIMIT, FREQUENCY);
 
         String result = RouteDocBuilder.mapper.writeValueAsString(
                 RouteDocBuilder.build(status));
@@ -70,6 +76,7 @@ class RouteDocBuilderTest {
                 "---",
                 "default:",
                 "  frequence: 1.2",
+                "  speedLimit: " + SPEED_LIMIT * 3.6,
                 "sites:",
                 "  Node_0:",
                 "    x: 0.0",

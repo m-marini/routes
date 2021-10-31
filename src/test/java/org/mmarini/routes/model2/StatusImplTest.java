@@ -44,8 +44,12 @@ import java.util.stream.Stream;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mmarini.routes.model2.TestUtils.optionalEmpty;
-import static org.mmarini.routes.model2.TestUtils.optionalOf;
+import static org.mmarini.routes.model2.CrossNode.createNode;
+import static org.mmarini.routes.model2.SiteNode.createSite;
+import static org.mmarini.routes.model2.StatusImpl.createStatus;
+import static org.mmarini.routes.model2.TestUtils.*;
+import static org.mmarini.routes.model2.Topology.createTopology;
+import static org.mmarini.routes.model2.Vehicle.createVehicle;
 
 class StatusImplTest {
 
@@ -86,6 +90,25 @@ class StatusImplTest {
                 .generate();
     }
 
+    static Stream<Arguments> argsFrequencies() {
+        return ArgumentGenerator.create(SEED)
+                .exponential(0.1, 10)
+                .exponential(0.1, 10)
+                .generate();
+    }
+
+    static Stream<Arguments> argsGetPathFrequencies() {
+        return ArgumentGenerator.create(SEED)
+                .exponential(0.1, 10)
+                .exponential(0.01, 1)
+                .exponential(0.01, 1)
+                .exponential(0.01, 1)
+                .exponential(0.01, 1)
+                .exponential(0.01, 1)
+                .exponential(0.01, 1)
+                .generate();
+    }
+
     static Stream<Arguments> time() {
         return ArgumentGenerator.create(SEED)
                 .uniform(MIN_TIME, MAX_TIME)
@@ -107,9 +130,9 @@ class StatusImplTest {
         0 --1--> 1 -----> 2
           <-----   <--0--
          */
-        SiteNode node0 = SiteNode.createSite(0, 0);
-        SiteNode node2 = SiteNode.createSite(100, 0);
-        MapNode node1 = MapNode.createNode(50, 0);
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
@@ -122,33 +145,32 @@ class StatusImplTest {
         And a vehicle 4 running the edge (edge10, 30)
         And a vehicle 5 braking for next vehicle (edge10, 20)
          */
-        Vehicle v0 = Vehicle.create(node0, node2, 0)
+        Vehicle v0 = createVehicle(node0, node2, 0)
                 .setCurrentEdge(edge10)
                 .setReturning(true)
                 .setDistance(49.5);
-        Vehicle v1 = Vehicle.create(node0, node2, 0)
+        Vehicle v1 = createVehicle(node0, node2, 0)
                 .setCurrentEdge(edge12)
                 .setDistance(49.5);
-        Vehicle v2 = Vehicle.create(node0, node2, 0)
+        Vehicle v2 = createVehicle(node0, node2, 0)
                 .setCurrentEdge(edge01)
                 .setDistance(49.5);
-        Vehicle v3 = Vehicle.create(node0, node2, 0)
+        Vehicle v3 = createVehicle(node0, node2, 0)
                 .setCurrentEdge(edge21)
                 .setDistance(49.5);
-        Vehicle v4 = Vehicle.create(node0, node2, 0)
+        Vehicle v4 = createVehicle(node0, node2, 0)
                 .setCurrentEdge(edge10)
                 .setDistance(30);
-        Vehicle v5 = Vehicle.create(node0, node2, 0)
+        Vehicle v5 = createVehicle(node0, node2, 0)
                 .setCurrentEdge(edge10)
                 .setDistance(20);
 
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(node0, node2),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), time,
-                List.of(v0, v1, v2, v3, v4, v5), 0);
+                List.of(v0, v1, v2, v3, v4, v5), SPEED_LIMIT, 0);
         Random random = new MockRandomBuilder()
                 .nextDouble(0) // No vehicle creation probability
                 .nextDouble(0) // No vehicle creation probability
@@ -179,6 +201,39 @@ class StatusImplTest {
         assertThat(v5.getDistance(), closeTo(20.5, 0.1));
     }
 
+    @ParameterizedTest
+    @MethodSource("argsFrequencies")
+    void changeFrequency(double f1, double f2) {
+        /*
+        Given a topology of
+        0 ---> 1 ---> 2
+          <---   <---
+        And the status
+         */
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
+        MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
+        MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
+        MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
+        MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
+        StatusImpl status = createStatus(
+                createTopology(
+                        List.of(node0, node2, node1),
+                        List.of(edge01, edge10, edge12, edge21)
+                ), 0,
+                List.of(), SPEED_LIMIT, f1);
+        /*
+        When changing frequency
+         */
+        StatusImpl result = status.setFrequency(f2);
+        /*
+        Then it should result the new frequency
+         */
+        assertNotNull(result);
+        assertThat(result.getFrequency(), equalTo(f2));
+    }
+
     /*
     SafetyDistance is 10 m/s * 1 s + 5 m = 15 m
     Max movement is 10 m/s * 0.1 s = 1 m
@@ -198,22 +253,21 @@ class StatusImplTest {
         Given a status with 2 vehicle at a distance dd2 each other
          */
         double d2 = d1 + dd2;
-        SiteNode site1 = SiteNode.createSite(X1, Y1);
-        SiteNode site2 = SiteNode.createSite(X2, Y2);
+        SiteNode site1 = createSite(X1, Y1);
+        SiteNode site2 = createSite(X2, Y2);
         MapEdge edge1 = new MapEdge(site1, site2, SPEED_LIMIT, PRIORITY);
-        Vehicle vehicle1 = Vehicle.create(site1, site2, 0)
+        Vehicle vehicle1 = createVehicle(site1, site2, 0)
                 .setDistance(d1)
                 .setCurrentEdge(edge1);
-        Vehicle vehicle2 = Vehicle.create(site1, site2, 0)
+        Vehicle vehicle2 = createVehicle(site1, site2, 0)
                 .setCurrentEdge(edge1)
                 .setDistance(d2);
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(site1, site2),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(site1, site2),
                         List.of(edge1)
                 ), 0,
-                List.of(vehicle1, vehicle2), 0);
+                List.of(vehicle1, vehicle2), SPEED_LIMIT, 0);
 
         /*
         When computing location of vehicle1 after dt time interval
@@ -238,22 +292,21 @@ class StatusImplTest {
         /*
         Given a status with a vehicle without any edge
          */
-        SiteNode site1 = SiteNode.createSite(X1, Y1);
-        SiteNode site2 = SiteNode.createSite(X2, Y2);
+        SiteNode site1 = createSite(X1, Y1);
+        SiteNode site2 = createSite(X2, Y2);
         MapEdge edge1 = new MapEdge(site1, site2, SPEED_LIMIT, PRIORITY);
         double edgeLength = edge1.getLength();
         double distance = edgeLength - MIN_DT * SPEED_LIMIT + 0.01;
-        Vehicle vehicle1 = Vehicle.create(site1, site2, 0)
+        Vehicle vehicle1 = createVehicle(site1, site2, 0)
                 .setDistance(distance)
                 .setCurrentEdge(edge1);
 
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(site1, site2),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(site1, site2),
                         List.of(edge1)
                 ), 0,
-                List.of(vehicle1), 0);
+                List.of(vehicle1), SPEED_LIMIT, 0);
         /*
         When computing location of vehicle1 after dt time interval
          */
@@ -277,18 +330,17 @@ class StatusImplTest {
         /*
         Given a status with a vehicle without any edge
          */
-        SiteNode site1 = SiteNode.createSite(X1, Y1);
-        SiteNode site2 = SiteNode.createSite(X2, Y2);
+        SiteNode site1 = createSite(X1, Y1);
+        SiteNode site2 = createSite(X2, Y2);
         MapEdge edge1 = new MapEdge(site1, site2, SPEED_LIMIT, PRIORITY);
-        Vehicle vehicle1 = Vehicle.create(site1, site2, 0);
+        Vehicle vehicle1 = createVehicle(site1, site2, 0);
 
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(site1, site2),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(site1, site2),
                         List.of(edge1)
                 ), 0,
-                List.of(vehicle1), 0);
+                List.of(vehicle1), SPEED_LIMIT, 0);
         /*
         When computing location of vehicle1 after dt time interval
          */
@@ -320,26 +372,25 @@ class StatusImplTest {
         And two vehicle at edge10 at distance 20,30,
         And two vehicle at edge12 at distance 10
          */
-        SiteNode node0 = SiteNode.createSite(0, 0);
-        SiteNode node2 = SiteNode.createSite(100, 0);
-        MapNode node1 = MapNode.createNode(50, 0);
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        Vehicle v010 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(20);
-        Vehicle v011 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(49.5);
-        Vehicle v100 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge10).setDistance(20);
-        Vehicle v101 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge10).setDistance(30);
-        Vehicle v120 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge12).setDistance(10);
+        Vehicle v010 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(20);
+        Vehicle v011 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(49.5);
+        Vehicle v100 = createVehicle(node0, node2, 0).setCurrentEdge(edge10).setDistance(20);
+        Vehicle v101 = createVehicle(node0, node2, 0).setCurrentEdge(edge10).setDistance(30);
+        Vehicle v120 = createVehicle(node0, node2, 0).setCurrentEdge(edge12).setDistance(10);
 
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(node0, node2),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
-                List.of(v010, v011, v100, v101, v120), 0);
+                List.of(v010, v011, v100, v101, v120), SPEED_LIMIT, 0);
 
         /*
         When checking edges availability
@@ -375,19 +426,18 @@ class StatusImplTest {
         1 --edge1--> 2
         And a vehicle at edge1,0
          */
-        SiteNode site1 = SiteNode.createSite(X1, Y1);
-        SiteNode site2 = SiteNode.createSite(X2, Y2);
+        SiteNode site1 = createSite(X1, Y1);
+        SiteNode site2 = createSite(X2, Y2);
         MapEdge edge1 = new MapEdge(site1, site2, SPEED_LIMIT, PRIORITY);
-        Vehicle vehicle = Vehicle.create(site1, site2, 0)
+        Vehicle vehicle = createVehicle(site1, site2, 0)
                 .setCurrentEdge(edge1);
 
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(site1, site2),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(site1, site2),
                         List.of(edge1)
                 ), 0,
-                List.of(vehicle), 0);
+                List.of(vehicle), SPEED_LIMIT, 0);
 
         /*
         When copying the status
@@ -414,30 +464,29 @@ class StatusImplTest {
           <---   <---
         And 3 vehicle for edge01 and 2 vehicle for edge21
          */
-        SiteNode node0 = SiteNode.createSite(0, 0);
-        SiteNode node2 = SiteNode.createSite(100, 0);
-        MapNode node1 = MapNode.createNode(50, 0);
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
 
-        Vehicle v010 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(0);
-        Vehicle v011 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(20);
-        Vehicle v012 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(50);
-        Vehicle v210 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge21).setDistance(0);
-        Vehicle v211 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge21).setDistance(10);
+        Vehicle v010 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(0);
+        Vehicle v011 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(20);
+        Vehicle v012 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(50);
+        Vehicle v210 = createVehicle(node0, node2, 0).setCurrentEdge(edge21).setDistance(0);
+        Vehicle v211 = createVehicle(node0, node2, 0).setCurrentEdge(edge21).setDistance(10);
 
         /*
         When creating the status
          */
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(node0, node2),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
-                List.of(v012, v011, v211, v210, v010), 0);
+                List.of(v012, v011, v211, v210, v010), SPEED_LIMIT, 0);
 
         /*
         Then it should result the next vehicle function
@@ -449,10 +498,10 @@ class StatusImplTest {
         assertThat(status.getNextVehicle(v210), equalTo(Optional.of(v211)));
         assertThat(status.getNextVehicle(v211), equalTo(Optional.empty()));
 
-        assertThat(status.getEdgeTransitTime(edge01), equalTo(Optional.of(edge01.getTransitTime())));
-        assertThat(status.getEdgeTransitTime(edge10), equalTo(Optional.of(edge10.getTransitTime())));
-        assertThat(status.getEdgeTransitTime(edge12), equalTo(Optional.of(edge12.getTransitTime())));
-        assertThat(status.getEdgeTransitTime(edge21), equalTo(Optional.of(edge21.getTransitTime())));
+        assertThat(status.getEdgeTransitTime(edge01), equalTo(edge01.getTransitTime()));
+        assertThat(status.getEdgeTransitTime(edge10), equalTo(edge10.getTransitTime()));
+        assertThat(status.getEdgeTransitTime(edge12), equalTo(edge12.getTransitTime()));
+        assertThat(status.getEdgeTransitTime(edge21), equalTo(edge21.getTransitTime()));
     }
 
     @ParameterizedTest
@@ -465,10 +514,10 @@ class StatusImplTest {
         3 --->
           <---
          */
-        SiteNode node0 = SiteNode.createSite(0, 0);
-        SiteNode node2 = SiteNode.createSite(100, 0);
-        SiteNode node3 = SiteNode.createSite(100, 100);
-        MapNode node1 = MapNode.createNode(50, 0);
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        SiteNode node3 = createSite(100, 100);
+        CrossNode node1 = createNode(50, 0);
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
@@ -476,17 +525,16 @@ class StatusImplTest {
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge31 = new MapEdge(node3, node1, SPEED_LIMIT, PRIORITY);
 
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(node0, node2, node3),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(node0, node2, node1, node3),
                         List.of(edge01, edge10, edge12, edge13, edge21, edge31)
                 ), time,
-                List.of(), freq);
+                List.of(), SPEED_LIMIT, freq);
         Random random = new MockRandomBuilder()
                 .nextDouble(0) // No vehicle creation at site 0
                 .nextDouble(0.9999, 0) // 1 vehicles creation at site 2
-                .nextDouble(0) // destination veichle 1
+                .nextDouble(0) // destination vehicle 1
                 .nextDouble(0.9999, 0.9999, 0) // 2 vehicles creation at site 3
                 .nextDouble(0.9999, 0) // destinations vehicle 2, 3
                 .build();
@@ -520,25 +568,24 @@ class StatusImplTest {
         And 2 vehicle for edge01 and 1 vehicle for edge21
         And a new vehicle entering into edge01
          */
-        SiteNode node0 = SiteNode.createSite(0, 0);
-        SiteNode node2 = SiteNode.createSite(100, 0);
-        MapNode node1 = MapNode.createNode(50, 0);
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        Vehicle v010 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(10);
-        Vehicle v011 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(20);
-        Vehicle v210 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge21).setDistance(0);
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(node0, node2),
+        Vehicle v010 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(10);
+        Vehicle v011 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(20);
+        Vehicle v210 = createVehicle(node0, node2, 0).setCurrentEdge(edge21).setDistance(0);
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), time,
                 List.of(v010, v011, v210),
-                0);
-        Vehicle v012 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(0);
+                SPEED_LIMIT, 0);
+        Vehicle v012 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(0);
 
         /*
         When entry the vehicle v012 into the edge01
@@ -566,22 +613,21 @@ class StatusImplTest {
         And 2 vehicle for edge01 and 1 vehicle for edge21
         And a new vehicle entering into edge01
          */
-        SiteNode node0 = SiteNode.createSite(0, 0);
-        SiteNode node2 = SiteNode.createSite(100, 0);
-        MapNode node1 = MapNode.createNode(50, 0);
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
 
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(node0, node2),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
-                ), time, List.of(), 0);
+                ), time, List.of(), SPEED_LIMIT, 0);
 
-        Vehicle v012 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(0);
+        Vehicle v012 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(0);
 
         /*
         When entry the vehicle v012 into the edge01
@@ -606,25 +652,24 @@ class StatusImplTest {
           <---   <---
         And 3 vehicle for edge01 and 2 vehicle for edge21
          */
-        SiteNode node0 = SiteNode.createSite(0, 0);
-        SiteNode node2 = SiteNode.createSite(100, 0);
-        MapNode node1 = MapNode.createNode(50, 0);
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        Vehicle v010 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(0);
-        Vehicle v011 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(20);
-        Vehicle v012 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(50).setEdgeEntryTime(time);
-        Vehicle v210 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge21).setDistance(0);
-        Vehicle v211 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge21).setDistance(10);
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(node0, node2),
+        Vehicle v010 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(0);
+        Vehicle v011 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(20);
+        Vehicle v012 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(50).setEdgeEntryTime(time);
+        Vehicle v210 = createVehicle(node0, node2, 0).setCurrentEdge(edge21).setDistance(0);
+        Vehicle v211 = createVehicle(node0, node2, 0).setCurrentEdge(edge21).setDistance(10);
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), time + dt,
-                List.of(v012, v011, v211, v210, v010), 0);
+                List.of(v012, v011, v211, v210, v010), SPEED_LIMIT, 0);
 
         /*
         When exit the vehicle v012 from the edge
@@ -642,10 +687,7 @@ class StatusImplTest {
         assertThat(status.getNextVehicle(v211), equalTo(Optional.empty()));
 
         assertThat(status.getVehicles(edge01), not(contains(v012)));
-        status.getEdgeTransitTime(edge01).ifPresentOrElse(
-                t ->
-                        assertThat(t, closeTo(dt, 1e-3)),
-                () -> fail("transit time empty"));
+        assertThat(status.getEdgeTransitTime(edge01), closeTo(dt, 1e-3));
     }
 
     @ParameterizedTest
@@ -657,24 +699,23 @@ class StatusImplTest {
           <---   <---
         And 3 vehicle for edge01 and 1 vehicle for edge21
          */
-        SiteNode node0 = SiteNode.createSite(0, 0);
-        SiteNode node2 = SiteNode.createSite(100, 0);
-        MapNode node1 = MapNode.createNode(50, 0);
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        Vehicle v010 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(0);
-        Vehicle v011 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(20);
-        Vehicle v012 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(50).setEdgeEntryTime(time);
-        Vehicle v210 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge21).setDistance(0);
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(node0, node2),
+        Vehicle v010 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(0);
+        Vehicle v011 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(20);
+        Vehicle v012 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(50).setEdgeEntryTime(time);
+        Vehicle v210 = createVehicle(node0, node2, 0).setCurrentEdge(edge21).setDistance(0);
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), time + dt,
-                List.of(v012, v011, v210, v010), 0);
+                List.of(v012, v011, v210, v010), SPEED_LIMIT, 0);
 
         /*
         When exit the vehicle v012 from the edge
@@ -691,10 +732,7 @@ class StatusImplTest {
         assertThat(status.getNextVehicle(v210), equalTo(Optional.empty()));
 
         assertThat(status.getVehicles(edge21), empty());
-        status.getEdgeTransitTime(edge01).ifPresentOrElse(
-                t ->
-                        assertThat(t, closeTo(50 / SPEED_LIMIT, 1e-3)),
-                () -> fail("transit time empty"));
+        assertThat(status.getEdgeTransitTime(edge01), closeTo(50 / SPEED_LIMIT, 1e-3));
     }
 
     /*
@@ -711,26 +749,25 @@ class StatusImplTest {
         And two vehicle at edge10 at distance 20,30,
         And two vehicle at edge12 at distance 10
          */
-        SiteNode node0 = SiteNode.createSite(0, 0);
-        SiteNode node2 = SiteNode.createSite(100, 0);
-        MapNode node1 = MapNode.createNode(50, 0);
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        Vehicle v010 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(20);
-        Vehicle v011 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(49.5);
-        Vehicle v100 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge10).setDistance(20);
-        Vehicle v101 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge10).setDistance(30);
-        Vehicle v120 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge12).setDistance(10);
+        Vehicle v010 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(20);
+        Vehicle v011 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(49.5);
+        Vehicle v100 = createVehicle(node0, node2, 0).setCurrentEdge(edge10).setDistance(20);
+        Vehicle v101 = createVehicle(node0, node2, 0).setCurrentEdge(edge10).setDistance(30);
+        Vehicle v120 = createVehicle(node0, node2, 0).setCurrentEdge(edge12).setDistance(10);
 
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(node0, node2),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
-                List.of(v010, v011, v100, v101, v120), 0);
+                List.of(v010, v011, v100, v101, v120), SPEED_LIMIT, 0);
 
         /*
         When checking edges availability
@@ -752,21 +789,20 @@ class StatusImplTest {
         /*
         Given a status with 2 vehicle
          */
-        SiteNode site1 = SiteNode.createSite(X1, Y1);
-        SiteNode site2 = SiteNode.createSite(X2, Y2);
+        SiteNode site1 = createSite(X1, Y1);
+        SiteNode site2 = createSite(X2, Y2);
         MapEdge edge1 = new MapEdge(site1, site2, SPEED_LIMIT, PRIORITY);
-        Vehicle vehicle1 = Vehicle.create(site1, site2, 0);
+        Vehicle vehicle1 = createVehicle(site1, site2, 0);
         vehicle1.setCurrentEdge(edge1);
-        Vehicle vehicle2 = Vehicle.create(site1, site2, 0);
+        Vehicle vehicle2 = createVehicle(site1, site2, 0);
         vehicle2.setCurrentEdge(edge1);
         vehicle2.setDistance(DISTANCE10);
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(site1, site2),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(site1, site2),
                         List.of(edge1)
                 ), 0,
-                List.of(vehicle1, vehicle2), 0);
+                List.of(vehicle1, vehicle2), SPEED_LIMIT, 0);
         /*
         When finding the next vehicles of the two vehicles
          */
@@ -784,6 +820,106 @@ class StatusImplTest {
         assertTrue(next2.isEmpty());
     }
 
+    @ParameterizedTest
+    @MethodSource("argsGetPathFrequencies")
+    void getPathFrequencies(double frequency,
+                            double w01, double w02,
+                            double w10, double w12,
+                            double w20, double w21
+    ) {
+        /*
+        Given a topology of
+        0 ---> 1 ---> 2
+          <---   <---
+        And the status
+         */
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        SiteNode node1 = createSite(50, 0);
+        MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
+        MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
+        MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
+        MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
+        StatusImpl status = createStatus(
+                createTopology(
+                        List.of(node0, node1, node2),
+                        List.of(edge01, edge10, edge12, edge21)
+                ), 0,
+                List.of(), SPEED_LIMIT, frequency)
+                .setWeights(new double[][]{
+                        {0, w01, w02},
+                        {w10, 0, w12},
+                        {w20, w21, 0}
+                });
+        /*
+        When getting path frequencies
+         */
+        DoubleMatrix<SiteNode> result = status.getPathFrequencies();
+        /*
+        Then it should result the frequencies for each path
+        f01 = f10 = (w01/(w0
+        1+w02)+w10/(w10+w12))*frequency
+        f02 = f20 = (w02/(w01+w02)+w20/(w20+w21))*frequency
+        f12 = f21 = (w12/(w10+w12)+w21/(w20+w21))*frequency
+         */
+        double f01 = (w01 / (w01 + w02) + w10 / (w10 + w12)) * frequency;
+        double f02 = (w02 / (w01 + w02) + w20 / (w20 + w21)) * frequency;
+        double f12 = (w12 / (w10 + w12) + w21 / (w20 + w21)) * frequency;
+        assertNotNull(result);
+
+        assertThat(result.getValue(node0, node0), optionalDoubleOf(0.0));
+        assertThat(result.getValue(node0, node1), optionalDoubleOf(closeTo(f01, 1e-6)));
+        assertThat(result.getValue(node0, node2), optionalDoubleOf(closeTo(f02, 1e-6)));
+        assertThat(result.getValue(node1, node0), optionalDoubleOf(closeTo(f01, 1e-6)));
+        assertThat(result.getValue(node1, node1), optionalDoubleOf(0.0));
+        assertThat(result.getValue(node1, node2), optionalDoubleOf(closeTo(f12, 1e-6)));
+        assertThat(result.getValue(node2, node0), optionalDoubleOf(closeTo(f02, 1e-6)));
+        assertThat(result.getValue(node2, node1), optionalDoubleOf(closeTo(f12, 1e-6)));
+        assertThat(result.getValue(node2, node2), optionalDoubleOf(0.0));
+
+    }
+
+    @Test
+    void getTrafficInfo() {
+        /*
+        Given a topology of
+        0 --1--> 1 ----> 2
+          <----   <--0--
+        And two vehicle at edge01 at distance 25, 49.5
+        And two vehicle at edge10 at distance 20,30,
+        And two vehicle at edge12 at distance 10
+         */
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
+        MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
+        MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
+        MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
+        MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
+        Vehicle v010 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(20);
+        Vehicle v011 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(49.5);
+        Vehicle v100 = createVehicle(node0, node2, 0).setCurrentEdge(edge10).setDistance(20);
+        Vehicle v101 = createVehicle(node0, node2, 0).setCurrentEdge(edge10).setDistance(30);
+        Vehicle v120 = createVehicle(node0, node2, 0).setCurrentEdge(edge12).setDistance(10);
+
+        StatusImpl status = createStatus(
+                createTopology(
+                        List.of(node0, node2, node1),
+                        List.of(edge01, edge10, edge12, edge21)
+                ), 0,
+                List.of(v010, v011, v100, v101, v120), SPEED_LIMIT, 0);
+
+        /*
+        When checking edges availability
+         */
+        List<TrafficInfo> result = status.getTrafficInfo();
+
+        /*
+        Then it should result the next vehicle function
+         */
+        assertNotNull(result);
+    }
+
     @Test
     void getWaitingVehicles() {
         /*
@@ -794,28 +930,27 @@ class StatusImplTest {
         And a vehicle running in the edge
         And a vehicle at the end of edge
          */
-        SiteNode node0 = SiteNode.createSite(0, 0);
-        SiteNode node2 = SiteNode.createSite(100, 0);
-        MapNode node1 = MapNode.createNode(50, 0);
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        Vehicle vNoEdge = Vehicle.create(node0, node2, 0);
-        Vehicle v011 = Vehicle.create(node0, node2, 0)
+        Vehicle vNoEdge = createVehicle(node0, node2, 0);
+        Vehicle v011 = createVehicle(node0, node2, 0)
                 .setCurrentEdge(edge01)
                 .setDistance(20);
-        Vehicle v012 = Vehicle.create(node0, node2, 0)
+        Vehicle v012 = createVehicle(node0, node2, 0)
                 .setCurrentEdge(edge01)
                 .setDistance(edge01.getLength());
 
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(node0, node2),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
-                List.of(vNoEdge, v012, v011), 0);
+                List.of(vNoEdge, v012, v011), SPEED_LIMIT, 0);
 
         /*
         When getting waiting vehicles
@@ -837,10 +972,10 @@ class StatusImplTest {
         0 ---> 1 ---> 2    3
           <---   <---
          */
-        SiteNode node0 = SiteNode.createSite(0, 0);
-        SiteNode node3 = SiteNode.createSite(100, 100);
-        SiteNode node2 = SiteNode.createSite(100, 0);
-        MapNode node1 = MapNode.createNode(50, 0);
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node3 = createSite(100, 100);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
@@ -855,35 +990,34 @@ class StatusImplTest {
         And vehicle6 waiting on edge21 to site0 with available path (edge10)
         And vehicle7 at entry of edge01 at middle of edge
          */
-        Vehicle v0 = Vehicle.create(node0, node2, 0)
+        Vehicle v0 = createVehicle(node0, node2, 0)
                 .setCurrentEdge(edge01);
-        Vehicle v1 = Vehicle.create(node3, node0, 0);
-        Vehicle v2 = Vehicle.create(node0, node2, 0);
-        Vehicle v3 = Vehicle.create(node0, node2, 0)
+        Vehicle v1 = createVehicle(node3, node0, 0);
+        Vehicle v2 = createVehicle(node0, node2, 0);
+        Vehicle v3 = createVehicle(node0, node2, 0)
                 .setReturning(true);
-        Vehicle v4 = Vehicle.create(node0, node3, 0)
+        Vehicle v4 = createVehicle(node0, node3, 0)
                 .setCurrentEdge(edge12)
                 .setDistance(edge12.getLength());
-        Vehicle v5 = Vehicle.create(node0, node2, 0)
+        Vehicle v5 = createVehicle(node0, node2, 0)
                 .setCurrentEdge(edge10)
                 .setDistance(edge10.getLength());
-        Vehicle v6 = Vehicle.create(node0, node2, 0)
+        Vehicle v6 = createVehicle(node0, node2, 0)
                 .setCurrentEdge(edge21)
                 .setDistance(edge21.getLength())
                 .setReturning(true)
                 .setEdgeEntryTime(time - elapsed);
-        Vehicle v7 = Vehicle.create(node0, node2, 0)
+        Vehicle v7 = createVehicle(node0, node2, 0)
                 .setCurrentEdge(edge10)
                 .setDistance(edge10.getLength() / 2)
                 .setReturning(true);
 
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(node0, node2, node3),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(node0, node2, node1, node3),
                         List.of(edge01, edge10, edge12, edge21)
                 ), time,
-                List.of(v0, v1, v2, v3, v4, v5, v6, v7), 0);
+                List.of(v0, v1, v2, v3, v4, v5, v6, v7), SPEED_LIMIT, 0);
 
         /*
         When handling vehicles
@@ -906,7 +1040,7 @@ class StatusImplTest {
         assertThat(v6.getCurrentEdge(), optionalOf(edge10));
         assertThat(v6.getDistance(), equalTo(0.0));
         assertThat(v6.getEdgeEntryTime(), equalTo(time));
-        assertThat(status.getEdgeTransitTime(edge21), optionalOf(closeTo(elapsed, 0.01)));
+        assertThat(status.getEdgeTransitTime(edge21), closeTo(elapsed, 0.01));
         assertThat(status.getNextVehicle(v6), optionalOf(v7));
     }
 
@@ -923,24 +1057,23 @@ class StatusImplTest {
         And a vehicle at edge01 at distance = 50-15 m (incoming vehicle)
         And a vehicle at edge21 to site0 at distance = edge length
          */
-        SiteNode node0 = SiteNode.createSite(0, 0);
-        SiteNode node2 = SiteNode.createSite(100, 0);
-        MapNode node1 = MapNode.createNode(50, 0);
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, HIGH_PRIORITY);
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        Vehicle v010 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(50 - 15);
-        Vehicle v210 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge21).setDistance(edge21.getLength());
+        Vehicle v010 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(50 - 15);
+        Vehicle v210 = createVehicle(node0, node2, 0).setCurrentEdge(edge21).setDistance(edge21.getLength());
         List<Vehicle> vehicles = List.of(v010, v210);
 
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(node0, node2),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
-                vehicles, 0);
+                vehicles, SPEED_LIMIT, 0);
 
         /*
         When checking edges availability
@@ -966,24 +1099,23 @@ class StatusImplTest {
         And a vehicle at edge01 at distance = 50-15 m (incoming vehicle)
         And a vehicle at edge21 to site0 at distance = edge length
          */
-        SiteNode node0 = SiteNode.createSite(0, 0);
-        SiteNode node2 = SiteNode.createSite(100, 0);
-        MapNode node1 = MapNode.createNode(50, 0);
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        Vehicle v010 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(50 - 15);
-        Vehicle v210 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge21).setDistance(edge21.getLength());
+        Vehicle v010 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(50 - 15);
+        Vehicle v210 = createVehicle(node0, node2, 0).setCurrentEdge(edge21).setDistance(edge21.getLength());
         List<Vehicle> vehicles = List.of(v010, v210);
 
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(node0, node2),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
-                vehicles, 0);
+                vehicles, SPEED_LIMIT, 0);
 
         /*
         When checking edges availability
@@ -1005,24 +1137,23 @@ class StatusImplTest {
         And a vehicle at edge01 at distance = 5 m (edge busy)
         And a vehicle at edge10 at distance > 5 m (edge available)
          */
-        SiteNode node0 = SiteNode.createSite(0, 0);
-        SiteNode node2 = SiteNode.createSite(100, 0);
-        MapNode node1 = MapNode.createNode(50, 0);
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        Vehicle v010 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(5);
-        Vehicle v100 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge10).setDistance(5.1);
+        Vehicle v010 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(5);
+        Vehicle v100 = createVehicle(node0, node2, 0).setCurrentEdge(edge10).setDistance(5.1);
         List<Vehicle> vehicles = List.of(v010, v100);
 
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(node0, node2),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
-                vehicles, 0);
+                vehicles, SPEED_LIMIT, 0);
 
         /*
         When checking edges availability
@@ -1054,25 +1185,24 @@ class StatusImplTest {
         And two vehicle at edge01 at distance 10, 49 (at edge exit)
         And two vehicle at edge10 at distance 20,30, (10 m of distance)
          */
-        SiteNode node0 = SiteNode.createSite(0, 0);
-        SiteNode node2 = SiteNode.createSite(100, 0);
-        MapNode node1 = MapNode.createNode(50, 0);
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        Vehicle v010 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(10);
-        Vehicle v011 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge01).setDistance(49);
-        Vehicle v100 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge10).setDistance(20);
-        Vehicle v101 = Vehicle.create(node0, node2, 0).setCurrentEdge(edge10).setDistance(30);
+        Vehicle v010 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(10);
+        Vehicle v011 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(49);
+        Vehicle v100 = createVehicle(node0, node2, 0).setCurrentEdge(edge10).setDistance(20);
+        Vehicle v101 = createVehicle(node0, node2, 0).setCurrentEdge(edge10).setDistance(30);
 
-        StatusImpl status = StatusImpl.create(
-                Topology.create(
-                        List.of(node0, node2),
+        StatusImpl status = createStatus(
+                createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
-                List.of(v010, v011, v100, v101), 0);
+                List.of(v010, v011, v100, v101), SPEED_LIMIT, 0);
 
         /*
         When checking edges availability

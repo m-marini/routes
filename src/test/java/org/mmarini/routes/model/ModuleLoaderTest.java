@@ -28,7 +28,6 @@
 
 package org.mmarini.routes.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
 
 import java.awt.geom.Point2D;

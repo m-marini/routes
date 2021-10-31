@@ -25,24 +25,66 @@
  *    END OF TERMS AND CONDITIONS
  *
  */
+
 package org.mmarini.routes.model2;
 
 /**
- * @param <T>
+ * @author Marco
  */
-public interface MapElementVisitor<T> {
-    /**
-     * @param node the node
-     */
-    T visit(CrossNode node);
+public class MapProfile {
+    private final int siteCount;
+    private final double width;
+    private final double height;
+    private final double minWeight;
+    private final double frequency;
 
     /**
-     * @param site the node
+     * @param siteCount
+     * @param width
+     * @param height
+     * @param minWeight
+     * @param frequency
      */
-    T visit(SiteNode site);
+    public MapProfile(int siteCount, double width, double height, double minWeight, double frequency) {
+        this.siteCount = siteCount;
+        this.width = width;
+        this.height = height;
+        this.minWeight = minWeight;
+        this.frequency = frequency;
+    }
 
     /**
-     * @param edge the edge
+     * @return the frequence
      */
-    T visit(MapEdge edge);
+    public double getFrequency() {
+        return frequency;
+    }
+
+    /**
+     * @return the height
+     */
+    public double getHeight() {
+        return height;
+    }
+
+    /**
+     * @return the minWeight
+     */
+    public double getMinWeight() {
+        return minWeight;
+    }
+
+    /**
+     * @return the siteCount
+     */
+    public int getSiteCount() {
+        return siteCount;
+    }
+
+    /**
+     * @return the width
+     */
+    public double getWidth() {
+        return width;
+    }
 }

@@ -31,7 +31,7 @@ package org.mmarini.routes.model2.yaml;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
-import org.mmarini.routes.model2.MapNode;
+import org.mmarini.routes.model2.CrossNode;
 import org.mmarini.yaml.Utils;
 
 import java.io.IOException;
@@ -54,7 +54,7 @@ class NodeASTTest {
         NodeAST node = new NodeAST(file, JsonPointer.empty());
         node.validate();
 
-        MapNode result = node.getMapNode();
+        CrossNode result = node.getMapNode();
         assertNotNull(result);
         assertThat(result.getLocation(), allOf(
                 hasProperty("x", equalTo(1.0)),

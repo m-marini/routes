@@ -39,6 +39,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.mmarini.routes.model2.CrossNode.createNode;
 
 class MapNodeTest {
 
@@ -65,12 +66,12 @@ class MapNodeTest {
     @ParameterizedTest
     @MethodSource("points")
     void create(int x, int y) {
-        MapNode node = new MapNode(new Point2D.Double(x, y));
+        CrossNode node = createNode(x, y);
 
         assertThat(node.getLocation(), equalTo(new Point2D.Double(x, y)));
         Point2D value = node.apply(new MapElementVisitorAdapter<>() {
             @Override
-            public Point2D visit(MapNode node) {
+            public Point2D visit(CrossNode node) {
                 return node.getLocation();
             }
         });
@@ -80,10 +81,9 @@ class MapNodeTest {
     @ParameterizedTest
     @MethodSource("points2")
     void create(int x, int y, int x1, int y1) {
-        Point2D point = new Point2D.Double(x, y);
         Point2D point2 = new Point2D.Double(x1, y1);
 
-        MapNode node = new MapNode(point);
+        CrossNode node = createNode(x, y);
 
         double result = node.getDistanceSq(point2);
         double expected = (x1 - x) * (x1 - x) + (y1 - y) * (y1 - y);
@@ -94,7 +94,7 @@ class MapNodeTest {
     @ParameterizedTest
     @MethodSource("points")
     void equalsAndHash(int x, int y) {
-        MapNode node = new MapNode(new Point2D.Double(x, y));
+        CrossNode node = createNode(x, y);
 
         // itself
         assertEquals(node, node);
@@ -106,12 +106,12 @@ class MapNodeTest {
         assertNotEquals(node, new Object());
 
         // different location
-        assertNotEquals(node, new MapNode(new Point2D.Double(x + 1, y + 1)));
+        assertNotEquals(node, createNode(x + 1, y + 1));
 
         // same location
-        assertEquals(node, new MapNode(new Point2D.Double(x, y)));
+        assertEquals(node, createNode(x, y));
 
         // hashCode
-        assertThat(node.hashCode(), equalTo(new MapNode(new Point2D.Double(x, y)).hashCode()));
+        assertThat(node.hashCode(), equalTo(new CrossNode(new Point2D.Double(x, y)).hashCode()));
     }
 }

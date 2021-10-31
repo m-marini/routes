@@ -37,14 +37,14 @@ import org.mmarini.yaml.TextAST;
 
 import java.util.function.Consumer;
 
-public class PathAST extends ASTNode {
+public class WeightAST extends ASTNode {
     private static final double DEFAULT_WEIGHT = 1;
 
     /**
      * @param root the json node
      * @param at   location of json node
      */
-    public PathAST(JsonNode root, JsonPointer at) {
+    public WeightAST(JsonNode root, JsonPointer at) {
         super(root, at);
     }
 

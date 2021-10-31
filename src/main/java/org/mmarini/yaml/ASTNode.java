@@ -33,6 +33,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.function.Consumer;
 
+import static java.util.Objects.requireNonNull;
+
 public abstract class ASTNode {
 
     private final JsonNode root;
@@ -43,8 +45,8 @@ public abstract class ASTNode {
      * @param at   location of json node
      */
     public ASTNode(JsonNode root, JsonPointer at) {
-        this.root = root;
-        this.at = at;
+        this.root = requireNonNull(root);
+        this.at = requireNonNull(at);
     }
 
     /**

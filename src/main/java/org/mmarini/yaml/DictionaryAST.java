@@ -36,6 +36,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import static java.util.Map.entry;
 import static org.mmarini.Utils.toMap;
 
 public class DictionaryAST<T extends ASTNode> extends ASTNode {
@@ -74,9 +75,10 @@ public class DictionaryAST<T extends ASTNode> extends ASTNode {
      * Returns the stream of name and item
      */
     public Stream<Map.Entry<String, T>> itemStream() {
-        return Utils.iter2Stream(getNode().fieldNames()).map(name ->
-                Map.entry(name, builder.apply(getRoot(), path(name)))
-        );
+        return Utils.iter2Stream(getNode().fieldNames())
+                .map(name ->
+                        entry(name, builder.apply(getRoot(), path(name)))
+                );
     }
 
     /**

@@ -83,35 +83,7 @@ class DefaultsASTTest {
     }
 
     @Test
-    void wrongSpeed() throws IOException {
-        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            JsonNode root = Utils.fromText(text(
-                    "---",
-                    "defaultFrequence: 0.33",
-                    "speedLimit: aaaa",
-                    "defaultPriority: 1"
-            ));
-            new DefaultsAST(root, JsonPointer.empty()).validate();
-        });
-        assertThat(ex.getMessage(), matchesPattern("/speedLimit \"aaaa\" must be a number"));
-    }
-
-    @Test
-    void wrongSpeed1() throws IOException {
-        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            JsonNode root = Utils.fromText(text(
-                    "---",
-                    "defaultFrequence: 0.33",
-                    "speedLimit: -1",
-                    "defaultPriority: 1"
-            ));
-            new DefaultsAST(root, JsonPointer.empty()).validate();
-        });
-        assertThat(ex.getMessage(), matchesPattern("/speedLimit -1 must be a not negative number"));
-    }
-
-    @Test
-    void wrongPriority() throws IOException {
+    void wrongPriority() {
         final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
             JsonNode root = Utils.fromText(text(
                     "---",
@@ -125,7 +97,7 @@ class DefaultsASTTest {
     }
 
     @Test
-    void wrongPriority1() throws IOException {
+    void wrongPriority1() {
         final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
             JsonNode root = Utils.fromText(text(
                     "---",
@@ -136,6 +108,34 @@ class DefaultsASTTest {
             new DefaultsAST(root, JsonPointer.empty()).validate();
         });
         assertThat(ex.getMessage(), matchesPattern("/defaultPriority 1.3 must be an integer"));
+    }
+
+    @Test
+    void wrongSpeed() {
+        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            JsonNode root = Utils.fromText(text(
+                    "---",
+                    "defaultFrequence: 0.33",
+                    "speedLimit: aaaa",
+                    "defaultPriority: 1"
+            ));
+            new DefaultsAST(root, JsonPointer.empty()).validate();
+        });
+        assertThat(ex.getMessage(), matchesPattern("/speedLimit \"aaaa\" must be a number"));
+    }
+
+    @Test
+    void wrongSpeed1() {
+        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            JsonNode root = Utils.fromText(text(
+                    "---",
+                    "defaultFrequence: 0.33",
+                    "speedLimit: -1",
+                    "defaultPriority: 1"
+            ));
+            new DefaultsAST(root, JsonPointer.empty()).validate();
+        });
+        assertThat(ex.getMessage(), matchesPattern("/speedLimit -1 must be a not negative number"));
     }
 
 }

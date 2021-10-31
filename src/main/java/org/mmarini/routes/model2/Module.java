@@ -26,49 +26,50 @@
  *
  */
 
-package org.mmarini.routes.model2.yaml;
-
-import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.JsonNode;
-import org.mmarini.routes.model2.CrossNode;
-import org.mmarini.yaml.ASTNode;
-import org.mmarini.yaml.ASTValidator;
-import org.mmarini.yaml.DoubleAST;
+package org.mmarini.routes.model2;
 
 import java.awt.geom.Point2D;
-import java.util.function.Consumer;
+import java.awt.geom.Rectangle2D;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class NodeAST extends ASTNode {
-    /**
-     * @param root the json node
-     * @param at   location of json node
-     */
-    public NodeAST(JsonNode root, JsonPointer at) {
-        super(root, at);
+/**
+ *
+ */
+public class Module {
+    private final List<MapEdge> edges;
+
+    public Module(List<MapEdge> edges) {
+        this.edges = edges;
     }
 
     /**
-     *
+     * Returns the bound rectangle
      */
-    public CrossNode getMapNode() {
-        return new CrossNode(new Point2D.Double(x().getValue(), y().getValue()));
+    public Rectangle2D getBound() {
+        List<Point2D> pts = getNodes().stream().map(MapNode::getLocation).collect(Collectors.toList());
+        double x0 = pts.stream().mapToDouble(Point2D::getX).min().orElse(0);
+        double y0 = pts.stream().mapToDouble(Point2D::getY).min().orElse(0);
+        double x1 = pts.stream().mapToDouble(Point2D::getX).max().orElse(0);
+        double y1 = pts.stream().mapToDouble(Point2D::getY).max().orElse(0);
+        return new Rectangle2D.Double(x0, y0, x1 - x0, y1 - y0);
     }
 
-    @Override
-    public Consumer<ASTNode> getValidator() {
-        return ASTValidator.and(
-                ASTValidator.required(),
-                ASTValidator.object(),
-                ASTValidator.validate(x()),
-                ASTValidator.validate(y())
-        );
+    /**
+     * Returns the edges
+     */
+    public List<MapEdge> getEdges() {
+        return edges;
     }
 
-    public DoubleAST x() {
-        return DoubleAST.createRequiredDouble(getRoot(), path("x"));
-    }
-
-    public DoubleAST y() {
-        return DoubleAST.createRequiredDouble(getRoot(), path("y"));
+    /**
+     * Returns the set of node
+     */
+    Set<MapNode> getNodes() {
+        return getEdges().stream()
+                .flatMap(mapEdge -> Stream.of(mapEdge.getBegin(), mapEdge.getEnd()))
+                .collect(Collectors.toSet());
     }
 }

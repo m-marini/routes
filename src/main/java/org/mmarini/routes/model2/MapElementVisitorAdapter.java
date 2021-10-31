@@ -38,7 +38,7 @@ package org.mmarini.routes.model2;
 public class MapElementVisitorAdapter<T> implements MapElementVisitor<T> {
 
     @Override
-    public T visit(final MapNode node) {
+    public T visit(final CrossNode node) {
         return null;
     }
 

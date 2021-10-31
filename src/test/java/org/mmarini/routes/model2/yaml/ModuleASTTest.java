@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mmarini.routes.model2.StatusImpl;
+import org.mmarini.routes.model2.Module;
 import org.mmarini.yaml.Utils;
 
 import java.awt.geom.Point2D;
@@ -49,49 +49,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mmarini.routes.model2.yaml.TestUtils.text;
 
-class RouteASTTest {
+class ModuleASTTest {
 
     static Stream<Arguments> argsForError() {
         return Stream.of(Arguments.of(text(
                         "---",
-                        "nodes: {}",
-                        "paths: []",
-                        "edges: []"
-                ), "/sites is missing"
-        ), Arguments.of(text(
-                        "---",
-                        "sites: {}",
-                        "paths: []",
                         "edges: []"
                 ), "/nodes is missing"
         ), Arguments.of(text(
                         "---",
-                        "sites: {}",
-                        "nodes: {}",
-                        "edges: []"
-                ), "/paths is missing"
-        ), Arguments.of(text(
-                        "---",
-                        "sites: {}",
-                        "nodes: {}",
-                        "paths: []"
+                        "nodes: {}"
                 ), "/edges is missing"
-        ), Arguments.of(text(
-                        "---",
-                        "sites:",
-                        "    a:",
-                        "        x: 0",
-                        "        y: 0",
-                        "    b:",
-                        "        x: 10",
-                        "        y: 0",
-                        "    c:",
-                        "        x: 0",
-                        "        y: 0",
-                        "nodes: {}",
-                        "paths: []",
-                        "edges: []"
-                ), "/sites/a has the same location of /sites/c"
         ), Arguments.of(text(
                         "---",
                         "nodes:",
@@ -117,128 +85,45 @@ class RouteASTTest {
                         "    b:",
                         "        x: 10",
                         "        y: 0",
-                        "sites:",
-                        "    c:",
-                        "        x: 0",
-                        "        y: 0",
-                        "paths: []",
-                        "edges: []"
-                ), "/nodes/a has the same location of /sites/c"
-        ), Arguments.of(text(
-                        "---",
-                        "nodes:",
-                        "    a:",
-                        "        x: 0",
-                        "        y: 0",
-                        "    b:",
-                        "        x: 10",
-                        "        y: 0",
-                        "sites:",
-                        "    a:",
-                        "        x: 0",
-                        "        y: 0",
-                        "paths: []",
-                        "edges: []"
-                ), "/sites/a has the same key of /nodes/a"
-        ), Arguments.of(text(
-                        "---",
-                        "sites:",
-                        "    a:",
-                        "        x: 0",
-                        "        y: 0",
-                        "    b:",
-                        "        x: 10",
-                        "        y: 0",
-                        "nodes:",
                         "    c:",
                         "        x: 5",
                         "        y: 0",
-                        "paths: []",
                         "edges:",
                         "  - start: a1",
                         "    end: a"
                 ), "/edges/0/start node a1 undefined"
         ), Arguments.of(text(
                         "---",
-                        "sites:",
+                        "nodes:",
                         "    a:",
                         "        x: 0",
                         "        y: 0",
                         "    b:",
                         "        x: 10",
                         "        y: 0",
-                        "nodes:",
                         "    c:",
                         "        x: 5",
                         "        y: 0",
-                        "paths: []",
                         "edges:",
                         "  - start: a",
                         "    end: a1"
                 ), "/edges/0/end node a1 undefined"
         ), Arguments.of(text(
                         "---",
-                        "sites:",
+                        "nodes:",
                         "    a:",
                         "        x: 0",
                         "        y: 0",
                         "    b:",
                         "        x: 10",
                         "        y: 0",
-                        "nodes:",
                         "    c:",
                         "        x: 5",
                         "        y: 0",
-                        "paths: []",
                         "edges:",
                         "  - start: a",
                         "    end: a"
                 ), "/edges/0/end must be different from /edges/0/start"
-        ), Arguments.of(text(
-                        "---",
-                        "sites:",
-                        "    a:",
-                        "        x: 0",
-                        "        y: 0",
-                        "    b:",
-                        "        x: 10",
-                        "        y: 0",
-                        "nodes: {}",
-                        "paths:",
-                        "  - departure: a1",
-                        "    destination: a",
-                        "edges: []"
-                ), "/paths/0/departure site a1 undefined"
-        ), Arguments.of(text(
-                        "---",
-                        "sites:",
-                        "    a:",
-                        "        x: 0",
-                        "        y: 0",
-                        "    b:",
-                        "        x: 10",
-                        "        y: 0",
-                        "nodes: {}",
-                        "paths:",
-                        "  - departure: a",
-                        "    destination: a1",
-                        "edges: []"
-                ), "/paths/0/destination site a1 undefined"
-        ), Arguments.of(text(
-                        "---",
-                        "sites:",
-                        "    a:",
-                        "        x: 0",
-                        "        y: 0",
-                        "    b:",
-                        "        x: 10",
-                        "        y: 0",
-                        "nodes: {}",
-                        "paths:",
-                        "  - departure: a",
-                        "    destination: a",
-                        "edges: []"
-                ), "/paths/0/destination must be different from /paths/0/departure"
         ));
     }
 
@@ -257,25 +142,18 @@ class RouteASTTest {
                 "  end: node0",
                 "- start: node2",
                 "  end: node1",
-                "sites:",
+                "nodes:",
                 "  node0:",
                 "    x: 0",
                 "    y: 0",
                 "  node2:",
                 "    x: 10",
                 "    y: 0",
-                "nodes:",
                 "  node1:",
                 "    x: 5",
-                "    y: 0",
-                "paths:",
-                "- departure: node0",
-                "  destination: node2",
-                "  weight: 2",
-                "- departure: node2",
-                "  destination: node0"
+                "    y: 0"
         ));
-        RouteAST node = new RouteAST(root, JsonPointer.empty());
+        ModuleAST node = new ModuleAST(root, JsonPointer.empty());
         node.validate();
 
         List<EdgeAST> edges = node.edges().items();
@@ -300,59 +178,21 @@ class RouteASTTest {
         assertThat(edges.get(2).speedLimit().getValue(), equalTo(90.0));
         assertThat(edges.get(2).priority().getValue(), equalTo(0));
 
-        Map<String, SiteAST> sites = node.sites().items();
-        assertThat(sites.size(), equalTo(2));
-        assertThat(sites.get("node0"), hasProperty("site",
+        Map<String, NodeAST> nodes = node.nodes().items();
+        assertThat(nodes.size(), equalTo(3));
+        assertThat(nodes.get("node0"), hasProperty("mapNode",
                 hasProperty("location",
                         equalTo(new Point2D.Double(0, 0)))));
-        assertThat(sites.get("node2"), hasProperty("site",
+        assertThat(nodes.get("node2"), hasProperty("mapNode",
                 hasProperty("location",
                         equalTo(new Point2D.Double(10, 0)))));
-
-        Map<String, NodeAST> nodes = node.nodes().items();
-        assertThat(nodes.size(), equalTo(1));
         assertThat(nodes.get("node1"), hasProperty("mapNode",
                 hasProperty("location",
                         equalTo(new Point2D.Double(5, 0)))));
 
-        List<WeightAST> paths = node.paths().items();
-        assertThat(paths, hasSize(2));
-        assertThat(paths.get(0).departure().getValue(), equalTo("node0"));
-        assertThat(paths.get(0).destination().getValue(), equalTo("node2"));
-        assertThat(paths.get(0).weight().getValue(), equalTo(2.0));
-
-        assertThat(paths.get(1).departure().getValue(), equalTo("node2"));
-        assertThat(paths.get(1).destination().getValue(), equalTo("node0"));
-        assertThat(paths.get(1).weight().getValue(), equalTo(1.0));
-
-        StatusImpl status = node.build();
-        assertNotNull(status);
-        assertThat(status.getVehicles(), hasSize(0));
-        assertThat(status.getSites(), containsInAnyOrder(
-                hasProperty("location", allOf(
-                        hasProperty("x", equalTo(0.0)),
-                        hasProperty("y", equalTo(0.0))
-                )),
-                hasProperty("location", allOf(
-                        hasProperty("x", equalTo(10.0)),
-                        hasProperty("y", equalTo(0.0))
-                ))
-        ));
-        assertThat(status.getNodes(), containsInAnyOrder(
-                hasProperty("location", allOf(
-                        hasProperty("x", equalTo(0.0)),
-                        hasProperty("y", equalTo(0.0))
-                )),
-                hasProperty("location", allOf(
-                        hasProperty("x", equalTo(10.0)),
-                        hasProperty("y", equalTo(0.0))
-                )),
-                hasProperty("location", allOf(
-                        hasProperty("x", equalTo(5.0)),
-                        hasProperty("y", equalTo(0.0))
-                ))
-        ));
-        assertThat(status.getEdges(), containsInAnyOrder(
+        Module module = node.build();
+        assertNotNull(module);
+        assertThat(module.getEdges(), containsInAnyOrder(
                 allOf(
                         hasProperty("begin", hasProperty("location", allOf(
                                 hasProperty("x", equalTo(0.0)),
@@ -391,10 +231,6 @@ class RouteASTTest {
                         hasProperty("speedLimit", equalTo(90.0 / 3.6))
                 )
         ));
-        assertThat(status.getPathCdf(), equalTo(new double[][]{
-                {0, 1},
-                {2, 2}
-        }));
     }
 
     @ParameterizedTest
@@ -402,7 +238,7 @@ class RouteASTTest {
     void validateErrors(String text, String expectedPattern) {
         final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
             JsonNode root = Utils.fromText(text);
-            new RouteAST(root, JsonPointer.empty()).validate();
+            new ModuleAST(root, JsonPointer.empty()).validate();
         });
         assertThat(ex.getMessage(), matchesPattern(expectedPattern));
     }

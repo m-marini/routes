@@ -85,7 +85,9 @@ public class ArrayAST<T extends ASTNode> extends ASTNode {
 
     public Stream<T> itemStream() {
         return IntStream.range(0, size())
-                .mapToObj(i -> builder.apply(getRoot(), path(String.valueOf(i))));
+                .mapToObj(String::valueOf)
+                .map(this::path)
+                .map(path -> builder.apply(getRoot(), path));
     }
 
     public List<T> items() {

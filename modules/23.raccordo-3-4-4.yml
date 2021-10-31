@@ -1,188 +1,188 @@
 ---
 speedLimit: 130.0
 nodes:
-    Node_0:
-        x: -9.0
-        y: -72.0
-    Node_1:
-        x: -9.0
-        y: -35.0
-    Node_2:
-        x: -9.0
-        y: 35.0
-    Node_3:
-        x: -72.0
-        y: -9.0
-    Node_4:
-        x: -35.0
-        y: -9.0
-    Node_5:
-        x: 35.0
-        y: -9.0
-    Node_6:
-        x: 72.0
-        y: -9.0
-    Node_7:
-        x: 9.0
-        y: -72.0
-    Node_8:
-        x: 9.0
-        y: -35.0
-    Node_9:
-        x: 9.0
-        y: 35.0
-    Node_10:
-        x: -35.0
-        y: 9.0
-    Node_11:
-        x: 35.0
-        y: 9.0
-    Node_12:
-        x: -109.0
-        y: 9.0
-    Node_13:
-        x: -109.0
-        y: 3.0
-    Node_14:
-        x: -72.0
-        y: 3.0
-    Node_15:
-        x: -109.0
-        y: -9.0
-    Node_16:
-        x: -109.0
-        y: -3.0
-    Node_17:
-        x: 109.0
-        y: 9.0
-    Node_18:
-        x: 109.0
-        y: 3.0
-    Node_19:
-        x: 109.0
-        y: -3.0
-    Node_20:
-        x: 72.0
-        y: -3.0
-    Node_21:
-        x: 109.0
-        y: -9.0
-    Node_22:
-        x: -9.0
-        y: -109.0
-    Node_23:
-        x: 9.0
-        y: -109.0
-    Node_24:
-        x: -3.0
-        y: -109.0
-    Node_25:
-        x: 3.0
-        y: 52.0
-    Node_26:
-        x: 3.0
-        y: -109.0
-    Node_27:
-        x: -3.0
-        y: 52.0
-    Node_28:
-        x: 1.0
-        y: 3.0
-    Node_29:
-        x: -75.0
-        y: 3.0
+  Node_0:
+    x: -9.0
+    y: -72.0
+  Node_1:
+    x: -9.0
+    y: -35.0
+  Node_2:
+    x: -9.0
+    y: 35.0
+  Node_3:
+    x: -72.0
+    y: -9.0
+  Node_4:
+    x: -35.0
+    y: -9.0
+  Node_5:
+    x: 35.0
+    y: -9.0
+  Node_6:
+    x: 72.0
+    y: -9.0
+  Node_7:
+    x: 9.0
+    y: -72.0
+  Node_8:
+    x: 9.0
+    y: -35.0
+  Node_9:
+    x: 9.0
+    y: 35.0
+  Node_10:
+    x: -35.0
+    y: 9.0
+  Node_11:
+    x: 35.0
+    y: 9.0
+  Node_12:
+    x: -109.0
+    y: 9.0
+  Node_13:
+    x: -109.0
+    y: 3.0
+  Node_14:
+    x: -72.0
+    y: 3.0
+  Node_15:
+    x: -109.0
+    y: -9.0
+  Node_16:
+    x: -109.0
+    y: -3.0
+  Node_17:
+    x: 109.0
+    y: 9.0
+  Node_18:
+    x: 109.0
+    y: 3.0
+  Node_19:
+    x: 109.0
+    y: -3.0
+  Node_20:
+    x: 72.0
+    y: -3.0
+  Node_21:
+    x: 109.0
+    y: -9.0
+  Node_22:
+    x: -9.0
+    y: -109.0
+  Node_23:
+    x: 9.0
+    y: -109.0
+  Node_24:
+    x: -3.0
+    y: -109.0
+  Node_25:
+    x: 3.0
+    y: 52.0
+  Node_26:
+    x: 3.0
+    y: -109.0
+  Node_27:
+    x: -3.0
+    y: 52.0
+  Node_28:
+    x: 1.0
+    y: 3.0
+  Node_29:
+    x: -75.0
+    y: 3.0
 edges:
-    -   start: Node_0
-        end: Node_1
-        priority: 1
-    -   start: Node_1
-        end: Node_2
-    -   start: Node_12
-        end: Node_10
-        priority: 1
-    -   start: Node_10
-        end: Node_11
-    -   start: Node_6
-        end: Node_7
-    -   start: Node_0
-        end: Node_3
-    -   start: Node_4
-        end: Node_1
-    -   start: Node_8
-        end: Node_5
-    -   start: Node_11
-        end: Node_9
-    -   start: Node_2
-        end: Node_10
-    -   start: Node_13
-        end: Node_14
-        priority: 1
-    -   start: Node_3
-        end: Node_15
-    -   start: Node_11
-        end: Node_17
-    -   start: Node_19
-        end: Node_20
-        priority: 1
-    -   start: Node_21
-        end: Node_6
-    -   start: Node_12
-        end: Node_14
-    -   start: Node_28
-        end: Node_18
-    -   start: Node_3
-        end: Node_16
-    -   start: Node_20
-        end: Node_16
-        priority: 1
-    -   start: Node_21
-        end: Node_20
-    -   start: Node_22
-        end: Node_0
-        priority: 1
-    -   start: Node_7
-        end: Node_23
-    -   start: Node_25
-        end: Node_26
-        priority: 1
-    -   start: Node_7
-        end: Node_26
-    -   start: Node_11
-        end: Node_25
-        priority: 1
-    -   start: Node_24
-        end: Node_27
-        speedLimit: 130.0000103314723
-    -   start: Node_27
-        end: Node_10
-    -   start: Node_24
-        end: Node_0
-        speedLimit: 130.0000068876481
-    -   start: Node_10
-        end: Node_28
-        priority: 1
-    -   start: Node_14
-        end: Node_28
-        priority: 1
-    -   start: Node_6
-        end: Node_5
-        priority: 1
-    -   start: Node_5
-        end: Node_4
-    -   start: Node_4
-        end: Node_3
-        priority: 1
-    -   start: Node_9
-        end: Node_8
-    -   start: Node_8
-        end: Node_7
-        priority: 1
-    -   start: Node_29
-        end: Node_11
-        speedLimit: 130.00018252279853
-    -   start: Node_19
-        end: Node_6
-        speedLimit: 130.00019285428536
-    -   start: Node_20
-        end: Node_4
-        speedLimit: 130.00020318577305
+  - start: Node_0
+    end: Node_1
+    priority: 1
+  - start: Node_1
+    end: Node_2
+  - start: Node_12
+    end: Node_10
+    priority: 1
+  - start: Node_10
+    end: Node_11
+  - start: Node_6
+    end: Node_7
+  - start: Node_0
+    end: Node_3
+  - start: Node_4
+    end: Node_1
+  - start: Node_8
+    end: Node_5
+  - start: Node_11
+    end: Node_9
+  - start: Node_2
+    end: Node_10
+  - start: Node_13
+    end: Node_14
+    priority: 1
+  - start: Node_3
+    end: Node_15
+  - start: Node_11
+    end: Node_17
+  - start: Node_19
+    end: Node_20
+    priority: 1
+  - start: Node_21
+    end: Node_6
+  - start: Node_12
+    end: Node_14
+  - start: Node_28
+    end: Node_18
+  - start: Node_3
+    end: Node_16
+  - start: Node_20
+    end: Node_16
+    priority: 1
+  - start: Node_21
+    end: Node_20
+  - start: Node_22
+    end: Node_0
+    priority: 1
+  - start: Node_7
+    end: Node_23
+  - start: Node_25
+    end: Node_26
+    priority: 1
+  - start: Node_7
+    end: Node_26
+  - start: Node_11
+    end: Node_25
+    priority: 1
+  - start: Node_24
+    end: Node_27
+    speedLimit: 130.0000103314723
+  - start: Node_27
+    end: Node_10
+  - start: Node_24
+    end: Node_0
+    speedLimit: 130.0000068876481
+  - start: Node_10
+    end: Node_28
+    priority: 1
+  - start: Node_14
+    end: Node_28
+    priority: 1
+  - start: Node_6
+    end: Node_5
+    priority: 1
+  - start: Node_5
+    end: Node_4
+  - start: Node_4
+    end: Node_3
+    priority: 1
+  - start: Node_9
+    end: Node_8
+  - start: Node_8
+    end: Node_7
+    priority: 1
+  - start: Node_29
+    end: Node_11
+    speedLimit: 130.00018252279853
+  - start: Node_19
+    end: Node_6
+    speedLimit: 130.00019285428536
+  - start: Node_20
+    end: Node_4
+    speedLimit: 130.00020318577305

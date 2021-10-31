@@ -399,7 +399,7 @@ public class RouteMap extends JComponent {
     /**
      *
      */
-    public PublishProcessor<Point2D> getCenterMapFlowable() {
+    public Flowable<Point2D> getCenterMapFlowable() {
         return centerMapProcessor;
     }
 
@@ -442,11 +442,11 @@ public class RouteMap extends JComponent {
     /**
      *
      */
-    public PublishProcessor<EdgeCreation> getNewEdgeFlowable() {
+    public Flowable<EdgeCreation> getNewEdgeFlowable() {
         return newEdgeProcessor;
     }
 
-    public PublishProcessor<ModuleParameters> getNewModuleProcessor() {
+    public Flowable<ModuleParameters> getNewModuleFlowable() {
         return newModuleProcessor;
     }
 

@@ -44,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mmarini.routes.model2.Constants.REACTION_TIME;
 import static org.mmarini.routes.model2.Constants.VEHICLE_LENGTH;
+import static org.mmarini.routes.model2.CrossNode.createNode;
 import static org.mmarini.routes.model2.TestUtils.pointCloseTo;
 
 class MapEdgeTest {
@@ -110,8 +111,8 @@ class MapEdgeTest {
         and a priority
         And a point in the space
          */
-        MapNode begin = new MapNode(new Point2D.Double(x0, y0));
-        MapNode end = new MapNode(new Point2D.Double(x1, y1));
+        CrossNode begin = createNode(x0, y0);
+        CrossNode end = createNode(x1, y1);
         MapEdge edge = new MapEdge(begin, end, MIN_SPEED_LIMIT, MIN_PRIORITY);
         Point2D point = new Point2D.Double(x2, y2);
 
@@ -132,8 +133,8 @@ class MapEdgeTest {
         and a speed limit
         and a priority
          */
-        MapNode begin = new MapNode(new Point2D.Double(x0, y0));
-        MapNode end = new MapNode(new Point2D.Double(x1, y1));
+        CrossNode begin = createNode(x0, y0);
+        CrossNode end = createNode(x1, y1);
         MapEdge edge = new MapEdge(begin, end, speed, priority);
 
         /*
@@ -204,8 +205,8 @@ class MapEdgeTest {
         and a priority
         And a point in the space
          */
-        MapNode begin = new MapNode(new Point2D.Double(x0, y0));
-        MapNode end = new MapNode(new Point2D.Double(x1, y1));
+        CrossNode begin = createNode(x0, y0);
+        CrossNode end = createNode(x1, y1);
         MapEdge edge = new MapEdge(begin, end, MIN_SPEED_LIMIT, MIN_PRIORITY);
         Point2D point = new Point2D.Double(x2, y2);
 
@@ -226,8 +227,8 @@ class MapEdgeTest {
         and a speed limit
         and a priority
          */
-        MapNode begin = new MapNode(new Point2D.Double(x0, y0));
-        MapNode end = new MapNode(new Point2D.Double(x1, y1));
+        CrossNode begin = createNode(x0, y0);
+        CrossNode end = createNode(x1, y1);
         MapEdge edge = new MapEdge(begin, end, speed, priority);
 
         // itself
@@ -242,7 +243,7 @@ class MapEdgeTest {
         // different begin
         assertNotEquals(
                 new MapEdge(
-                        new MapNode(new Point2D.Double(x0 + 1, y0 - 1)),
+                        createNode(x0 + 1, y0 - 1),
                         end, speed, priority),
                 edge);
 
@@ -250,7 +251,7 @@ class MapEdgeTest {
         assertNotEquals(
                 new MapEdge(
                         begin,
-                        new MapNode(new Point2D.Double(x1 + 1, y1 - 1)),
+                        createNode(x1 + 1, y1 - 1),
                         speed, priority),
                 edge);
 
@@ -287,8 +288,8 @@ class MapEdgeTest {
         and a priority
         And a point in the space
          */
-        MapNode begin = new MapNode(new Point2D.Double(x0, y0));
-        MapNode end = new MapNode(new Point2D.Double(x1, y1));
+        CrossNode begin = createNode(x0, y0);
+        CrossNode end = createNode(x1, y1);
         MapEdge edge = new MapEdge(begin, end, MIN_SPEED_LIMIT, MIN_PRIORITY);
         Point2D point = new Point2D.Double(x2, y2);
 
@@ -310,8 +311,8 @@ class MapEdgeTest {
         and a priority
         And a distance from the beginning
          */
-        MapNode begin = new MapNode(new Point2D.Double(x0, y0));
-        MapNode end = new MapNode(new Point2D.Double(x1, y1));
+        CrossNode begin = createNode(x0, y0);
+        CrossNode end = createNode(x1, y1);
         MapEdge edge = new MapEdge(begin, end, speed, priority);
 
         /*

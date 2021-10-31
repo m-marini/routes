@@ -33,6 +33,8 @@ import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.UUID;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * The vehicle from a departure node to a destination node
  */
@@ -45,7 +47,7 @@ public class Vehicle {
      * @param destination the destination
      * @param time        the creation time
      */
-    public static Vehicle create(SiteNode departure, SiteNode destination, double time) {
+    public static Vehicle createVehicle(SiteNode departure, SiteNode destination, double time) {
         return new Vehicle(UUID.randomUUID(), departure, destination,
                 time, null, 0, false, 0);
     }
@@ -79,9 +81,9 @@ public class Vehicle {
                    double distance,
                    boolean returning,
                    double edgeEntryTime) {
-        this.id = id;
-        this.departure = departure;
-        this.destination = destination;
+        this.id = requireNonNull(id);
+        this.departure = requireNonNull(departure);
+        this.destination = requireNonNull(destination);
         this.creationTime = creationTime;
         this.currentEdge = currentEdge;
         this.distance = distance;
@@ -140,11 +142,24 @@ public class Vehicle {
         return departure;
     }
 
+    public Vehicle setDeparture(SiteNode departure) {
+        return new Vehicle(id, departure, destination, creationTime, currentEdge, distance, returning, edgeEntryTime);
+    }
+
     /**
      * Returns the destination node
      */
     public SiteNode getDestination() {
         return destination;
+    }
+
+    /**
+     * Return a copy of vehicle with destination changed
+     *
+     * @param destination the destination
+     */
+    public Vehicle setDestination(SiteNode destination) {
+        return new Vehicle(id, departure, destination, creationTime, currentEdge, distance, returning, edgeEntryTime);
     }
 
     /**
@@ -194,6 +209,26 @@ public class Vehicle {
     }
 
     /**
+     * Returns true if vehicle is transiting in an edge
+     *
+     * @param node the node
+     */
+    public boolean isCrossingNode(MapNode node) {
+        return currentEdge != null && currentEdge.isCrossingNode(node);
+    }
+
+    /**
+     * Returns true if the vehicle has relation to a node
+     * The relation can be the departure or destination of vehicle
+     * or the end nodes of the current edge if any
+     *
+     * @param node the node
+     */
+    public boolean isRelatedToNode(MapNode node) {
+        return isSiteInPath(node) || isCrossingNode(node);
+    }
+
+    /**
      * Returns true if the vehicle is moving from destination to departure
      */
     public boolean isReturning() {
@@ -208,6 +243,24 @@ public class Vehicle {
     public Vehicle setReturning(boolean returning) {
         this.returning = returning;
         return this;
+    }
+
+    /**
+     * Returns true if vehicle is from or to a node
+     *
+     * @param site the site node
+     */
+    public boolean isSiteInPath(MapNode site) {
+        return departure.equals(site) || destination.equals(site);
+    }
+
+    /**
+     * Returns true if vehicle is transiting in an edge
+     *
+     * @param edge the edge
+     */
+    public boolean isTransitingEdge(MapEdge edge) {
+        return currentEdge != null && currentEdge.equals(edge);
     }
 
     @Override

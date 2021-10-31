@@ -39,6 +39,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.mmarini.routes.model2.SiteNode.createSite;
 
 class SiteNodeTest {
 
@@ -65,11 +66,11 @@ class SiteNodeTest {
     @ParameterizedTest
     @MethodSource("points")
     void create(int x, int y) {
-        SiteNode node = new SiteNode(new Point2D.Double(x, y));
+        SiteNode node = createSite(x, y);
 
         assertThat(node.getLocation(), equalTo(new Point2D.Double(x, y)));
 
-        Point2D value = node.apply(new MapElementVisitorAdapter<Point2D>() {
+        Point2D value = node.apply(new MapElementVisitorAdapter<>() {
 
             @Override
             public Point2D visit(SiteNode node) {
@@ -82,7 +83,7 @@ class SiteNodeTest {
     @ParameterizedTest
     @MethodSource("points")
     void equalsAndHash(int x, int y) {
-        SiteNode node = new SiteNode(new Point2D.Double(x, y));
+        SiteNode node = createSite(x, y);
 
         // itself
         assertEquals(node, node);
@@ -94,22 +95,21 @@ class SiteNodeTest {
         assertNotEquals(node, new Object());
 
         // different location
-        assertNotEquals(node, new SiteNode(new Point2D.Double(x + 1, y + 1)));
+        assertNotEquals(node, createSite(x + 1, y + 1));
 
         // same location
-        assertEquals(node, new SiteNode(new Point2D.Double(x, y)));
+        assertEquals(node, createSite(x, y));
 
         // hashCode
-        assertThat(node.hashCode(), equalTo(new SiteNode(new Point2D.Double(x, y)).hashCode()));
+        assertThat(node.hashCode(), equalTo(createSite(x, y).hashCode()));
     }
 
     @ParameterizedTest
     @MethodSource("points2")
     void getDistanceSq(int x, int y, int x1, int y1) {
-        Point2D point = new Point2D.Double(x, y);
         Point2D point2 = new Point2D.Double(x1, y1);
 
-        SiteNode node = new SiteNode(point);
+        SiteNode node = createSite(x, y);
 
         double result = node.getDistanceSq(point2);
         double expected = (x1 - x) * (x1 - x) + (y1 - y) * (y1 - y);

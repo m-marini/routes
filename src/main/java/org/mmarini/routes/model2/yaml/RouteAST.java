@@ -30,6 +30,7 @@ package org.mmarini.routes.model2.yaml;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.mmarini.Tuple2;
 import org.mmarini.routes.model2.*;
 import org.mmarini.yaml.*;
 
@@ -37,9 +38,12 @@ import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Map.entry;
+import static org.mmarini.Utils.getValue;
 import static org.mmarini.Utils.toMap;
 import static org.mmarini.yaml.Utils.fromFile;
 import static org.mmarini.yaml.Utils.fromResource;
@@ -94,19 +98,12 @@ public class RouteAST extends ASTNode {
                 .collect(Collectors.toList());
         List<SiteNode> siteList = new ArrayList<>(siteByName.values());
         List<MapNode> nodeList = new ArrayList<>(anyNodeByName.values());
-        Topology topology = Topology.create(siteList, nodeList, edgeList);
+        Topology topology = Topology.createTopology(nodeList, edgeList);
         double frequency = defaults().defaultFrequence().getValue();
-        final int n = siteList.size();
-        double[][] weights = new double[n][n];
-        paths().itemStream().forEach(path -> {
-            SiteNode departure = siteByName.get(path.departure().getValue());
-            SiteNode destination = siteByName.get(path.destination().getValue());
-            int i = siteList.indexOf(departure);
-            int j = siteList.indexOf(destination);
-            double weight = path.weight().getValue();
-            weights[i][j] = weight;
-        });
-        return StatusImpl.create(topology, 0, List.of(), frequency, weights);
+        Stream<Tuple2<Tuple2<SiteNode, SiteNode>, Double>> w = getPaths(s -> getValue(siteByName, s));
+        double[][] weights = DoubleMatrix.from(w, siteList).getValues();
+        double speedLimit = defaults().speedLimit().getValue();
+        return StatusImpl.createStatus(topology, 0, List.of(), speedLimit, frequency, weights);
     }
 
     public DefaultsAST defaults() {
@@ -133,15 +130,28 @@ public class RouteAST extends ASTNode {
         return allNodes;
     }
 
-    Map<String, MapNode> getNodes() {
+    Map<String, CrossNode> getNodes() {
         return nodes().itemStream()
-                .map(entry -> Map.entry(entry.getKey(), entry.getValue().getMapNode()))
+                .map(entry -> entry(entry.getKey(), entry.getValue().getMapNode()))
                 .collect(toMap());
+    }
+
+    Stream<Tuple2<Tuple2<SiteNode, SiteNode>, Double>> getPaths(Function<String, Optional<SiteNode>> mapper) {
+        return paths().itemStream()
+                .flatMap(path ->
+                        mapper.apply(path.departure().getValue())
+                                .flatMap(dep ->
+                                        mapper.apply(path.destination().getValue())
+                                                .map(dest ->
+                                                        Tuple2.of(
+                                                                Tuple2.of(dep, dest),
+                                                                path.weight().getValue())))
+                                .stream());
     }
 
     Map<String, SiteNode> getSites() {
         return sites().itemStream()
-                .map(entry -> Map.entry(entry.getKey(), entry.getValue().getSite()))
+                .map(entry -> entry(entry.getKey(), entry.getValue().getSite()))
                 .collect(toMap());
     }
 
@@ -169,10 +179,10 @@ public class RouteAST extends ASTNode {
     /**
      *
      */
-    public ArrayAST<PathAST> paths() {
+    public ArrayAST<WeightAST> paths() {
         return ArrayAST.createRequired(getRoot(),
                 path("paths"),
-                PathAST::new);
+                WeightAST::new);
     }
 
     /**
@@ -189,18 +199,19 @@ public class RouteAST extends ASTNode {
         super.validate();
         // find node key duplicated
         Map<String, SiteAST> sites = sites().items();
-        nodes().itemStream().flatMap(entry -> {
-            Stream.Builder<Map.Entry<SiteAST, NodeAST>> builder = Stream.builder();
-            Optional.ofNullable(sites.get(entry.getKey())).ifPresent(siteAst ->
-                    builder.add(Map.entry(siteAst, entry.getValue()))
-            );
-            return builder.build();
-        }).findAny().ifPresent(entry ->
-                entry.getKey().throwError("has the same key of %s", entry.getValue().getAt())
-        );
+        nodes().itemStream()
+                .flatMap(entry ->
+                        Optional.ofNullable(sites.get(entry.getKey()))
+                                .map(siteAst -> entry(siteAst, entry.getValue()))
+                                .stream())
+                .findAny()
+                .ifPresent(entry ->
+                        entry.getKey().throwError("has the same key of %s", entry.getValue().getAt())
+                );
 
         // Finds the duplicated site locations
-        Map<Point2D, List<SiteAST>> sitesByLocation = sites().items().values()
+        Map<Point2D, List<SiteAST>> sitesByLocation = sites().items()
+                .values()
                 .stream()
                 .collect(Collectors.groupingBy(
                         x -> x.getSite().getLocation()
@@ -234,7 +245,7 @@ public class RouteAST extends ASTNode {
                                         sitesByLocation.get(
                                                 node.getMapNode().getLocation()
                                         ))
-                                .map(list -> Map.entry(node, list.get(0)))
+                                .map(list -> entry(node, list.get(0)))
                                 .stream())
                 .findAny()
                 .ifPresent(entry ->

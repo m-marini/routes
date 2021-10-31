@@ -34,10 +34,59 @@ import org.hamcrest.Matcher;
 
 import java.awt.geom.Point2D;
 import java.util.Optional;
+import java.util.OptionalDouble;
 
 import static org.hamcrest.Matchers.equalTo;
 
 public class TestUtils {
+
+    static <T> Matcher<OptionalDouble> optionalDoubleOf(double item) {
+        return new BaseMatcher<>() {
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendValue(item);
+            }
+
+            @Override
+            public boolean matches(Object o) {
+                if (o == null ||
+                        !(o instanceof OptionalDouble)) {
+                    return false;
+                }
+                OptionalDouble opt = (OptionalDouble) o;
+                if (opt.isEmpty()) {
+                    return false;
+                } else {
+                    return opt.getAsDouble() == item;
+                }
+            }
+        };
+    }
+
+    static <T> Matcher<OptionalDouble> optionalDoubleOf(Matcher<Double> matcher) {
+        return new BaseMatcher<>() {
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendValue(matcher);
+            }
+
+            @Override
+            public boolean matches(Object o) {
+                if (o == null ||
+                        !(o instanceof OptionalDouble)) {
+                    return false;
+                }
+                OptionalDouble opt = (OptionalDouble) o;
+                if (opt.isEmpty()) {
+                    return false;
+                } else {
+                    return matcher.matches(opt.getAsDouble());
+                }
+            }
+        };
+    }
 
     static <T> Matcher<Optional<T>> optionalEmpty() {
         return equalTo(Optional.empty());
@@ -66,7 +115,6 @@ public class TestUtils {
             }
         };
     }
-
 
     static <T> Matcher<Optional<T>> optionalOf(T item) {
         return new BaseMatcher<>() {

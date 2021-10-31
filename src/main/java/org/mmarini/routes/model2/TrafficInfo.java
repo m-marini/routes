@@ -26,91 +26,64 @@
  *
  */
 
-/**
- *
- */
-package org.mmarini.routes.model;
+package org.mmarini.routes.model2;
 
 /**
  * @author marco.marini@mmarini.org
- * @version $Id: Routes.java,v 1.3 2010/10/19 20:33:00 marco Exp $
- *
  */
-public class Path implements Cloneable {
-    private SiteNode departure;
-    private SiteNode destination;
-    private double weight;
+public class TrafficInfo {
+    private final int veicleCount;
+    private final int delayCount;
+    private final double totalDelayTime;
+    private final SiteNode destination;
 
-    public Path(SiteNode departure, SiteNode destination, double weight) {
-        this.departure = departure;
+    /**
+     * Create a traffic information record
+     *
+     * @param destination    the destination
+     * @param veicleCount    the number of vehicles
+     * @param delayCount     the number of delayed vehicles
+     * @param totalDelayTime the total delay time
+     */
+    public TrafficInfo(SiteNode destination, int veicleCount, int delayCount, double totalDelayTime) {
+        this.veicleCount = veicleCount;
+        this.delayCount = delayCount;
+        this.totalDelayTime = totalDelayTime;
         this.destination = destination;
-        this.weight = weight;
     }
 
     /**
-     *
+     * Returns the average delay time.
      */
-    public Path() {
+    public double getAverageDelayTime() {
+        return delayCount == 0 ? 0d : totalDelayTime / delayCount;
     }
 
     /**
-     *
-     * @param path
+     * Returns the number of delayed vehicles
      */
-    public Path(final Path path) {
-        departure = path.departure;
-        destination = path.destination;
-        weight = path.weight;
+    public int getDelayCount() {
+        return delayCount;
     }
 
     /**
-     * @see java.lang.Object#clone()
-     */
-    @Override
-    public Path clone() {
-        return new Path(this);
-    }
-
-    /**
-     * @return the departure
-     */
-    public SiteNode getDeparture() {
-        return departure;
-    }
-
-    /**
-     * @param departure the departure to set
-     */
-    public void setDeparture(final SiteNode departure) {
-        this.departure = departure;
-    }
-
-    /**
-     * @return the arrival
+     * Returns the destination
      */
     public SiteNode getDestination() {
         return destination;
     }
 
     /**
-     * @param arrival the arrival to set
+     * Returns the total delay time
      */
-    public void setDestination(final SiteNode arrival) {
-        this.destination = arrival;
+    public double getTotalDelayTime() {
+        return totalDelayTime;
     }
 
     /**
-     * @return the frequence
+     * Returns the number of vehicles
      */
-    public double getWeight() {
-        return weight;
+    public int getVeicleCount() {
+        return veicleCount;
     }
-
-    /**
-     * @param frequence the frequence to set
-     */
-    public void setWeight(final double frequence) {
-        this.weight = frequence;
-    }
-
 }

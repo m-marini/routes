@@ -41,7 +41,61 @@ import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mmarini.routes.model2.yaml.TestUtils.text;
 
-class PathASTTest {
+class WeightASTTest {
+
+    @Test
+    void badDeparture() throws IOException {
+        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            JsonNode root = Utils.fromText(text(
+                    "---",
+                    "departure: {}",
+                    "destination: def",
+                    "weight: 2"
+            ));
+            new WeightAST(root, JsonPointer.empty()).validate();
+        });
+        assertThat(ex.getMessage(), matchesPattern("/departure \\{\\} must be a text"));
+    }
+
+    @Test
+    void badDestination() throws IOException {
+        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            JsonNode root = Utils.fromText(text(
+                    "---",
+                    "departure: abc",
+                    "destination: []",
+                    "weight: 2"
+            ));
+            new WeightAST(root, JsonPointer.empty()).validate();
+        });
+        assertThat(ex.getMessage(), matchesPattern("/destination \\[\\] must be a text"));
+    }
+
+    @Test
+    void noDeparture() throws IOException {
+        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            JsonNode root = Utils.fromText(text(
+                    "---",
+                    "destination: def",
+                    "weight: 2"
+            ));
+            new WeightAST(root, JsonPointer.empty()).validate();
+        });
+        assertThat(ex.getMessage(), matchesPattern("/departure is missing"));
+    }
+
+    @Test
+    void noDestination() throws IOException {
+        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            JsonNode root = Utils.fromText(text(
+                    "---",
+                    "departure: abc",
+                    "weight: 2"
+            ));
+            new WeightAST(root, JsonPointer.empty()).validate();
+        });
+        assertThat(ex.getMessage(), matchesPattern("/destination is missing"));
+    }
 
     @Test
     void validate() throws IOException {
@@ -51,7 +105,7 @@ class PathASTTest {
                 "destination: def",
                 "weight: 2"
         ));
-        PathAST node = new PathAST(file, JsonPointer.empty());
+        WeightAST node = new WeightAST(file, JsonPointer.empty());
         node.validate();
 
         assertThat(node.departure().getValue(), equalTo("abc"));
@@ -66,66 +120,12 @@ class PathASTTest {
                 "departure: abc",
                 "destination: def"
         ));
-        PathAST node = new PathAST(file, JsonPointer.empty());
+        WeightAST node = new WeightAST(file, JsonPointer.empty());
         node.validate();
 
         assertThat(node.departure().getValue(), equalTo("abc"));
         assertThat(node.destination().getValue(), equalTo("def"));
         assertThat(node.weight().getValue(), equalTo(1.0));
-    }
-
-    @Test
-    void noDeparture() throws IOException {
-        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            JsonNode root = Utils.fromText(text(
-                    "---",
-                    "destination: def",
-                    "weight: 2"
-            ));
-            new PathAST(root, JsonPointer.empty()).validate();
-        });
-        assertThat(ex.getMessage(), matchesPattern("/departure is missing"));
-    }
-
-    @Test
-    void badDeparture() throws IOException {
-        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            JsonNode root = Utils.fromText(text(
-                    "---",
-                    "departure: {}",
-                    "destination: def",
-                    "weight: 2"
-            ));
-            new PathAST(root, JsonPointer.empty()).validate();
-        });
-        assertThat(ex.getMessage(), matchesPattern("/departure \\{\\} must be a text"));
-    }
-
-    @Test
-    void badDestination() throws IOException {
-        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            JsonNode root = Utils.fromText(text(
-                    "---",
-                    "departure: abc",
-                    "destination: []",
-                    "weight: 2"
-            ));
-            new PathAST(root, JsonPointer.empty()).validate();
-        });
-        assertThat(ex.getMessage(), matchesPattern("/destination \\[\\] must be a text"));
-    }
-
-    @Test
-    void noDestination() throws IOException {
-        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            JsonNode root = Utils.fromText(text(
-                    "---",
-                    "departure: abc",
-                    "weight: 2"
-            ));
-            new PathAST(root, JsonPointer.empty()).validate();
-        });
-        assertThat(ex.getMessage(), matchesPattern("/destination is missing"));
     }
 
 }

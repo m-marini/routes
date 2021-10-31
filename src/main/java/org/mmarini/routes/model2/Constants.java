@@ -28,9 +28,12 @@
 
 package org.mmarini.routes.model2;
 
+import java.awt.geom.Point2D;
+
 public interface Constants {
     double REACTION_TIME = 1;
     double VEHICLE_LENGTH = 5;
+    double PRECISION = 1e-3;
 
     /**
      * Returns the movement distance when vehicle is braking
@@ -50,5 +53,20 @@ public interface Constants {
      */
     static double computeSafetyDistance(final double speed) {
         return REACTION_TIME * speed + VEHICLE_LENGTH;
+    }
+
+    /**
+     * Returns the safety speed for an edge
+     *
+     * @param distance the safety distance
+     */
+    static double computeSafetySpeed(final double distance) {
+        return (distance - VEHICLE_LENGTH) / REACTION_TIME;
+    }
+
+    static Point2D gridPoint(double x, double y) {
+        double x1 = Math.round(x / PRECISION) * PRECISION;
+        double y1 = Math.round(y / PRECISION) * PRECISION;
+        return new Point2D.Double(x1, y1);
     }
 }

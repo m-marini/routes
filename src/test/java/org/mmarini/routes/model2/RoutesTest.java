@@ -29,6 +29,7 @@
 package org.mmarini.routes.model2;
 
 import org.junit.jupiter.api.Test;
+import org.mmarini.Tuple2;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,13 +38,16 @@ import java.util.Map;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mmarini.routes.model2.CrossNode.createNode;
+import static org.mmarini.routes.model2.Routes.createRoutes;
+import static org.mmarini.routes.model2.SiteNode.createSite;
 
-class PathTest {
+class RoutesTest {
 
-    public static final double EDGE01_TIME = 2.0;
-    public static final double EDGE02_TIME = 6.0;
-    public static final double EDGE12_TIME = 3.0;
-    public static final double EDGE20_TIME = 4.0;
+    static final double EDGE01_TIME = 2.0;
+    static final double EDGE02_TIME = 6.0;
+    static final double EDGE12_TIME = 3.0;
+    static final double EDGE20_TIME = 4.0;
 
     @Test
     void createMap() {
@@ -53,10 +57,9 @@ class PathTest {
         0 -- 2 --> 1 -- 3 --> 2
          --------- 6 ---------^
          */
-        MapNode node0 = SiteNode.createSite(0, 0);
-        MapNode node1 = MapNode.createNode(10, 0);
-        MapNode node2 = SiteNode.createSite(20, 0);
-        List<MapNode> nodes = List.of(node0, node1, node2);
+        SiteNode node0 = createSite(0, 0);
+        CrossNode node1 = createNode(10, 0);
+        SiteNode node2 = createSite(20, 0);
         MapEdge edge01 = new MapEdge(node0, node1, 10, 0);
         MapEdge edge02 = new MapEdge(node0, node2, 10, 0);
         MapEdge edge12 = new MapEdge(node1, node2, 10, 0);
@@ -67,68 +70,21 @@ class PathTest {
         /*
         When generating the next node closure matrix
          */
-        Map<Path, MapEdge> result = Path.create(nodes, edges, times);
+        Map<Tuple2<MapNode, MapNode>, MapEdge> result = Routes.computeRoutes(edges, times);
 
         /*
          * Then should result the next node closure matrix
          */
         assertNotNull(result);
         assertThat(result.size(), equalTo(6));
-        assertThat(result.get(new Path(node0, node0)), equalTo(edge01));
-        assertThat(result.get(new Path(node0, node2)), equalTo(edge01));
+        assertThat(result.get(Tuple2.of(node0, node0)), equalTo(edge01));
+        assertThat(result.get(Tuple2.of(node0, node2)), equalTo(edge01));
 
-        assertThat(result.get(new Path(node1, node0)), equalTo(edge12));
-        assertThat(result.get(new Path(node1, node2)), equalTo(edge12));
+        assertThat(result.get(Tuple2.of(node1, node0)), equalTo(edge12));
+        assertThat(result.get(Tuple2.of(node1, node2)), equalTo(edge12));
 
-        assertThat(result.get(new Path(node2, node0)), equalTo(edge20));
-        assertThat(result.get(new Path(node2, node2)), equalTo(edge20));
-    }
-
-    @Test
-    void createPathMap() {
-        /*
-        Given the topology
-        v--------- 4 ---------
-        0 -- 2 --> 1 -- 3 --> 2
-         --------- 6 ---------^
-         And the corresponding previous node closure matrix
-         */
-        MapNode node0 = SiteNode.createSite(0, 0);
-        MapNode node1 = MapNode.createNode(10, 0);
-        MapNode node2 = SiteNode.createSite(20, 0);
-        List<MapNode> nodes = List.of(node0, node1, node2);
-        MapEdge edge01 = new MapEdge(node0, node1, 10, 0);
-        MapEdge edge02 = new MapEdge(node0, node2, 10, 0);
-        MapEdge edge12 = new MapEdge(node1, node2, 10, 0);
-        MapEdge edge20 = new MapEdge(node2, node0, 10, 0);
-        MapEdge[][] edgeMatrix = new MapEdge[][]{
-                {null, edge01, edge02},
-                {null, null, edge12},
-                {edge20, null, null}
-        };
-        int[][] nextMatrix = new int[][]{
-                {1, 1, 1},
-                {2, 2, 2},
-                {0, 0, 0},
-        };
-
-        /*
-        When generating the next node closure matrix
-         */
-        Map<Path, MapEdge> result = Path.createPathMap(nodes, edgeMatrix, nextMatrix);
-
-        /*
-         * Then should result the next node closure matrix
-         */
-        assertThat(result.size(), equalTo(6));
-        assertThat(result.get(new Path(node0, node0)), equalTo(edge01));
-        assertThat(result.get(new Path(node0, node2)), equalTo(edge01));
-
-        assertThat(result.get(new Path(node1, node0)), equalTo(edge12));
-        assertThat(result.get(new Path(node1, node2)), equalTo(edge12));
-
-        assertThat(result.get(new Path(node2, node0)), equalTo(edge20));
-        assertThat(result.get(new Path(node2, node2)), equalTo(edge20));
+        assertThat(result.get(Tuple2.of(node2, node0)), equalTo(edge20));
+        assertThat(result.get(Tuple2.of(node2, node2)), equalTo(edge20));
     }
 
     @Test
@@ -140,9 +96,9 @@ class PathTest {
          --------- 6 ---------^
          And the corresponding previous node closure matrix
          */
-        MapNode node0 = SiteNode.createSite(0, 0);
-        MapNode node1 = MapNode.createNode(10, 0);
-        MapNode node2 = SiteNode.createSite(20, 0);
+        SiteNode node0 = createSite(0, 0);
+        CrossNode node1 = createNode(10, 0);
+        SiteNode node2 = createSite(20, 0);
         List<MapNode> nodes = List.of(node0, node1, node2);
         MapEdge edge01 = new MapEdge(node0, node1, 10, 0);
         MapEdge edge02 = new MapEdge(node0, node2, 10, 0);
@@ -162,17 +118,64 @@ class PathTest {
         /*
         When generating the next node closure matrix
          */
-        Map<Path, MapEdge> result = Path.createPathMap(nodes, edgeMatrix, nextMatrix);
+        Map<Tuple2<MapNode, MapNode>, MapEdge> result = createRoutes(nodes, edgeMatrix, nextMatrix);
 
         /*
          * Then should result the next node closure matrix
          */
         assertThat(result.size(), equalTo(4));
-        assertThat(result.get(new Path(node0, node0)), equalTo(edge01));
-        assertThat(result.get(new Path(node0, node2)), equalTo(edge01));
+        assertThat(result.get(Tuple2.of(node0, node0)), equalTo(edge01));
+        assertThat(result.get(Tuple2.of(node0, node2)), equalTo(edge01));
 
-        assertThat(result.get(new Path(node1, node0)), equalTo(edge10));
-        assertThat(result.get(new Path(node1, node2)), equalTo(edge12));
+        assertThat(result.get(Tuple2.of(node1, node0)), equalTo(edge10));
+        assertThat(result.get(Tuple2.of(node1, node2)), equalTo(edge12));
+    }
+
+    @Test
+    void createPathMapTest() {
+        /*
+        Given the topology
+        v--------- 4 ---------
+        0 -- 2 --> 1 -- 3 --> 2
+         --------- 6 ---------^
+         And the corresponding previous node closure matrix
+         */
+        SiteNode node0 = createSite(0, 0);
+        CrossNode node1 = createNode(10, 0);
+        SiteNode node2 = createSite(20, 0);
+        List<MapNode> nodes = List.of(node0, node1, node2);
+        MapEdge edge01 = new MapEdge(node0, node1, 10, 0);
+        MapEdge edge02 = new MapEdge(node0, node2, 10, 0);
+        MapEdge edge12 = new MapEdge(node1, node2, 10, 0);
+        MapEdge edge20 = new MapEdge(node2, node0, 10, 0);
+        MapEdge[][] edgeMatrix = new MapEdge[][]{
+                {null, edge01, edge02},
+                {null, null, edge12},
+                {edge20, null, null}
+        };
+        int[][] nextMatrix = new int[][]{
+                {1, 1, 1},
+                {2, 2, 2},
+                {0, 0, 0},
+        };
+
+        /*
+        When generating the next node closure matrix
+         */
+        Map<Tuple2<MapNode, MapNode>, MapEdge> result = createRoutes(nodes, edgeMatrix, nextMatrix);
+
+        /*
+         * Then should result the next node closure matrix
+         */
+        assertThat(result.size(), equalTo(6));
+        assertThat(result.get(Tuple2.of(node0, node0)), equalTo(edge01));
+        assertThat(result.get(Tuple2.of(node0, node2)), equalTo(edge01));
+
+        assertThat(result.get(Tuple2.of(node1, node0)), equalTo(edge12));
+        assertThat(result.get(Tuple2.of(node1, node2)), equalTo(edge12));
+
+        assertThat(result.get(Tuple2.of(node2, node0)), equalTo(edge20));
+        assertThat(result.get(Tuple2.of(node2, node2)), equalTo(edge20));
     }
 
     @Test
@@ -203,7 +206,7 @@ class PathTest {
         /*
         When applying floyd warshall algorithm
          */
-        int[][] result = Path.floydWarshall(previousMatrix, timeMatrix);
+        int[][] result = Routes.floydWarshall(previousMatrix, timeMatrix);
 
         /*
          * Then should result the right connection matrix
@@ -232,7 +235,7 @@ class PathTest {
         /*
         When generating the next node closure matrix
          */
-        int[][] result = Path.nextMatrix(previousMatrix);
+        int[][] result = Routes.nextMatrix(previousMatrix);
 
         /*
          * Then should result the next node closure matrix
@@ -261,7 +264,7 @@ class PathTest {
         /*
         When generating the next node closure matrix
          */
-        int[][] result = Path.nextMatrix(previousMatrix);
+        int[][] result = Routes.nextMatrix(previousMatrix);
 
         /*
          * Then should result the next node closure matrix

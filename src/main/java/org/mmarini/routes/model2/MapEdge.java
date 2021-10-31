@@ -31,7 +31,9 @@ import java.awt.geom.Point2D;
 import java.util.Objects;
 import java.util.StringJoiner;
 
+import static java.util.Objects.requireNonNull;
 import static org.mmarini.routes.model2.Constants.computeSafetyDistance;
+import static org.mmarini.routes.model2.Constants.computeSafetySpeed;
 
 /**
  * A map edge starting from the beginning node to the end node with speed limit and priority
@@ -51,11 +53,9 @@ public class MapEdge implements MapElement {
      * @param priority   the priority
      */
     public MapEdge(MapNode begin, MapNode end, double speedLimit, int priority) {
-        assert begin != null;
-        assert end != null;
+        this.begin = requireNonNull(begin);
+        this.end = requireNonNull(end);
         assert !begin.equals(end);
-        this.begin = begin;
-        this.end = end;
         this.speedLimit = speedLimit;
         this.priority = priority;
     }
@@ -106,6 +106,15 @@ public class MapEdge implements MapElement {
     }
 
     /**
+     * Returns an edge with new beginning node
+     *
+     * @param begin the beginning node
+     */
+    public MapEdge setBegin(MapNode begin) {
+        return new MapEdge(begin, end, speedLimit, priority);
+    }
+
+    /**
      * Returns the beginning location
      */
     public Point2D getBeginLocation() {
@@ -117,6 +126,15 @@ public class MapEdge implements MapElement {
      */
     public MapNode getEnd() {
         return end;
+    }
+
+    /**
+     * Returns an edge with new end node
+     *
+     * @param end the end node
+     */
+    public MapEdge setEnd(MapNode end) {
+        return new MapEdge(begin, end, speedLimit, priority);
     }
 
     /**
@@ -148,10 +166,27 @@ public class MapEdge implements MapElement {
     }
 
     /**
+     * Returns the safety speed in the edge
+     * The safety speed is the speed with a safatey distance equal to the length of the edge
+     */
+    public double getSafetySpeed() {
+        return computeSafetySpeed(getLength());
+    }
+
+    /**
      * Returns the speedLimit
      */
     public double getSpeedLimit() {
         return speedLimit;
+    }
+
+    /**
+     * Returns the edge with speed limit
+     *
+     * @param speedLimit the speed limit
+     */
+    public MapEdge setSpeedLimit(double speedLimit) {
+        return new MapEdge(begin, end, speedLimit, priority);
     }
 
     /**
@@ -175,6 +210,24 @@ public class MapEdge implements MapElement {
     @Override
     public int hashCode() {
         return Objects.hash(begin, end);
+    }
+
+    /**
+     * Returns true if the edge is crossing a node
+     *
+     * @param node the node
+     */
+    public boolean isCrossingNode(MapNode node) {
+        return begin.equals(node) || end.equals(node);
+    }
+
+    /**
+     * Retuns true is the edge is located at same location of other
+     *
+     * @param other the other edge
+     */
+    public boolean isSameLocation(MapEdge other) {
+        return begin.isSameLocation(other.begin) && end.isSameLocation(other.end);
     }
 
     /**

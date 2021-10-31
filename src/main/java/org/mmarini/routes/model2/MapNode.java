@@ -25,77 +25,29 @@
  *    END OF TERMS AND CONDITIONS
  *
  */
+
 package org.mmarini.routes.model2;
 
 import java.awt.geom.Point2D;
-import java.util.Objects;
-import java.util.StringJoiner;
 
-/**
- * @author marco.marini@mmarini.org
- */
-public class MapNode implements MapElement {
-    /**
-     * Returns a map node at a location
-     *
-     * @param x coordinate
-     * @param y y coordinate
-     */
-    public static MapNode createNode(double x, double y) {
-        return new MapNode(new Point2D.Double(x, y));
-    }
-
-    private final Point2D location;
-
-    /**
-     * Create a node
-     *
-     * @param location the location of node
-     */
-    public MapNode(Point2D location) {
-        assert location != null;
-        this.location = location;
-    }
-
-    @Override
-    public <T> T apply(final MapElementVisitor<T> visitor) {
-        return visitor.visit(this);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        MapNode mapNode = (MapNode) o;
-        return location.equals(mapNode.location);
-    }
-
-    /**
-     * Returns the square of distance of the node from a point
-     *
-     * @param point the point
-     */
-    public double getDistanceSq(final Point2D point) {
-        return location.distanceSq(point);
-    }
-
+public interface MapNode extends MapElement {
     /**
      * Returns the location of node
      */
-    public Point2D getLocation() {
-        return location;
-    }
+    Point2D getLocation();
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(location);
-    }
+    /**
+     * Return new MapNode with location changed
+     *
+     * @param location
+     * @param <T>      the concrete MapNode type
+     */
+    <T extends MapNode> T setLocation(Point2D location);
 
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", MapNode.class.getSimpleName() + "[", "]")
-                .add("" + location.getX())
-                .add("" + location.getY())
-                .toString();
-    }
+    /**
+     * Returns true is the node has the same location of other node
+     *
+     * @param node the other node
+     */
+    boolean isSameLocation(MapNode node);
 }

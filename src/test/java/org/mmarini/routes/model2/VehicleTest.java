@@ -32,13 +32,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.awt.geom.Point2D;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mmarini.routes.model2.SiteNode.createSite;
+import static org.mmarini.routes.model2.Vehicle.createVehicle;
 
 class VehicleTest {
 
@@ -80,13 +81,13 @@ class VehicleTest {
          Given a departure ode
          and a destination node
          */
-        SiteNode dep = new SiteNode(new Point2D.Double(x0, y0));
-        SiteNode dest = new SiteNode(new Point2D.Double(x1, y1));
+        SiteNode dep = createSite(x0, y0);
+        SiteNode dest = createSite(x1, y1);
 
         /*
         When creating a vehicle
          */
-        Vehicle vehicle = Vehicle.create(dep, dest, 0);
+        Vehicle vehicle = createVehicle(dep, dest, 0);
 
         /*
         Then should return vehicle
@@ -109,9 +110,9 @@ class VehicleTest {
          Given a departure ode
          and a destination node
          */
-        SiteNode dep = new SiteNode(new Point2D.Double(x0, y0));
-        SiteNode dest = new SiteNode(new Point2D.Double(x1, y1));
-        Vehicle vehicle = Vehicle.create(dep, dest, 0);
+        SiteNode dep = createSite(x0, y0);
+        SiteNode dest = createSite(x1, y1);
+        Vehicle vehicle = createVehicle(dep, dest, 0);
 
         // itself
         assertEquals(vehicle, vehicle);
@@ -123,7 +124,7 @@ class VehicleTest {
         assertNotEquals(new Object(), vehicle);
 
         // new vehicle
-        assertNotEquals(Vehicle.create(dep, dest, 0), vehicle);
+        assertNotEquals(createVehicle(dep, dest, 0), vehicle);
 
         // same id
         assertEquals(
@@ -146,9 +147,9 @@ class VehicleTest {
          and destination node
          and an edge from departure to destination
          */
-        SiteNode dep = new SiteNode(new Point2D.Double(x0, y0));
-        SiteNode dest = new SiteNode(new Point2D.Double(x1, y1));
-        Vehicle vehicle = Vehicle.create(dep, dest, 0);
+        SiteNode dep = createSite(x0, y0);
+        SiteNode dest = createSite(x1, y1);
+        Vehicle vehicle = createVehicle(dep, dest, 0);
         MapEdge edge = new MapEdge(dep, dest, SPEED_LIMIT, PRIORITY);
 
         /*
