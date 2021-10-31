@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- Issue #125: Functions for user interactions
+
 ## [4.2.0] - 2019-12-08
 
 ### Changed
