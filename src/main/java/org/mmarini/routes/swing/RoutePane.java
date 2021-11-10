@@ -29,6 +29,7 @@
 package org.mmarini.routes.swing;
 
 import hu.akarnokd.rxjava3.swing.SwingObservable;
+import org.mmarini.routes.model2.DoubleMatrix;
 
 import javax.swing.*;
 
@@ -44,7 +45,7 @@ public class RoutePane extends Box {
     private final RouteTableModel routeTableModel;
     private final JList<NodeView> departureList;
     private final JTable routeTable;
-    private SquareMatrixModel<NodeView> pathEntry;
+    private DoubleMatrix<NodeView> pathEntry;
 
     /**
      *
@@ -97,7 +98,7 @@ public class RoutePane extends Box {
     /**
      *
      */
-    public SquareMatrixModel<NodeView> getPathEntry() {
+    public DoubleMatrix<NodeView> getPathEntry() {
         return pathEntry;
     }
 
@@ -106,10 +107,10 @@ public class RoutePane extends Box {
      *
      * @param entries the path entries
      */
-    public void setPathEntry(SquareMatrixModel<NodeView> entries) {
+    public void setPathEntry(DoubleMatrix<NodeView> entries) {
         this.pathEntry = entries;
         departureListModel.clear();
-        departureListModel.addAll(entries.getIndices());
+        departureListModel.addAll(entries.getKeys());
         routeTableModel.setRow(0);
         routeTableModel.setPathEntry(entries);
         departureList.setSelectedIndex(0);

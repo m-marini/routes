@@ -28,6 +28,7 @@
 
 package org.mmarini.routes.swing;
 
+import org.mmarini.routes.model2.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public class RouteTableModel extends AbstractTableModel {
     private static final long serialVersionUID = -2634066472823732066L;
     private static final String[] COLUMN_NAMES = {"Destination", "Weight"};
     private static final Logger logger = LoggerFactory.getLogger(RouteTableModel.class);
-    private SquareMatrixModel<NodeView> pathEntry;
+    private DoubleMatrix<NodeView> pathEntry;
     private int row;
 
     /**
@@ -66,13 +67,13 @@ public class RouteTableModel extends AbstractTableModel {
 
     @Override
     public int getRowCount() {
-        return pathEntry == null ? 0 : pathEntry.getIndices().size();
+        return pathEntry == null ? 0 : pathEntry.getKeys().size();
     }
 
     @Override
     public Object getValueAt(final int row, final int col) {
         if (col == 0) {
-            return pathEntry.getIndices().get(row);
+            return pathEntry.getKeys().get(row);
         } else {
             return pathEntry.getValues()[this.row][row];
         }
@@ -86,7 +87,7 @@ public class RouteTableModel extends AbstractTableModel {
     /**
      * @param pathEntry the path entry
      */
-    public void setPathEntry(SquareMatrixModel<NodeView> pathEntry) {
+    public void setPathEntry(DoubleMatrix<NodeView> pathEntry) {
         this.pathEntry = pathEntry;
         fireTableDataChanged();
     }

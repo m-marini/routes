@@ -27,7 +27,7 @@
  */
 package org.mmarini.routes.swing;
 
-import org.mmarini.routes.model.MapNode;
+import org.mmarini.routes.model2.MapNode;
 
 import java.awt.*;
 import java.util.Objects;

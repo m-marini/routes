@@ -27,7 +27,7 @@
  */
 package org.mmarini.routes.swing;
 
-import org.mmarini.routes.model.MapNode;
+import org.mmarini.routes.model2.MapNode;
 
 import javax.swing.*;
 import java.awt.*;
@@ -47,7 +47,7 @@ public class NodeChooser extends JPanel {
      *
      */
     public NodeChooser() {
-        nodeList = new JList<>(new DefaultListModel<NodeView>());
+        nodeList = new JList<>(new DefaultListModel<>());
         nodeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         createContent();
     }

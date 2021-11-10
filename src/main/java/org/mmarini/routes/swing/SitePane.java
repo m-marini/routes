@@ -216,8 +216,8 @@ public class SitePane extends JPanel {
 
     private void init() {
         final SwingUtils utils = SwingUtils.getInstance();
-        utils.initButton(changeButton, "SitePane.changeAction"); //$NON-NLS-1$
-        utils.initButton(deleteButton, "SitePane.deleteAction"); //$NON-NLS-1$
+        utils.initButton(changeButton, "SiteNodePane.changeAction"); //$NON-NLS-1$
+        utils.initButton(deleteButton, "SiteNodePane.deleteAction"); //$NON-NLS-1$
 
         setBorder(BorderFactory.createTitledBorder(Messages.getString("SiteNodePane.title"))); //$NON-NLS-1$
 

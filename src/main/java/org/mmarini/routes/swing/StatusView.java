@@ -28,57 +28,113 @@
 
 package org.mmarini.routes.swing;
 
-import org.mmarini.routes.model.*;
+import org.mmarini.Tuple2;
+import org.mmarini.routes.model2.*;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static java.util.Objects.requireNonNull;
+import static org.mmarini.Utils.getValue;
+import static org.mmarini.Utils.zipWithIndex;
 
 public class StatusView {
     public static final Color DEFAULT_NODE_COLOR = Color.LIGHT_GRAY;
     private static final double DEFAULT_MAP_SIZE = 5000;
     private static final Rectangle2D DEFAULT_MAP_BOUND = new Rectangle2D.Double(0, 0, DEFAULT_MAP_SIZE,
             DEFAULT_MAP_SIZE);
+    private static final double NODE_SATURATION = 1;
 
+    /**
+     * @param status the status
+     */
+    public static StatusView createStatusView(Status status) {
+        List<MapNode> nodes = status.getNodes();
+        List<SiteNode> sites = status.getSites();
+        List<MapEdge> edges = status.getEdges();
 
-    private final List<MapNode> nodes;
-    private final List<SiteNode> sites;
-    private final List<MapEdge> edges;
+        // Computes site color map
+        int noSites = sites.size();
+        SwingUtils util = SwingUtils.getInstance();
+        Map<MapNode, Color> colorBySite = zipWithIndex(sites)
+                .collect(Collectors.toMap(
+                        Tuple2::getV2,
+                        entry -> {
+                            int i = entry._1;
+                            final double value = (double) i / (noSites - 1);
+                            return util.computeColor(value, NODE_SATURATION);
+                        }));
+
+        // Converts to node view
+        String nodeNamePattern = Messages.getString("RouteMediator.nodeNamePattern"); //$NON-NLS-1$
+        List<NodeView> nodeViews = zipWithIndex(nodes)
+                .map(entry -> {
+                    int i = entry._1;
+                    MapNode node = entry._2;
+                    return new NodeView(
+                            MessageFormat.format(nodeNamePattern, i + 1),
+                            node,
+                            getValue(colorBySite, node).orElse(DEFAULT_NODE_COLOR));
+                })
+                .collect(Collectors.toList());
+        Map<MapNode, NodeView> viewByNode = nodeViews.stream().collect(Collectors.toMap(NodeView::getNode, Function.identity()));
+
+        // Converts to edgeView
+        String edgeNamePattern = Messages.getString("RouteMediator.edgeNamePattern"); //$NON-NLS-1$
+        List<EdgeView> edgesViews = zipWithIndex(edges)
+                .map(entry -> {
+                    int i = entry._1;
+                    MapEdge edge = entry._2;
+                    final String begin = Optional.ofNullable(viewByNode.get(edge.getBegin()))
+                            .map(NodeView::getName).orElse("?");
+                    final String end = Optional.ofNullable(viewByNode.get(edge.getEnd()))
+                            .map(NodeView::getName).orElse("?");
+                    final String name = MessageFormat.format(edgeNamePattern, i, begin, end);
+                    return new EdgeView(edge, name, begin, end, edge.getPriority(), edge.getSpeedLimit());
+                })
+                .collect(Collectors.toList());
+        Map<MapEdge, EdgeView> viewByEdge = edgesViews.stream()
+                .collect(Collectors.toMap(EdgeView::getEdge, Function.identity()));
+        List<NodeView> siteViews = nodeViews.stream()
+                .filter(node -> node.getNode() instanceof SiteNode)
+                .collect(Collectors.toList());
+        return new StatusView(status, nodeViews, siteViews, edgesViews, viewByNode, viewByEdge);
+    }
+
+    private final Status status;
     private final List<NodeView> nodeViews;
+    private final List<NodeView> siteViews;
     private final List<EdgeView> edgesViews;
-    private final List<Vehicle> vehicles;
     private final Map<MapNode, NodeView> viewByNode;
     private final Map<MapEdge, EdgeView> viewByEdge;
-    private final List<TrafficInfo> trafficInfo;
-    private final List<Path> paths;
-    private final RouteInfos routeInfos;
 
-    public StatusView(List<MapNode> nodes,
-                      List<SiteNode> sites,
-                      List<MapEdge> edges,
-                      List<Vehicle> vehicles,
-                      List<TrafficInfo> trafficInfo,
-                      List<Path> paths,
-                      RouteInfos routeInfos,
-                      List<NodeView> nodeViews,
-                      List<EdgeView> edgesViews,
-                      Map<MapNode, NodeView> viewByNode,
-                      Map<MapEdge, EdgeView> viewByEdge) {
-        this.nodes = nodes;
-        this.sites = sites;
-        this.nodeViews = nodeViews;
-        this.edges = edges;
-        this.paths = paths;
-        this.trafficInfo = trafficInfo;
-        this.routeInfos = routeInfos;
-        this.edgesViews = edgesViews;
-        this.vehicles = vehicles;
-        this.viewByNode = viewByNode;
-        this.viewByEdge = viewByEdge;
+    /**
+     * @param status     the status
+     * @param nodeViews  the node views
+     * @param siteViews  the site views
+     * @param edgesViews the edge Views
+     * @param viewByNode the view by node
+     * @param viewByEdge the view by edge
+     */
+    protected StatusView(Status status,
+                         List<NodeView> nodeViews,
+                         List<NodeView> siteViews,
+                         List<EdgeView> edgesViews,
+                         Map<MapNode, NodeView> viewByNode,
+                         Map<MapEdge, EdgeView> viewByEdge) {
+        this.status = requireNonNull(status);
+        this.nodeViews = requireNonNull(nodeViews);
+        this.siteViews = requireNonNull(siteViews);
+        this.edgesViews = requireNonNull(edgesViews);
+        this.viewByNode = requireNonNull(viewByNode);
+        this.viewByEdge = requireNonNull(viewByEdge);
     }
 
     /**
@@ -86,15 +142,15 @@ public class StatusView {
      */
     public Rectangle2D computeMapBound() {
         Rectangle2D.Double bound = new Rectangle2D.Double();
-        if (nodes.isEmpty()) {
+        if (status.getNodes().isEmpty()) {
             bound.setFrame(DEFAULT_MAP_BOUND);
-        } else if (nodes.size() == 1) {
-            final Point2D location = nodes.get(0).getLocation();
+        } else if (status.getNodes().size() == 1) {
+            final Point2D location = status.getNodes().get(0).getLocation();
             bound.setFrameFromCenter(location.getX(), location.getY(), DEFAULT_MAP_SIZE * 0.5, DEFAULT_MAP_SIZE * 0.5);
         } else {
-            final Point2D location = nodes.get(0).getLocation();
+            final Point2D location = status.getNodes().get(0).getLocation();
             bound.setFrame(location.getX(), location.getY(), 0, 0);
-            for (final MapNode node : nodes) {
+            for (final MapNode node : status.getNodes()) {
                 bound.add(node.getLocation());
             }
         }
@@ -108,8 +164,8 @@ public class StatusView {
     public Optional<MapEdge> findEdge(final Point2D point, final double precision) {
         double dist = precision * precision;
         MapEdge edge = null;
-        for (final MapEdge e : edges) {
-            final double d = e.getDistanceSq(point);
+        for (final MapEdge e : status.getEdges()) {
+            final double d = e.distanceSqFrom(point);
             if (d <= dist) {
                 dist = d;
                 edge = e;
@@ -135,8 +191,8 @@ public class StatusView {
     public Optional<MapNode> findNode(final Point2D point, final double precision) {
         double dist = precision * precision;
         MapNode element = null;
-        for (final MapNode n : nodes) {
-            final double d = n.getDistanceSq(point);
+        for (final MapNode n : status.getNodes()) {
+            final double d = n.distanceSqFrom(point);
             if (d <= dist) {
                 dist = d;
                 element = n;
@@ -150,15 +206,26 @@ public class StatusView {
     }
 
     public List<MapEdge> getEdges() {
-        return edges;
+        return status.getEdges();
+    }
+
+    public double getEdgesTrafficLevel(MapEdge edge) {
+        return status.edgeTrafficLevel(edge);
     }
 
     public List<EdgeView> getEdgesViews() {
         return edgesViews;
     }
 
+    public DoubleMatrix<NodeView> getFrequencies() {
+        return status.getPathFrequencies().map(siteViews, view ->
+                view.getNode() instanceof SiteNode ?
+                        Optional.of((SiteNode) view.getNode())
+                        : Optional.empty());
+    }
+
     public Optional<NodeView> getNodeView(MapNode node) {
-        return Optional.ofNullable(viewByNode.get(node));
+        return getValue(viewByNode, node);
     }
 
     public List<NodeView> getNodeViews() {
@@ -166,27 +233,24 @@ public class StatusView {
     }
 
     public List<MapNode> getNodes() {
-        return nodes;
-    }
-
-    public List<Path> getPaths() {
-        return paths;
-    }
-
-    public RouteInfos getRouteInfos() {
-        return routeInfos;
+        return status.getNodes();
     }
 
     public List<SiteNode> getSites() {
-        return sites;
+        return status.getSites();
     }
 
     public List<TrafficInfo> getTrafficInfo() {
-        return trafficInfo;
+        return status.getTrafficInfo();
     }
 
     public List<Vehicle> getVehicles() {
-        return vehicles;
+        return status.getVehicles();
+    }
+
+    public DoubleMatrix<NodeView> getWeightMatrix() {
+        return status.getWeightMatrix().map(siteViews,
+                view -> Optional.of((SiteNode) view.getNode()));
     }
 
     public Point2D snapToNode(final Point2D point, final double precision) {

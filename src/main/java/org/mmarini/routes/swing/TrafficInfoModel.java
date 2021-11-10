@@ -77,7 +77,7 @@ public class TrafficInfoModel extends AbstractTableModel {
     @Override
     public Object getValueAt(final int row, final int col) {
         final TrafficInfoView record = info.get(row);
-        final int vehicleCount = record.getInfo().getVeicleCount();
+        final int vehicleCount = record.getInfo().getVehicleCount();
         final int delayCount = record.getInfo().getDelayCount();
         switch (col) {
             case 0:

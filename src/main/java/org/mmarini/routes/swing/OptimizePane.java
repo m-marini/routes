@@ -37,8 +37,9 @@ import static hu.akarnokd.rxjava3.swing.SwingObservable.change;
 public class OptimizePane extends Box {
 
     private static final long serialVersionUID = 1L;
+    private static final double KPHSPM = 3.6;
+    private static final double DEFAULT_SPEED_LIMIT = 130.;
     private final JCheckBox optimizeSpeed;
-    private final JCheckBox optimizeNodes;
     private final JSpinner speedField;
     private final JLabel speedLabel;
 
@@ -48,7 +49,6 @@ public class OptimizePane extends Box {
     public OptimizePane() {
         super(BoxLayout.PAGE_AXIS);
         optimizeSpeed = new JCheckBox(Messages.getString("OptimizePane.optimizeSpeed.label")); //$NON-NLS-1$
-        optimizeNodes = new JCheckBox(Messages.getString("OptimizePane.optimizeNodes.label")); //$NON-NLS-1$
         speedLabel = new JLabel(Messages.getString("OptimizePane.speed.label")); //$NON-NLS-1$
         speedField = new JSpinner();
 
@@ -62,11 +62,6 @@ public class OptimizePane extends Box {
      */
     private void createContext() {
         Box box = Box.createHorizontalBox();
-        box.add(optimizeNodes);
-        box.add(Box.createGlue());
-        add(box);
-
-        box = Box.createHorizontalBox();
         box.add(optimizeSpeed);
         box.add(Box.createGlue());
         add(box);
@@ -92,7 +87,15 @@ public class OptimizePane extends Box {
      *
      */
     public double getSpeedLimit() {
-        return ((Number) speedField.getValue()).doubleValue() / 3.6f;
+        return ((Number) speedField.getValue()).doubleValue() / KPHSPM;
+    }
+
+    /**
+     *
+     */
+    public OptimizePane setSpeedLimit(double speedLimit) {
+        speedField.setValue(speedLimit * KPHSPM);
+        return this;
     }
 
     /**
@@ -108,18 +111,9 @@ public class OptimizePane extends Box {
      *
      */
     private void init() {
-        speedField.setModel(new SpinnerNumberModel(130., 10., 300., 10.));
-
+        speedField.setModel(new SpinnerNumberModel(DEFAULT_SPEED_LIMIT, 10., 300., 10.));
         optimizeSpeed.setSelected(true);
-        optimizeNodes.setSelected(true);
-        speedField.setValue(130.);
-    }
-
-    /**
-     *
-     */
-    public boolean isOptimizeNodes() {
-        return optimizeNodes.isSelected();
+        speedField.setValue(DEFAULT_SPEED_LIMIT);
     }
 
     /**

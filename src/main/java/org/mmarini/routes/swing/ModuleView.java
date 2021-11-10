@@ -28,8 +28,8 @@
 
 package org.mmarini.routes.swing;
 
-import org.mmarini.routes.model.MapEdge;
-import org.mmarini.routes.model.Module;
+import org.mmarini.routes.model2.MapEdge;
+import org.mmarini.routes.model2.MapModule;
 
 import javax.swing.*;
 import java.awt.*;
@@ -42,7 +42,7 @@ import java.awt.image.BufferedImage;
 public class ModuleView {
     private static final int ICON_HEIGHT = 16;
     private static final int ICON_WIDTH = 16;
-    private Module module;
+    private MapModule mapModule;
     private Icon icon;
 
     /**
@@ -52,14 +52,14 @@ public class ModuleView {
     }
 
     /**
-     * Returns the Icon for a module
+     * Returns the Icon for a mapModule
      *
-     * @param module the module
+     * @param mapModule the mapModule
      */
-    private Icon createIcon(final Module module) {
+    private Icon createIcon(final MapModule mapModule) {
         final BufferedImage image = new BufferedImage(ICON_WIDTH, ICON_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         final Graphics2D gr = image.createGraphics();
-        Rectangle2D bound = module.getBound();
+        Rectangle2D bound = mapModule.getBound();
         final double scale = Math.min(ICON_WIDTH / bound.getWidth(), ICON_HEIGHT / bound.getHeight());
         gr.translate(ICON_WIDTH * 0.5, ICON_HEIGHT * 0.5);
         gr.scale(scale, scale);
@@ -69,7 +69,7 @@ public class ModuleView {
 
         final Painter painter = new Painter(gr, false, false);
 
-        for (final MapEdge edge : module.getEdges()) {
+        for (final MapEdge edge : mapModule.getEdges()) {
             painter.paintEdge(edge);
         }
 
@@ -84,17 +84,17 @@ public class ModuleView {
     }
 
     /**
-     * @return the module
+     * @return the mapModule
      */
-    public Module getModule() {
-        return module;
+    public MapModule getModule() {
+        return mapModule;
     }
 
     /**
-     * @param module the module to set
+     * @param mapModule the mapModule to set
      */
-    public void setModule(final Module module) {
-        this.module = module;
-        this.icon = createIcon(module);
+    public void setModule(final MapModule mapModule) {
+        this.mapModule = mapModule;
+        this.icon = createIcon(mapModule);
     }
 }

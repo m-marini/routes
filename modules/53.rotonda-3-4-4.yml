@@ -1,124 +1,124 @@
 ---
 speedLimit: 130.0
 nodes:
-    Node_0:
-        x: 48
-        y: 0
-    Node_1:
-        x: 34
-        y: 34
-    Node_2:
-        x: 0
-        y: 48
-    Node_3:
-        x: -34
-        y: 34
-    Node_4:
-        x: -48
-        y: 0
-    Node_5:
-        x: -34
-        y: -34
-    Node_6:
-        x: 0
-        y: -48
-    Node_7:
-        x: 34
-        y: -34
-    Node_8:
-        x: 61
-        y: 3
-    Node_9:
-        x: 61
-        y: 9
-    Node_10:
-        x: 9
-        y: 61
-    Node_11:
-        x: 3
-        y: 61
-    Node_12:
-        x: -3
-        y: 61
-    Node_13:
-        x: -9
-        y: 61
-    Node_14:
-        x: -61
-        y: 9
-    Node_15:
-        x: -61
-        y: 3
-    Node_16:
-        x: -61
-        y: -3
-    Node_17:
-        x: -61
-        y: -9
-    Node_22:
-        x: 61
-        y: -9
-    Node_23:
-        x: 61
-        y: -3
+  Node_0:
+    x: 48
+    y: 0
+  Node_1:
+    x: 34
+    y: 34
+  Node_2:
+    x: 0
+    y: 48
+  Node_3:
+    x: -34
+    y: 34
+  Node_4:
+    x: -48
+    y: 0
+  Node_5:
+    x: -34
+    y: -34
+  Node_6:
+    x: 0
+    y: -48
+  Node_7:
+    x: 34
+    y: -34
+  Node_8:
+    x: 61
+    y: 3
+  Node_9:
+    x: 61
+    y: 9
+  Node_10:
+    x: 9
+    y: 61
+  Node_11:
+    x: 3
+    y: 61
+  Node_12:
+    x: -3
+    y: 61
+  Node_13:
+    x: -9
+    y: 61
+  Node_14:
+    x: -61
+    y: 9
+  Node_15:
+    x: -61
+    y: 3
+  Node_16:
+    x: -61
+    y: -3
+  Node_17:
+    x: -61
+    y: -9
+  Node_22:
+    x: 61
+    y: -9
+  Node_23:
+    x: 61
+    y: -3
 edges:
-    -   start: Node_0
-        end: Node_7
-        priority: 1
-    -   start: Node_7
-        end: Node_6
-        priority: 1
-    -   start: Node_6
-        end: Node_5
-        priority: 1
-    -   start: Node_5
-        end: Node_4
-        priority: 1
-    -   start: Node_4
-        end: Node_3
-        priority: 1
-    -   start: Node_3
-        end: Node_2
-        priority: 1
-    -   start: Node_2
-        end: Node_1
-        priority: 1
-    -   start: Node_1
-        end: Node_0
-        priority: 1
-    -   start: Node_1
-        end: Node_8
-    -   start: Node_1
-        end: Node_9
-    -   start: Node_10
-        end: Node_1
-    -   start: Node_11
-        end: Node_1
-    -   start: Node_3
-        end: Node_12
-    -   start: Node_3
-        end: Node_13
-    -   start: Node_14
-        end: Node_3
-    -   start: Node_15
-        end: Node_3
-    -   start: Node_5
-        end: Node_16
-    -   start: Node_5
-        end: Node_17
-    -   start: Node_22
-        end: Node_7
-    -   start: Node_23
-        end: Node_7
-    -   start: Node_14
-        end: Node_9
-        priority: 1
-    -   start: Node_15
-        end: Node_8
-        priority: 1
-    -   start: Node_22
-        end: Node_17
-        priority: 1
-    -   start: Node_23
-        end: Node_16
-        priority: 1
+  - start: Node_0
+    end: Node_7
+    priority: 1
+  - start: Node_7
+    end: Node_6
+    priority: 1
+  - start: Node_6
+    end: Node_5
+    priority: 1
+  - start: Node_5
+    end: Node_4
+    priority: 1
+  - start: Node_4
+    end: Node_3
+    priority: 1
+  - start: Node_3
+    end: Node_2
+    priority: 1
+  - start: Node_2
+    end: Node_1
+    priority: 1
+  - start: Node_1
+    end: Node_0
+    priority: 1
+  - start: Node_1
+    end: Node_8
+  - start: Node_1
+    end: Node_9
+  - start: Node_10
+    end: Node_1
+  - start: Node_11
+    end: Node_1
+  - start: Node_3
+    end: Node_12
+  - start: Node_3
+    end: Node_13
+  - start: Node_14
+    end: Node_3
+  - start: Node_15
+    end: Node_3
+  - start: Node_5
+    end: Node_16
+  - start: Node_5
+    end: Node_17
+  - start: Node_22
+    end: Node_7
+  - start: Node_23
+    end: Node_7
+  - start: Node_14
+    end: Node_9
+    priority: 1
+  - start: Node_15
+    end: Node_8
+    priority: 1
+  - start: Node_22
+    end: Node_17
+    priority: 1
+  - start: Node_23
+    end: Node_16
+    priority: 1

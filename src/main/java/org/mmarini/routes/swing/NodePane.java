@@ -219,8 +219,8 @@ public class NodePane extends JPanel {
 
     private void init() {
         final SwingUtils utils = SwingUtils.getInstance();
-        utils.initButton(changeButton, "NodePane.changeAction"); //$NON-NLS-1$
-        utils.initButton(deleteButton, "NodePane.deleteAction"); //$NON-NLS-1$
+        utils.initButton(changeButton, "MapNodePane.changeAction"); //$NON-NLS-1$
+        utils.initButton(deleteButton, "MapNodePane.deleteAction"); //$NON-NLS-1$
 
         setBorder(BorderFactory.createTitledBorder(Messages.getString("MapNodePane.title"))); //$NON-NLS-1$
 

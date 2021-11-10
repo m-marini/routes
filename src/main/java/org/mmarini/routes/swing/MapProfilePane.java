@@ -28,7 +28,7 @@
 
 package org.mmarini.routes.swing;
 
-import org.mmarini.routes.model.MapProfile;
+import org.mmarini.routes.model2.MapProfile;
 
 import javax.swing.*;
 

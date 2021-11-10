@@ -28,7 +28,7 @@
 
 package org.mmarini.routes.swing;
 
-import org.mmarini.routes.model.TrafficInfo;
+import org.mmarini.routes.model2.TrafficInfo;
 
 import java.util.StringJoiner;
 

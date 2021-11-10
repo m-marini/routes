@@ -30,19 +30,38 @@ package org.mmarini.routes.swing;
 import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.Observable;
-import org.mmarini.routes.model.MapEdge;
+import org.mmarini.routes.model2.MapEdge;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
+import java.awt.event.FocusEvent;
 import java.text.NumberFormat;
+import java.text.ParseException;
 
 /**
  * @author marco.marini@mmarini.org
  */
 public class EdgePane extends JPanel {
+    private static final Logger logger = LoggerFactory.getLogger(EdgePane.class);
     private static final long serialVersionUID = 1L;
+
+    static Flowable<Object> focusLost(JFormattedTextField field) {
+        return SwingObservable.focus(field)
+                .filter(ev -> ev.getID() == FocusEvent.FOCUS_LOST)
+                .toFlowable(BackpressureStrategy.MISSING)
+                .flatMap(evt -> {
+                    try {
+                        field.commitEdit();
+                        return Flowable.just(field.getValue());
+                    } catch (ParseException ex) {
+                        return Flowable.empty();
+                    }
+                });
+
+    }
 
     private final JFormattedTextField priorityField;
     private final JFormattedTextField speedLimitField;
@@ -74,18 +93,28 @@ public class EdgePane extends JPanel {
         deleteAction = new JButton();
         browseEndNodeAction = new JButton();
         browseBeginNodeAction = new JButton();
+        Flowable<EdgeView> priorityObs = focusLost(priorityField)
+                .map(p -> (Number) p)
+                .filter(value -> value.intValue() != edgeModel.getPriority())
+                .map(p -> edgeModel.setPriority(p.intValue()));
+        Flowable<EdgeView> speedObs = focusLost(speedLimitField)
+                .map(p -> (Number) p)
+                .filter(value -> value.doubleValue() != edgeModel.getSpeedLimit())
+                .map(p -> edgeModel.setSpeedLimit(p.doubleValue()));
+        /*
         Observable<EdgeView> priorityObs = SwingObservable.propertyChange(priorityField, "value")
                 .map(evt -> {
                     int p = ((Number) evt.getNewValue()).intValue();
                     return edgeModel.setPriority(p);
                 });
+
         Observable<EdgeView> speedObs = SwingObservable.propertyChange(speedLimitField, "value")
                 .map(evt -> {
                     double speedLimit = ((Number) evt.getNewValue()).doubleValue() / 3.6;
                     return edgeModel.setSpeedLimit(speedLimit);
                 });
-        this.changeFlowable = priorityObs.mergeWith(speedObs)
-                .toFlowable(BackpressureStrategy.MISSING);
+         */
+        this.changeFlowable = priorityObs.mergeWith(speedObs);
         this.deleteFlowable = SwingObservable.actions(deleteAction).map(ev -> edgeModel)
                 .toFlowable(BackpressureStrategy.MISSING);
         this.endNodeFlowable = SwingObservable.actions(browseEndNodeAction).map(ev -> edgeModel)
@@ -358,15 +387,11 @@ public class EdgePane extends JPanel {
         incomeQueueField.setHorizontalAlignment(SwingConstants.RIGHT);
         incomeQueueField.setColumns(3);
         incomeQueueField.setEditable(false);
-
         distanceField.setHorizontalAlignment(SwingConstants.RIGHT);
         distanceField.setColumns(5);
         distanceField.setEditable(false);
-
         nameField.setEditable(false);
-
         beginField.setEditable(false);
-
         endField.setEditable(false);
     }
 
@@ -381,6 +406,6 @@ public class EdgePane extends JPanel {
         endField.setText(edgeModel.getEndName());
         priorityField.setValue(edge.getPriority());
         speedLimitField.setValue(edge.getSpeedLimit() * 3.6);
-        distanceField.setValue(edge.getDistance());
+        distanceField.setValue(edge.getLength());
     }
 }

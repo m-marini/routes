@@ -28,10 +28,10 @@
 package org.mmarini.routes.swing;
 
 import hu.akarnokd.rxjava3.swing.SwingObservable;
-import org.mmarini.routes.model.MapEdge;
-import org.mmarini.routes.model.MapNode;
-import org.mmarini.routes.model.Module;
-import org.mmarini.routes.model.SiteNode;
+import org.mmarini.routes.model2.MapEdge;
+import org.mmarini.routes.model2.MapModule;
+import org.mmarini.routes.model2.MapNode;
+import org.mmarini.routes.model2.SiteNode;
 
 import javax.swing.*;
 import java.awt.*;
@@ -243,14 +243,14 @@ public class MapViewPane extends JPanel {
     }
 
     /**
-     * Set the list of modules.<br>
+     * Set the list of mapModules.<br>
      * It loads the module button list.
      *
-     * @param modules te module list
+     * @param mapModules te module list
      */
-    public void setModule(final List<Module> modules) {
-        for (final Module module : modules) {
-            moduleSelector.add(module);
+    public void setModule(final List<MapModule> mapModules) {
+        for (final MapModule mapModule : mapModules) {
+            moduleSelector.add(mapModule);
         }
         selectButton.doClick();
     }

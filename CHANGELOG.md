@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [4.3.0]
+
+### Changed
+
+- Issue #125: Functions for user interactions
+- Issue #122: Immutable model, add ring road module
+
+## [4.2.2] - 2021-10-04
+
+### Fixed
+ 
+- Issue #121: Selection on explorer panel
+- Issue #123: Fit random map to size of map
+
+## [4.2.1] - 2021-10-03
+
+### Changed
+
+- Issue #114: Update Pom
+- Issue #116: Fix pom
+- Issue #118: Reactive UI
+ 
 ## [4.2.0] - 2019-12-08
 
 ### Changed
