@@ -35,10 +35,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mmarini.routes.model2.SiteNode.createSite;
+import static org.mmarini.routes.model2.TestUtils.optionalEmpty;
 import static org.mmarini.routes.model2.Vehicle.createVehicle;
 
 class VehicleTest {
@@ -51,6 +51,8 @@ class VehicleTest {
     static final double RETURNING_PROB = 0.5;
     static final int MIN_COORDINATE = -10000;
     static final int MAX_COORDINATE = 10000;
+    private static final double MAX_TIME = 1000;
+    private static final double MIN_TIME = 0;
 
     static Stream<Arguments> argsForCreate() {
         return ArgumentGenerator.create(SEED)
@@ -58,6 +60,7 @@ class VehicleTest {
                 .uniform(MIN_COORDINATE, MAX_COORDINATE)
                 .uniform(MIN_COORDINATE, MAX_COORDINATE)
                 .uniform(MIN_COORDINATE, MAX_COORDINATE)
+                .uniform(MIN_TIME, MAX_TIME)
                 .generate();
     }
 
@@ -76,7 +79,38 @@ class VehicleTest {
 
     @ParameterizedTest
     @MethodSource("argsForCreate")
-    void create(int x0, int y0, int x1, int y1) {
+    void copy(int x0, int y0, int x1, int y1) {
+        /*
+         Given a departure ode
+         and a destination node
+         */
+        SiteNode dep = createSite(x0, y0);
+        SiteNode dest = createSite(x1, y1);
+        Vehicle vehicle = createVehicle(dep, dest, 0);
+
+        /*
+        When copying
+         */
+        Vehicle result = vehicle.copy();
+
+        /*
+        Then should return vehicle
+        with the departure and destination nodes
+        and default properties
+         */
+        assertNotNull(result);
+        assertThat(result, not(sameInstance(vehicle)));
+        assertThat(result, equalTo(vehicle));
+        assertFalse(result.getCurrentEdge().isPresent());
+        assertThat(result.getDeparture(), equalTo(dep));
+        assertThat(result.getDestination(), equalTo(dest));
+        assertThat(result.getDistance(), equalTo(0.0));
+        assertFalse(result.isReturning());
+    }
+
+    @ParameterizedTest
+    @MethodSource("argsForCreate")
+    void create(int x0, int y0, int x1, int y1, double time) {
         /*
          Given a departure ode
          and a destination node
@@ -87,7 +121,7 @@ class VehicleTest {
         /*
         When creating a vehicle
          */
-        Vehicle vehicle = createVehicle(dep, dest, 0);
+        Vehicle vehicle = createVehicle(dep, dest, time);
 
         /*
         Then should return vehicle
@@ -101,6 +135,14 @@ class VehicleTest {
         assertThat(vehicle.getDestination(), equalTo(dest));
         assertThat(vehicle.getDistance(), equalTo(0.0));
         assertFalse(vehicle.isReturning());
+        assertThat(vehicle.getCreationTime(), equalTo(time));
+        assertThat(vehicle.getDirection(), optionalEmpty());
+        assertThat(vehicle.getLocation(), optionalEmpty());
+        assertThat(vehicle, hasToString(
+                matchesPattern("Vehicle\\[id=[\\dabcdef]{8}-[\\dabcdef]{4}-[\\dabcdef]{4}-[\\dabcdef]{4}-[\\dabcdef]{12}\\]")));
+        assertThat(vehicle.getEdgeEntryTime(), equalTo(0.0));
+        assertFalse(vehicle.isCrossingNode(dep));
+        assertTrue(vehicle.isRelatedToNode(dep));
     }
 
     @ParameterizedTest
@@ -137,6 +179,125 @@ class VehicleTest {
                         new Vehicle(
                                 vehicle.getId(), dep, dest, 0, null, MAX_DISTANCE, true, 0)
                                 .hashCode()));
+    }
+
+    @ParameterizedTest
+    @MethodSource("argsForCreate")
+    void isTransitingEdge(int x0, int y0, int x1, int y1) {
+         /*
+         Given a departure ode
+         and a destination node
+         */
+        SiteNode dep = createSite(x0, y0);
+        SiteNode dest = createSite(x0 + 10, y1 + 10);
+        MapEdge edge0 = new MapEdge(dep, dest, SPEED_LIMIT, PRIORITY);
+        MapEdge edge1 = new MapEdge(dest, dep, SPEED_LIMIT, PRIORITY);
+        Vehicle vehicle = createVehicle(dep, dest, 0).setCurrentEdge(edge0);
+
+        /*
+        Than is transiting
+         */
+        assertTrue(vehicle.isTransitingEdge(edge0));
+        assertFalse(vehicle.isTransitingEdge(edge1));
+        assertTrue(vehicle.isCrossingNode(dep));
+    }
+
+    @ParameterizedTest
+    @MethodSource("argsForCreate")
+    void isTransitingEdgeWhenStop(int x0, int y0, int x1, int y1) {
+         /*
+         Given a departure ode
+         and a destination node
+         */
+        SiteNode dep = createSite(x0, y0);
+        SiteNode dest = createSite(x0 + 10, y1 + 10);
+        MapEdge edge0 = new MapEdge(dep, dest, SPEED_LIMIT, PRIORITY);
+        MapEdge edge1 = new MapEdge(dest, dep, SPEED_LIMIT, PRIORITY);
+        Vehicle vehicle = createVehicle(dep, dest, 0);
+
+        /*
+        Than is transiting
+         */
+        assertFalse(vehicle.isTransitingEdge(edge0));
+        assertFalse(vehicle.isTransitingEdge(edge1));
+    }
+
+    @ParameterizedTest
+    @MethodSource("argsForCreate")
+    void setDeparture(int x0, int y0, int x1, int y1) {
+         /*
+         Given a departure ode
+         and a destination node
+         */
+        SiteNode dep = createSite(x0, y0);
+        SiteNode dest = createSite(x0 + 10, y1 + 10);
+        MapEdge edge0 = new MapEdge(dep, dest, SPEED_LIMIT, PRIORITY);
+        MapEdge edge1 = new MapEdge(dest, dep, SPEED_LIMIT, PRIORITY);
+        Vehicle vehicle = createVehicle(dep, dest, 0).setCurrentEdge(edge0);
+        final SiteNode site = createSite(x0 + 10, y0 + 10);
+
+        /*
+        When changeding the departure
+         */
+        Vehicle result = vehicle.setDeparture(site);
+
+        /*
+        Than vehicle should be equal
+         */
+        assertThat(result, equalTo(vehicle));
+        assertThat(result, hasProperty("departure", equalTo(site)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("argsForCreate")
+    void setDestination(int x0, int y0, int x1, int y1) {
+         /*
+         Given a departure ode
+         and a destination node
+         */
+        SiteNode dep = createSite(x0, y0);
+        SiteNode dest = createSite(x0 + 10, y1 + 10);
+        MapEdge edge0 = new MapEdge(dep, dest, SPEED_LIMIT, PRIORITY);
+        MapEdge edge1 = new MapEdge(dest, dep, SPEED_LIMIT, PRIORITY);
+        Vehicle vehicle = createVehicle(dep, dest, 0).setCurrentEdge(edge0);
+        final SiteNode site = createSite(x0 + 10, y0 + 10);
+
+        /*
+        When changeding the departure
+         */
+        Vehicle result = vehicle.setDestination(site);
+
+        /*
+        Than vehicle should be equal
+         */
+        assertThat(result, equalTo(vehicle));
+        assertThat(result, hasProperty("destination", equalTo(site)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("argsForCreate")
+    void setEdgeEntryTime(int x0, int y0, int x1, int y1, double time) {
+         /*
+         Given a departure ode
+         and a destination node
+         */
+        SiteNode dep = createSite(x0, y0);
+        SiteNode dest = createSite(x0 + 10, y1 + 10);
+        MapEdge edge0 = new MapEdge(dep, dest, SPEED_LIMIT, PRIORITY);
+        MapEdge edge1 = new MapEdge(dest, dep, SPEED_LIMIT, PRIORITY);
+        Vehicle vehicle = createVehicle(dep, dest, time).setCurrentEdge(edge0);
+        final SiteNode site = createSite(x0 + 10, y0 + 10);
+
+        /*
+        When changeding the departure
+         */
+        Vehicle result = vehicle.setEdgeEntryTime(time + 10);
+
+        /*
+        Than vehicle should be equal
+         */
+        assertThat(result, sameInstance(vehicle));
+        assertThat(result, hasProperty("edgeEntryTime", equalTo(time + 10)));
     }
 
     @ParameterizedTest

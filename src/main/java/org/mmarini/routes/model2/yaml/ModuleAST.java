@@ -32,8 +32,8 @@ import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.mmarini.routes.model2.CrossNode;
 import org.mmarini.routes.model2.MapEdge;
+import org.mmarini.routes.model2.MapModule;
 import org.mmarini.routes.model2.MapNode;
-import org.mmarini.routes.model2.Module;
 import org.mmarini.yaml.*;
 
 import java.awt.geom.Point2D;
@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Map.entry;
-import static org.mmarini.Utils.toMap;
+import static org.mmarini.Utils.entriesToMap;
 import static org.mmarini.yaml.Utils.fromFile;
 import static org.mmarini.yaml.Utils.fromResource;
 
@@ -59,7 +59,7 @@ public class ModuleAST extends ASTNode {
      * @param file the filename
      * @throws IOException in case of error
      */
-    static Module readFromFile(String file) throws IOException {
+    static MapModule readFromFile(String file) throws IOException {
         return new ModuleAST(fromFile(file), JsonPointer.empty()).build();
     }
 
@@ -69,7 +69,7 @@ public class ModuleAST extends ASTNode {
      * @param name the resource name
      * @throws IOException in case of error
      */
-    static Module readFromResource(String name) throws IOException {
+    static MapModule readFromResource(String name) throws IOException {
         return new ModuleAST(fromResource(name), JsonPointer.empty()).build();
     }
 
@@ -85,7 +85,7 @@ public class ModuleAST extends ASTNode {
     /**
      * Returns the status defined by yaml
      */
-    public Module build() {
+    public MapModule build() {
         validate();
         Map<String, MapNode> anyNodeByName = new HashMap<>(getNodes());
         List<MapEdge> edges = edges().itemStream()
@@ -97,7 +97,7 @@ public class ModuleAST extends ASTNode {
                     return new MapEdge(start, end, speedLimit, priority);
                 })
                 .collect(Collectors.toList());
-        return new Module(edges);
+        return new MapModule(edges);
     }
 
     public DefaultsAST defaults() {
@@ -118,7 +118,7 @@ public class ModuleAST extends ASTNode {
     Map<String, CrossNode> getNodes() {
         return nodes().itemStream()
                 .map(entry -> entry(entry.getKey(), entry.getValue().getMapNode()))
-                .collect(toMap());
+                .collect(entriesToMap());
     }
 
     @Override

@@ -28,6 +28,8 @@
 
 package org.mmarini.routes.swing;
 
+import org.mmarini.routes.model2.DoubleMatrix;
+
 import javax.swing.table.AbstractTableModel;
 
 /**
@@ -38,7 +40,7 @@ public class RouteInfoModel extends AbstractTableModel {
 
     private double maximumFlux;
     private double minimumFlux;
-    private SquareMatrixModel<NodeView> routeInfo;
+    private DoubleMatrix<NodeView> frequencies;
 
     /**
      *
@@ -51,7 +53,7 @@ public class RouteInfoModel extends AbstractTableModel {
      */
     private double computeColSum(final int row) {
         double sum = 0.;
-        final double[][] values = routeInfo.getValues();
+        final double[][] values = frequencies.getValues();
         for (int i = 0; i < values.length; ++i) {
             sum += values[row][i];
         }
@@ -62,7 +64,7 @@ public class RouteInfoModel extends AbstractTableModel {
      *
      */
     private void computeMinMax() {
-        final double[][] values = routeInfo.getValues();
+        final double[][] values = frequencies.getValues();
         final int n = values.length;
         double max = Double.NEGATIVE_INFINITY;
         double min = Double.POSITIVE_INFINITY;
@@ -84,7 +86,23 @@ public class RouteInfoModel extends AbstractTableModel {
 
     @Override
     public int getColumnCount() {
-        return routeInfo.getIndices().size() + 2;
+        return frequencies.getKeys().size() + 2;
+    }
+
+    /**
+     * @return
+     */
+    public DoubleMatrix<NodeView> getFrequencies() {
+        return frequencies;
+    }
+
+    /**
+     * @param frequencies the route information
+     */
+    public void setFrequencies(DoubleMatrix<NodeView> frequencies) {
+        this.frequencies = frequencies;
+        computeMinMax();
+        fireTableStructureChanged();
     }
 
     /**
@@ -101,37 +119,21 @@ public class RouteInfoModel extends AbstractTableModel {
         return minimumFlux;
     }
 
-    /**
-     *
-     */
-    public SquareMatrixModel<NodeView> getRouteInfo() {
-        return routeInfo;
-    }
-
-    /**
-     * @param routeInfo the route information
-     */
-    public void setRouteInfo(SquareMatrixModel<NodeView> routeInfo) {
-        this.routeInfo = routeInfo;
-        computeMinMax();
-        fireTableStructureChanged();
-    }
-
     @Override
     public int getRowCount() {
-        return routeInfo.getIndices().size();
+        return frequencies.getKeys().size();
     }
 
     @Override
     public Object getValueAt(final int row, final int col) {
         if (col == 0) {
             // First column legend
-            return routeInfo.getIndices().get(row);
-        } else if (col == routeInfo.getIndices().size() + 1) {
+            return frequencies.getKeys().get(row);
+        } else if (col == frequencies.getKeys().size() + 1) {
             // Last column total
             return computeColSum(row);
         } else {
-            return routeInfo.getValues()[row][col - 1];
+            return frequencies.getValues()[row][col - 1];
         }
     }
 }

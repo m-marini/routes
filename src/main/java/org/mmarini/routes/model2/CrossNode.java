@@ -65,21 +65,22 @@ public class CrossNode implements MapNode {
         return visitor.visit(this);
     }
 
+    /**
+     * Returns the square of distance of the node from a point
+     *
+     * @param point the point
+     */
+    @Override
+    public double distanceSqFrom(final Point2D point) {
+        return location.distanceSq(point);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CrossNode mapNode = (CrossNode) o;
         return location.equals(mapNode.location);
-    }
-
-    /**
-     * Returns the square of distance of the node from a point
-     *
-     * @param point the point
-     */
-    public double getDistanceSq(final Point2D point) {
-        return location.distanceSq(point);
     }
 
     @Override

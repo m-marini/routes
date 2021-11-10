@@ -27,10 +27,10 @@
  */
 package org.mmarini.routes.swing;
 
-import org.mmarini.routes.model.MapEdge;
-import org.mmarini.routes.model.MapElement;
-import org.mmarini.routes.model.MapNode;
-import org.mmarini.routes.model.Module;
+import org.mmarini.routes.model2.MapEdge;
+import org.mmarini.routes.model2.MapElement;
+import org.mmarini.routes.model2.MapModule;
+import org.mmarini.routes.model2.MapNode;
 
 import javax.swing.*;
 import java.awt.*;
@@ -480,10 +480,10 @@ public class ScrollMap extends JScrollPane {
     }
 
     /**
-     * @param module the module
+     * @param mapModule the mapModule
      */
-    public void startModuleMode(final Module module) {
-        routeMap.startModuleMode(module);
+    public void startModuleMode(final MapModule mapModule) {
+        routeMap.startModuleMode(mapModule);
     }
 
     /**

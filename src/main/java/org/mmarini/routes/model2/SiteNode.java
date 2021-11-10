@@ -64,21 +64,22 @@ public class SiteNode implements MapNode {
         return visitor.visit(this);
     }
 
+    /**
+     * Returns the distance squared to a point
+     *
+     * @param point the point
+     */
+    @Override
+    public double distanceSqFrom(final Point2D point) {
+        return location.distanceSq(point);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         SiteNode siteNode = (SiteNode) o;
         return location.equals(siteNode.location);
-    }
-
-    /**
-     * Returns the distance squared to a point
-     *
-     * @param point the point
-     */
-    public double getDistanceSq(Point2D point) {
-        return getLocation().distanceSq(point);
     }
 
     @Override

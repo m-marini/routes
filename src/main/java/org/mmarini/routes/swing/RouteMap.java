@@ -31,8 +31,7 @@ import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.processors.PublishProcessor;
-import org.mmarini.routes.model.Module;
-import org.mmarini.routes.model.*;
+import org.mmarini.routes.model2.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,7 +44,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
-import static org.mmarini.routes.model.Constants.VEICLE_LENGTH;
+import static org.mmarini.routes.model2.Constants.VEHICLE_LENGTH;
 import static org.mmarini.routes.swing.StatusView.DEFAULT_NODE_COLOR;
 
 /**
@@ -61,7 +60,6 @@ public class RouteMap extends JComponent {
     private static final Color EDGE_DRAGGING_COLOR = Color.GRAY;
     private static final int CURSOR_SELECTION_PRECISION = 10;
     private static final int MAP_BORDER = 60;
-
     private final Rectangle2D mapBound;
     private final AffineTransform transform;
     private final AffineTransform inverse;
@@ -84,7 +82,7 @@ public class RouteMap extends JComponent {
     private final PublishProcessor<MapElement> selectElementProcessor;
     private Point2D begin;
     private Point2D end;
-    private Module module;
+    private MapModule mapModule;
     private boolean mouseInside;
     private double scale;
     private double gridSize;
@@ -93,7 +91,6 @@ public class RouteMap extends JComponent {
     private Mode currentMode;
     private StatusView status;
     private boolean ctrPressed;
-
     /**
      *
      */
@@ -114,7 +111,7 @@ public class RouteMap extends JComponent {
             }
 
             @Override
-            public Void visit(final MapNode node) {
+            public Void visit(final CrossNode node) {
                 painter.paintNodeCursor(node.getLocation());
                 return null;
             }
@@ -224,7 +221,7 @@ public class RouteMap extends JComponent {
             public void handleMousePressed(final MouseEvent ev) {
                 Point2D point = computeMapLocation(ev.getPoint());
                 newModuleProcessor.onNext(new ModuleParameters(
-                        module,
+                        mapModule,
                         begin,
                         new Point2D.Double(
                                 point.getX() - begin.getX(),
@@ -508,7 +505,7 @@ public class RouteMap extends JComponent {
         end = status.snapToNode(
                 computeMapLocation(ev.getPoint()),
                 (CURSOR_SELECTION_PRECISION / scale));
-        if (end.distance(begin) > VEICLE_LENGTH) {
+        if (end.distance(begin) > VEHICLE_LENGTH) {
             newEdgeProcessor.onNext(new EdgeCreation(begin, end));
             begin = end;
         }
@@ -600,8 +597,7 @@ public class RouteMap extends JComponent {
         if (trafficView) {
             for (final MapEdge edge : status.getEdges()) {
                 if (!(edge.equals(selectedElement) && isShowingCursor())) {
-                    double trafficLevel = edge.getTrafficLevel();
-                    //trafficLevel = Math.sqrt(trafficLevel);
+                    double trafficLevel = status.getEdgesTrafficLevel(edge);
                     final Color color = SwingUtils.getInstance().computeColor(trafficLevel, TRAFFIC_COLOR_SATURATION);
                     painter.paintEdge(edge, color);
                 }
@@ -621,8 +617,8 @@ public class RouteMap extends JComponent {
      * @param y        the y coordinate
      */
     private void paintModule(final Point2D location, final double x, final double y) {
-        if (module != null) {
-            painter.paintModule(module, location, x, y);
+        if (mapModule != null) {
+            painter.paintModule(mapModule, location, x, y);
         }
     }
 
@@ -648,14 +644,14 @@ public class RouteMap extends JComponent {
      */
     private void paintVehicles() {
         for (final Vehicle vehicle : status.getVehicles()) {
-            if (vehicle.isRunning()) {
-                Point2D point = new Point2D.Double();
-                vehicle.retrieveLocation(point);
-                final Color color = status.getNodeView(vehicle.getDestination())
-                        .map(NodeView::getColor)
-                        .orElse(DEFAULT_NODE_COLOR);
-                painter.paintVehicle(point, vehicle.getVector(), color);
-            }
+            vehicle.getLocation().ifPresent(point -> {
+                vehicle.getDirection().ifPresent(direction -> {
+                    final Color color = status.getNodeView(vehicle.getCurrentDestination())
+                            .map(NodeView::getColor)
+                            .orElse(DEFAULT_NODE_COLOR);
+                    painter.paintVehicle(point, direction, color);
+                });
+            });
         }
     }
 
@@ -713,10 +709,10 @@ public class RouteMap extends JComponent {
     }
 
     /**
-     * @param module the module
+     * @param module the mapModule
      */
-    public void startModuleMode(final Module module) {
-        this.module = module;
+    public void startModuleMode(final MapModule module) {
+        this.mapModule = module;
         this.currentMode = moduleLocationMode;
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 //        setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
@@ -740,30 +736,6 @@ public class RouteMap extends JComponent {
         void paintMode();
     }
 
-    public static class ModuleParameters {
-        private final Module module;
-        private final Point2D location;
-        private final Point2D direction;
-
-        public ModuleParameters(Module module, Point2D location, Point2D direction) {
-            this.module = module;
-            this.location = location;
-            this.direction = direction;
-        }
-
-        public Point2D getDirection() {
-            return direction;
-        }
-
-        public Point2D getLocation() {
-            return location;
-        }
-
-        public Module getModule() {
-            return module;
-        }
-    }
-
     public static class EdgeCreation {
         private final Point2D begin;
         private final Point2D end;
@@ -779,6 +751,30 @@ public class RouteMap extends JComponent {
 
         public Point2D getEnd() {
             return end;
+        }
+    }
+
+    public static class ModuleParameters {
+        private final MapModule module;
+        private final Point2D location;
+        private final Point2D direction;
+
+        public ModuleParameters(MapModule module, Point2D location, Point2D direction) {
+            this.module = module;
+            this.location = location;
+            this.direction = direction;
+        }
+
+        public Point2D getDirection() {
+            return direction;
+        }
+
+        public Point2D getLocation() {
+            return location;
+        }
+
+        public MapModule getModule() {
+            return module;
         }
     }
 }

@@ -36,7 +36,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.mmarini.Utils.*;
+import static org.mmarini.Tuple2.swap;
+import static org.mmarini.Utils.zipWithIndex;
 
 /**
  *
@@ -50,8 +51,8 @@ public interface Routes {
                 .collect(Collectors.toList());
 
         Map<MapNode, Integer> indexByNode = zipWithIndex(nodes)
-                .map(invertEntry())
-                .collect(toMap());
+                .map(swap())
+                .collect(Tuple2.toMap());
         int n = nodes.size();
         // Create initial adjacent matrices
         int[][] previousMatrix = new int[n][n];

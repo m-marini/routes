@@ -86,8 +86,9 @@ public class MapEdge implements MapElement {
      *
      * @param point the point
      */
-    public double distanceFrom(final Point2D point) {
-        return point.distance(closerFrom(point));
+    @Override
+    public double distanceSqFrom(final Point2D point) {
+        return point.distanceSq(closerFrom(point));
     }
 
     @Override
@@ -119,6 +120,17 @@ public class MapEdge implements MapElement {
      */
     public Point2D getBeginLocation() {
         return begin.getLocation();
+    }
+
+    /**
+     * @return the edgeVector
+     */
+    public Point2D getDirection() {
+        Point2D beginLocation = begin.getLocation();
+        Point2D endLocation = end.getLocation();
+        return new Point2D.Double(
+                endLocation.getX() - beginLocation.getX(),
+                endLocation.getY() - beginLocation.getY());
     }
 
     /**
@@ -159,6 +171,15 @@ public class MapEdge implements MapElement {
     }
 
     /**
+     * Returns the edge with priority
+     *
+     * @param priority the priority
+     */
+    public MapEdge setPriority(int priority) {
+        return new MapEdge(begin, end, speedLimit, priority);
+    }
+
+    /**
      * Returns the safety distance in the edge
      */
     public double getSafetyDistance() {
@@ -196,17 +217,6 @@ public class MapEdge implements MapElement {
         return getLength() / speedLimit;
     }
 
-    /**
-     * @return the edgeVector
-     */
-    public Point2D getVector() {
-        Point2D beginLocation = begin.getLocation();
-        Point2D endLocation = end.getLocation();
-        return new Point2D.Double(
-                endLocation.getX() - beginLocation.getX(),
-                endLocation.getY() - beginLocation.getY());
-    }
-
     @Override
     public int hashCode() {
         return Objects.hash(begin, end);
@@ -240,7 +250,7 @@ public class MapEdge implements MapElement {
         final Point2D begin = getBeginLocation();
         final double x0 = begin.getX();
         final double y0 = begin.getY();
-        final Point2D ev = getVector();
+        final Point2D ev = getDirection();
         final double xe = ev.getX();
         final double ye = ev.getY();
         final double xp = point.getX() - x0;

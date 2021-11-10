@@ -27,6 +27,8 @@
  */
 package org.mmarini.routes.model2;
 
+import java.awt.geom.Point2D;
+
 /**
  * @author marco.marini@mmarini.org
  */
@@ -37,4 +39,11 @@ public interface MapElement {
      * @param visitor the visitor
      */
     <T> T apply(MapElementVisitor<T> visitor);
+
+    /**
+     * Returns the squared distance from a point
+     *
+     * @param point the point
+     */
+    double distanceSqFrom(Point2D point);
 }

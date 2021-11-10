@@ -26,13 +26,11 @@
  *
  */
 
-/**
- *
- */
 package org.mmarini.routes.model2;
 
 /**
  * The visitor returns null
+ *
  * @author Marco
  */
 public class MapElementVisitorAdapter<T> implements MapElementVisitor<T> {

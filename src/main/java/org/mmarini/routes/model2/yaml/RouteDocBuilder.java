@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.mmarini.Tuple2;
 import org.mmarini.routes.model2.*;
 
 import java.io.File;
@@ -41,7 +42,9 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
-import static org.mmarini.Utils.*;
+import static org.mmarini.Tuple2.toMap;
+import static org.mmarini.Utils.getValue;
+import static org.mmarini.Utils.zipWithIndex;
 
 public class RouteDocBuilder {
     static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
@@ -58,8 +61,8 @@ public class RouteDocBuilder {
     static ObjectNode build(Status status) {
         requireNonNull(status);
         Map<MapNode, String> nameByNodes = zipWithIndex(status.getNodes())
-                .map(entry -> Map.entry(entry.getValue(),
-                        "Node_" + entry.getKey()
+                .map(entry -> Tuple2.of(entry._2,
+                        "Node_" + entry._1
                 ))
                 .collect(toMap());
         ObjectNode root = mapper.createObjectNode();
@@ -157,7 +160,7 @@ public class RouteDocBuilder {
      * @param status the status
      * @throws IOException in case of error
      */
-    static void write(File file, Status status) throws IOException {
+    public static void write(File file, Status status) throws IOException {
         requireNonNull(file);
         requireNonNull(status);
         mapper.writeValue(file, build(status));

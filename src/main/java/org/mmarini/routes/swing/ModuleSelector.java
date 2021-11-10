@@ -28,7 +28,7 @@
 
 package org.mmarini.routes.swing;
 
-import org.mmarini.routes.model.Module;
+import org.mmarini.routes.model2.MapModule;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -78,11 +78,11 @@ public class ModuleSelector extends JButton {
     }
 
     /**
-     * @param module the module to add
+     * @param mapModule the mapModule to add
      */
-    public void add(final Module module) {
+    public void add(final MapModule mapModule) {
         final ModuleView entry = new ModuleView();
-        entry.setModule(module);
+        entry.setModule(mapModule);
         entries.add(entry);
         final JMenuItem item = new JMenuItem();
         item.setIcon(entry.getIcon());
@@ -131,7 +131,7 @@ public class ModuleSelector extends JButton {
     }
 
     /**
-     * @return
+     * Returns the selected entry
      */
     public ModuleView getSelectedEntry() {
         return selectedEntry;
@@ -146,7 +146,9 @@ public class ModuleSelector extends JButton {
     }
 
     /**
-     * @param source
+     * Handles the item selection
+     *
+     * @param source the source
      */
     protected void handleItemSelection(final Object source) {
         final int idx = items.indexOf(source);

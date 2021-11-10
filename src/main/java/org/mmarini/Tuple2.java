@@ -3,6 +3,7 @@ package org.mmarini;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -32,6 +33,16 @@ public class Tuple2<T1, T2> {
      */
     public static <K, V> Stream<Tuple2<K, V>> stream(Map<K, V> map) {
         return map.entrySet().stream().map(entry -> new Tuple2<>(entry.getKey(), entry.getValue()));
+    }
+
+    /**
+     * Returns the function swapping the value of tuple2
+     *
+     * @param <T1> the type of first parameter
+     * @param <T2> the type of second parameter
+     */
+    public static <T1, T2> Function<Tuple2<T1, T2>, Tuple2<T2, T1>> swap() {
+        return t -> Tuple2.of(t._2, t._1);
     }
 
     /**

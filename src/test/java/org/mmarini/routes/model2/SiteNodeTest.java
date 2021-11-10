@@ -36,9 +36,9 @@ import java.awt.geom.Point2D;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mmarini.routes.model2.CrossNode.createNode;
 import static org.mmarini.routes.model2.SiteNode.createSite;
 
 class SiteNodeTest {
@@ -111,9 +111,54 @@ class SiteNodeTest {
 
         SiteNode node = createSite(x, y);
 
-        double result = node.getDistanceSq(point2);
+        double result = node.distanceSqFrom(point2);
         double expected = (x1 - x) * (x1 - x) + (y1 - y) * (y1 - y);
 
         assertThat(result, equalTo(expected));
     }
+
+    @ParameterizedTest
+    @MethodSource("points")
+    void isSameLocation(int x, int y) {
+        SiteNode node = createSite(x, y);
+
+        // itself
+        assertTrue(node.isSameLocation(node));
+
+        // different location
+        assertFalse(node.isSameLocation(createSite(x + 1, y + 1)));
+
+        // same location
+        assertEquals(node, createSite(x, y));
+
+        // site same location
+        assertTrue(node.isSameLocation(createNode(x, y)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("points2")
+    void setLocation(int x, int y, int x1, int y1) {
+        Point2D point2 = new Point2D.Double(x1, y1);
+
+        SiteNode node = createSite(x, y);
+
+        SiteNode result = node.setLocation(point2);
+
+        assertNotNull(result);
+        assertThat(result,
+                hasProperty("location",
+                        allOf(
+                                hasProperty("x", equalTo((double) x1)),
+                                hasProperty("y", equalTo((double) y1))
+                        )));
+    }
+
+    @ParameterizedTest
+    @MethodSource("points")
+    void toString(int x, int y) {
+        SiteNode node = createSite(x, y);
+
+        assertThat(node, hasToString("SiteNode[" + (double) x + ", " + (double) y + "]"));
+    }
+
 }

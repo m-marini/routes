@@ -39,11 +39,11 @@ public class MapProfile {
     private final double frequency;
 
     /**
-     * @param siteCount
-     * @param width
-     * @param height
-     * @param minWeight
-     * @param frequency
+     * @param siteCount the number of site
+     * @param width     the map width
+     * @param height    the map height
+     * @param minWeight the minimum weight
+     * @param frequency the frequency
      */
     public MapProfile(int siteCount, double width, double height, double minWeight, double frequency) {
         this.siteCount = siteCount;
@@ -54,35 +54,35 @@ public class MapProfile {
     }
 
     /**
-     * @return the frequence
+     * Returns the frequency
      */
     public double getFrequency() {
         return frequency;
     }
 
     /**
-     * @return the height
+     * Returns the height
      */
     public double getHeight() {
         return height;
     }
 
     /**
-     * @return the minWeight
+     * Returns the minWeight
      */
     public double getMinWeight() {
         return minWeight;
     }
 
     /**
-     * @return the siteCount
+     * Returns the siteCount
      */
     public int getSiteCount() {
         return siteCount;
     }
 
     /**
-     * @return the width
+     * Returns the width
      */
     public double getWidth() {
         return width;

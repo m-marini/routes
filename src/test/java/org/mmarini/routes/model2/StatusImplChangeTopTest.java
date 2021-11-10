@@ -271,7 +271,7 @@ class StatusImplChangeTopTest {
                 List.of(), SPEED_LIMIT, 0);
 
         /*
-        And a module
+        And a mapModule
             2
             |
             |
@@ -283,12 +283,12 @@ class StatusImplChangeTopTest {
         CrossNode moduleNode2 = createNode(0, 10);
         MapEdge moduleEdge01 = new MapEdge(moduleNode0, moduleNode1, SPEED_LIMIT, PRIORITY);
         MapEdge moduleEdge20 = new MapEdge(moduleNode2, moduleNode0, SPEED_LIMIT, PRIORITY);
-        Module module = new Module(List.of(moduleEdge01, moduleEdge20));
+        MapModule mapModule = new MapModule(List.of(moduleEdge01, moduleEdge20));
 
         /*
-        When adding the module
+        When adding the mapModule
          */
-        StatusImpl result = status.addModule(module,
+        StatusImpl result = status.addModule(mapModule,
                 new Point2D.Double(51, 0),
                 new Point2D.Double(1, 1),
                 2);

@@ -27,13 +27,13 @@
  */
 package org.mmarini.routes.swing;
 
-import org.mmarini.routes.model.MapEdge;
-import org.mmarini.routes.model.Module;
+import org.mmarini.routes.model2.MapEdge;
+import org.mmarini.routes.model2.MapModule;
 
 import java.awt.*;
 import java.awt.geom.*;
 
-import static org.mmarini.routes.model.Constants.VEICLE_LENGTH;
+import static org.mmarini.routes.model2.Constants.VEHICLE_LENGTH;
 
 /**
  *
@@ -83,7 +83,7 @@ public class Painter {
         stroke = new BasicStroke((float) EDGE_WIDTH, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
         thinStroke = new BasicStroke(0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
         line = new Line2D.Double();
-        vehicleShape = new Rectangle2D.Double(-VEICLE_LENGTH * 0.5, -VEHICLE_WIDTH * 0.5, VEICLE_LENGTH, VEHICLE_WIDTH);
+        vehicleShape = new Rectangle2D.Double(-VEHICLE_LENGTH * 0.5, -VEHICLE_WIDTH * 0.5, VEHICLE_LENGTH, VEHICLE_WIDTH);
         siteShape = new Ellipse2D.Double(-NODE_SIZE * 0.5, -NODE_SIZE * 0.5, NODE_SIZE, NODE_SIZE);
         edgeEndPoint = new Ellipse2D.Double(-EDGE_WIDTH * 0.5, -EDGE_WIDTH * 0.5, EDGE_WIDTH, EDGE_WIDTH);
     }
@@ -170,18 +170,18 @@ public class Painter {
     }
 
     /**
-     * @param module   the module
-     * @param location the location
-     * @param vecx     the x direction vector
-     * @param vecy     the y direction vector
+     * @param mapModule the mapModule
+     * @param location  the location
+     * @param vecx      the x direction vector
+     * @param vecy      the y direction vector
      */
-    public void paintModule(final Module module, final Point2D location, final double vecx, final double vecy) {
+    public void paintModule(final MapModule mapModule, final Point2D location, final double vecx, final double vecy) {
         final AffineTransform old = graphics.getTransform();
         final AffineTransform tr = graphics.getTransform();
         tr.translate(location.getX(), location.getY());
         tr.rotate(vecx, vecy);
         graphics.setTransform(tr);
-        for (final MapEdge edge : module.getEdges()) {
+        for (final MapEdge edge : mapModule.getEdges()) {
             paintEdge(edge);
         }
         graphics.setTransform(old);

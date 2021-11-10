@@ -40,8 +40,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static java.util.Map.entry;
-
 public interface Utils {
 
     /**
@@ -66,6 +64,16 @@ public interface Utils {
         }
     }
 
+    /**
+     * Returns the collector of Map
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     */
+    static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> entriesToMap() {
+        return Collectors.toMap(Entry<K, V>::getKey, Entry<K, V>::getValue);
+    }
+
     static <T> Optional<T> find(Stream<T> stream, Predicate<T> test) {
         return stream.dropWhile(Predicate.not(test)).limit(1).findAny();
     }
@@ -78,24 +86,10 @@ public interface Utils {
         return key -> getValue(map, key);
     }
 
-    static <K, V> Function<Map.Entry<K, V>, Map.Entry<V, K>> invertEntry() {
-        return entry -> Map.entry(entry.getValue(), entry.getKey());
-    }
-
     static <K, V> Stream<Tuple2<K, V>> join(List<K> list1, List<V> list2) {
         return list1.stream().flatMap(k ->
                 list2.stream().map(v -> Tuple2.of(k, v))
         );
-    }
-
-    static <K, V> Stream<Entry<K, V>> joinToEntries(List<K> list1, List<V> list2) {
-        return list1.stream().flatMap(k ->
-                list2.stream().map(v -> entry(k, v))
-        );
-    }
-
-    static <K, K1, V> Function<Map.Entry<K, V>, Map.Entry<K1, V>> mapKey(Function<K, K1> mapper) {
-        return entry -> Map.entry(mapper.apply(entry.getKey()), entry.getValue());
     }
 
     static <K, V, V1> Function<Map.Entry<K, V>, Map.Entry<K, V1>> mapValue(Function<V, V1> mapper) {
@@ -165,23 +159,13 @@ public interface Utils {
     }
 
     /**
-     * Returns the collector of Map
-     *
-     * @param <K> the key type
-     * @param <V> the value type
-     */
-    static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> toMap() {
-        return Collectors.toMap(Entry<K, V>::getKey, Entry<K, V>::getValue);
-    }
-
-    /**
      * Returns the stream of an index, value of a list
      *
      * @param list the list
      * @param <T>  the item type
      */
-    static <T> Stream<Entry<Integer, T>> zipWithIndex(List<T> list) {
+    static <T> Stream<Tuple2<Integer, T>> zipWithIndex(List<T> list) {
         return IntStream.range(0, list.size())
-                .mapToObj(i -> entry(i, list.get(i)));
+                .mapToObj(i -> Tuple2.of(i, list.get(i)));
     }
 }

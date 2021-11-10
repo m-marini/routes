@@ -38,13 +38,12 @@ import java.util.stream.Stream;
 
 import static java.lang.Math.sqrt;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.closeTo;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mmarini.routes.model2.Constants.REACTION_TIME;
 import static org.mmarini.routes.model2.Constants.VEHICLE_LENGTH;
 import static org.mmarini.routes.model2.CrossNode.createNode;
+import static org.mmarini.routes.model2.SiteNode.createSite;
 import static org.mmarini.routes.model2.TestUtils.pointCloseTo;
 
 class MapEdgeTest {
@@ -58,6 +57,22 @@ class MapEdgeTest {
     static final int MAX_PRIORITY = 5;
     static final double MIN_DISTANCE = -10000;
     static final double MAX_DISTANCE = 10000;
+
+    static Stream<Arguments> args3ptsEdge() {
+        return ArgumentGenerator.create(SEED)
+                .uniform(MIN_COORDINATE_VALUE, MAX_COORDINATE_VALUE)
+                .uniform(MIN_COORDINATE_VALUE, MAX_COORDINATE_VALUE)
+                .uniform(MIN_COORDINATE_VALUE, MAX_COORDINATE_VALUE)
+                .uniform(MIN_COORDINATE_VALUE, MAX_COORDINATE_VALUE)
+                .uniform(MIN_COORDINATE_VALUE, MAX_COORDINATE_VALUE)
+                .uniform(MIN_COORDINATE_VALUE, MAX_COORDINATE_VALUE)
+                .exponential(MIN_SPEED_LIMIT, MAX_SPEED_LIMITS)
+                .uniform(MIN_PRIORITY, MAX_PRIORITY)
+                .generate()
+                .filter(args ->
+                        !(args.get()[0].equals(args.get()[2])
+                                && args.get()[1].equals(args.get()[3])));
+    }
 
     static Stream<Arguments> edges() {
         return ArgumentGenerator.create(SEED)
@@ -147,10 +162,11 @@ class MapEdgeTest {
         Point2D resultEndLoc = edge.getEndLocation();
         double resultSpeedLimit = edge.getSpeedLimit();
         int resultPriority = edge.getPriority();
-        Point2D vector = edge.getVector();
+        Point2D vector = edge.getDirection();
         double length = edge.getLength();
         double transitTime = edge.getTransitTime();
         double safetyDistance = edge.getSafetyDistance();
+        double safetySpeed = edge.getSafetySpeed();
         MapNode visitor = edge.apply(new MapElementVisitorAdapter<>() {
             @Override
             public MapNode visit(MapEdge edge) {
@@ -179,8 +195,14 @@ class MapEdgeTest {
         assertThat(transitTime, equalTo(distance / speed));
         // And the safety distance
         assertThat(safetyDistance, equalTo(REACTION_TIME * speed + VEHICLE_LENGTH));
+        // And the safety speed
+        assertThat(safetySpeed, equalTo((distance - VEHICLE_LENGTH) / REACTION_TIME));
         // And the visitor
         assertThat(visitor, equalTo(begin));
+        // And toString
+        assertThat(edge, hasToString(
+                "MapEdge[CrossNode[" + (double) x0 + ", " + (double) y0
+                        + "], CrossNode[" + (double) x1 + ", " + (double) y1 + "]]"));
     }
 
     @ParameterizedTest
@@ -189,14 +211,14 @@ class MapEdgeTest {
             "0,0, 100,0, 0,10, 10.0",
             "0,0, 100,0, 5,-10, 10.0",
             "0,0, 100,0,10, -10, 10.0",
-            "0,0, 100,100, -10,10, 14.1",
-            "0,0, 100,100, 10,-10, 14.1",
-            "0,0, 100,100, 40,60, 14.1",
-            "10,10, 20,20, 60,60, 56.6",
-            "10,10, 20,20, 0,0, 14.1",
+            "0,0, 100,100, -10,10, 14.14",
+            "0,0, 100,100, 10,-10, 14.14",
+            "0,0, 100,100, 40,60, 14.14",
+            "10,10, 20,20, 60,60, 56.57",
+            "10,10, 20,20, 0,0, 14.14",
             "10,10, 20,20, -10,10, 20",
     })
-    void distanceFrom(int x0, int y0, int x1, int y1, int x2, int y2, double expectedDistance) {
+    void distanceSqFrom(int x0, int y0, int x1, int y1, int x2, int y2, double expectedDistance) {
         /*
         Given an edge
         with a beginning node
@@ -211,10 +233,10 @@ class MapEdgeTest {
         Point2D point = new Point2D.Double(x2, y2);
 
         // When computing distance from a point
-        double result = edge.distanceFrom(point);
+        double result = edge.distanceSqFrom(point);
 
         // Then should return the expected value of ka
-        assertThat(result, closeTo(expectedDistance, 0.1));
+        assertThat(result, closeTo(expectedDistance * expectedDistance, 0.2));
     }
 
     @ParameterizedTest
@@ -264,6 +286,67 @@ class MapEdgeTest {
         assertEquals(
                 new MapEdge(begin, end, speed + 1, priority + 1).hashCode(),
                 edge.hashCode());
+    }
+
+    @ParameterizedTest
+    @MethodSource("args3ptsEdge")
+    void isCrossingNode(int x0, int y0, int x1, int y1, int x2, int y2, double speed, int priority) {
+        /*
+        Given an edge
+        with a beginning node
+        and an end node
+        and a speed limit
+        and a priority
+         */
+        CrossNode begin = createNode(x0, y0);
+        CrossNode end = createNode(x1, y1);
+        MapEdge edge = new MapEdge(begin, end, speed, priority);
+        final CrossNode node1 = createNode(x2, y2);
+
+        /*
+         When getting crossing node
+         */
+        boolean isCrossingBegin = edge.isCrossingNode(begin);
+        boolean isCrossingEnd = edge.isCrossingNode(end);
+        boolean isCrossingNode1 = edge.isCrossingNode(node1);
+
+        //Then should return the new beginning node
+        assertTrue(isCrossingBegin);
+        assertTrue(isCrossingEnd);
+        assertFalse(isCrossingNode1);
+    }
+
+    @ParameterizedTest
+    @MethodSource("args3ptsEdge")
+    void isSameLocation(int x0, int y0, int x1, int y1, int x2, int y2, double speed, int priority) {
+        /*
+        Given an edge
+        with a beginning node
+        and an end node
+        and a speed limit
+        and a priority
+         */
+        CrossNode begin = createNode(x0, y0);
+        CrossNode end = createNode(x1, y1);
+        MapEdge edge = new MapEdge(begin, end, speed, priority);
+        final CrossNode node1 = createNode(x2, y2);
+        MapEdge edge1 = new MapEdge(begin, node1, speed, priority);
+        MapEdge edge2 = new MapEdge(node1, end, speed, priority);
+        MapEdge edge3 = new MapEdge(createSite(x0, y0), createSite(x1, y1), speed, priority);
+
+        /*
+         When getting crossing node
+         */
+        boolean isSameLocation0 = edge.isSameLocation(edge);
+        boolean isSameLocation1 = edge.isSameLocation(edge1);
+        boolean isSameLocation2 = edge.isSameLocation(edge2);
+        boolean isSameLocation3 = edge.isSameLocation(edge3);
+
+        //Then should return the new beginning node
+        assertTrue(isSameLocation0);
+        assertFalse(isSameLocation1);
+        assertFalse(isSameLocation2);
+        assertTrue(isSameLocation3);
     }
 
     @ParameterizedTest
@@ -326,5 +409,77 @@ class MapEdgeTest {
                 distance / length * (x1 - x0) + x0,
                 distance / length * (y1 - y0) + y0
         )));
+    }
+
+    @ParameterizedTest
+    @MethodSource("args3ptsEdge")
+    void setBegin(int x0, int y0, int x1, int y1, int x2, int y2, double speed, int priority) {
+        /*
+        Given an edge
+        with a beginning node
+        and an end node
+        and a speed limit
+        and a priority
+         */
+        CrossNode begin = createNode(x0, y0);
+        CrossNode end = createNode(x1, y1);
+        MapEdge edge = new MapEdge(begin, end, speed, priority);
+        final CrossNode node1 = createNode(x2, y2);
+
+        /*
+         When setting begin
+         */
+        MapEdge result = edge.setBegin(node1);
+
+        //Then should return the new beginning node
+        assertThat(result, hasProperty("begin", sameInstance(node1)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("args3ptsEdge")
+    void setEnd(int x0, int y0, int x1, int y1, int x2, int y2, double speed, int priority) {
+        /*
+        Given an edge
+        with a beginning node
+        and an end node
+        and a speed limit
+        and a priority
+         */
+        CrossNode begin = createNode(x0, y0);
+        CrossNode end = createNode(x1, y1);
+        MapEdge edge = new MapEdge(begin, end, speed, priority);
+        final CrossNode node1 = createNode(x2, y2);
+
+        /*
+         When setting begin
+         */
+        MapEdge result = edge.setEnd(node1);
+
+        //Then should return the new beginning node
+        assertThat(result, hasProperty("end", sameInstance(node1)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("edges")
+    void setSpeedLimit(int x0, int y0, int x1, int y1, double speed, int priority) {
+        /*
+        Given an edge
+        with a beginning node
+        and an end node
+        and a speed limit
+        and a priority
+         */
+        CrossNode begin = createNode(x0, y0);
+        CrossNode end = createNode(x1, y1);
+        MapEdge edge = new MapEdge(begin, end, speed, priority);
+        /*
+        When setting speed limit
+         */
+        MapEdge result = edge.setSpeedLimit(speed + 10);
+        /*
+        Than the result should have the speed limit + 10
+         */
+        assertNotNull(result);
+        assertThat(result, hasProperty("speedLimit", equalTo(speed + 10)));
     }
 }

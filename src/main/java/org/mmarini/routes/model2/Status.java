@@ -42,14 +42,14 @@ public interface Status {
     Status addEdge(MapEdge edge);
 
     /**
-     * Returns the status with the new module
+     * Returns the status with the new mapModule
      *
-     * @param module    the module
-     * @param location  the module location
+     * @param mapModule the mapModule
+     * @param location  the mapModule location
      * @param direction the directions
      * @param epsilon   the marginal distance to map existing nodes
      */
-    Status addModule(final Module module, final Point2D location, final Point2D direction, final double epsilon);
+    Status addModule(final MapModule mapModule, final Point2D location, final Point2D direction, final double epsilon);
 
     /**
      * Returns the status with changed edge
@@ -67,6 +67,13 @@ public interface Status {
      * @param node the node
      */
     Status changeNode(MapNode node);
+
+    /**
+     * Returns the edge traffic level from 0 min to 1 max
+     *
+     * @param edge the edge
+     */
+    double edgeTrafficLevel(MapEdge edge);
 
     /**
      * Returns the edges
@@ -141,9 +148,14 @@ public interface Status {
     Status next(Random random, double dt);
 
     /**
+     * Returns the status with optimized nodes
+     */
+    Status optimizeNodes();
+
+    /**
      * Returns the status with optimized edge speed limit
      */
-    Status optimize();
+    Status optimizeSpeed(double speedLimit);
 
     /**
      * Returns the status with randomized path weights

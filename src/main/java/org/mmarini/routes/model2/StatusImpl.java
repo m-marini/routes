@@ -38,8 +38,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.lang.Math.*;
 import static java.util.Map.entry;
 import static java.util.Objects.requireNonNull;
+import static org.mmarini.Tuple2.toMap;
 import static org.mmarini.Utils.*;
 import static org.mmarini.routes.model2.Constants.*;
 import static org.mmarini.routes.model2.Routes.computeRoutes;
@@ -88,7 +90,7 @@ public class StatusImpl implements Status {
                     List<Vehicle> vehicles1 = entry.getValue();
                     return IntStream.range(0, vehicles1.size() - 1)
                             .mapToObj(i ->
-                                    entry(vehicles1.get(i), vehicles1.get(i + 1))
+                                    Tuple2.of(vehicles1.get(i), vehicles1.get(i + 1))
                             );
                 })
                 .collect(toMap());
@@ -100,16 +102,17 @@ public class StatusImpl implements Status {
      * @param vehicles the vehicles
      */
     private static Map<MapEdge, LinkedList<Vehicle>> computeVehicleByEdges(List<Vehicle> vehicles) {
-        @SuppressWarnings("OptionalGetWithoutIsPresent") Map<MapEdge, LinkedList<Vehicle>> vehiclesByEdge = vehicles.stream()
-                .filter(v -> v.getCurrentEdge().isPresent())
-                .collect(Collectors.groupingBy(
-                        v -> v.getCurrentEdge().get()))
-                .entrySet().stream()
-                .peek(entry -> entry.getValue()
-                        .sort(Comparator.comparingDouble(
-                                Vehicle::getDistance)))
-                .map(mapValue(LinkedList::new))
-                .collect(toMap());
+        @SuppressWarnings("OptionalGetWithoutIsPresent") Map<MapEdge, LinkedList<Vehicle>> vehiclesByEdge =
+                vehicles.stream()
+                        .filter(v -> v.getCurrentEdge().isPresent())
+                        .collect(Collectors.groupingBy(
+                                v -> v.getCurrentEdge().get()))
+                        .entrySet().stream()
+                        .peek(entry -> entry.getValue()
+                                .sort(Comparator.comparingDouble(
+                                        Vehicle::getDistance)))
+                        .map(mapValue(LinkedList::new))
+                        .collect(entriesToMap());
         return vehiclesByEdge;
     }
 
@@ -285,7 +288,6 @@ public class StatusImpl implements Status {
         return v -> !(v.isRelatedToNode(site));
     }
 
-    private final double time;
     private final Topology topology;
     private final List<Vehicle> vehicles;
     private final double frequency;
@@ -294,6 +296,7 @@ public class StatusImpl implements Status {
     private final Map<Vehicle, Vehicle> nextVehicles;
     private final Map<MapEdge, Double> edgeTransitTimes;
     private final Map<MapEdge, LinkedList<Vehicle>> vehiclesByEdge;
+    private double time;
     private Map<Tuple2<MapNode, MapNode>, MapEdge> edgeByPath;
 
     /**
@@ -344,8 +347,8 @@ public class StatusImpl implements Status {
     }
 
     @Override
-    public StatusImpl addModule(Module module, Point2D location, Point2D direction, double epsilon) {
-        Topology topology = this.topology.addModule(module, location, direction, epsilon);
+    public StatusImpl addModule(MapModule mapModule, Point2D location, Point2D direction, double epsilon) {
+        Topology topology = this.topology.addModule(mapModule, location, direction, epsilon);
         Map<MapEdge, Double> edgeTransitTimes = topology.getEdges().stream()
                 .collect(Collectors.toMap(
                         Function.identity(),
@@ -372,7 +375,7 @@ public class StatusImpl implements Status {
                             // No vehicles to move
                             remainingDt
                     );
-            setTime(time + elapsedDt);
+            time += elapsedDt;
             remainingDt -= elapsedDt;
         }
         vehicles.addAll(createVehicles(random, dt));
@@ -433,6 +436,26 @@ public class StatusImpl implements Status {
                 toCdf(weights), newVehiclesByEdge, newNextVehicles, newEdgeTransitTime,
                 null)
                 .createPath();
+    }
+
+    /**
+     * Returns the transit time from a site to another site if a path exists
+     *
+     * @param from the departure site
+     * @param to   the destination site
+     */
+    Optional<Double> computeTransitTime(SiteNode from, SiteNode to) {
+        Optional<MapEdge> edge = getNextEdge(from, to);
+        MapNode node = from;
+        double time = 0;
+        while (edge.isPresent() && !node.equals(to)) {
+            time += edge.map(MapEdge::getTransitTime).orElse(0.0);
+            Optional<MapNode> nextNode = edge.map(MapEdge::getEnd);
+            edge = nextNode.flatMap(n -> getNextEdge(n, to));
+            node = nextNode.orElse(to);
+        }
+        double finalTime = time;
+        return edge.map(e -> finalTime);
     }
 
     /**
@@ -501,15 +524,15 @@ public class StatusImpl implements Status {
      * It clones the vehicle, the vehicleByEdge map
      */
     StatusImpl copy() {
-        List<Vehicle> newVehicles = vehicles.stream()
+        List<Vehicle> vehicles = this.vehicles.stream()
                 .map(Vehicle::copy)
                 .collect(Collectors.toList());
-        Map<MapEdge, LinkedList<Vehicle>> newVehiclesByEdge = vehiclesByEdge.entrySet()
-                .stream()
-                .map(mapValue(LinkedList::new))
-                .collect(toMap());
-        return new StatusImpl(time, topology, newVehicles,
-                speedLimit, frequency, pathCdf, newVehiclesByEdge, new HashMap<>(nextVehicles),
+        Map<MapEdge, LinkedList<Vehicle>> vehiclesByEdge = computeVehicleByEdges(vehicles);
+        Map<Vehicle, Vehicle> nextVehicles = computeNextVehicleMap(vehiclesByEdge);
+        return new StatusImpl(time, topology, vehicles,
+                speedLimit, frequency, pathCdf,
+                vehiclesByEdge,
+                nextVehicles,
                 edgeTransitTimes,
                 edgeByPath);
     }
@@ -521,6 +544,28 @@ public class StatusImpl implements Status {
         this.edgeByPath = computeRoutes(topology.getEdges(),
                 edgeTransitTimes);
         return this;
+    }
+
+    /**
+     * Returns transit time matrix from site to site
+     */
+    Map<Tuple2<SiteNode, SiteNode>, Double> createTransitTimeMatrix() {
+        Map<Tuple2<SiteNode, SiteNode>, Double> transitTimeMatrix = join(getSites(), getSites())
+                .filter(path -> !path._1.equals(path._2))
+                .flatMap(path ->
+                        computeTransitTime(path._1, path._2)
+                                .map(t -> Tuple2.of(path, t))
+                                .stream()
+                ).collect(toMap());
+        return join(getSites(), getSites())
+                .flatMap(path ->
+                        getValue(transitTimeMatrix, path)
+                                .map(t -> t
+                                        + getValue(transitTimeMatrix, Tuple2.of(path._2, path._1))
+                                        .orElse(0.0))
+                                .map(t -> Tuple2.of(path, t))
+                                .stream()
+                ).collect(toMap());
     }
 
     /**
@@ -550,6 +595,22 @@ public class StatusImpl implements Status {
                             .map(destination -> Vehicle.createVehicle(depSite, destination, time));
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public double edgeTrafficLevel(MapEdge edge) {
+        int n = getVehicles(edge).size();
+        if (n == 0) {
+            return 0;
+        }
+        double length = edge.getLength();
+        final int maxVehicleNum = (int) floor(length / VEHICLE_LENGTH);
+        final int optimalVehicleNum = (int) floor(length / edge.getSafetyDistance());
+        final double trafficLevel = optimalVehicleNum > 0 && n <= optimalVehicleNum
+                ? (double) n / optimalVehicleNum * 0.5
+                // (vehicleCount - optVehicles) / (maxVehicles - optVehicles) * 0.5 + 0.5;
+                : ((double) (n + maxVehicleNum - 2 * optimalVehicleNum) / (maxVehicleNum - optimalVehicleNum)) * 0.5;
+        return max(0, min(trafficLevel, 1));
     }
 
     /**
@@ -725,20 +786,26 @@ public class StatusImpl implements Status {
         return time;
     }
 
-    /**
-     * Returns the status with time changed
-     *
-     * @param time the time
-     */
-    StatusImpl setTime(double time) {
-        return new StatusImpl(time, topology, vehicles, speedLimit, frequency, pathCdf, vehiclesByEdge, nextVehicles, edgeTransitTimes, edgeByPath);
-    }
-
     @Override
     public List<TrafficInfo> getTrafficInfo() {
+        Map<Tuple2<SiteNode, SiteNode>, Double> transitTime = createTransitTimeMatrix();
         return getSites().stream()
-                .map(site ->
-                        new TrafficInfo(site, 0, 0, 0))
+                .map(site -> {
+                    int noVehicles = (int) vehicles.stream()
+                            .map(Vehicle::getDestination)
+                            .filter(site::equals)
+                            .count();
+                    List<Double> delayTimes = vehicles.stream()
+                            .filter(v -> site.equals(v.getDestination()))
+                            .flatMap(v -> getValue(transitTime, Tuple2.of(v.getDeparture(), v.getDestination()))
+                                    .map(tt -> time - v.getCreationTime() - tt)
+                                    .stream())
+                            .filter(t -> t > 0)
+                            .collect(Collectors.toList());
+                    int delayCount = delayTimes.size();
+                    double totalDelayTime = delayTimes.stream().mapToDouble(v -> v).sum();
+                    return new TrafficInfo(site, noVehicles, delayCount, totalDelayTime);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -849,9 +916,10 @@ public class StatusImpl implements Status {
      * @param enteringEdge the entering edge
      */
     boolean isCrossFree(MapEdge exitingEdge, MapEdge enteringEdge) {
-        return isEdgeAvailable(enteringEdge) &&
-                isIncomesFree(exitingEdge);
-
+        boolean edgeAvailable = isEdgeAvailable(enteringEdge);
+        boolean incomesFree = isIncomesFree(exitingEdge);
+        return edgeAvailable &&
+                incomesFree;
     }
 
     /**
@@ -865,7 +933,8 @@ public class StatusImpl implements Status {
                 .filter(Predicate.not(List::isEmpty))
                 .map(LinkedList::getFirst)
                 .map(Vehicle::getDistance)
-                .filter(distance -> distance <= VEHICLE_LENGTH)
+                .filter(distance ->
+                        distance <= VEHICLE_LENGTH)
                 .isEmpty();
     }
 
@@ -933,7 +1002,6 @@ public class StatusImpl implements Status {
         return next;
     }
 
-    @Override
     public StatusImpl optimize() {
         Topology topology = this.topology.optimize(speedLimit);
         Map<MapEdge, MapEdge> edgeMap = topology.createEdgeMap(topology);
@@ -951,6 +1019,16 @@ public class StatusImpl implements Status {
         return new StatusImpl(time, topology, vehicles, speedLimit, frequency, pathCdf,
                 vehiclesByEdge, nextVehicles, edgeTransitTimes, null)
                 .createPath();
+    }
+
+    @Override
+    public Status optimizeNodes() {
+        return optimize();
+    }
+
+    @Override
+    public Status optimizeSpeed(double speedLimit) {
+        return setSpeedLimit(speedLimit).optimize();
     }
 
     @Override
@@ -1008,7 +1086,7 @@ public class StatusImpl implements Status {
     public StatusImpl setOffset(Point2D offset) {
         List<MapNode> oldNodes = getNodes();
         List<MapNode> newNodes = oldNodes.stream()
-                .map(node -> (MapNode) node.setLocation(gridPoint(
+                .map(node -> node.setLocation(gridPoint(
                         node.getLocation().getX() - offset.getX(),
                         node.getLocation().getY() - offset.getY()
                 )))
@@ -1058,7 +1136,7 @@ public class StatusImpl implements Status {
                 .flatMap(entry -> getValue(edgeMap, entry.getKey())
                         .map(newEdge -> entry(newEdge, entry.getValue()))
                         .stream())
-                .collect(toMap());
+                .collect(entriesToMap());
 
         return new StatusImpl(time, topology, vehicles, speedLimit, frequency,
                 pathCdf, vehiclesByEdge, nextVehicles, edgeTransitTimes, null)

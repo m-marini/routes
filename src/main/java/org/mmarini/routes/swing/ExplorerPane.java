@@ -31,8 +31,8 @@ import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Observable;
-import org.mmarini.routes.model.MapNode;
-import org.mmarini.routes.model.SiteNode;
+import org.mmarini.routes.model2.MapNode;
+import org.mmarini.routes.model2.SiteNode;
 
 import javax.swing.*;
 import java.util.Optional;

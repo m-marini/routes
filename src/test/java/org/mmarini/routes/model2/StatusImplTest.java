@@ -47,7 +47,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mmarini.routes.model2.CrossNode.createNode;
 import static org.mmarini.routes.model2.SiteNode.createSite;
 import static org.mmarini.routes.model2.StatusImpl.createStatus;
-import static org.mmarini.routes.model2.TestUtils.*;
+import static org.mmarini.routes.model2.TestUtils.optionalDoubleOf;
+import static org.mmarini.routes.model2.TestUtils.optionalOf;
 import static org.mmarini.routes.model2.Topology.createTopology;
 import static org.mmarini.routes.model2.Vehicle.createVehicle;
 
@@ -68,13 +69,8 @@ class StatusImplTest {
     static final int X2 = 100;
     static final double DISTANCE10 = 10;
     static final int HIGH_PRIORITY = 1;
-
-    static Stream<Arguments> argForTimeAndElapsed() {
-        return ArgumentGenerator.create(SEED)
-                .uniform(MIN_TIME, MAX_TIME)
-                .uniform(MIN_TIME, MAX_TIME)
-                .generate();
-    }
+    static final double MIN_DELAY_TIME = 0.1;
+    static final double MAX_DELAY_TIME = 10d;
 
     static Stream<Arguments> argForTimeDtFreq() {
         return ArgumentGenerator.create(SEED)
@@ -106,6 +102,15 @@ class StatusImplTest {
                 .exponential(0.01, 1)
                 .exponential(0.01, 1)
                 .exponential(0.01, 1)
+                .exponential(MIN_DELAY_TIME, MAX_DELAY_TIME)
+                .exponential(MIN_DELAY_TIME, MAX_DELAY_TIME)
+                .generate();
+    }
+
+    static Stream<Arguments> argsGetTrafficInfo() {
+        return ArgumentGenerator.create(SEED)
+                .exponential(MIN_DELAY_TIME, MAX_DELAY_TIME)
+                .exponential(MIN_DELAY_TIME, MAX_DELAY_TIME)
                 .generate();
     }
 
@@ -879,15 +884,15 @@ class StatusImplTest {
 
     }
 
-    @Test
-    void getTrafficInfo() {
+    @ParameterizedTest
+    @MethodSource("argsGetTrafficInfo")
+    void getTrafficInfo(double delay1, double delay2) {
         /*
         Given a topology of
         0 --1--> 1 ----> 2
           <----   <--0--
-        And two vehicle at edge01 at distance 25, 49.5
-        And two vehicle at edge10 at distance 20,30,
-        And two vehicle at edge12 at distance 10
+        And a vehicle to node 2 not delayed
+        And two vehicle to node 0 delayed
          */
         SiteNode node0 = createSite(0, 0);
         SiteNode node2 = createSite(100, 0);
@@ -896,18 +901,21 @@ class StatusImplTest {
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        Vehicle v010 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(20);
-        Vehicle v011 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(49.5);
-        Vehicle v100 = createVehicle(node0, node2, 0).setCurrentEdge(edge10).setDistance(20);
-        Vehicle v101 = createVehicle(node0, node2, 0).setCurrentEdge(edge10).setDistance(30);
-        Vehicle v120 = createVehicle(node0, node2, 0).setCurrentEdge(edge12).setDistance(10);
+        double now = 100;
+        double tt21 = edge21.getTransitTime()
+                + edge10.getTransitTime()
+                + edge01.getTransitTime()
+                + edge12.getTransitTime();
+        Vehicle v1 = createVehicle(node2, node2, now).setCurrentEdge(edge01).setDistance(20);
+        Vehicle v20 = createVehicle(node2, node0, now - tt21 - delay1).setCurrentEdge(edge01).setDistance(49.5);
+        Vehicle v21 = createVehicle(node2, node0, now - tt21 - delay2).setCurrentEdge(edge10).setDistance(20);
 
         StatusImpl status = createStatus(
                 createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
-                ), 0,
-                List.of(v010, v011, v100, v101, v120), SPEED_LIMIT, 0);
+                ), now,
+                List.of(v1, v20, v21), SPEED_LIMIT, 0);
 
         /*
         When checking edges availability
@@ -918,6 +926,20 @@ class StatusImplTest {
         Then it should result the next vehicle function
          */
         assertNotNull(result);
+        assertThat(result, containsInAnyOrder(
+                allOf(
+                        hasProperty("destination", equalTo(node2)),
+                        hasProperty("vehicleCount", equalTo(1)),
+                        hasProperty("delayCount", equalTo(0)),
+                        hasProperty("totalDelayTime", equalTo(0.0))
+                ),
+                allOf(
+                        hasProperty("destination", equalTo(node0)),
+                        hasProperty("vehicleCount", equalTo(2)),
+                        hasProperty("delayCount", equalTo(2)),
+                        hasProperty("totalDelayTime", closeTo(delay1 + delay2, 0.01))
+                )
+        ));
     }
 
     @Test
@@ -962,86 +984,6 @@ class StatusImplTest {
          */
         assertThat(result, containsInAnyOrder(vNoEdge, v012));
         assertThat(result, hasSize(2));
-    }
-
-    @ParameterizedTest
-    @MethodSource("argForTimeAndElapsed")
-    void handleWaitingVehicles(double time, double elapsed) {
-        /*
-        Given a topology of
-        0 ---> 1 ---> 2    3
-          <---   <---
-         */
-        SiteNode node0 = createSite(0, 0);
-        SiteNode node3 = createSite(100, 100);
-        SiteNode node2 = createSite(100, 0);
-        CrossNode node1 = createNode(50, 0);
-        MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
-        MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
-        MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
-        MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        /*
-        And vehicle0 at entry of edge01 (busy edge)
-        And vehicle1 waiting on site3 to any without path
-        And vehicle2 waiting on site0 to site 2 with busy path (edge01)
-        And vehicle3 waiting on site2 to site 0 with available path (edge21)
-        And vehicle4 waiting on edge12 to site3 without path
-        And vehicle5 waiting on edge10 to site2 with busy path (edge01)
-        And vehicle6 waiting on edge21 to site0 with available path (edge10)
-        And vehicle7 at entry of edge01 at middle of edge
-         */
-        Vehicle v0 = createVehicle(node0, node2, 0)
-                .setCurrentEdge(edge01);
-        Vehicle v1 = createVehicle(node3, node0, 0);
-        Vehicle v2 = createVehicle(node0, node2, 0);
-        Vehicle v3 = createVehicle(node0, node2, 0)
-                .setReturning(true);
-        Vehicle v4 = createVehicle(node0, node3, 0)
-                .setCurrentEdge(edge12)
-                .setDistance(edge12.getLength());
-        Vehicle v5 = createVehicle(node0, node2, 0)
-                .setCurrentEdge(edge10)
-                .setDistance(edge10.getLength());
-        Vehicle v6 = createVehicle(node0, node2, 0)
-                .setCurrentEdge(edge21)
-                .setDistance(edge21.getLength())
-                .setReturning(true)
-                .setEdgeEntryTime(time - elapsed);
-        Vehicle v7 = createVehicle(node0, node2, 0)
-                .setCurrentEdge(edge10)
-                .setDistance(edge10.getLength() / 2)
-                .setReturning(true);
-
-        StatusImpl status = createStatus(
-                createTopology(
-                        List.of(node0, node2, node1, node3),
-                        List.of(edge01, edge10, edge12, edge21)
-                ), time,
-                List.of(v0, v1, v2, v3, v4, v5, v6, v7), SPEED_LIMIT, 0);
-
-        /*
-        When handling vehicles
-         */
-        status.handleWaitingVehicles();
-
-        // Then the vehicle1 should be removed
-        assertThat(status.getVehicles(), not(contains(v1)));
-        // And the vehicle2 should stay
-        assertThat(v2.getCurrentEdge(), optionalEmpty());
-        // And the vehicle3 should go
-        assertThat(v3.getCurrentEdge(), optionalOf(edge21));
-        assertThat(v3.getDistance(), equalTo(0.0));
-        // Then the vehicle4 should be removed
-        assertThat(status.getVehicles(), not(contains(v4)));
-        // And the vehicle5 should stay
-        assertThat(v5.getCurrentEdge(), optionalOf(edge10));
-        assertThat(v5.getDistance(), equalTo(edge10.getLength()));
-        // And the vehicle6 should go
-        assertThat(v6.getCurrentEdge(), optionalOf(edge10));
-        assertThat(v6.getDistance(), equalTo(0.0));
-        assertThat(v6.getEdgeEntryTime(), equalTo(time));
-        assertThat(status.getEdgeTransitTime(edge21), closeTo(elapsed, 0.01));
-        assertThat(status.getNextVehicle(v6), optionalOf(v7));
     }
 
     /*

@@ -28,7 +28,7 @@
 
 package org.mmarini.routes.swing;
 
-import org.mmarini.routes.model.MapEdge;
+import org.mmarini.routes.model2.MapEdge;
 
 import java.util.Objects;
 

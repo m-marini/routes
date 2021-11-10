@@ -26,55 +26,50 @@
  *
  */
 
-package org.mmarini.routes.model;
+package org.mmarini.routes.model2;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import java.util.*;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
- * @author mmarini
+ *
  */
-public class YamlUtils {
+public class MapModule {
+    private final List<MapEdge> edges;
 
-    /**
-     * @param node
-     * @param defaultValue
-     * @return
-     */
-    public static double jsonDouble(final JsonNode node, final double defaultValue) {
-        return Optional.ofNullable(node).map(json -> json.asDouble(defaultValue)).orElse(defaultValue);
+    public MapModule(List<MapEdge> edges) {
+        this.edges = edges;
     }
 
     /**
-     * @param node
-     * @param defaultValue
-     * @return
+     * Returns the bound rectangle
      */
-    public static int jsonInt(final JsonNode node, final int defaultValue) {
-        return Optional.ofNullable(node).map(json -> json.asInt(defaultValue)).orElse(defaultValue);
+    public Rectangle2D getBound() {
+        List<Point2D> pts = getNodes().stream().map(MapNode::getLocation).collect(Collectors.toList());
+        double x0 = pts.stream().mapToDouble(Point2D::getX).min().orElse(0);
+        double y0 = pts.stream().mapToDouble(Point2D::getY).min().orElse(0);
+        double x1 = pts.stream().mapToDouble(Point2D::getX).max().orElse(0);
+        double y1 = pts.stream().mapToDouble(Point2D::getY).max().orElse(0);
+        return new Rectangle2D.Double(x0, y0, x1 - x0, y1 - y0);
     }
 
     /**
-     * @param <T>
-     * @param iterator
-     * @return
+     * Returns the edges
      */
-    public static <T> List<T> toList(final Iterator<T> iterator) {
-        final List<T> list = toStream(iterator).collect(Collectors.toList());
-        return list;
+    public List<MapEdge> getEdges() {
+        return edges;
     }
 
     /**
-     * @param <T>
-     * @param iterator
-     * @return
+     * Returns the set of node
      */
-    public static <T> Stream<T> toStream(final Iterator<T> iterator) {
-        final Spliterator<T> spliterator = Spliterators.spliteratorUnknownSize(iterator, 0);
-        return StreamSupport.stream(spliterator, false);
+    Set<MapNode> getNodes() {
+        return getEdges().stream()
+                .flatMap(mapEdge -> Stream.of(mapEdge.getBegin(), mapEdge.getEnd()))
+                .collect(Collectors.toSet());
     }
 }

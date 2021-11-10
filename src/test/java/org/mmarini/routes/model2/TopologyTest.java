@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 
 import java.awt.geom.Point2D;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.Math.sqrt;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -134,7 +135,7 @@ class TopologyTest {
                 List.of(edge01, edge12)
         );
         /*
-        And a module
+        And a mapModule
             2
             |
             |
@@ -146,12 +147,12 @@ class TopologyTest {
         CrossNode moduleNode2 = createNode(0, 10);
         MapEdge moduleEdge01 = new MapEdge(moduleNode0, moduleNode1, SPEED_LIMIT, HIGH_PRIORITY);
         MapEdge moduleEdge20 = new MapEdge(moduleNode2, moduleNode0, SPEED_LIMIT, LOW_PRIORITY);
-        Module module = new Module(List.of(moduleEdge01, moduleEdge20));
+        MapModule mapModule = new MapModule(List.of(moduleEdge01, moduleEdge20));
 
         /*
-        When adding the module
+        When adding the mapModule
          */
-        Topology result = topology.addModule(module,
+        Topology result = topology.addModule(mapModule,
                 new Point2D.Double(51, 0),
                 new Point2D.Double(1, 1),
                 2);
@@ -172,6 +173,34 @@ class TopologyTest {
         MapEdge edge41 = new MapEdge(node4, node1, SPEED_LIMIT, LOW_PRIORITY);
         assertThat(result.getNodes(), containsInAnyOrder(node0, node1, node2, node3, node4));
         assertThat(result.getEdges(), containsInAnyOrder(edge01, edge12, edge13, edge41));
+    }
+
+    @Test
+    void addSameEdge() {
+        /*
+        Given sites, nodes, edges of the topology
+        0 --1--> 1 <--0-- 2
+        3 --0-->
+         */
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        SiteNode node3 = createSite(0, 100);
+        CrossNode node1 = createNode(50, 0);
+        MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, HIGH_PRIORITY);
+        MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, LOW_PRIORITY);
+        MapEdge edge31 = new MapEdge(node2, node1, SPEED_LIMIT, LOW_PRIORITY);
+        Topology topology = createTopology(
+                List.of(node0, node1, node2, node3),
+                List.of(edge01, edge21, edge31));
+        MapEdge edge32 = new MapEdge(node3, node2, SPEED_LIMIT, LOW_PRIORITY);
+
+        /*
+        When adding an edge
+         */
+        Topology result = topology.addEdge(edge01);
+
+        // Then should return the new edge
+        assertThat(result, sameInstance(topology));
     }
 
     @Test
@@ -289,6 +318,137 @@ class TopologyTest {
     }
 
     @Test
+    void createEdgeMap() {
+        /*
+        Given sites, nodes, edges of the topology
+        0 ---> 1 <--- 2
+         */
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
+        MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, HIGH_PRIORITY);
+        MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, LOW_PRIORITY);
+        Topology topology0 = createTopology(
+                List.of(node0, node1, node2),
+                List.of(edge01, edge21));
+        /*
+        And sites, nodes, edges of onother topology
+        0 ---> 1 <--- 2
+          <---
+         */
+        SiteNode node10 = createSite(0, 0);
+        CrossNode node12 = createNode(100, 0);
+        SiteNode node11 = createSite(50, 0);
+        MapEdge edge101 = new MapEdge(node10, node11, SPEED_LIMIT, HIGH_PRIORITY);
+        MapEdge edge121 = new MapEdge(node12, node11, SPEED_LIMIT, LOW_PRIORITY);
+        MapEdge edge110 = new MapEdge(node11, node10, SPEED_LIMIT, LOW_PRIORITY);
+        Topology topology1 = createTopology(
+                List.of(node10, node11, node12),
+                List.of(edge101, edge121, edge110));
+
+        /*
+        When adding an edge
+         */
+        Map<MapEdge, MapEdge> result01 = topology0.createEdgeMap(topology1);
+        Map<MapEdge, MapEdge> result10 = topology1.createEdgeMap(topology0);
+
+        // Then should return the new edge
+        assertNotNull(result01);
+        assertThat(result01.size(), equalTo(2));
+        assertThat(result01, hasEntry(edge01, edge101));
+        assertThat(result01, hasEntry(edge21, edge121));
+
+        assertNotNull(result10);
+        assertThat(result10.size(), equalTo(2));
+        assertThat(result10, hasEntry(edge101, edge01));
+        assertThat(result10, hasEntry(edge121, edge21));
+    }
+
+    @Test
+    void createNodeMap() {
+        /*
+        Given sites, nodes, edges of the topology
+        0 ---> 1 <--- 2
+         */
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
+        MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, HIGH_PRIORITY);
+        MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, LOW_PRIORITY);
+        Topology topology0 = createTopology(
+                List.of(node0, node1, node2),
+                List.of(edge01, edge21));
+        /*
+        And sites, nodes, edges of onother topology
+        0 ---> 1 <--- 2
+          <---
+         */
+        SiteNode node10 = createSite(0, 0);
+        CrossNode node12 = createNode(100, 0);
+        SiteNode node11 = createSite(50, 0);
+        MapEdge edge101 = new MapEdge(node10, node11, SPEED_LIMIT, HIGH_PRIORITY);
+        MapEdge edge121 = new MapEdge(node12, node11, SPEED_LIMIT, LOW_PRIORITY);
+        MapEdge edge110 = new MapEdge(node11, node10, SPEED_LIMIT, LOW_PRIORITY);
+        Topology topology1 = createTopology(
+                List.of(node10, node11, node12),
+                List.of(edge101, edge121, edge110));
+
+        /*
+        When adding an edge
+         */
+        Map<MapNode, MapNode> siteMap01 = topology0.createNodeMap(topology1);
+        Map<MapNode, MapNode> siteMap10 = topology1.createNodeMap(topology0);
+
+        // Then should return the new edge
+        assertThat(siteMap01, hasEntry(node0, node10));
+        assertThat(siteMap01, hasEntry(node1, node11));
+        assertThat(siteMap01, hasEntry(node2, node12));
+        assertThat(siteMap10, hasEntry(node10, node0));
+        assertThat(siteMap10, hasEntry(node11, node1));
+        assertThat(siteMap10, hasEntry(node12, node2));
+    }
+
+    @Test
+    void createSiteMap() {
+        /*
+        Given sites, nodes, edges of the topology
+        0 ---> 1 <--- 2
+         */
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
+        MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, HIGH_PRIORITY);
+        MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, LOW_PRIORITY);
+        Topology topology0 = createTopology(
+                List.of(node0, node1, node2),
+                List.of(edge01, edge21));
+        /*
+        And sites, nodes, edges of onother topology
+        0 ---> 1 <--- 2
+          <---
+         */
+        SiteNode node10 = createSite(0, 0);
+        CrossNode node12 = createNode(100, 0);
+        SiteNode node11 = createSite(50, 0);
+        MapEdge edge101 = new MapEdge(node10, node11, SPEED_LIMIT, HIGH_PRIORITY);
+        MapEdge edge121 = new MapEdge(node12, node11, SPEED_LIMIT, LOW_PRIORITY);
+        MapEdge edge110 = new MapEdge(node11, node10, SPEED_LIMIT, LOW_PRIORITY);
+        Topology topology1 = createTopology(
+                List.of(node10, node11, node12),
+                List.of(edge101, edge121, edge110));
+
+        /*
+        When adding an edge
+         */
+        Map<SiteNode, SiteNode> siteMap01 = topology0.createSiteMap(topology1);
+        Map<SiteNode, SiteNode> siteMap10 = topology1.createSiteMap(topology0);
+
+        // Then should return the new edge
+        assertThat(siteMap01, hasEntry(node0, node10));
+        assertThat(siteMap10, hasEntry(node0, node10));
+    }
+
+    @Test
     void getIncomeEdges() {
         /*
         Given sites, nodes, edges of the topology
@@ -320,6 +480,49 @@ class TopologyTest {
         assertThat(list21, contains(edge01));
         assertNotNull(list31);
         assertThat(list31, contains(edge01));
+    }
+
+    @Test
+    void optimize() {
+        /*
+        Given sites, nodes, edges of the topology
+        0 ---> 1 ---> 2
+          <---   <---
+               3
+         */
+        SiteNode node0 = createSite(0, 0);
+        SiteNode node2 = createSite(100, 0);
+        CrossNode node1 = createNode(50, 0);
+        CrossNode node3 = createNode(50, 10);
+        MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, HIGH_PRIORITY);
+        MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, LOW_PRIORITY);
+        MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, LOW_PRIORITY);
+        MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, LOW_PRIORITY);
+        Topology topology = createTopology(
+                List.of(node0, node1, node2, node3),
+                List.of(edge01, edge10, edge12, edge21));
+
+        /*
+        When optimizing the topology
+         */
+        Topology result = topology.optimize(4);
+
+        // Then should return a topology
+        assertNotNull(result);
+        // And site list
+        assertThat(result.getSites(), containsInAnyOrder(node0, node2));
+        // And node list
+        assertThat(result.getNodes(), contains(node0, node2, node1));
+        // And edge list
+        assertThat(result.getEdges(), containsInAnyOrder(edge21, edge01, edge10, edge12));
+        // And incoming edge for each node
+        assertThat(result.getIncomeEdges(node0), contains(edge10));
+        assertThat(result.getIncomeEdges(node1), contains(edge01, edge21));
+        assertThat(result.getIncomeEdges(node2), contains(edge12));
+
+        assertThat(result.getEdges().get(0), hasProperty("speedLimit", equalTo(4d)));
+        assertThat(result.getEdges().get(1), hasProperty("speedLimit", equalTo(4d)));
+        assertThat(result.getEdges().get(2), hasProperty("speedLimit", equalTo(4d)));
     }
 
     @Test

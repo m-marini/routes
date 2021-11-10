@@ -28,6 +28,7 @@
 
 package org.mmarini.routes.model2;
 
+import java.awt.geom.Point2D;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
@@ -114,7 +115,7 @@ public class Vehicle {
      * Returns the current destination
      * destination if not returning else departure
      */
-    SiteNode getCurrentDestination() {
+    public SiteNode getCurrentDestination() {
         return returning ? departure : destination;
     }
 
@@ -142,6 +143,11 @@ public class Vehicle {
         return departure;
     }
 
+    /**
+     * Returns the vehicle with changed departure
+     *
+     * @param departure the departure
+     */
     public Vehicle setDeparture(SiteNode departure) {
         return new Vehicle(id, departure, destination, creationTime, currentEdge, distance, returning, edgeEntryTime);
     }
@@ -160,6 +166,13 @@ public class Vehicle {
      */
     public Vehicle setDestination(SiteNode destination) {
         return new Vehicle(id, departure, destination, creationTime, currentEdge, distance, returning, edgeEntryTime);
+    }
+
+    /**
+     * Return the direction of vehicle if running
+     */
+    public Optional<Point2D> getDirection() {
+        return getCurrentEdge().map(MapEdge::getDirection);
     }
 
     /**
@@ -201,6 +214,13 @@ public class Vehicle {
      */
     public UUID getId() {
         return id;
+    }
+
+    /**
+     * Returns the location of vehicle
+     */
+    public Optional<Point2D> getLocation() {
+        return getCurrentEdge().map(edge -> edge.locationAt(distance));
     }
 
     @Override

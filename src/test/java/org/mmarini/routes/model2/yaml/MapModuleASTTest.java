@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mmarini.routes.model2.Module;
+import org.mmarini.routes.model2.MapModule;
 import org.mmarini.yaml.Utils;
 
 import java.awt.geom.Point2D;
@@ -49,7 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mmarini.routes.model2.yaml.TestUtils.text;
 
-class ModuleASTTest {
+class MapModuleASTTest {
 
     static Stream<Arguments> argsForError() {
         return Stream.of(Arguments.of(text(
@@ -190,9 +190,9 @@ class ModuleASTTest {
                 hasProperty("location",
                         equalTo(new Point2D.Double(5, 0)))));
 
-        Module module = node.build();
-        assertNotNull(module);
-        assertThat(module.getEdges(), containsInAnyOrder(
+        MapModule mapModule = node.build();
+        assertNotNull(mapModule);
+        assertThat(mapModule.getEdges(), containsInAnyOrder(
                 allOf(
                         hasProperty("begin", hasProperty("location", allOf(
                                 hasProperty("x", equalTo(0.0)),

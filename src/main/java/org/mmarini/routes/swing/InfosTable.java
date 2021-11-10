@@ -27,6 +27,8 @@
  */
 package org.mmarini.routes.swing;
 
+import org.mmarini.routes.model2.DoubleMatrix;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
@@ -43,11 +45,11 @@ public class InfosTable extends JTable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * @param routeInfo the route information
+     * @param frequencies the route information
      */
-    public static InfosTable create(SquareMatrixModel<NodeView> routeInfo) {
+    public static InfosTable create(DoubleMatrix<NodeView> frequencies) {
         final RouteInfoModel model = new RouteInfoModel();
-        model.setRouteInfo(routeInfo);
+        model.setFrequencies(frequencies);
         return new InfosTable(model);
     }
 
@@ -107,7 +109,7 @@ public class InfosTable extends JTable {
                     setBorder(BorderFactory.createRaisedBevelBorder());
                     setBackground(bg);
                 } else {
-                    final NodeView node = model.getRouteInfo().getIndices().get(column - 1);
+                    final NodeView node = model.getFrequencies().getKeys().get(column - 1);
                     setText(node.getName());
                     setBackground(node.getColor());
                     setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.GRAY));

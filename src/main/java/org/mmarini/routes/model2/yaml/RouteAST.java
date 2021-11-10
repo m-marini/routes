@@ -43,12 +43,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Map.entry;
+import static org.mmarini.Utils.entriesToMap;
 import static org.mmarini.Utils.getValue;
-import static org.mmarini.Utils.toMap;
 import static org.mmarini.yaml.Utils.fromFile;
 import static org.mmarini.yaml.Utils.fromResource;
 
 public class RouteAST extends ASTNode {
+
+    private static final double KMPHSPM = 3.6;
 
     /**
      * Returns the status reading from file
@@ -91,7 +93,7 @@ public class RouteAST extends ASTNode {
                 .map(edgeAST -> {
                     MapNode start = anyNodeByName.get(edgeAST.start().getValue());
                     MapNode end = anyNodeByName.get(edgeAST.end().getValue());
-                    double speedLimit = edgeAST.speedLimit().getValue() / 3.6;
+                    double speedLimit = edgeAST.speedLimit().getValue() / KMPHSPM;
                     int priority = edgeAST.priority().getValue();
                     return new MapEdge(start, end, speedLimit, priority);
                 })
@@ -102,7 +104,7 @@ public class RouteAST extends ASTNode {
         double frequency = defaults().defaultFrequence().getValue();
         Stream<Tuple2<Tuple2<SiteNode, SiteNode>, Double>> w = getPaths(s -> getValue(siteByName, s));
         double[][] weights = DoubleMatrix.from(w, siteList).getValues();
-        double speedLimit = defaults().speedLimit().getValue();
+        double speedLimit = defaults().speedLimit().getValue() / KMPHSPM;
         return StatusImpl.createStatus(topology, 0, List.of(), speedLimit, frequency, weights);
     }
 
@@ -133,7 +135,7 @@ public class RouteAST extends ASTNode {
     Map<String, CrossNode> getNodes() {
         return nodes().itemStream()
                 .map(entry -> entry(entry.getKey(), entry.getValue().getMapNode()))
-                .collect(toMap());
+                .collect(entriesToMap());
     }
 
     Stream<Tuple2<Tuple2<SiteNode, SiteNode>, Double>> getPaths(Function<String, Optional<SiteNode>> mapper) {
@@ -152,7 +154,7 @@ public class RouteAST extends ASTNode {
     Map<String, SiteNode> getSites() {
         return sites().itemStream()
                 .map(entry -> entry(entry.getKey(), entry.getValue().getSite()))
-                .collect(toMap());
+                .collect(entriesToMap());
     }
 
     @Override

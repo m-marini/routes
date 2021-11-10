@@ -32,7 +32,7 @@ package org.mmarini.routes.model2;
  * @author marco.marini@mmarini.org
  */
 public class TrafficInfo {
-    private final int veicleCount;
+    private final int vehicleCount;
     private final int delayCount;
     private final double totalDelayTime;
     private final SiteNode destination;
@@ -41,12 +41,12 @@ public class TrafficInfo {
      * Create a traffic information record
      *
      * @param destination    the destination
-     * @param veicleCount    the number of vehicles
+     * @param vehicleCount   the number of vehicles
      * @param delayCount     the number of delayed vehicles
      * @param totalDelayTime the total delay time
      */
-    public TrafficInfo(SiteNode destination, int veicleCount, int delayCount, double totalDelayTime) {
-        this.veicleCount = veicleCount;
+    public TrafficInfo(SiteNode destination, int vehicleCount, int delayCount, double totalDelayTime) {
+        this.vehicleCount = vehicleCount;
         this.delayCount = delayCount;
         this.totalDelayTime = totalDelayTime;
         this.destination = destination;
@@ -83,7 +83,7 @@ public class TrafficInfo {
     /**
      * Returns the number of vehicles
      */
-    public int getVeicleCount() {
-        return veicleCount;
+    public int getVehicleCount() {
+        return vehicleCount;
     }
 }

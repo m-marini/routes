@@ -37,7 +37,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static java.util.Map.entry;
-import static org.mmarini.Utils.toMap;
+import static org.mmarini.Utils.entriesToMap;
 
 public class DictionaryAST<T extends ASTNode> extends ASTNode {
     public static <T extends ASTNode> DictionaryAST<T> createRequired(
@@ -85,6 +85,6 @@ public class DictionaryAST<T extends ASTNode> extends ASTNode {
      * Returns the map of name and item
      */
     public Map<String, T> items() {
-        return itemStream().collect(toMap());
+        return itemStream().collect(entriesToMap());
     }
 }

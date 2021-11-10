@@ -41,8 +41,8 @@ import java.util.stream.Stream;
 import static java.lang.Math.min;
 import static java.util.Map.entry;
 import static java.util.Objects.requireNonNull;
+import static org.mmarini.Utils.entriesToMap;
 import static org.mmarini.Utils.getValue;
-import static org.mmarini.Utils.toMap;
 import static org.mmarini.routes.model2.CrossNode.createNode;
 
 /**
@@ -140,18 +140,18 @@ public class Topology {
     }
 
     /**
-     * Add a module in the topology
+     * Add a mapModule in the topology
      *
-     * @param module    the module
+     * @param mapModule the mapModule
      * @param location  the location
      * @param direction the direction
      * @param epsilon   the marginal distance to map existing nodes
      */
-    public Topology addModule(Module module, Point2D location, Point2D direction, double epsilon) {
+    public Topology addModule(MapModule mapModule, Point2D location, Point2D direction, double epsilon) {
         AffineTransform tr = AffineTransform.getTranslateInstance(location.getX(), location.getY());
         tr.rotate(direction.getX(), direction.getY());
         double epsilonSq = epsilon * epsilon;
-        Map<MapNode, MapNode> nodeMap = module.getNodes().stream()
+        Map<MapNode, MapNode> nodeMap = mapModule.getNodes().stream()
                 .map(node -> {
                     Point2D pt = tr.transform(node.getLocation(), null);
                     MapNode newNode = findNearestNode(pt)
@@ -161,12 +161,12 @@ public class Topology {
                                     () -> createNode(pt.getX(), pt.getY())
                             );
                     return entry(node, newNode);
-                }).collect(toMap());
+                }).collect(entriesToMap());
         List<MapEdge> edges = Stream.concat(
                         // concatenates map edges
                         this.edges.stream(),
-                        // generates module edges
-                        module.getEdges().stream()
+                        // generates mapModule edges
+                        mapModule.getEdges().stream()
                                 .flatMap(edge ->
                                         getValue(nodeMap, edge.getBegin())
                                                 .map(edge::setBegin)
@@ -228,7 +228,7 @@ public class Topology {
                                 .map(otherEdge ->
                                         entry(edge, otherEdge))
                 )
-                .collect(toMap());
+                .collect(entriesToMap());
     }
 
     /**
@@ -245,7 +245,7 @@ public class Topology {
                                 .stream()
                                 .map(otherNode ->
                                         entry(node, otherNode)))
-                .collect(toMap());
+                .collect(entriesToMap());
     }
 
     /**
@@ -260,10 +260,10 @@ public class Topology {
                                 .filter(site::isSameLocation)
                                 .findAny()
                                 .stream()
-                                .map(othersite ->
-                                        entry(site, othersite))
+                                .map(otherSite ->
+                                        entry(site, otherSite))
                 )
-                .collect(toMap());
+                .collect(entriesToMap());
     }
 
     /**
@@ -325,7 +325,7 @@ public class Topology {
     }
 
     /**
-     * Retruns the optimized topology
+     * Returns the optimized topology
      *
      * @param maxSpeed the maximum speed limit for the edges
      */

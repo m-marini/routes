@@ -34,8 +34,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.*;
 import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Utils {
@@ -47,6 +45,14 @@ public class Utils {
      * @throws IOException in case of error
      */
     public static JsonNode fromFile(String file) throws IOException {
+        return objectMapper.readTree(new FileReader(file));
+    }
+
+    /**
+     * @param file the file
+     * @throws IOException in case of error
+     */
+    public static JsonNode fromFile(File file) throws IOException {
         return objectMapper.readTree(new FileReader(file));
     }
 
@@ -74,28 +80,10 @@ public class Utils {
      * @param iterator iterator
      * @param <T>      the type of item
      */
-    static <T> List<T> iter2List(Iterator<T> iterator) {
-        return iter2Stream(iterator).collect(Collectors.toList());
-    }
-
-    /**
-     * @param iterator iterator
-     * @param <T>      the type of item
-     */
     static <T> Stream<T> iter2Stream(Iterator<T> iterator) {
         return Stream.iterate(iterator,
                         Iterator::hasNext,
                         y -> y)
                 .map(Iterator::next);
-    }
-
-    /**
-     * @param from source list of key
-     * @param to   target list of key
-     */
-    static int[][] keysMap(List<String> from, List<String> to) {
-        return from.stream().filter(to::contains).map(
-                n -> new int[]{from.indexOf(n), to.indexOf(n)}
-        ).toArray(int[][]::new);
     }
 }

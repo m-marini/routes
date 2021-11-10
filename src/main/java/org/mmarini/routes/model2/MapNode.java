@@ -39,10 +39,9 @@ public interface MapNode extends MapElement {
     /**
      * Return new MapNode with location changed
      *
-     * @param location
-     * @param <T>      the concrete MapNode type
+     * @param location the location
      */
-    <T extends MapNode> T setLocation(Point2D location);
+    MapNode setLocation(Point2D location);
 
     /**
      * Returns true is the node has the same location of other node
