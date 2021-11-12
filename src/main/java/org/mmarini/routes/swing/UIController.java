@@ -73,10 +73,10 @@ import static org.mmarini.yaml.Utils.fromResource;
  * @author marco.marini@mmarini.org
  */
 public class UIController {
+    public static final int FPS = 60;
     private static final Logger logger = LoggerFactory.getLogger(UIController.class);
     private static final double DEFAULT_SPEED_LIMIT = 130 / 3.6;
     private static final double DEFAULT_FREQUENCY = 0.3;
-
     private final JFileChooser fileChooser;
     private final OptimizePane optimizePane;
     private final RoutePane routesPane;
@@ -314,16 +314,17 @@ public class UIController {
         fpsMeter.getFlowable().doOnNext(scrollMap::setFps).subscribe();
         tpsMeter.getFlowable().doOnNext(scrollMap::setTps).subscribe();
 
-        simulator.getEvents()
-                .subscribe();
-
-        Flowable.interval(1000 / 60, MILLISECONDS)
+        Flowable.interval(1000 / FPS, MILLISECONDS)
+                .withLatestFrom(simulator.getEvents(), (t, s) -> s)
+                .distinct()
                 .doOnNext(t ->
                         simulator.request(status -> {
-                            statusView = createStatusView(status);
-                            refresh();
-                            mapViewPane.repaint();
-                            fpsMeter.tick();
+                            if (status != statusView.getStatus()) {
+                                statusView = createStatusView(status);
+                                refresh();
+                                mapViewPane.repaint();
+                                fpsMeter.tick();
+                            }
                             return status;
                         }))
                 .subscribe();
