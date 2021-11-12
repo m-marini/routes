@@ -185,6 +185,13 @@ public class StatusView {
     }
 
     /**
+     * Returns the status
+     */
+    public Status getStatus() {
+        return status;
+    }
+
+    /**
      * @param point     the point
      * @param precision the precision
      */
