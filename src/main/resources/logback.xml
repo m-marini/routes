@@ -5,7 +5,7 @@
         <!-- encoders are assigned the type
              ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
         <encoder>
-            <pattern>%d %-5level %t %logger - %msg%n</pattern>
+            <pattern>%d %-5level %logger - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -15,7 +15,7 @@
         <file>trace.log</file>
         <append>false</append>
         <encoder>
-            <pattern>%d %-5level %t %logger - %msg%n</pattern>
+            <pattern>%d %-5level %logger - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -23,6 +23,5 @@
 
     <root level="debug">
         <appender-ref ref="console"/>
-        <appender-ref ref="log"/>
     </root>
 </configuration>
