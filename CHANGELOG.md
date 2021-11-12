@@ -9,8 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- Issue #127: Entry to a site destination must be prioritized
+
 ### Added
 
+- Issue #129: Split simulation thread from rendering thread
 - Issue #130: Ring road module
 
 ## [4.3.0]

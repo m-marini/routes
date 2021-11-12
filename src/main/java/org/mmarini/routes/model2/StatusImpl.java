@@ -869,14 +869,14 @@ public class StatusImpl implements Status {
         getWaitingVehicles().forEach(vehicle ->
                 vehicle.getCurrentEdge().ifPresentOrElse(edge -> {
                             if (edge.getEnd().equals(vehicle.getCurrentDestination())) {
-                                exitVehicleFromEdge(vehicle);
                                 // Vehicle at destination
+                                exitVehicleFromEdge(vehicle);
                                 if (vehicle.isReturning()) {
                                     // Vehicle completed the trip
                                     vehicles.remove(vehicle);
                                 } else {
                                     // Vehicle at destination
-                                    vehicle.setReturning(true);
+                                    vehicle.setReturning(true).setCurrentEdge(null);
                                     handleVehicleAtSite(vehicle);
                                 }
                             } else {
