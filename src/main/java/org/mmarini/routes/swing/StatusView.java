@@ -51,6 +51,8 @@ public class StatusView {
     private static final Rectangle2D DEFAULT_MAP_BOUND = new Rectangle2D.Double(0, 0, DEFAULT_MAP_SIZE,
             DEFAULT_MAP_SIZE);
     private static final double NODE_SATURATION = 1;
+    private static final String nodeNamePattern = Messages.getString("RouteMediator.nodeNamePattern"); //$NON-NLS-1$
+    private static final String edgeNamePattern = Messages.getString("RouteMediator.edgeNamePattern"); //$NON-NLS-1$
 
     /**
      * @param status the status
@@ -73,7 +75,6 @@ public class StatusView {
                         }));
 
         // Converts to node view
-        String nodeNamePattern = Messages.getString("RouteMediator.nodeNamePattern"); //$NON-NLS-1$
         List<NodeView> nodeViews = zipWithIndex(nodes)
                 .map(entry -> {
                     int i = entry._1;
@@ -87,7 +88,6 @@ public class StatusView {
         Map<MapNode, NodeView> viewByNode = nodeViews.stream().collect(Collectors.toMap(NodeView::getNode, Function.identity()));
 
         // Converts to edgeView
-        String edgeNamePattern = Messages.getString("RouteMediator.edgeNamePattern"); //$NON-NLS-1$
         List<EdgeView> edgesViews = zipWithIndex(edges)
                 .map(entry -> {
                     int i = entry._1;
@@ -185,13 +185,6 @@ public class StatusView {
     }
 
     /**
-     * Returns the status
-     */
-    public Status getStatus() {
-        return status;
-    }
-
-    /**
      * @param point     the point
      * @param precision the precision
      */
@@ -247,6 +240,13 @@ public class StatusView {
         return status.getSites();
     }
 
+    /**
+     * Returns the status
+     */
+    public Status getStatus() {
+        return status;
+    }
+
     public List<TrafficInfo> getTrafficInfo() {
         return status.getTrafficInfo();
     }
@@ -264,5 +264,20 @@ public class StatusView {
         return findNode(point, precision)
                 .map(MapNode::getLocation)
                 .orElse(point);
+    }
+
+    /**
+     * Returns the status view updated with new status
+     *
+     * @param status the new status
+     */
+    StatusView update(Status status) {
+        if (status.equals(this.status)) {
+            return this;
+        } else if (status.getTopology().equals(this.status.getTopology())) {
+            return new StatusView(status, nodeViews, siteViews, edgesViews, viewByNode, viewByEdge);
+        } else {
+            return createStatusView(status);
+        }
     }
 }

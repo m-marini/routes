@@ -91,6 +91,7 @@ public class RouteMap extends JComponent {
     private Mode currentMode;
     private StatusView status;
     private boolean ctrPressed;
+
     /**
      *
      */

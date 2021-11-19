@@ -28,7 +28,6 @@
 package org.mmarini.routes.model2;
 
 import java.awt.geom.Point2D;
-import java.util.Objects;
 import java.util.StringJoiner;
 
 import static java.util.Objects.requireNonNull;
@@ -76,14 +75,6 @@ public class CrossNode implements MapNode {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        CrossNode mapNode = (CrossNode) o;
-        return location.equals(mapNode.location);
-    }
-
-    @Override
     public Point2D getLocation() {
         return location;
     }
@@ -91,11 +82,6 @@ public class CrossNode implements MapNode {
     @Override
     public CrossNode setLocation(Point2D location) {
         return new CrossNode(location);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(location);
     }
 
     @Override

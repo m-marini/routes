@@ -352,7 +352,7 @@ public class Topology {
      */
     public Topology removeEdge(MapEdge edge) {
         List<MapEdge> newEdges = edges.stream()
-                .filter(Predicate.not(e -> e.equals(edge)))
+                .filter(Predicate.not(e -> e.isSameLocation(edge)))
                 .collect(Collectors.toList());
         return createTopology(nodes, newEdges);
     }
@@ -364,7 +364,7 @@ public class Topology {
      */
     public Topology removeNode(MapNode node) {
         List<MapNode> newNodes = nodes.stream()
-                .filter(Predicate.not(node::equals))
+                .filter(Predicate.not(node::isSameLocation))
                 .collect(Collectors.toList());
         List<MapEdge> newEdges = edges.stream()
                 .filter(edge ->

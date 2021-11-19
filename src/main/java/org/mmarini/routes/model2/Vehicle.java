@@ -29,7 +29,6 @@
 package org.mmarini.routes.model2;
 
 import java.awt.geom.Point2D;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.UUID;
@@ -97,14 +96,6 @@ public class Vehicle {
      */
     public Vehicle copy() {
         return new Vehicle(id, departure, destination, creationTime, currentEdge, distance, returning, edgeEntryTime);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Vehicle vehicle = (Vehicle) o;
-        return id.equals(vehicle.id);
     }
 
     public double getCreationTime() {
@@ -221,11 +212,6 @@ public class Vehicle {
      */
     public Optional<Point2D> getLocation() {
         return getCurrentEdge().map(edge -> edge.locationAt(distance));
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
     }
 
     /**

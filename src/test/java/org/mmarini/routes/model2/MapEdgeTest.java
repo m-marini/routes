@@ -240,55 +240,6 @@ class MapEdgeTest {
     }
 
     @ParameterizedTest
-    @MethodSource("edges")
-    void equalsAndHash(int x0, int y0, int x1, int y1, double speed, int priority) {
-        /*
-        Given an edge
-        with a beginning node
-        and an end node
-        and a speed limit
-        and a priority
-         */
-        CrossNode begin = createNode(x0, y0);
-        CrossNode end = createNode(x1, y1);
-        MapEdge edge = new MapEdge(begin, end, speed, priority);
-
-        // itself
-        assertEquals(edge, edge);
-
-        // null
-        assertNotEquals(null, edge);
-
-        // wrong class
-        assertNotEquals(new Object(), edge);
-
-        // different begin
-        assertNotEquals(
-                new MapEdge(
-                        createNode(x0 + 1, y0 - 1),
-                        end, speed, priority),
-                edge);
-
-        // different end
-        assertNotEquals(
-                new MapEdge(
-                        begin,
-                        createNode(x1 + 1, y1 - 1),
-                        speed, priority),
-                edge);
-
-        // same begin and end
-        assertEquals(
-                new MapEdge(begin, end, speed + 1, priority + 1),
-                edge);
-
-        // hashCode
-        assertEquals(
-                new MapEdge(begin, end, speed + 1, priority + 1).hashCode(),
-                edge.hashCode());
-    }
-
-    @ParameterizedTest
     @MethodSource("args3ptsEdge")
     void isCrossingNode(int x0, int y0, int x1, int y1, int x2, int y2, double speed, int priority) {
         /*

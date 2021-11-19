@@ -28,74 +28,23 @@
 
 package org.mmarini.routes.model2;
 
-import java.util.List;
-
-public interface Status {
+public interface EventBuilder<T> {
+    /**
+     * Returns the events
+     */
+    T build();
 
     /**
-     * Returns the edge traffic level from 0 min to 1 max
+     * Returns the next event builder after a time inerval
      *
-     * @param edge the edge
+     * @param dt the time interval
      */
-    double edgeTrafficLevel(MapEdge edge);
+    EventBuilder<T> next(double dt);
 
     /**
-     * Returns the edges
+     * Returns the event builder after setting the seed
+     *
+     * @param seed the seed
      */
-    List<MapEdge> getEdges();
-
-    /**
-     * Returns the frequency of vehicle generation (#/s)
-     */
-    double getFrequency();
-
-    /**
-     * Returns the maximum number of vehicles
-     */
-    int getMaxVehicle();
-
-    /**
-     * Returns the nodes
-     */
-    List<MapNode> getNodes();
-
-    /**
-     * Returns the path frequencies
-     */
-    DoubleMatrix<SiteNode> getPathFrequencies();
-
-    /**
-     * Returns the sites
-     */
-    List<SiteNode> getSites();
-
-    /**
-     * Returns the speed limit
-     */
-    double getSpeedLimit();
-
-    /**
-     * Returns the simulation time
-     */
-    double getTime();
-
-    /**
-     * Returns the topology
-     */
-    Topology getTopology();
-
-    /**
-     * Returns the traffic info list
-     */
-    List<TrafficInfo> getTrafficInfo();
-
-    /**
-     * Returns the vehicles
-     */
-    List<Vehicle> getVehicles();
-
-    /**
-     * Returns the weight Matrix
-     */
-    DoubleMatrix<SiteNode> getWeightMatrix();
+    EventBuilder<T> setSeed(T seed);
 }

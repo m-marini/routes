@@ -30,7 +30,6 @@ package org.mmarini.routes.swing;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.reactivex.rxjava3.core.Flowable;
 import org.mmarini.Tuple2;
 import org.mmarini.routes.model2.*;
 import org.mmarini.routes.model2.yaml.ModuleAST;
@@ -47,6 +46,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.time.Duration;
 import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -54,14 +54,12 @@ import java.util.stream.Stream;
 
 import static java.lang.Math.min;
 import static java.util.Objects.requireNonNull;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static javax.swing.SwingUtilities.invokeLater;
 import static org.mmarini.Utils.getValue;
 import static org.mmarini.routes.model2.Constants.PRECISION;
 import static org.mmarini.routes.model2.Constants.computeSafetySpeed;
-import static org.mmarini.routes.model2.StatusImpl.createStatus;
 import static org.mmarini.routes.model2.Topology.createTopology;
-import static org.mmarini.routes.swing.StatusView.createStatusView;
+import static org.mmarini.routes.model2.TrafficEngineImpl.createEngine;
+import static org.mmarini.routes.model2.TrafficEngineImpl.createRandom;
 import static org.mmarini.yaml.Utils.fromFile;
 import static org.mmarini.yaml.Utils.fromResource;
 
@@ -73,10 +71,11 @@ import static org.mmarini.yaml.Utils.fromResource;
  * @author marco.marini@mmarini.org
  */
 public class UIController {
-    public static final int FPS = 60;
+    public static final int DEFAULT_MAX_VEHICLES = 4000;
     private static final Logger logger = LoggerFactory.getLogger(UIController.class);
     private static final double DEFAULT_SPEED_LIMIT = 130 / 3.6;
     private static final double DEFAULT_FREQUENCY = 0.3;
+    private static final long FPS = 60;
     private final JFileChooser fileChooser;
     private final OptimizePane optimizePane;
     private final RoutePane routesPane;
@@ -95,11 +94,11 @@ public class UIController {
     private final FrequencyMeter fpsMeter;
     private final FrequencyMeter tpsMeter;
     private final Random random;
-    private final Simulator<Status> simulator;
+    private final SimulatorEngine<Status, TrafficEngine> simulator;
     private boolean running;
     private StatusView statusView;
-    //    private Status status;
     private int edgePriority;
+    private double avgSpeed;
 
     /**
      *
@@ -110,9 +109,19 @@ public class UIController {
         this.scrollMap = new ScrollMap(this.routeMap);
         mapViewPane = new MapViewPane(scrollMap);
         explorerPane = new ExplorerPane();
-        simulator = SimulatorImpl.create(this::performTimeTick,
-                Status::getTime
-        );//.setInterval(1, MILLISECONDS);
+        TrafficEngine initialSeed = createEngine(DEFAULT_MAX_VEHICLES,
+                createTopology(List.of(), List.of()),
+                0,
+                List.of(),
+                DEFAULT_SPEED_LIMIT,
+                DEFAULT_FREQUENCY,
+                new double[0][0]);
+        simulator = SimulatorEngineImpl.<Status, TrafficEngine>create(
+                initialSeed,
+                this::performTimeTick,
+                TrafficEngine::buildStatus
+        ).setEventInterval(Duration.ofNanos(1000000000L / FPS));
+
 
         mapElementPane = new MapElementPane();
         this.edgePane = mapElementPane.getEdgePane();
@@ -140,16 +149,13 @@ public class UIController {
      * @param point the point
      */
     public void centerMap(final Point2D point) {
-        simulator.request(s -> {
-            Status status = s.setOffset(point);
-            statusView = createStatusView(status);
-            invokeLater(() -> {
-                mapViewPane.reset();
-                mapViewPane.selectSelector();
-                mainFrame.repaint();
-            });
-            return status;
-        });
+        simulator.request(engine -> engine.setOffset(point))
+                .doOnSuccess(engine -> {
+                    statusView = createStatusView(engine.buildStatus());
+                    mapViewPane.reset();
+                    mapViewPane.selectSelector();
+                    mainFrame.repaint();
+                }).subscribe();
     }
 
     /**
@@ -159,19 +165,16 @@ public class UIController {
         Optional<MapNode> mapNode = chooseNode();
         mapNode.ifPresent(node -> {
             MapEdge newEdge = edge.setBegin(node);
-            simulator.request(s -> {
-                Status status = s.changeEdge(edge, newEdge);
-                statusView = createStatusView(status);
-                invokeLater(() -> {
-                    refreshTopology();
-                    mapViewPane.selectSelector();
-                    mapViewPane.reset();
-                    statusView.getEdgeViews(newEdge).ifPresent(mapElementPane::setSelectedEdge);
-                    mapViewPane.setSelectedEdge(newEdge);
-                    mainFrame.repaint();
-                });
-                return status;
-            });
+            simulator.request(engine -> engine.changeEdge(edge, newEdge))
+                    .doOnSuccess(engine -> {
+                        statusView = createStatusView(engine.buildStatus());
+                        refreshTopology();
+                        mapViewPane.selectSelector();
+                        mapViewPane.reset();
+                        statusView.getEdgeViews(newEdge).ifPresent(mapElementPane::setSelectedEdge);
+                        mapViewPane.setSelectedEdge(newEdge);
+                        mainFrame.repaint();
+                    }).subscribe();
         });
     }
 
@@ -184,11 +187,9 @@ public class UIController {
         MapEdge oldEdge = edge.getEdge();
         MapEdge newEdge = oldEdge.setSpeedLimit(edge.getSpeedLimit())
                 .setPriority(edge.getPriority());
-        simulator.request(s -> {
-            Status status = s.changeEdge(oldEdge, newEdge);
-            statusView = createStatusView(status);
-            return status;
-        });
+        simulator.request(engine -> engine.changeEdge(oldEdge, newEdge))
+                .doOnSuccess(engine -> statusView = createStatusView(engine.buildStatus()))
+                .subscribe();
     }
 
     /**
@@ -197,19 +198,16 @@ public class UIController {
     public void changeEndNode(final MapEdge edge) {
         chooseNode().ifPresent(node -> {
             MapEdge newEdge = edge.setEnd(node);
-            simulator.request(s -> {
-                Status status = s.changeEdge(edge, newEdge);
-                statusView = createStatusView(status);
-                invokeLater(() -> {
-                    refreshTopology();
-                    mapViewPane.selectSelector();
-                    mapViewPane.reset();
-                    statusView.getEdgeViews(newEdge).ifPresent(mapElementPane::setSelectedEdge);
-                    mapViewPane.setSelectedEdge(newEdge);
-                    mainFrame.repaint();
-                });
-                return status;
-            });
+            simulator.request(engine -> engine.changeEdge(edge, newEdge))
+                    .doOnSuccess(engine -> {
+                        statusView = createStatusView(engine.buildStatus());
+                        refreshTopology();
+                        mapViewPane.selectSelector();
+                        mapViewPane.reset();
+                        statusView.getEdgeViews(newEdge).ifPresent(mapElementPane::setSelectedEdge);
+                        mapViewPane.setSelectedEdge(newEdge);
+                        mainFrame.repaint();
+                    }).subscribe();
         });
     }
 
@@ -237,18 +235,15 @@ public class UIController {
                 .orElseGet(() -> new CrossNode(edge.getEnd()));
         double speed = min(statusView.getStatus().getSpeedLimit(), computeSafetySpeed(end.getLocation().distance(begin.getLocation())));
         MapEdge edge1 = new MapEdge(begin, end, speed, edgePriority);
-        simulator.request(s -> {
-            Status status = s.addEdge(edge1);
-            statusView = createStatusView(status);
-            invokeLater(() -> {
-                refreshTopology();
-                mapViewPane.reset();
-                mapViewPane.setSelectedEdge(edge1);
-                statusView.getEdgeViews(edge1).ifPresent(mapElementPane::setSelectedEdge);
-                mainFrame.repaint();
-            });
-            return status;
-        });
+        simulator.request(engine -> engine.addEdge(edge1))
+                .doOnSuccess(engine -> {
+                    statusView = createStatusView(engine.buildStatus());
+                    refreshTopology();
+                    mapViewPane.reset();
+                    mapViewPane.setSelectedEdge(edge1);
+                    statusView.getEdgeViews(edge1).ifPresent(mapElementPane::setSelectedEdge);
+                    mainFrame.repaint();
+                }).subscribe();
     }
 
     /**
@@ -313,41 +308,42 @@ public class UIController {
 
         fpsMeter.getFlowable().doOnNext(scrollMap::setFps).subscribe();
         tpsMeter.getFlowable().doOnNext(scrollMap::setTps).subscribe();
+        simulator.setOnSpeed(s -> {
+            avgSpeed = avgSpeed * 0.99 + s * 0.01;
+            scrollMap.setSpeed(avgSpeed);
+        });
 
-        Flowable.interval(1000 / FPS, MILLISECONDS)
-                .withLatestFrom(simulator.getEvents(), (t, s) -> s)
-                .distinct()
-                .doOnNext(t ->
-                        simulator.request(status -> {
-                            if (status != statusView.getStatus()) {
-                                statusView = createStatusView(status);
-                                refresh();
-                                mapViewPane.repaint();
-                                fpsMeter.tick();
-                            }
-                            return status;
-                        }))
-                .subscribe();
+        simulator.setOnEvent(status -> {
+            if (!status.equals(statusView.getStatus())) {
+                statusView = createStatusView(status);
+                fpsMeter.tick();
+                refresh();
+                mapViewPane.repaint();
+            }
+        });
     }
 
     /**
      * @param moduleParameters the module parameters
      */
     private void createModule(RouteMap.ModuleParameters moduleParameters) {
-        simulator.request(s -> {
-            Status status = s.addModule(moduleParameters.getModule(),
-                    moduleParameters.getLocation(),
-                    moduleParameters.getDirection(),
-                    PRECISION);
-            statusView = createStatusView(status);
-            invokeLater(() -> {
-                refreshTopology();
-                mapViewPane.reset();
-                mapViewPane.selectSelector();
-                mainFrame.repaint();
-            });
-            return status;
-        });
+        simulator.request(engine ->
+                        engine.addModule(moduleParameters.getModule(),
+                                moduleParameters.getLocation(),
+                                moduleParameters.getDirection(),
+                                PRECISION))
+                .doOnSuccess(engine -> {
+                    statusView = createStatusView(engine.buildStatus());
+                    refreshTopology();
+                    mapViewPane.reset();
+                    mapViewPane.selectSelector();
+                    mainFrame.repaint();
+
+                }).subscribe();
+    }
+
+    StatusView createStatusView(Status status) {
+        return statusView != null ? statusView.update(status) : StatusView.createStatusView(status);
     }
 
     /**
@@ -448,7 +444,14 @@ public class UIController {
                 JsonNode doc = fromResource("/test.yml");
                 StatusImpl status = new RouteAST(doc, JsonPointer.empty()).build();
                 statusView = createStatusView(status);
-                simulator.setEvent(status);
+                TrafficEngineImpl seed = createEngine(DEFAULT_MAX_VEHICLES,
+                        status.getTopology(),
+                        status.getTime(),
+                        List.of(),
+                        status.getSpeedLimit(),
+                        status.getFrequency(),
+                        status.getWeightMatrix().getValues());
+                simulator.pushSeed(seed);
             } catch (final Exception e) {
                 logger.error(e.getMessage(), e);
             }
@@ -489,19 +492,17 @@ public class UIController {
      */
     private void newMap() {
         Topology t = createTopology(List.of(), List.of());
-        StatusImpl status = createStatus(t, 0, List.of(), DEFAULT_SPEED_LIMIT, DEFAULT_FREQUENCY);
-        simulator.request(s -> {
-            statusView = createStatusView(status);
-            invokeLater(() -> {
-                refreshTopology();
-                mapViewPane.selectSelector();
-                mapViewPane.reset();
-                mapViewPane.clearSelection();
-                mapElementPane.clearPanel();
-                mainFrame.repaint();
-            });
-            return status;
-        });
+        TrafficEngineImpl engine = createEngine(DEFAULT_MAX_VEHICLES, t, 0, List.of(), DEFAULT_SPEED_LIMIT, DEFAULT_FREQUENCY);
+        simulator.pushSeed(engine)
+                .doOnSuccess(engine1 -> {
+                    statusView = createStatusView(engine1.buildStatus());
+                    refreshTopology();
+                    mapViewPane.selectSelector();
+                    mapViewPane.reset();
+                    mapViewPane.clearSelection();
+                    mapElementPane.clearPanel();
+                    mainFrame.repaint();
+                }).subscribe();
     }
 
     /**
@@ -513,20 +514,17 @@ public class UIController {
                 Messages.getString("RouteMediator.mapProfilePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
         if (opt == JOptionPane.OK_OPTION) {
             final MapProfile profile = mapProfilePane.getProfile();
-            StatusImpl status = StatusImpl.createRandom(random, profile, DEFAULT_SPEED_LIMIT);
-            logger.info("create random {}", status.hashCode());
-            simulator.request(s -> {
-                logger.info("Set random {}", status.hashCode());
-                statusView = createStatusView(status);
-                logger.info("random view status {} view{}", status.hashCode(), statusView.hashCode());
-                refreshTopology();
-                mapViewPane.selectSelector();
-                mapViewPane.reset();
-                mapViewPane.clearSelection();
-                mapElementPane.clearPanel();
-                mainFrame.repaint();
-                return status;
-            });
+            TrafficEngineImpl randomStatus = createRandom(DEFAULT_MAX_VEHICLES, random, profile, DEFAULT_SPEED_LIMIT);
+            simulator.pushSeed(randomStatus)
+                    .doOnSuccess(engine -> {
+                        statusView = createStatusView(engine.buildStatus());
+                        refreshTopology();
+                        mapViewPane.selectSelector();
+                        mapViewPane.reset();
+                        mapViewPane.clearSelection();
+                        mapElementPane.clearPanel();
+                        mainFrame.repaint();
+                    }).subscribe();
         }
     }
 
@@ -545,15 +543,19 @@ public class UIController {
                     StatusImpl status = new RouteAST(doc, JsonPointer.empty()).build();
                     mainFrame.setSaveActionEnabled(true);
                     mainFrame.setTitle(file.getName());
-                    simulator.request(s -> {
-                        statusView = createStatusView(status);
-                        invokeLater(() -> {
-                            refreshTopology();
-                            mapViewPane.reset();
-                        });
-                        return status;
-                    });
-
+                    TrafficEngineImpl seed = createEngine(DEFAULT_MAX_VEHICLES,
+                            status.getTopology(),
+                            status.getTime(),
+                            List.of(),
+                            status.getSpeedLimit(),
+                            status.getFrequency(),
+                            status.getWeightMatrix().getValues());
+                    simulator.pushSeed(seed)
+                            .doOnSuccess(engine -> {
+                                statusView = createStatusView(engine.buildStatus());
+                                refreshTopology();
+                                mapViewPane.reset();
+                            }).subscribe();
                 } catch (final Exception e) {
                     logger.error(e.getMessage(), e);
                     showError(e.getMessage());
@@ -575,30 +577,27 @@ public class UIController {
         if (opt == JOptionPane.OK_OPTION) {
             final double speedLimit = optimizePane.getSpeedLimit();
             final boolean optimizeSpeed = optimizePane.isOptimizeSpeed();
-            simulator.request(s -> {
-                Status status = (optimizeSpeed ? s.optimizeSpeed(speedLimit) : s).optimizeNodes();
-                statusView = createStatusView(status);
-                invokeLater(() -> {
-                    refreshTopology();
-                    mapViewPane.reset();
-                });
-                return status;
-            });
+            simulator.request(engine -> (optimizeSpeed ? engine.optimizeSpeed(speedLimit) : engine).optimizeNodes())
+                    .doOnSuccess(engine -> {
+                        statusView = createStatusView(engine.buildStatus());
+                        refreshTopology();
+                        mapViewPane.reset();
+                    }).subscribe();
         }
+
     }
 
     /**
-     * Returns the status at a given time from a status
+     * Returns the engine at a time interval from an engine
      *
-     * @param status the status
-     * @param time   the time for the next status
+     * @param engine the engine
+     * @param dt     the time interval
      */
-    private Status performTimeTick(Status status, Double time) {
+    private Tuple2<TrafficEngine, Double> performTimeTick(TrafficEngine engine, double dt) {
         tpsMeter.tick();
-        double dt = time - status.getTime();
-        return dt != 0.0
-                ? status.next(random, dt)
-                : status;
+        return dt > 0.0
+                ? engine.next(random, dt)
+                : Tuple2.of(engine, dt);
     }
 
     /**
@@ -610,18 +609,15 @@ public class UIController {
                 Messages.getString("RouteMediator.mapProfilePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
         if (opt == JOptionPane.OK_OPTION) {
             final MapProfile profile = mapProfilePane.getProfile();
-            simulator.request(s -> {
-                Status status = s.setFrequency(profile.getFrequency())
-                        .randomizeWeights(random, profile.getMinWeight());
-                statusView = createStatusView(status);
-                invokeLater(() -> {
-                    refreshTopology();
-                    mapViewPane.selectSelector();
-                    mapViewPane.reset();
-                    mainFrame.repaint();
-                });
-                return status;
-            });
+            simulator.request(engine -> engine.setFrequency(profile.getFrequency())
+                            .randomizeWeights(random, profile.getMinWeight()))
+                    .doOnSuccess(engine -> {
+                        statusView = createStatusView(engine.buildStatus());
+                        refreshTopology();
+                        mapViewPane.selectSelector();
+                        mapViewPane.reset();
+                        mainFrame.repaint();
+                    }).subscribe();
         }
     }
 
@@ -650,34 +646,28 @@ public class UIController {
      * @param edge the edge
      */
     public void remove(final MapEdge edge) {
-        simulator.request(s -> {
-            Status status = s.removeEdge(edge);
-            statusView = createStatusView(status);
-            invokeLater(() -> {
-                refreshTopology();
-                mapViewPane.clearSelection();
-                mapElementPane.clearPanel();
-                mainFrame.repaint();
-            });
-            return status;
-        });
+        simulator.request(engine -> engine.removeEdge(edge))
+                .doOnSuccess(engine -> {
+                    statusView = createStatusView(engine.buildStatus());
+                    refreshTopology();
+                    mapViewPane.clearSelection();
+                    mapElementPane.clearPanel();
+                    mainFrame.repaint();
+                }).subscribe();
     }
 
     /**
      * @param node the node
      */
     public void remove(final MapNode node) {
-        simulator.request(s -> {
-            Status status = s.removeNode(node);
-            statusView = createStatusView(status);
-            invokeLater(() -> {
-                refreshTopology();
-                mapViewPane.clearSelection();
-                mapElementPane.clearPanel();
-                mainFrame.repaint();
-            });
-            return status;
-        });
+        simulator.request(engine -> engine.removeNode(node))
+                .doOnSuccess(engine -> {
+                    statusView = createStatusView(engine.buildStatus());
+                    refreshTopology();
+                    mapViewPane.clearSelection();
+                    mapElementPane.clearPanel();
+                    mainFrame.repaint();
+                }).subscribe();
     }
 
     /**
@@ -718,11 +708,9 @@ public class UIController {
                 Messages.getString("RouteMediator.frequencePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
         if (opt == JOptionPane.OK_OPTION) {
             double frequency = frequencyPane.getFrequence();
-            simulator.request(s -> {
-                Status status = s.setFrequency(frequency);
-                statusView = createStatusView(status);
-                return status;
-            });
+            simulator.request(engine -> engine.setFrequency(frequency))
+                    .doOnSuccess(engine -> statusView = createStatusView(engine.buildStatus()))
+                    .subscribe();
         }
     }
 
@@ -736,17 +724,14 @@ public class UIController {
                 Messages.getString("RouteMediator.routePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
         if (opt == JOptionPane.OK_OPTION) {
             final DoubleMatrix<NodeView> weights1 = routesPane.getPathEntry();
-            simulator.request(s -> {
-                Status status = s.setWeights(weights1.getValues());
-                statusView = createStatusView(status);
-                invokeLater(() -> {
-                    refresh();
-                    mapViewPane.selectSelector();
-                    mapViewPane.reset();
-                    mainFrame.repaint();
-                });
-                return status;
-            });
+            simulator.request(engine -> engine.setWeights(weights1.getValues()))
+                    .doOnSuccess(engine -> {
+                        statusView = createStatusView(engine.buildStatus());
+                        refresh();
+                        mapViewPane.selectSelector();
+                        mapViewPane.reset();
+                        mainFrame.repaint();
+                    }).subscribe();
         }
     }
 
@@ -863,39 +848,33 @@ public class UIController {
      * @param site the site
      */
     public void transformToNode(final SiteNode site) {
-        simulator.request(s -> {
-            Status status = s.changeNode(site);
-            statusView = createStatusView(status);
-            invokeLater(() -> {
-                refreshTopology();
-                Optional<CrossNode> node = statusView.findNode(site.getLocation(), PRECISION)
-                        .map(n -> (CrossNode) n);
-                mapViewPane.reset();
-                node.ifPresent(mapViewPane::setSelectedNode);
-                node.flatMap(statusView::getNodeView).ifPresent(mapElementPane::setSelectedNode);
-                mainFrame.repaint();
-            });
-            return status;
-        });
+        simulator.request(engine -> engine.changeNode(site))
+                .doOnSuccess(engine -> {
+                    statusView = createStatusView(engine.buildStatus());
+                    refreshTopology();
+                    Optional<CrossNode> node = statusView.findNode(site.getLocation(), PRECISION)
+                            .map(n -> (CrossNode) n);
+                    mapViewPane.reset();
+                    node.ifPresent(mapViewPane::setSelectedNode);
+                    node.flatMap(statusView::getNodeView).ifPresent(mapElementPane::setSelectedNode);
+                    mainFrame.repaint();
+                }).subscribe();
     }
 
     /**
      * @param node the node
      */
     public void transformToSite(final MapNode node) {
-        simulator.request(s -> {
-            Status status = s.changeNode(node);
-            statusView = createStatusView(status);
-            invokeLater(() -> {
-                refreshTopology();
-                Optional<SiteNode> site = statusView.findNode(node.getLocation(), PRECISION)
-                        .map(n -> (SiteNode) n);
-                mapViewPane.reset();
-                site.ifPresent(mapViewPane::setSelectedSite);
-                site.flatMap(statusView::getNodeView).ifPresent(mapElementPane::setSelectedSite);
-                mainFrame.repaint();
-            });
-            return status;
-        });
+        simulator.request(engine -> engine.changeNode(node))
+                .doOnSuccess(engine -> {
+                    statusView = createStatusView(engine.buildStatus());
+                    refreshTopology();
+                    Optional<SiteNode> site = statusView.findNode(node.getLocation(), PRECISION)
+                            .map(n -> (SiteNode) n);
+                    mapViewPane.reset();
+                    site.ifPresent(mapViewPane::setSelectedSite);
+                    site.flatMap(statusView::getNodeView).ifPresent(mapElementPane::setSelectedSite);
+                    mainFrame.repaint();
+                }).subscribe();
     }
 }

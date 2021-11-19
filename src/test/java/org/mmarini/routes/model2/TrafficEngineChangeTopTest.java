@@ -35,7 +35,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mmarini.MockRandomBuilder;
 
 import java.awt.geom.Point2D;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Stream;
 
@@ -43,15 +45,16 @@ import static java.lang.Math.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mmarini.routes.model2.CrossNode.createNode;
 import static org.mmarini.routes.model2.SiteNode.createSite;
-import static org.mmarini.routes.model2.StatusImpl.createStatus;
-import static org.mmarini.routes.model2.TestUtils.optionalEmpty;
-import static org.mmarini.routes.model2.TestUtils.optionalOf;
+import static org.mmarini.routes.model2.TestUtils.*;
 import static org.mmarini.routes.model2.Topology.createTopology;
+import static org.mmarini.routes.model2.TrafficEngineImpl.createEngine;
 import static org.mmarini.routes.model2.Vehicle.createVehicle;
 
-class StatusImplChangeTopTest {
+class TrafficEngineChangeTopTest {
+    public static final int MAX_VEHICLES = 1000;
     static final double DELAY = 10;
     static final long SEED = 1234L;
     static final double MAX_COORDS = 1000.;
@@ -133,11 +136,11 @@ class StatusImplChangeTopTest {
                 .setCurrentEdge(edge12)
                 .setDistance(40);
         /*
-        And the corresponding status
+        And the corresponding TrafficEngineImpl
         with not default transit time
          */
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl TrafficEngineImpl = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge12)
                 ), 0,
@@ -155,7 +158,7 @@ class StatusImplChangeTopTest {
         /*
         When adding the new edge
          */
-        StatusImpl result = status.addEdge(edge34);
+        TrafficEngineImpl result = TrafficEngineImpl.addEdge(edge34);
 
         /*
         Than the topology should be
@@ -204,11 +207,11 @@ class StatusImplChangeTopTest {
                 .setCurrentEdge(edge12)
                 .setDistance(40);
         /*
-        And the corresponding status
+        And the corresponding TrafficEngineImpl
         with not default transit time
          */
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl TrafficEngineImpl = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge12)
                 ), 0,
@@ -224,7 +227,7 @@ class StatusImplChangeTopTest {
         /*
         When adding the new edge
          */
-        StatusImpl result = status.addEdge(edge20);
+        TrafficEngineImpl result = TrafficEngineImpl.addEdge(edge20);
 
         /*
         Than the topology should be
@@ -261,10 +264,10 @@ class StatusImplChangeTopTest {
         MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         /*
-        And the corresponding status
+        And the corresponding TrafficEngineImpl
          */
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl TrafficEngineImpl = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge12)
                 ), 0,
@@ -288,7 +291,7 @@ class StatusImplChangeTopTest {
         /*
         When adding the mapModule
          */
-        StatusImpl result = status.addModule(mapModule,
+        TrafficEngineImpl result = TrafficEngineImpl.addModule(mapModule,
                 new Point2D.Double(51, 0),
                 new Point2D.Double(1, 1),
                 2);
@@ -307,8 +310,17 @@ class StatusImplChangeTopTest {
         MapEdge edge13 = new MapEdge(node1, expNode3, SPEED_LIMIT, moduleEdge01.getPriority());
         MapEdge edge41 = new MapEdge(expNode4, node1, SPEED_LIMIT, moduleEdge20.getPriority());
         assertThat(result.getSites(), contains(node0, node2));
-        assertThat(result.getNodes(), containsInAnyOrder(node0, node1, node2, expNode3, expNode4));
-        assertThat(result.getEdges(), containsInAnyOrder(edge01, edge12, edge13, edge41));
+        assertThat(result.getNodes(), containsInAnyOrder(
+                TestUtils.nodeAt(node0),
+                TestUtils.nodeAt(node1),
+                TestUtils.nodeAt(node2),
+                TestUtils.nodeAt(expNode3),
+                TestUtils.nodeAt(expNode4)));
+        assertThat(result.getEdges(), containsInAnyOrder(
+                TestUtils.edgeAt(edge01),
+                TestUtils.edgeAt(edge12),
+                TestUtils.edgeAt(edge13),
+                TestUtils.edgeAt(edge41)));
     }
 
     @Test
@@ -336,10 +348,10 @@ class StatusImplChangeTopTest {
                 .setCurrentEdge(edge12)
                 .setDistance(25);
         /*
-        And the related status with a modified transit time for edge01
+        And the related TrafficEngineImpl with a modified transit time for edge01
          */
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl engine = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge12)
                 ), 0,
@@ -353,7 +365,7 @@ class StatusImplChangeTopTest {
         /*
         When change node1
          */
-        StatusImpl result = status.changeNode(node1);
+        TrafficEngineImpl result = engine.changeNode(node1);
 
         /*
         Then the sites should be node0, node 2, site1
@@ -361,44 +373,62 @@ class StatusImplChangeTopTest {
         And edges should be newEdge01, newEdge12
          */
         assertNotNull(result);
-        SiteNode site1 = createSite(50, 0);
-        MapEdge newEdge01 = new MapEdge(node0, site1, SPEED_LIMIT, PRIORITY);
-        MapEdge newEdge12 = new MapEdge(site1, node2, SPEED_LIMIT, PRIORITY);
-        assertThat(result.getSites(), contains(node0, node2, site1));
-        assertThat(result.getNodes(), containsInAnyOrder(node0, site1, node2));
-        assertThat(result.getEdges(), containsInAnyOrder(newEdge01, newEdge12));
+        assertThat(result.getSites(), contains(
+                nodeAt(node0),
+                nodeAt(node2),
+                nodeAt(node1)));
+        assertThat(result.getNodes(), containsInAnyOrder(
+                nodeAt(node0),
+                nodeAt(node2),
+                nodeAt(node1)));
+        assertThat(result.getEdges(), containsInAnyOrder(
+                edgeAt(edge01),
+                edgeAt(edge12)));
 
         /*
         And vehicles v1, v2, v3 should have current edge upgraded
          */
-        Vehicle expV0 = v0.copy().setCurrentEdge(newEdge01);
-        Vehicle expV1 = v1.copy().setCurrentEdge(newEdge01);
-        Vehicle expV2 = v2.copy().setCurrentEdge(newEdge12);
         assertNotNull(result);
-        assertThat(result.getVehicles(), containsInAnyOrder(expV0, expV1, expV2));
+        assertThat(result.getVehicles(), containsInAnyOrder(
+                vehicleId(v0),
+                vehicleId(v1),
+                vehicleId(v2)));
         /*
-        And edge time be the corresponding of previous status
+        And edge time be the corresponding of previous TrafficEngineImpl
          */
-        assertThat(result.getEdgeTransitTime(newEdge01), equalTo(newEdge01.getTransitTime() + DELAY));
-        assertThat(result.getEdgeTransitTime(newEdge12), equalTo(newEdge12.getTransitTime()));
-        assertThat(result.getEdgeTransitTime(newEdge12), equalTo(newEdge12.getTransitTime()));
+        Optional<MapEdge> newEdge01 = findEdge(result.getEdges(), edge01);
+        assertThat(newEdge01, not(optionalEmpty()));
+
+        Optional<MapEdge> newEdge12 = findEdge(result.getEdges(), edge12);
+        assertThat(newEdge12, not(optionalEmpty()));
+
+        assertThat(newEdge01.map(result::getEdgeTransitTime), optionalOf(equalTo(edge01.getTransitTime() + DELAY)));
+        assertThat(newEdge12.map(result::getEdgeTransitTime), optionalOf(equalTo(edge12.getTransitTime())));
+
         /*
-        And vehicle in edge be the corresponding of previous status
+        And vehicle in edge be the corresponding of previous TrafficEngineImpl
          */
-        assertThat(result.getVehicles(newEdge01), contains(expV0, expV1));
-        assertThat(result.getVehicles(newEdge12), contains(expV2));
+        newEdge01.map(result::getVehicles).ifPresent(list ->
+                assertThat(list, contains(
+                        vehicleId(v0),
+                        vehicleId(v1))));
+        newEdge12.map(result::getVehicles).ifPresent(list ->
+                assertThat(list, contains(
+                        vehicleId(v2))));
         /*
         And next vehicle be the expected
          */
-        assertThat(result.getNextVehicle(expV0), optionalOf(equalTo(expV1)));
-        assertThat(result.getNextVehicle(expV1), optionalEmpty());
-        assertThat(result.getNextVehicle(expV2), optionalEmpty());
-        /*
-        And next vehicle be the expected
-         */
-        assertThat(result.getNextVehicle(expV0), optionalOf(equalTo(expV1)));
-        assertThat(result.getNextVehicle(expV1), optionalEmpty());
-        assertThat(result.getNextVehicle(expV2), optionalEmpty());
+        Optional<Vehicle> newV0 = vehicleById(result.getVehicles(), v0);
+        Optional<Vehicle> newV1 = vehicleById(result.getVehicles(), v1);
+        Optional<Vehicle> newV2 = vehicleById(result.getVehicles(), v2);
+
+        assertThat(newV0.map(result::getNextVehicle),
+                optionalOf(optionalOf(vehicleId(v1))));
+        assertThat(newV1.map(result::getNextVehicle),
+                optionalOf(optionalEmpty()));
+        assertThat(newV2.map(result::getNextVehicle),
+                optionalOf(optionalEmpty()));
+
         /*
         And weights should be 0 for each new pair
          */
@@ -435,8 +465,8 @@ class StatusImplChangeTopTest {
         Vehicle v2 = createVehicle(node0, node2, 0)
                 .setCurrentEdge(edge01)
                 .setDistance(40);
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl engine = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1, node3),
                         List.of(edge01, edge12, edge32)
                 ), 0,
@@ -449,15 +479,24 @@ class StatusImplChangeTopTest {
         /*
         When change the edge
          */
-        StatusImpl result = status.changeEdge(edge01, edge03);
+        TrafficEngineImpl result = engine.changeEdge(edge01, edge03);
+
         /*
         Then vehicle v2 should be removed
          */
         assertNotNull(result);
-        assertThat(result.getVehicles(), containsInAnyOrder(v0, v1));
-        assertThat(result.getVehicles(edge03), contains(v0, v1));
-        assertThat(result.getNextVehicle(v0), optionalOf(v1));
-        assertThat(result.getNextVehicle(v1), optionalEmpty());
+        assertThat(result.getVehicles(), containsInAnyOrder(
+                vehicleId(v0),
+                vehicleId(v1)));
+        assertThat(result.getVehicles(edge03), contains(
+                vehicleId(v0),
+                vehicleId(v1)));
+
+        assertThat(vehicleById(result.getVehicles(), v0)
+                .map(result::getNextVehicle), optionalOf(optionalOf(vehicleId(v1))));
+        assertThat(vehicleById(result.getVehicles(), v1)
+                .map(result::getNextVehicle), optionalOf(optionalEmpty()));
+
         assertThat(result.getEdgeTransitTime(edge03), equalTo(edge03.getTransitTime()));
     }
 
@@ -486,10 +525,10 @@ class StatusImplChangeTopTest {
                 .setCurrentEdge(edge12)
                 .setDistance(25);
         /*
-        And the related status with a modified transit time for edge01, edge02
+        And the related TrafficEngineImpl with a modified transit time for edge01, edge02
          */
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl TrafficEngineImpl = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(site0, node2, node1),
                         List.of(edge01, edge12)
                 ), 0,
@@ -505,7 +544,7 @@ class StatusImplChangeTopTest {
         /*
         When change node1
          */
-        StatusImpl result = status.changeNode(site0);
+        TrafficEngineImpl result = TrafficEngineImpl.changeNode(site0);
 
         /*
         Then the sites should be node1, node2
@@ -513,41 +552,68 @@ class StatusImplChangeTopTest {
         And edges should be newEdge01, newEdge12
          */
         assertNotNull(result);
-        CrossNode node0 = createNode(0, 0);
-        MapEdge newEdge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
-        MapEdge newEdge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         assertThat(result.getSites(), contains(node2, node1));
-        assertThat(result.getNodes(), containsInAnyOrder(node0, node1, node2));
-        assertThat(result.getEdges(), containsInAnyOrder(newEdge01, newEdge12));
+        assertThat(result.getNodes(), containsInAnyOrder(
+                nodeAt(site0),
+                nodeAt(node1),
+                nodeAt(node2)));
+        assertThat(result.getEdges(), containsInAnyOrder(
+                edgeAt(edge01),
+                edgeAt(edge12)));
 
         /*
         And vehicles v1, v2 should have current edge upgraded
          */
-        Vehicle expV0 = v0.copy().setCurrentEdge(newEdge01);
-        Vehicle expV1 = v1.copy().setCurrentEdge(newEdge01);
         assertNotNull(result);
-        assertThat(result.getVehicles(), containsInAnyOrder(expV0, expV1));
+        assertThat(result.getVehicles(), containsInAnyOrder(
+                allOf(
+                        vehicleId(v0),
+                        vehicleAt(edgeAt(edge01), equalTo(v0.getDistance()))
+                ),
+                allOf(
+                        vehicleId(v1),
+                        vehicleAt(edgeAt(edge01), equalTo(v1.getDistance()))
+                )));
         /*
-        And edge time be the corresponding of previous status
+        And edge time be the corresponding of previous TrafficEngineImpl
          */
-        assertThat(result.getEdgeTransitTime(newEdge01), equalTo(newEdge01.getTransitTime() + DELAY));
-        assertThat(result.getEdgeTransitTime(newEdge12), equalTo(newEdge12.getTransitTime()));
+        Optional<MapEdge> newEdge01 = findEdge(result.getEdges(), edge01);
+        assertThat(newEdge01, not(optionalEmpty()));
+        Optional<MapEdge> newEdge12 = findEdge(result.getEdges(), edge12);
+        assertThat(newEdge12, not(optionalEmpty()));
+
+        assertThat(newEdge01.map(result::getEdgeTransitTime), optionalOf(equalTo(edge01.getTransitTime() + DELAY)));
+        assertThat(newEdge12.map(result::getEdgeTransitTime), optionalOf(equalTo(edge12.getTransitTime())));
 
         /*
-        And vehicle in edge be the corresponding of previous status
+        And vehicle in edge be the corresponding of previous TrafficEngineImpl
          */
-        assertThat(result.getVehicles(newEdge01), contains(expV0, expV1));
-        assertThat(result.getVehicles(newEdge12), empty());
+        Optional<LinkedList<Vehicle>> vehicles01 = newEdge01.map(result::getVehicles);
+        assertThat(vehicles01, not(optionalEmpty()));
+        vehicles01.ifPresent(vehicles ->
+                assertThat(vehicles, contains(
+                        vehicleId(v0),
+                        vehicleId(v1)
+                ))
+        );
+
+        Optional<LinkedList<Vehicle>> vehicles12 = newEdge12.map(result::getVehicles);
+        assertThat(vehicles12, not(optionalEmpty()));
+        vehicles12.ifPresent(vehicles ->
+                assertThat(vehicles, empty())
+        );
+
         /*
         And next vehicle be the expected
          */
-        assertThat(result.getNextVehicle(expV0), optionalOf(equalTo(expV1)));
-        assertThat(result.getNextVehicle(expV1), optionalEmpty());
-        /*
-        And next vehicle be the expected
-         */
-        assertThat(result.getNextVehicle(expV0), optionalOf(equalTo(expV1)));
-        assertThat(result.getNextVehicle(expV1), optionalEmpty());
+        assertThat(vehicleById(result.getVehicles(), v0)
+                        .flatMap(result::getNextVehicle),
+                optionalOf(vehicleId(v1))
+        );
+        assertThat(vehicleById(result.getVehicles(), v1)
+                        .flatMap(result::getNextVehicle),
+                optionalEmpty()
+        );
         /*
         And weights should be 1 for each pair
          */
@@ -582,7 +648,7 @@ class StatusImplChangeTopTest {
         /*
         When creating a random map
          */
-        StatusImpl result = StatusImpl.createRandom(random, profile, SPEED_LIMIT);
+        TrafficEngineImpl result = TrafficEngineImpl.createRandom(MAX_VEHICLES, random, profile, SPEED_LIMIT);
 
         /*
         Then the sites should be the 5 sites
@@ -601,8 +667,14 @@ class StatusImplChangeTopTest {
                 ((RY2 - Y0) / DY - 0.5) * 2 * height);
 
         assertNotNull(result);
-        assertThat(result.getSites(), contains(site0, site1, site2));
-        assertThat(result.getNodes(), contains(site0, site1, site2));
+        assertThat(result.getSites(), contains(
+                TestUtils.nodeAt(site0),
+                TestUtils.nodeAt(site1),
+                TestUtils.nodeAt(site2)));
+        assertThat(result.getNodes(), contains(
+                TestUtils.nodeAt(site0),
+                TestUtils.nodeAt(site1),
+                TestUtils.nodeAt(site2)));
         assertThat(result.getEdges(), empty());
 
         /*
@@ -660,10 +732,10 @@ class StatusImplChangeTopTest {
         Vehicle v0 = createVehicle(node0, node2, 0).setCurrentEdge(edge01);
         Vehicle v1 = createVehicle(node0, node2, 0).setCurrentEdge(edge12);
         /*
-        And a status
+        And a TrafficEngineImpl
          */
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl TrafficEngineImpl = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node1, node2, node3),
                         List.of(edge01, edge12)
                 ), 0,
@@ -672,7 +744,7 @@ class StatusImplChangeTopTest {
         /*
         When removing node3
          */
-        StatusImpl result = status.optimize();
+        TrafficEngineImpl result = TrafficEngineImpl.optimize();
 
         /*
         Then the topology should be
@@ -725,10 +797,10 @@ class StatusImplChangeTopTest {
         Vehicle v0 = createVehicle(node0, node2, 0).setCurrentEdge(edge13);
         Vehicle v1 = createVehicle(node0, node2, 0).setCurrentEdge(edge12);
         /*
-        And a status
+        And a TrafficEngineImpl
          */
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl TrafficEngineImpl = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node1, node2, node3),
                         List.of(edge01, edge12, edge13)
                 ), 0,
@@ -737,7 +809,7 @@ class StatusImplChangeTopTest {
         /*
         When removing node3
          */
-        StatusImpl result = status.removeNode(node3);
+        TrafficEngineImpl result = TrafficEngineImpl.removeNode(node3);
 
         /*
         Then the topology should be
@@ -776,8 +848,8 @@ class StatusImplChangeTopTest {
                 .setCurrentEdge(edge10)
                 .setReturning(true)
                 .setDistance(10);
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl TrafficEngineImpl = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
@@ -786,7 +858,7 @@ class StatusImplChangeTopTest {
         /*
         When change the topology
          */
-        Status result = status.removeEdge(edge10);
+        TrafficEngineImpl result = TrafficEngineImpl.removeEdge(edge10);
         /*
         Then the vehicles should be removed
          */
@@ -820,10 +892,10 @@ class StatusImplChangeTopTest {
         Vehicle v2 = createVehicle(node0, node3, 0).setCurrentEdge(edge12);
         Vehicle v3 = createVehicle(node0, node2, 0).setCurrentEdge(edge12).setDistance(10);
         /*
-        And a status
+        And a TrafficEngineImpl
          */
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl TrafficEngineImpl = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node1, node2, node3),
                         List.of(edge01, edge12, edge13)
                 ), 0,
@@ -832,7 +904,7 @@ class StatusImplChangeTopTest {
         /*
         When removing node3
          */
-        StatusImpl result = status.removeNode(node3);
+        TrafficEngineImpl result = TrafficEngineImpl.removeNode(node3);
 
         /*
         Then the topology should be
@@ -875,10 +947,10 @@ class StatusImplChangeTopTest {
         Vehicle v2 = createVehicle(node0, node3, 0).setCurrentEdge(edge12);
         Vehicle v3 = createVehicle(node0, node2, 0).setCurrentEdge(edge12).setDistance(10);
         /*
-        And a status
+        And a TrafficEngineImpl
          */
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl engine = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node1, node2, node3),
                         List.of(edge01, edge12, edge13)
                 ), 0,
@@ -887,7 +959,7 @@ class StatusImplChangeTopTest {
         /*
         When setting offset
          */
-        StatusImpl result = status.setOffset(new Point2D.Double(x, y));
+        TrafficEngineImpl result = engine.setOffset(new Point2D.Double(x, y));
 
         /*
         Then the topology should be translated
@@ -903,9 +975,19 @@ class StatusImplChangeTopTest {
         MapEdge expEdge12 = new MapEdge(expNode1, expNode2, SPEED_LIMIT, PRIORITY);
         MapEdge expEdge13 = new MapEdge(expNode1, expNode3, SPEED_LIMIT, PRIORITY);
 
-        assertThat(result.getSites(), contains(expNode0, expNode2, expNode3));
-        assertThat(result.getNodes(), containsInAnyOrder(expNode0, expNode1, expNode2, expNode3));
-        assertThat(result.getEdges(), containsInAnyOrder(expEdge01, expEdge12, expEdge13));
+        assertThat(result.getSites(), contains(
+                TestUtils.nodeAt(expNode0),
+                TestUtils.nodeAt(expNode2),
+                TestUtils.nodeAt(expNode3)));
+        assertThat(result.getNodes(), containsInAnyOrder(
+                TestUtils.nodeAt(expNode0),
+                TestUtils.nodeAt(expNode1),
+                TestUtils.nodeAt(expNode2),
+                TestUtils.nodeAt(expNode3)));
+        assertThat(result.getEdges(), containsInAnyOrder(
+                TestUtils.edgeAt(expEdge01),
+                TestUtils.edgeAt(expEdge12),
+                TestUtils.edgeAt(expEdge13)));
 
         /*
         And the vehicles should be v0', v01', v02', v03'
@@ -914,13 +996,40 @@ class StatusImplChangeTopTest {
         Vehicle expV1 = v1.setDeparture(expNode3).setDestination(expNode2).setCurrentEdge(expEdge01);
         Vehicle expV2 = v2.setDeparture(expNode0).setDestination(expNode3).setCurrentEdge(expEdge12);
         Vehicle expV3 = v3.setDeparture(expNode0).setDestination(expNode2).setCurrentEdge(expEdge12);
-        assertThat(result.getVehicles(), contains(expV0, expV1, expV2, expV3));
+        assertThat(result.getVehicles(), contains(
+                vehicleId(expV0),
+                vehicleId(expV1),
+                vehicleId(expV2),
+                vehicleId(expV3)));
 
         /*
         And vehicles by edge
          */
-        assertThat(result.getVehicles(expEdge01), contains(expV1));
-        assertThat(result.getVehicles(expEdge12), contains(expV2, expV3));
-        assertThat(result.getVehicles(expEdge13), contains(expV0));
+        Optional<LinkedList<Vehicle>> vehicles01 = findEdge(result.getEdges(), expEdge01)
+                .map(result::getVehicles);
+        assertTrue(vehicles01.isPresent());
+        vehicles01.ifPresent(list ->
+                assertThat(list, contains(
+                        vehicleId(expV1)
+                ))
+        );
+
+        Optional<LinkedList<Vehicle>> vehicles12 = findEdge(result.getEdges(), expEdge12)
+                .map(result::getVehicles);
+        assertTrue(vehicles12.isPresent());
+        vehicles12.ifPresent(list ->
+                assertThat(list, contains(
+                        vehicleId(expV2),
+                        vehicleId(expV3)
+                ))
+        );
+
+        Optional<LinkedList<Vehicle>> vehicles13 = findEdge(result.getEdges(), expEdge13)
+                .map(result::getVehicles);
+        assertTrue(vehicles13.isPresent());
+        vehicles13.ifPresent(list ->
+                assertThat(list, contains(
+                        vehicleId(expV0))
+                ));
     }
 }

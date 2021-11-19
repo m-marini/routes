@@ -28,7 +28,6 @@
 package org.mmarini.routes.model2;
 
 import java.awt.geom.Point2D;
-import java.util.Objects;
 import java.util.StringJoiner;
 
 import static java.util.Objects.requireNonNull;
@@ -61,6 +60,7 @@ public class SiteNode implements MapNode {
 
     @Override
     public <T> T apply(final MapElementVisitor<T> visitor) {
+        requireNonNull(visitor);
         return visitor.visit(this);
     }
 
@@ -71,15 +71,8 @@ public class SiteNode implements MapNode {
      */
     @Override
     public double distanceSqFrom(final Point2D point) {
+        requireNonNull(point);
         return location.distanceSq(point);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        SiteNode siteNode = (SiteNode) o;
-        return location.equals(siteNode.location);
     }
 
     @Override
@@ -93,12 +86,8 @@ public class SiteNode implements MapNode {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(location);
-    }
-
-    @Override
     public boolean isSameLocation(MapNode node) {
+        requireNonNull(node);
         return location.equals(node.getLocation());
     }
 
