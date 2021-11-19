@@ -34,8 +34,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.function.Consumer;
 
 public class IntAST extends ASTNode {
+    /**
+     * @param root         the json node
+     * @param at           location of json node
+     * @param defaultValue the default value
+     */
     public static IntAST createOptionalInteger(JsonNode root, JsonPointer at, int defaultValue) {
         return new IntAST(root, at, ASTValidator.empty(), defaultValue);
+    }
+
+    /**
+     * @param root         the json node
+     * @param at           location of json node
+     * @param defaultValue the default value
+     */
+    public static IntAST createOtionalNotNegative(JsonNode root, JsonPointer at, int defaultValue) {
+        return new IntAST(root, at, ASTValidator.notNegativeInt(), defaultValue);
     }
 
     private final Consumer<ASTNode> additionalValidator;

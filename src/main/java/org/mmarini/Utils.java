@@ -40,6 +40,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.util.Map.entry;
+
 public interface Utils {
 
     /**
@@ -92,8 +94,12 @@ public interface Utils {
         );
     }
 
-    static <K, V, V1> Function<Map.Entry<K, V>, Map.Entry<K, V1>> mapValue(Function<V, V1> mapper) {
-        return entry -> Map.entry(entry.getKey(), mapper.apply(entry.getValue()));
+    static <K, K1, V> Function<Entry<K, V>, Entry<K1, V>> mapKey(Function<K, K1> mapper) {
+        return entry -> entry(mapper.apply(entry.getKey()), entry.getValue());
+    }
+
+    static <K, V, V1> Function<Entry<K, V>, Entry<K, V1>> mapValue(Function<V, V1> mapper) {
+        return entry -> entry(entry.getKey(), mapper.apply(entry.getValue()));
     }
 
     /**

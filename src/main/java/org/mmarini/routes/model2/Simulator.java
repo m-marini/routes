@@ -1,6 +1,5 @@
 /*
- *
- * Copyright (c) 2021 Marco Marini, marco.marini@mmarini.org
+ * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,11 +26,12 @@
  *
  */
 
-package org.mmarini.routes.swing;
+package org.mmarini.routes.model2;
 
-import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Single;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 /**
@@ -50,59 +50,44 @@ import java.util.function.UnaryOperator;
  */
 public interface Simulator<T> {
     /**
-     * Returns the events flow.
-     */
-    Flowable<T> getEvents();
-
-    /**
-     * Returns the time unit of interval.
-     */
-    TimeUnit getUnit();
-
-    /**
-     * Enqueues the transition request.
-     *
-     * @param transition the transition
-     * @return the simulator
-     */
-    Simulator<T> request(final UnaryOperator<T> transition);
-
-    /**
-     * Enqueues a new event.
+     * Returns the event after pushing the event in the flow
      *
      * @param event the event
-     * @return the simulator
      */
-    Simulator<T> setEvent(final T event);
+    Single<T> pushEvent(final T event);
 
     /**
-     * Set the minimum simulation interval.
+     * Returns the status after the transition
+     *
+     * @param transition the transition
+     */
+    Single<T> request(final UnaryOperator<T> transition);
+
+    /**
+     * Returns the simulator after setting the interval of event emission
      *
      * @param interval the interval to set
-     * @param unit     the time unit
-     * @return the simulator
      */
-    Simulator<T> setInterval(final long interval, final TimeUnit unit);
+    Simulator<T> setEventInterval(Duration interval);
+
+    Simulator<T> setOnEvent(Consumer<T> onEvent);
+
+    Simulator<T> setOnSpeed(Consumer<Double> onSpeed);
 
     /**
-     * Enqueue the simulation speed.
+     * Returns the status when changing the simulation speed
      *
      * @param speed the simulation speed
-     * @return the simulator
      */
-    Simulator<T> setSpeed(final double speed);
+    Single<T> setSpeed(final double speed);
 
     /**
-     * Enqueue the start of simulation.
-     *
-     * @return the simulator
+     * Returns the first status after the simulation stopping
      */
-    Simulator<T> start();
+    Single<T> start();
 
     /**
-     * Enqueue the stop of simulation.
-     *
-     * @return the simulation
+     * Returns the last status after the simulation stopping
      */
-    Simulator<T> stop();
+    Single<T> stop();
 }

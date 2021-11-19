@@ -39,18 +39,27 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.Integer.parseInt;
 import static java.util.Map.entry;
 import static org.mmarini.Utils.entriesToMap;
 import static org.mmarini.Utils.getValue;
+import static org.mmarini.routes.model2.StatusImpl.createStatus;
 import static org.mmarini.yaml.Utils.fromFile;
 import static org.mmarini.yaml.Utils.fromResource;
 
 public class RouteAST extends ASTNode {
 
+    public static final String VERSION_PATTERN = "(\\d+)\\.(\\d+)";
     private static final double KMPHSPM = 3.6;
+    private static final int DEFAULT_MAX_VEHICLES = 4000;
+    private static final int MAJOR_VERSION = 1;
+    private static final int MINOR_VERSION = 0;
+    public static final String VERSION = MAJOR_VERSION + "." + MINOR_VERSION;
 
     /**
      * Returns the status reading from file
@@ -105,9 +114,14 @@ public class RouteAST extends ASTNode {
         Stream<Tuple2<Tuple2<SiteNode, SiteNode>, Double>> w = getPaths(s -> getValue(siteByName, s));
         double[][] weights = DoubleMatrix.from(w, siteList).getValues();
         double speedLimit = defaults().speedLimit().getValue() / KMPHSPM;
-        return StatusImpl.createStatus(topology, 0, List.of(), speedLimit, frequency, weights);
+        int maxVehicles = maxVehicles().getValue();
+        return createStatus(maxVehicles, speedLimit, frequency, 0,
+                topology, List.of(), weights);
     }
 
+    /**
+     *
+     */
     public DefaultsAST defaults() {
         return new DefaultsAST(getRoot(), path("default"));
     }
@@ -169,6 +183,13 @@ public class RouteAST extends ASTNode {
         );
     }
 
+    public IntAST maxVehicles() {
+        return IntAST.createOtionalNotNegative(
+                getRoot(),
+                path("maxVehicles"),
+                DEFAULT_MAX_VEHICLES);
+    }
+
     /**
      *
      */
@@ -199,6 +220,17 @@ public class RouteAST extends ASTNode {
     @Override
     public void validate() {
         super.validate();
+        version().validate();
+
+        String ver = version().getValue();
+        Matcher matcher = Pattern.compile(VERSION_PATTERN).matcher(ver);
+        matcher.matches();
+        int major = parseInt(matcher.group(1));
+        int minor = parseInt(matcher.group(2));
+        if (major != MAJOR_VERSION || minor > MINOR_VERSION) {
+            version().throwError("%s not compatible with %s", ver, VERSION);
+        }
+        maxVehicles().validate();
         // find node key duplicated
         Map<String, SiteAST> sites = sites().items();
         nodes().itemStream()
@@ -305,5 +337,9 @@ public class RouteAST extends ASTNode {
                                 "must be different from %s",
                                 path.departure().getAt())
                 );
+    }
+
+    public TextAST version() {
+        return new TextAST(getRoot(), path("version"), ASTValidator.regex(VERSION_PATTERN), VERSION);
     }
 }

@@ -46,13 +46,13 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mmarini.routes.model2.CrossNode.createNode;
 import static org.mmarini.routes.model2.SiteNode.createSite;
-import static org.mmarini.routes.model2.StatusImpl.createStatus;
 import static org.mmarini.routes.model2.TestUtils.optionalDoubleOf;
 import static org.mmarini.routes.model2.TestUtils.optionalOf;
 import static org.mmarini.routes.model2.Topology.createTopology;
+import static org.mmarini.routes.model2.TrafficEngineImpl.createEngine;
 import static org.mmarini.routes.model2.Vehicle.createVehicle;
 
-class StatusImplTest {
+class TrafficEngineTest {
 
     public static final double MIN_FREQUENCY = 0.1;
     public static final double MAX_FREQUENCY = 1.0;
@@ -71,6 +71,7 @@ class StatusImplTest {
     static final int HIGH_PRIORITY = 1;
     static final double MIN_DELAY_TIME = 0.1;
     static final double MAX_DELAY_TIME = 10d;
+    private static final int MAX_VEHICLES = 1000;
 
     static Stream<Arguments> argForTimeDtFreq() {
         return ArgumentGenerator.create(SEED)
@@ -117,7 +118,7 @@ class StatusImplTest {
     static Stream<Arguments> time() {
         return ArgumentGenerator.create(SEED)
                 .uniform(MIN_TIME, MAX_TIME)
-                .generate().limit(1);
+                .generate();
     }
 
     static Stream<Arguments> times() {
@@ -129,11 +130,11 @@ class StatusImplTest {
 
     @ParameterizedTest
     @MethodSource("time")
-    void applyTimeInterval(double time) {
+    void applyTimeIntervalVehicleEndingTravel(double time) {
         /*
         Given a topology of
-        0 --1--> 1 -----> 2
-          <-----   <--0--
+        0 ------> 1 ---> 2
+          <-v0---   <---
          */
         SiteNode node0 = createSite(0, 0);
         SiteNode node2 = createSite(100, 0);
@@ -144,38 +145,18 @@ class StatusImplTest {
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
         /*
         And a vehicle 0 returning and arriving to departure (edge10, 49.5)
-        And a vehicle 1  arriving to the destination and then returning (edge12. 49.5)
-        And a vehicle 2 crossing a free edge (edge01, 49.5)
-        And a vehicle 3 crossing a busy edge (edge21, 49.5)
-        And a vehicle 4 running the edge (edge10, 30)
-        And a vehicle 5 braking for next vehicle (edge10, 20)
          */
         Vehicle v0 = createVehicle(node0, node2, 0)
                 .setCurrentEdge(edge10)
                 .setReturning(true)
                 .setDistance(49.5);
-        Vehicle v1 = createVehicle(node0, node2, 0)
-                .setCurrentEdge(edge12)
-                .setDistance(49.5);
-        Vehicle v2 = createVehicle(node0, node2, 0)
-                .setCurrentEdge(edge01)
-                .setDistance(49.5);
-        Vehicle v3 = createVehicle(node0, node2, 0)
-                .setCurrentEdge(edge21)
-                .setDistance(49.5);
-        Vehicle v4 = createVehicle(node0, node2, 0)
-                .setCurrentEdge(edge10)
-                .setDistance(30);
-        Vehicle v5 = createVehicle(node0, node2, 0)
-                .setCurrentEdge(edge10)
-                .setDistance(20);
 
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), time,
-                List.of(v0, v1, v2, v3, v4, v5), SPEED_LIMIT, 0);
+                List.of(v0), SPEED_LIMIT, 0);
         Random random = new MockRandomBuilder()
                 .nextDouble(0) // No vehicle creation probability
                 .nextDouble(0) // No vehicle creation probability
@@ -188,22 +169,6 @@ class StatusImplTest {
 
         // Then vehicle 0 returning and arriving to departure (edge10, 49.5) should be removed
         assertThat(status.getVehicles(), not(hasItem(v0)));
-        // And a vehicle 1 arriving to the destination and then returning (edge12. 49.5) should bo at (edge21, 0.5)
-        assertTrue(v1.isReturning());
-        assertThat(v1.getCurrentEdge(), optionalOf(edge21));
-        assertThat(v1.getDistance(), equalTo(0.5));
-        // And a vehicle 2 crossing a free edge (edge01, 49.5) should be at edge12,0.5
-        assertThat(v2.getCurrentEdge(), optionalOf(edge12));
-        assertThat(v2.getDistance(), equalTo(0.5));
-        // And a vehicle 3 crossing a busy edge (edge21, 49.5) should be at edge21, 50
-        assertThat(v3.getCurrentEdge(), optionalOf(edge21));
-        assertThat(v3.getDistance(), equalTo(50.0));
-        // And a vehicle 4 running the edge (edge10, 30) should be at edge10, 31
-        assertThat(v4.getCurrentEdge(), optionalOf(edge10));
-        assertThat(v4.getDistance(), equalTo(31.0));
-        // And a vehicle 5 braking for next vehicle (edge10, 20) should be at edge21, 20.5
-        assertThat(v5.getCurrentEdge(), optionalOf(edge10));
-        assertThat(v5.getDistance(), closeTo(20.5, 0.1));
     }
 
     @ParameterizedTest
@@ -222,8 +187,8 @@ class StatusImplTest {
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
@@ -231,7 +196,7 @@ class StatusImplTest {
         /*
         When changing frequency
          */
-        StatusImpl result = status.setFrequency(f2);
+        TrafficEngineImpl result = status.setFrequency(f2);
         /*
         Then it should result the new frequency
          */
@@ -267,8 +232,8 @@ class StatusImplTest {
         Vehicle vehicle2 = createVehicle(site1, site2, 0)
                 .setCurrentEdge(edge1)
                 .setDistance(d2);
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(site1, site2),
                         List.of(edge1)
                 ), 0,
@@ -277,7 +242,7 @@ class StatusImplTest {
         /*
         When computing location of vehicle1 after dt time interval
          */
-        StatusImpl.VehicleMovement result = status.computeVehicleMovement(vehicle1, dt);
+        TrafficEngineImpl.VehicleMovement result = status.computeVehicleMovement(vehicle1, dt);
 
         /*
         Then the movement should refer to the vehicle
@@ -306,8 +271,8 @@ class StatusImplTest {
                 .setDistance(distance)
                 .setCurrentEdge(edge1);
 
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(site1, site2),
                         List.of(edge1)
                 ), 0,
@@ -315,7 +280,7 @@ class StatusImplTest {
         /*
         When computing location of vehicle1 after dt time interval
          */
-        StatusImpl.VehicleMovement result = status.computeVehicleMovement(vehicle1, dt);
+        TrafficEngineImpl.VehicleMovement result = status.computeVehicleMovement(vehicle1, dt);
 
         /*
         Then the movement should refer to the vehicle
@@ -340,8 +305,8 @@ class StatusImplTest {
         MapEdge edge1 = new MapEdge(site1, site2, SPEED_LIMIT, PRIORITY);
         Vehicle vehicle1 = createVehicle(site1, site2, 0);
 
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(site1, site2),
                         List.of(edge1)
                 ), 0,
@@ -349,7 +314,7 @@ class StatusImplTest {
         /*
         When computing location of vehicle1 after dt time interval
          */
-        StatusImpl.VehicleMovement result = status.computeVehicleMovement(vehicle1, dt);
+        TrafficEngineImpl.VehicleMovement result = status.computeVehicleMovement(vehicle1, dt);
 
         /*
         Then the movement should refer to the vehicle
@@ -390,8 +355,8 @@ class StatusImplTest {
         Vehicle v101 = createVehicle(node0, node2, 0).setCurrentEdge(edge10).setDistance(30);
         Vehicle v120 = createVehicle(node0, node2, 0).setCurrentEdge(edge12).setDistance(10);
 
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
@@ -400,7 +365,7 @@ class StatusImplTest {
         /*
         When checking edges availability
          */
-        List<StatusImpl.VehicleMovement> result = status.computeVehicleMovements(status.getLastVehicles(), MIN_DT).collect(Collectors.toList());
+        List<TrafficEngineImpl.VehicleMovement> result = status.computeVehicleMovements(status.getLastVehicles(), MIN_DT).collect(Collectors.toList());
 
         /*
         Then it should result the next vehicle function
@@ -422,43 +387,6 @@ class StatusImplTest {
                         hasProperty("vehicle", equalTo(v120)),
                         hasProperty("dt", closeTo(0.1, 1e-3))
                 )));
-    }
-
-    @Test
-    void copy() {
-        /*
-        Given a status with the topology
-        1 --edge1--> 2
-        And a vehicle at edge1,0
-         */
-        SiteNode site1 = createSite(X1, Y1);
-        SiteNode site2 = createSite(X2, Y2);
-        MapEdge edge1 = new MapEdge(site1, site2, SPEED_LIMIT, PRIORITY);
-        Vehicle vehicle = createVehicle(site1, site2, 0)
-                .setCurrentEdge(edge1);
-
-        StatusImpl status = createStatus(
-                createTopology(
-                        List.of(site1, site2),
-                        List.of(edge1)
-                ), 0,
-                List.of(vehicle), SPEED_LIMIT, 0);
-
-        /*
-        When copying the status
-         */
-        StatusImpl result = status.copy();
-
-        /*
-        Then should result a new status with the copied vehicles
-         */
-        assertThat(result, not(sameInstance(status)));
-        assertThat(result.getSites(), sameInstance(status.getSites()));
-        assertThat(result.getNodes(), sameInstance(status.getNodes()));
-        assertThat(result.getEdges(), sameInstance(status.getEdges()));
-        assertThat(result.getVehicles(), not(sameInstance(status.getVehicles())));
-        assertThat(result.getVehicles().get(0), not(sameInstance(status.getVehicles().get(0))));
-        assertThat(result.getVehicles().get(0), equalTo(status.getVehicles().get(0)));
     }
 
     @Test
@@ -486,8 +414,8 @@ class StatusImplTest {
         /*
         When creating the status
          */
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
@@ -530,8 +458,8 @@ class StatusImplTest {
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
         MapEdge edge31 = new MapEdge(node3, node1, SPEED_LIMIT, PRIORITY);
 
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1, node3),
                         List.of(edge01, edge10, edge12, edge13, edge21, edge31)
                 ), time,
@@ -583,8 +511,8 @@ class StatusImplTest {
         Vehicle v010 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(10);
         Vehicle v011 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(20);
         Vehicle v210 = createVehicle(node0, node2, 0).setCurrentEdge(edge21).setDistance(0);
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), time,
@@ -626,8 +554,8 @@ class StatusImplTest {
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
 
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), time, List.of(), SPEED_LIMIT, 0);
@@ -669,8 +597,8 @@ class StatusImplTest {
         Vehicle v012 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(50).setEdgeEntryTime(time);
         Vehicle v210 = createVehicle(node0, node2, 0).setCurrentEdge(edge21).setDistance(0);
         Vehicle v211 = createVehicle(node0, node2, 0).setCurrentEdge(edge21).setDistance(10);
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), time + dt,
@@ -715,8 +643,8 @@ class StatusImplTest {
         Vehicle v011 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(20);
         Vehicle v012 = createVehicle(node0, node2, 0).setCurrentEdge(edge01).setDistance(50).setEdgeEntryTime(time);
         Vehicle v210 = createVehicle(node0, node2, 0).setCurrentEdge(edge21).setDistance(0);
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), time + dt,
@@ -767,8 +695,8 @@ class StatusImplTest {
         Vehicle v101 = createVehicle(node0, node2, 0).setCurrentEdge(edge10).setDistance(30);
         Vehicle v120 = createVehicle(node0, node2, 0).setCurrentEdge(edge12).setDistance(10);
 
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
@@ -777,7 +705,7 @@ class StatusImplTest {
         /*
         When checking edges availability
          */
-        Optional<StatusImpl.VehicleMovement> result = status.getFirstExitingVehicle(MIN_DT);
+        Optional<TrafficEngineImpl.VehicleMovement> result = status.getFirstExitingVehicle(MIN_DT);
 
         /*
         Then it should result the next vehicle function
@@ -802,8 +730,8 @@ class StatusImplTest {
         Vehicle vehicle2 = createVehicle(site1, site2, 0);
         vehicle2.setCurrentEdge(edge1);
         vehicle2.setDistance(DISTANCE10);
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(site1, site2),
                         List.of(edge1)
                 ), 0,
@@ -845,8 +773,8 @@ class StatusImplTest {
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node1, node2),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
@@ -910,8 +838,8 @@ class StatusImplTest {
         Vehicle v20 = createVehicle(node2, node0, now - tt21 - delay1).setCurrentEdge(edge01).setDistance(49.5);
         Vehicle v21 = createVehicle(node2, node0, now - tt21 - delay2).setCurrentEdge(edge10).setDistance(20);
 
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), now,
@@ -967,8 +895,8 @@ class StatusImplTest {
                 .setCurrentEdge(edge01)
                 .setDistance(edge01.getLength());
 
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
@@ -1010,8 +938,8 @@ class StatusImplTest {
         Vehicle v210 = createVehicle(node0, node2, 0).setCurrentEdge(edge21).setDistance(edge21.getLength());
         List<Vehicle> vehicles = List.of(v010, v210);
 
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
@@ -1052,8 +980,8 @@ class StatusImplTest {
         Vehicle v210 = createVehicle(node0, node2, 0).setCurrentEdge(edge21).setDistance(edge21.getLength());
         List<Vehicle> vehicles = List.of(v010, v210);
 
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
@@ -1090,8 +1018,8 @@ class StatusImplTest {
         Vehicle v100 = createVehicle(node0, node2, 0).setCurrentEdge(edge10).setDistance(5.1);
         List<Vehicle> vehicles = List.of(v010, v100);
 
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,
@@ -1139,8 +1067,8 @@ class StatusImplTest {
         Vehicle v100 = createVehicle(node0, node2, 0).setCurrentEdge(edge10).setDistance(20);
         Vehicle v101 = createVehicle(node0, node2, 0).setCurrentEdge(edge10).setDistance(30);
 
-        StatusImpl status = createStatus(
-                createTopology(
+        TrafficEngineImpl status = createEngine(
+                MAX_VEHICLES, createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
                 ), 0,

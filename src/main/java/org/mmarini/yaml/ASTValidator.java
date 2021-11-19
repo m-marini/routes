@@ -35,6 +35,7 @@ import java.util.function.Consumer;
 import java.util.function.DoublePredicate;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -91,6 +92,12 @@ public interface ASTValidator {
         );
     }
 
+    static Consumer<ASTNode> notNegativeInt() {
+        return integer(value -> value >= 0,
+                node -> format("%s must be a not negative integer", node)
+        );
+    }
+
     static Consumer<ASTNode> number() {
         return node -> {
             JsonNode json = node.getNode();
@@ -122,6 +129,17 @@ public interface ASTValidator {
         return node -> itemStream.forEach(entry -> entry.getValue().validate());
     }
 
+    static Consumer<ASTNode> regex(String pattern) {
+        return node -> {
+            JsonNode json = node.getNode();
+            boolean x = !Pattern.matches(pattern, json.asText());
+            if (!json.isMissingNode() && json.isTextual() &&
+                    !Pattern.matches(pattern, json.asText())) {
+                node.throwError("%s must match %s", json, pattern);
+            }
+        };
+    }
+
     static Consumer<ASTNode> required() {
         return node -> {
             JsonNode json = node.getNode();
@@ -146,8 +164,6 @@ public interface ASTValidator {
      * @param node the node
      */
     static Consumer<ASTNode> validate(ASTNode node) {
-        return node1 -> {
-            node.validate();
-        };
+        return node1 -> node.validate();
     }
 }

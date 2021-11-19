@@ -66,10 +66,52 @@ class RouteASTTest {
                 ), "/nodes is missing"
         ), Arguments.of(text(
                         "---",
+                        "maxVehicles: aaa",
                         "sites: {}",
                         "nodes: {}",
+                        "paths: []",
                         "edges: []"
-                ), "/paths is missing"
+                ), "/maxVehicles \"aaa\" must be an integer"
+        ), Arguments.of(text(
+                        "---",
+                        "maxVehicles: -1",
+                        "sites: {}",
+                        "nodes: {}",
+                        "paths: []",
+                        "edges: []"
+                ), "/maxVehicles -1 must be a not negative integer"
+        ), Arguments.of(text(
+                        "---",
+                        "version: \"aaa\"",
+                        "sites: {}",
+                        "nodes: {}",
+                        "paths: []",
+                        "edges: []"
+                ), "/version \\\"aaa\\\" must match \\(\\\\d\\+\\)\\\\.\\(\\\\d\\+\\)"
+        ), Arguments.of(text(
+                        "---",
+                        "version: \"2.0\"",
+                        "sites: {}",
+                        "nodes: {}",
+                        "paths: []",
+                        "edges: []"
+                ), "/version 2.0 not compatible with 1.0"
+        ), Arguments.of(text(
+                        "---",
+                        "version: \"1.1\"",
+                        "sites: {}",
+                        "nodes: {}",
+                        "paths: []",
+                        "edges: []"
+                ), "/version 1.1 not compatible with 1.0"
+        ), Arguments.of(text(
+                        "---",
+                        "maxVehicles: -1",
+                        "sites: {}",
+                        "nodes: {}",
+                        "paths: []",
+                        "edges: []"
+                ), "/maxVehicles -1 must be a not negative integer"
         ), Arguments.of(text(
                         "---",
                         "sites: {}",
@@ -246,6 +288,8 @@ class RouteASTTest {
     void validate() throws IOException {
         JsonNode root = Utils.fromText(text(
                 "---",
+                "version: \"1.0\"",
+                "maxVehicles: 1000",
                 "edges:",
                 "- start: node0",
                 "  end: node1",
@@ -276,6 +320,9 @@ class RouteASTTest {
                 "  destination: node0"
         ));
         RouteAST node = new RouteAST(root, JsonPointer.empty());
+
+        assertThat(node.maxVehicles().getValue(), equalTo(1000));
+
         node.validate();
 
         List<EdgeAST> edges = node.edges().items();
@@ -391,9 +438,9 @@ class RouteASTTest {
                         hasProperty("speedLimit", equalTo(90.0 / 3.6))
                 )
         ));
-        assertThat(status.getPathCdf(), equalTo(new double[][]{
+        assertThat(status.getWeightMatrix().getValues(), equalTo(new double[][]{
                 {0, 1},
-                {2, 2}
+                {2, 0}
         }));
     }
 

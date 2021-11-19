@@ -39,6 +39,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mmarini.routes.model2.SiteNode.createSite;
 import static org.mmarini.routes.model2.TestUtils.optionalEmpty;
+import static org.mmarini.routes.model2.TestUtils.vehicleId;
 import static org.mmarini.routes.model2.Vehicle.createVehicle;
 
 class VehicleTest {
@@ -100,7 +101,7 @@ class VehicleTest {
          */
         assertNotNull(result);
         assertThat(result, not(sameInstance(vehicle)));
-        assertThat(result, equalTo(vehicle));
+        assertThat(result, vehicleId(vehicle));
         assertFalse(result.getCurrentEdge().isPresent());
         assertThat(result.getDeparture(), equalTo(dep));
         assertThat(result.getDestination(), equalTo(dest));
@@ -143,42 +144,6 @@ class VehicleTest {
         assertThat(vehicle.getEdgeEntryTime(), equalTo(0.0));
         assertFalse(vehicle.isCrossingNode(dep));
         assertTrue(vehicle.isRelatedToNode(dep));
-    }
-
-    @ParameterizedTest
-    @MethodSource("argsForCreate")
-    void hashAndEquals(int x0, int y0, int x1, int y1) {
-         /*
-         Given a departure ode
-         and a destination node
-         */
-        SiteNode dep = createSite(x0, y0);
-        SiteNode dest = createSite(x1, y1);
-        Vehicle vehicle = createVehicle(dep, dest, 0);
-
-        // itself
-        assertEquals(vehicle, vehicle);
-
-        // null
-        assertNotEquals(null, vehicle);
-
-        // wrong class
-        assertNotEquals(new Object(), vehicle);
-
-        // new vehicle
-        assertNotEquals(createVehicle(dep, dest, 0), vehicle);
-
-        // same id
-        assertEquals(
-                new Vehicle(vehicle.getId(), dep, dest, 0, null, MAX_DISTANCE, true, 0),
-                vehicle);
-
-        // hashCode
-        assertThat(vehicle.hashCode(),
-                equalTo(
-                        new Vehicle(
-                                vehicle.getId(), dep, dest, 0, null, MAX_DISTANCE, true, 0)
-                                .hashCode()));
     }
 
     @ParameterizedTest
@@ -244,7 +209,7 @@ class VehicleTest {
         /*
         Than vehicle should be equal
          */
-        assertThat(result, equalTo(vehicle));
+        assertThat(result, vehicleId(vehicle));
         assertThat(result, hasProperty("departure", equalTo(site)));
     }
 
@@ -270,7 +235,7 @@ class VehicleTest {
         /*
         Than vehicle should be equal
          */
-        assertThat(result, equalTo(vehicle));
+        assertThat(result, vehicleId(vehicle));
         assertThat(result, hasProperty("destination", equalTo(site)));
     }
 

@@ -81,30 +81,6 @@ class SiteNodeTest {
     }
 
     @ParameterizedTest
-    @MethodSource("points")
-    void equalsAndHash(int x, int y) {
-        SiteNode node = createSite(x, y);
-
-        // itself
-        assertEquals(node, node);
-
-        // null
-        assertNotEquals(null, node);
-
-        // wrong class
-        assertNotEquals(node, new Object());
-
-        // different location
-        assertNotEquals(node, createSite(x + 1, y + 1));
-
-        // same location
-        assertEquals(node, createSite(x, y));
-
-        // hashCode
-        assertThat(node.hashCode(), equalTo(createSite(x, y).hashCode()));
-    }
-
-    @ParameterizedTest
     @MethodSource("points2")
     void getDistanceSq(int x, int y, int x1, int y1) {
         Point2D point2 = new Point2D.Double(x1, y1);
@@ -129,7 +105,7 @@ class SiteNodeTest {
         assertFalse(node.isSameLocation(createSite(x + 1, y + 1)));
 
         // same location
-        assertEquals(node, createSite(x, y));
+        assertTrue(node.isSameLocation(createSite(x, y)));
 
         // site same location
         assertTrue(node.isSameLocation(createNode(x, y)));

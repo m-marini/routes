@@ -62,6 +62,7 @@ public class ScrollMap extends JScrollPane {
     private double fps;
     private long numVehicles;
     private double tps;
+    private double speed;
 
     /**
      * @param routeMap the route map
@@ -76,6 +77,7 @@ public class ScrollMap extends JScrollPane {
         edgeLegendPattern = loadPatterns("ScrollMap.edgeLegendPattern");
         init();
         createFlows();
+        setDoubleBuffered(true);
     }
 
     /**
@@ -293,6 +295,7 @@ public class ScrollMap extends JScrollPane {
         String[] msg = new String[]{
                 String.format("TPS: %.2f", tps),
                 String.format("FPS: %.2f", fps),
+                String.format("Speed: %-2.2f", speed),
                 String.format("Vehicles: %d", this.numVehicles)
         };
         computeRect(msg);
@@ -434,10 +437,13 @@ public class ScrollMap extends JScrollPane {
      */
     public void setFps(double fps) {
         this.fps = fps;
+        repaint();
+
     }
 
     public void setNumVehicles(long numVehicles) {
         this.numVehicles = numVehicles;
+        repaint();
     }
 
     /**
@@ -450,12 +456,21 @@ public class ScrollMap extends JScrollPane {
     }
 
     /**
+     * @param speed the speed
+     */
+    public void setSpeed(double speed) {
+        this.speed = speed;
+        repaint();
+    }
+
+    /**
      * Sets the transitions per second
      *
      * @param tps the transitions per second
      */
     public void setTps(double tps) {
         this.tps = tps;
+        repaint();
     }
 
     /**

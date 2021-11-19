@@ -40,6 +40,8 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mmarini.routes.model2.CrossNode.createNode;
 import static org.mmarini.routes.model2.SiteNode.createSite;
+import static org.mmarini.routes.model2.TestUtils.edgeAt;
+import static org.mmarini.routes.model2.TestUtils.nodeAt;
 import static org.mmarini.routes.model2.Topology.createTopology;
 
 class TopologyTest {
@@ -171,8 +173,19 @@ class TopologyTest {
         CrossNode node4 = createNode(51 - 10 * sqrt(0.5), 10 * sqrt(0.5));
         MapEdge edge13 = new MapEdge(node1, node3, SPEED_LIMIT, HIGH_PRIORITY);
         MapEdge edge41 = new MapEdge(node4, node1, SPEED_LIMIT, LOW_PRIORITY);
-        assertThat(result.getNodes(), containsInAnyOrder(node0, node1, node2, node3, node4));
-        assertThat(result.getEdges(), containsInAnyOrder(edge01, edge12, edge13, edge41));
+        assertThat(result.getNodes(), containsInAnyOrder(
+                nodeAt(node0),
+                nodeAt(node1),
+                nodeAt(node2),
+                nodeAt(node3),
+                nodeAt(node4)
+        ));
+        assertThat(result.getEdges(), containsInAnyOrder(
+                edgeAt(edge01),
+                edgeAt(edge12),
+                edgeAt(edge13),
+                edgeAt(edge41)
+        ));
     }
 
     @Test
@@ -192,7 +205,6 @@ class TopologyTest {
         Topology topology = createTopology(
                 List.of(node0, node1, node2, node3),
                 List.of(edge01, edge21, edge31));
-        MapEdge edge32 = new MapEdge(node3, node2, SPEED_LIMIT, LOW_PRIORITY);
 
         /*
         When adding an edge
@@ -236,11 +248,23 @@ class TopologyTest {
         MapEdge edge24 = new MapEdge(node2, node4, SPEED_LIMIT, LOW_PRIORITY);
         MapEdge edge34 = new MapEdge(node3, node4, SPEED_LIMIT, LOW_PRIORITY);
         assertNotNull(result);
-        assertThat(result.getSites(), containsInAnyOrder(node0, node2, node4, node3));
-        assertThat(result.getNodes(), containsInAnyOrder(
-                node0, node2, node3, node4
+        assertThat(result.getSites(), containsInAnyOrder(
+                nodeAt(node0),
+                nodeAt(node2),
+                nodeAt(node3),
+                nodeAt(node4)
         ));
-        assertThat(result.getEdges(), containsInAnyOrder(edge04, edge24, edge34));
+        assertThat(result.getNodes(), containsInAnyOrder(
+                nodeAt(node0),
+                nodeAt(node2),
+                nodeAt(node3),
+                nodeAt(node4)
+        ));
+        assertThat(result.getEdges(), containsInAnyOrder(
+                edgeAt(edge04),
+                edgeAt(edge24),
+                edgeAt(edge34)
+        ));
     }
 
     @Test
@@ -274,11 +298,20 @@ class TopologyTest {
         CrossNode node4 = createNode(0, 10);
         MapEdge edge41 = new MapEdge(node4, node1, SPEED_LIMIT, LOW_PRIORITY);
         assertNotNull(result);
-        assertThat(result.getSites(), containsInAnyOrder(node0, node2));
+        assertThat(result.getSites(), containsInAnyOrder(
+                nodeAt(node0),
+                nodeAt(node2)));
         assertThat(result.getNodes(), containsInAnyOrder(
-                node0, node2, node1, node4
+                nodeAt(node0),
+                nodeAt(node2),
+                nodeAt(node1),
+                nodeAt(node4)
         ));
-        assertThat(result.getEdges(), containsInAnyOrder(edge01, edge21, edge41));
+        assertThat(result.getEdges(), containsInAnyOrder(
+                edgeAt(edge01),
+                edgeAt(edge21),
+                edgeAt(edge41)
+        ));
     }
 
     @Test
@@ -332,7 +365,7 @@ class TopologyTest {
                 List.of(node0, node1, node2),
                 List.of(edge01, edge21));
         /*
-        And sites, nodes, edges of onother topology
+        And sites, nodes, edges of another topology
         0 ---> 1 <--- 2
           <---
          */
@@ -379,7 +412,7 @@ class TopologyTest {
                 List.of(node0, node1, node2),
                 List.of(edge01, edge21));
         /*
-        And sites, nodes, edges of onother topology
+        And sites, nodes, edges of another topology
         0 ---> 1 <--- 2
           <---
          */
@@ -423,7 +456,7 @@ class TopologyTest {
                 List.of(node0, node1, node2),
                 List.of(edge01, edge21));
         /*
-        And sites, nodes, edges of onother topology
+        And sites, nodes, edges of another topology
         0 ---> 1 <--- 2
           <---
          */
@@ -444,8 +477,12 @@ class TopologyTest {
         Map<SiteNode, SiteNode> siteMap10 = topology1.createSiteMap(topology0);
 
         // Then should return the new edge
-        assertThat(siteMap01, hasEntry(node0, node10));
-        assertThat(siteMap10, hasEntry(node0, node10));
+        assertThat(siteMap01, hasEntry(
+                nodeAt(node0),
+                nodeAt(node10)));
+        assertThat(siteMap10, hasEntry(
+                nodeAt(node0),
+                nodeAt(node10)));
     }
 
     @Test
@@ -514,11 +551,21 @@ class TopologyTest {
         // And node list
         assertThat(result.getNodes(), contains(node0, node2, node1));
         // And edge list
-        assertThat(result.getEdges(), containsInAnyOrder(edge21, edge01, edge10, edge12));
+        assertThat(result.getEdges(), containsInAnyOrder(
+                edgeAt(edge21),
+                edgeAt(edge01),
+                edgeAt(edge10),
+                edgeAt(edge12)
+        ));
         // And incoming edge for each node
-        assertThat(result.getIncomeEdges(node0), contains(edge10));
-        assertThat(result.getIncomeEdges(node1), contains(edge01, edge21));
-        assertThat(result.getIncomeEdges(node2), contains(edge12));
+        assertThat(result.getIncomeEdges(node0), contains(
+                edgeAt(edge10)));
+        assertThat(result.getIncomeEdges(node1), contains(
+                edgeAt(edge01),
+                edgeAt(edge21)
+        ));
+        assertThat(result.getIncomeEdges(node2), contains(
+                edgeAt(edge12)));
 
         assertThat(result.getEdges().get(0), hasProperty("speedLimit", equalTo(4d)));
         assertThat(result.getEdges().get(1), hasProperty("speedLimit", equalTo(4d)));

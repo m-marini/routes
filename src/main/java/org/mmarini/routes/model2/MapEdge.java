@@ -28,7 +28,6 @@
 package org.mmarini.routes.model2;
 
 import java.awt.geom.Point2D;
-import java.util.Objects;
 import java.util.StringJoiner;
 
 import static java.util.Objects.requireNonNull;
@@ -89,14 +88,6 @@ public class MapEdge implements MapElement {
     @Override
     public double distanceSqFrom(final Point2D point) {
         return point.distanceSq(closerFrom(point));
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        MapEdge mapEdge = (MapEdge) o;
-        return begin.equals(mapEdge.begin) && end.equals(mapEdge.end);
     }
 
     /**
@@ -215,11 +206,6 @@ public class MapEdge implements MapElement {
      */
     public double getTransitTime() {
         return getLength() / speedLimit;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(begin, end);
     }
 
     /**

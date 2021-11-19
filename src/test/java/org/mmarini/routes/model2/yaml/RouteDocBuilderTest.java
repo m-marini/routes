@@ -45,6 +45,7 @@ import static org.mmarini.routes.model2.StatusImpl.createStatus;
 import static org.mmarini.routes.model2.Topology.createTopology;
 
 class RouteDocBuilderTest {
+    public static final int MAX_VEHICLES = 4000;
     static final double SPEED_LIMIT = 10.0;
     static final int PRIORITY = 0;
     static final double FREQUENCY = 1.2;
@@ -63,19 +64,21 @@ class RouteDocBuilderTest {
         MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
         MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
         MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        StatusImpl status = createStatus(
+        StatusImpl status = createStatus(MAX_VEHICLES, SPEED_LIMIT, FREQUENCY, 0,
                 createTopology(
                         List.of(node0, node2, node1),
                         List.of(edge01, edge10, edge12, edge21)
-                ), 0,
-                List.of(), SPEED_LIMIT, FREQUENCY);
+                ),
+                List.of());
 
         String result = RouteDocBuilder.mapper.writeValueAsString(
                 RouteDocBuilder.build(status));
         assertThat(result, equalTo(TestUtils.text(
                 "---",
+                "version: \"1.0\"",
+                "maxVehicles: " + MAX_VEHICLES,
                 "default:",
-                "  frequence: 1.2",
+                "  frequence: " + FREQUENCY,
                 "  speedLimit: " + SPEED_LIMIT * 3.6,
                 "sites:",
                 "  Node_0:",

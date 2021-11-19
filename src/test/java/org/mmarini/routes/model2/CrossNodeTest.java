@@ -93,30 +93,6 @@ class CrossNodeTest {
 
     @ParameterizedTest
     @MethodSource("points")
-    void equalsAndHash(int x, int y) {
-        CrossNode node = createNode(x, y);
-
-        // itself
-        assertEquals(node, node);
-
-        // null
-        assertNotEquals(null, node);
-
-        // wrong class
-        assertNotEquals(node, new Object());
-
-        // different location
-        assertNotEquals(node, createNode(x + 1, y + 1));
-
-        // same location
-        assertEquals(node, createNode(x, y));
-
-        // hashCode
-        assertThat(node.hashCode(), equalTo(new CrossNode(new Point2D.Double(x, y)).hashCode()));
-    }
-
-    @ParameterizedTest
-    @MethodSource("points")
     void isSameLocation(int x, int y) {
         CrossNode node = createNode(x, y);
 
@@ -127,7 +103,7 @@ class CrossNodeTest {
         assertFalse(node.isSameLocation(createNode(x + 1, y + 1)));
 
         // same location
-        assertEquals(node, createNode(x, y));
+        assertTrue(node.isSameLocation(createNode(x, y)));
 
         // site same location
         assertTrue(node.isSameLocation(createSite(x, y)));

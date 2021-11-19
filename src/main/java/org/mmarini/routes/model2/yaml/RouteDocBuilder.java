@@ -45,6 +45,7 @@ import static java.util.Objects.requireNonNull;
 import static org.mmarini.Tuple2.toMap;
 import static org.mmarini.Utils.getValue;
 import static org.mmarini.Utils.zipWithIndex;
+import static org.mmarini.routes.model2.yaml.RouteAST.VERSION;
 
 public class RouteDocBuilder {
     static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
@@ -66,6 +67,8 @@ public class RouteDocBuilder {
                 ))
                 .collect(toMap());
         ObjectNode root = mapper.createObjectNode();
+        root.put("version", VERSION);
+        root.put("maxVehicles", status.getMaxVehicle());
         root.set("default", createDefault(status));
         root.set("sites", createSites(status.getSites(), nameByNodes));
         root.set("paths", createPaths(status, nameByNodes));

@@ -41,13 +41,13 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mmarini.routes.model2.CrossNode.createNode;
 import static org.mmarini.routes.model2.SiteNode.createSite;
-import static org.mmarini.routes.model2.StatusImpl.createStatus;
 import static org.mmarini.routes.model2.TestUtils.optionalEmpty;
 import static org.mmarini.routes.model2.TestUtils.optionalOf;
 import static org.mmarini.routes.model2.Topology.createTopology;
+import static org.mmarini.routes.model2.TrafficEngineImpl.createEngine;
 import static org.mmarini.routes.model2.Vehicle.createVehicle;
 
-class StatusImplWaitingVehiclesTest {
+class TrafficEngineWaitingVehiclesTest {
 
     static final int X0 = 0;
     static final int Y0 = 0;
@@ -62,6 +62,7 @@ class StatusImplWaitingVehiclesTest {
     static final double MAX_TIME = 10;
     static final double SPEED_LIMIT = 10.0;
     static final int PRIORITY = 0;
+    private static final int MAX_VEHICLES = 1000;
 
     static Stream<Arguments> argForTimeAndElapsed() {
         return ArgumentGenerator.create(SEED)
@@ -91,7 +92,7 @@ class StatusImplWaitingVehiclesTest {
         And vehicle1 waiting on site3 to any without path
          */
         Vehicle v1 = createVehicle(node3, node0, 0);
-        StatusImpl status = createStatus(topology, time,
+        TrafficEngineImpl status = createEngine(MAX_VEHICLES, topology, time,
                 List.of(v1), SPEED_LIMIT, 0);
 
         /*
@@ -117,7 +118,7 @@ class StatusImplWaitingVehiclesTest {
                 .setCurrentEdge(edge01);
         Vehicle v2 = createVehicle(node0, node2, 0);
 
-        StatusImpl status = createStatus(topology, time,
+        TrafficEngineImpl status = createEngine(MAX_VEHICLES, topology, time,
                 List.of(v0, v2), SPEED_LIMIT, 0);
 
         /*
@@ -145,7 +146,7 @@ class StatusImplWaitingVehiclesTest {
                 .setDistance(edge21.getLength() - 10)
                 .setReturning(true)
                 .setEdgeEntryTime(time - elapsed);
-        StatusImpl status = createStatus(topology, time,
+        TrafficEngineImpl status = createEngine(MAX_VEHICLES, topology, time,
                 List.of(v3, v6), SPEED_LIMIT, 0);
 
         /*
@@ -172,7 +173,7 @@ class StatusImplWaitingVehiclesTest {
                 .setCurrentEdge(edge12)
                 .setDistance(edge12.getLength());
 
-        StatusImpl status = createStatus(topology, time,
+        TrafficEngineImpl status = createEngine(MAX_VEHICLES, topology, time,
                 List.of(v4), SPEED_LIMIT, 0);
 
         /*
@@ -202,7 +203,7 @@ class StatusImplWaitingVehiclesTest {
                 .setCurrentEdge(edge10)
                 .setDistance(edge10.getLength());
 
-        StatusImpl status = createStatus(topology, time,
+        TrafficEngineImpl status = createEngine(MAX_VEHICLES, topology, time,
                 List.of(v0, v5), SPEED_LIMIT, 0);
 
         /*
@@ -237,7 +238,7 @@ class StatusImplWaitingVehiclesTest {
                 .setDistance(edge10.getLength() - 10)
                 .setReturning(true);
 
-        StatusImpl status = createStatus(topology, time,
+        TrafficEngineImpl status = createEngine(MAX_VEHICLES, topology, time,
                 List.of(v5, v6, v7), SPEED_LIMIT, 0);
 
         /*
@@ -266,7 +267,7 @@ class StatusImplWaitingVehiclesTest {
                 .setCurrentEdge(edge12)
                 .setDistance(edge12.getLength());
 
-        StatusImpl status = createStatus(topology, time,
+        TrafficEngineImpl status = createEngine(MAX_VEHICLES, topology, time,
                 List.of(v7), SPEED_LIMIT, 0);
 
         /*
@@ -294,7 +295,7 @@ class StatusImplWaitingVehiclesTest {
                 .setReturning(true)
                 .setDistance(edge12.getLength());
 
-        StatusImpl status = createStatus(topology, time,
+        TrafficEngineImpl status = createEngine(MAX_VEHICLES, topology, time,
                 List.of(v8), SPEED_LIMIT, 0);
 
         /*
