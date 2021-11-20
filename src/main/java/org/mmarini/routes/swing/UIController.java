@@ -550,7 +550,7 @@ public class UIController {
                     StatusImpl status = new RouteAST(doc, JsonPointer.empty()).build();
                     mainFrame.setSaveActionEnabled(true);
                     mainFrame.setTitle(file.getName());
-                    TrafficEngineImpl seed = createEngine(DEFAULT_MAX_VEHICLES,
+                    TrafficEngineImpl seed = createEngine(status.getMaxVehicle(),
                             status.getTopology(),
                             status.getTime(),
                             List.of(),
