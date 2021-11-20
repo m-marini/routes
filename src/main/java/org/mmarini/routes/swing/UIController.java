@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
@@ -264,7 +265,13 @@ public class UIController {
         mainFrame.getRoutesFlowable().doOnNext(e -> setRouteSetting()).subscribe();
         mainFrame.getNewRandomFlowable().doOnNext(e -> newRandomMap()).subscribe();
         mainFrame.getSaveAsFlowable().doOnNext(e -> saveAs()).subscribe();
-        mainFrame.getWindowFlowable().doOnNext(e -> start()).subscribe();
+        mainFrame.getWindowFlowable()
+                .filter(e -> e.getID() == WindowEvent.WINDOW_OPENED)
+                .doOnNext(e -> {
+                    logger.info("Window opened");
+                    start();
+                })
+                .subscribe();
 
         edgePane.getChangeFlowable().doOnNext(this::changeEdge).subscribe();
 
