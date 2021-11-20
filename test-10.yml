@@ -1,4 +1,5 @@
 ---
+maxVehicles: 8000
 default:
   frequence: 1.0
 sites:
