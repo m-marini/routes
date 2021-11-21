@@ -39,6 +39,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mmarini.routes.model2.Constants.DEFAULT_SPEED_LIMIT_KMH;
+import static org.mmarini.routes.model2.Constants.DEFAULT_SPEED_LIMIT_MPS;
 import static org.mmarini.routes.model2.yaml.TestUtils.text;
 
 class DefaultsASTTest {
@@ -48,13 +50,13 @@ class DefaultsASTTest {
         JsonNode file = Utils.fromText(text(
                 "---",
                 "defaultFrequence: 0.33",
-                "speedLimit: 130",
+                "speedLimit: 90",
                 "defaultPriority: 1"
         ));
         DefaultsAST node = new DefaultsAST(file, JsonPointer.empty());
         node.validate();
         assertThat(node.defaultFrequence().getValue(), equalTo(0.33));
-        assertThat(node.speedLimit().getValue(), equalTo(130.0));
+        assertThat(node.speedLimit().getValue(), equalTo(90.0));
         assertThat(node.defaultPriority().getValue(), equalTo(1));
     }
 
@@ -68,7 +70,7 @@ class DefaultsASTTest {
         DefaultsAST node = new DefaultsAST(file, JsonPointer.empty());
         node.validate();
         assertThat(node.defaultFrequence().getValue(), equalTo(0.33));
-        assertThat(node.speedLimit().getValue(), equalTo(90.0));
+        assertThat(node.speedLimit().getValue(), equalTo(DEFAULT_SPEED_LIMIT_KMH));
         assertThat(node.defaultPriority().getValue(), equalTo(1));
     }
 
@@ -78,7 +80,7 @@ class DefaultsASTTest {
         DefaultsAST node = new DefaultsAST(file, JsonPointer.valueOf("/defaults"));
         node.validate();
         assertThat(node.defaultFrequence().getValue(), equalTo(1.0));
-        assertThat(node.speedLimit().getValue(), equalTo(90.0));
+        assertThat(node.speedLimit().getValue(), equalTo(DEFAULT_SPEED_LIMIT_KMH));
         assertThat(node.defaultPriority().getValue(), equalTo(0));
     }
 
