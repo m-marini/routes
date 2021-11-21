@@ -214,7 +214,7 @@ public class MapEdge implements MapElement {
             int maxVehicles = (int) floor(length / VEHICLE_LENGTH);
             int optimalCount = (int) floor(length / (getSafetyDistance() + VEHICLE_LENGTH));
             if (vehicleCount <= optimalCount) {
-                return vehicleCount / optimalCount * 0.5;
+                return 0.5 * vehicleCount / optimalCount;
             } else {
                 /*
                 (vehicleCount - optimalCount) / (maxVehicles - optimalCount) * 0.5 + 0.5;

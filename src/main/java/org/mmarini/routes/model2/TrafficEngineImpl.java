@@ -165,7 +165,7 @@ public class TrafficEngineImpl implements TrafficEngine {
                 weights[i][j] = i == j ? 0 : 1;
             }
         }
-        return createEngine(maxVehicles, topology, time, vehicles, speedLimit, frequency, weights);
+        return createEngine(maxVehicles, topology, time, new ArrayList<>(vehicles), speedLimit, frequency, weights);
     }
 
     /**
@@ -212,12 +212,13 @@ public class TrafficEngineImpl implements TrafficEngine {
         double[][] pathsCdf = toCdf(createRandomWeights(n, profile.getMinWeight(), random));
         return new TrafficEngineImpl(maxVehicles, 0,
                 createTopology(nodes, List.of()),
-                List.of(),
+                new ArrayList<>(),
                 speedLimits,
                 profile.getFrequency(),
                 pathsCdf,
-                Map.of(), Map.of(),
-                Map.of(),
+                new HashMap<>(),
+                new HashMap<>(),
+                new HashMap<>(),
                 null);
     }
 
@@ -331,19 +332,21 @@ public class TrafficEngineImpl implements TrafficEngine {
                                 Map<MapEdge, LinkedList<Vehicle>> vehiclesByEdge, Map<Vehicle, Vehicle> nextVehicles,
                                 Map<MapEdge, Double> edgeTransitTimes,
                                 Map<Tuple2<MapNode, MapNode>, MapEdge> edgeByPath) {
-        this.maxVehicles = maxVehicles;
         this.topology = requireNonNull(topology);
         this.vehicles = requireNonNull(vehicles);
         this.nextVehicles = requireNonNull(nextVehicles);
         this.edgeTransitTimes = requireNonNull(edgeTransitTimes);
         this.vehiclesByEdge = requireNonNull(vehiclesByEdge);
         this.pathCdf = requireNonNull(pathCdf);
+        assert edgeTransitTimes.size() == topology.getEdges().size();
+//        assert vehiclesByEdge.size() == topology.getEdges().size();
+        assert pathCdf.length == topology.getSites().size();
+        this.maxVehicles = maxVehicles;
         this.frequency = frequency;
         this.speedLimit = speedLimit;
         this.time = time;
         this.edgeByPath = edgeByPath;
         pathInterval = DEFAULT_PATH_INTERVAL;
-        assert edgeTransitTimes.size() == topology.getEdges().size();
     }
 
     @Override
