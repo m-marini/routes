@@ -56,11 +56,11 @@ import java.util.stream.Stream;
 import static java.lang.Math.min;
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.Utils.getValue;
-import static org.mmarini.routes.model2.Constants.PRECISION;
-import static org.mmarini.routes.model2.Constants.computeSafetySpeed;
+import static org.mmarini.routes.model2.Constants.*;
 import static org.mmarini.routes.model2.Topology.createTopology;
 import static org.mmarini.routes.model2.TrafficEngineImpl.createEngine;
 import static org.mmarini.routes.model2.TrafficEngineImpl.createRandom;
+import static org.mmarini.routes.swing.UIConstants.*;
 import static org.mmarini.yaml.Utils.fromFile;
 import static org.mmarini.yaml.Utils.fromResource;
 
@@ -72,11 +72,7 @@ import static org.mmarini.yaml.Utils.fromResource;
  * @author marco.marini@mmarini.org
  */
 public class UIController {
-    public static final int DEFAULT_MAX_VEHICLES = 4000;
     private static final Logger logger = LoggerFactory.getLogger(UIController.class);
-    private static final double DEFAULT_SPEED_LIMIT = 130 / 3.6;
-    private static final double DEFAULT_FREQUENCY = 0.3;
-    private static final long FPS = 60;
     private final JFileChooser fileChooser;
     private final OptimizePane optimizePane;
     private final RoutePane routesPane;
@@ -114,14 +110,14 @@ public class UIController {
                 createTopology(List.of(), List.of()),
                 0,
                 List.of(),
-                DEFAULT_SPEED_LIMIT,
+                DEFAULT_SPEED_LIMIT_MPS,
                 DEFAULT_FREQUENCY,
                 new double[0][0]);
         simulator = SimulatorEngineImpl.<Status, TrafficEngine>create(
                 initialSeed,
                 this::performTimeTick,
                 TrafficEngine::buildStatus
-        ).setEventInterval(Duration.ofNanos(1000000000L / FPS));
+        ).setEventInterval(Duration.ofNanos(NANOSPS / FPS));
 
 
         mapElementPane = new MapElementPane();
@@ -334,19 +330,19 @@ public class UIController {
      * @param moduleParameters the module parameters
      */
     private void createModule(RouteMap.ModuleParameters moduleParameters) {
-        simulator.request(engine ->
-                        engine.addModule(moduleParameters.getModule(),
-                                moduleParameters.getLocation(),
-                                moduleParameters.getDirection(),
-                                PRECISION))
-                .doOnSuccess(engine -> {
-                    statusView = createStatusView(engine.buildStatus());
-                    refreshTopology();
-                    mapViewPane.reset();
-                    mapViewPane.selectSelector();
-                    mainFrame.repaint();
+        double scale = routeMap.getScale();
+        double precision = computePrecisionDistance(scale);
+        simulator.request(engine -> engine.addModule(moduleParameters.getModule(),
+                moduleParameters.getLocation(),
+                moduleParameters.getDirection(),
+                precision)).doOnSuccess(engine -> {
+            statusView = createStatusView(engine.buildStatus());
+            refreshTopology();
+            mapViewPane.reset();
+            mapViewPane.selectSelector();
+            mainFrame.repaint();
 
-                }).subscribe();
+        }).subscribe();
     }
 
     StatusView createStatusView(Status status) {
@@ -499,7 +495,9 @@ public class UIController {
      */
     private void newMap() {
         Topology t = createTopology(List.of(), List.of());
-        TrafficEngineImpl engine = createEngine(DEFAULT_MAX_VEHICLES, t, 0, List.of(), DEFAULT_SPEED_LIMIT, DEFAULT_FREQUENCY);
+        TrafficEngineImpl engine = createEngine(DEFAULT_MAX_VEHICLES, t, 0, List.of(),
+                DEFAULT_SPEED_LIMIT_KMH / KMPHSPM,
+                DEFAULT_FREQUENCY);
         simulator.pushSeed(engine)
                 .doOnSuccess(engine1 -> {
                     statusView = createStatusView(engine1.buildStatus());
@@ -521,7 +519,8 @@ public class UIController {
                 Messages.getString("RouteMediator.mapProfilePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
         if (opt == JOptionPane.OK_OPTION) {
             final MapProfile profile = mapProfilePane.getProfile();
-            TrafficEngineImpl randomStatus = createRandom(DEFAULT_MAX_VEHICLES, random, profile, DEFAULT_SPEED_LIMIT);
+            TrafficEngineImpl randomStatus = createRandom(DEFAULT_MAX_VEHICLES, random, profile,
+                    DEFAULT_SPEED_LIMIT_MPS);
             simulator.pushSeed(randomStatus)
                     .doOnSuccess(engine -> {
                         statusView = createStatusView(engine.buildStatus());

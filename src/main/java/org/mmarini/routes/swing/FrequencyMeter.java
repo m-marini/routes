@@ -31,10 +31,10 @@ package org.mmarini.routes.swing;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.processors.PublishProcessor;
 
-public class FrequencyMeter {
-    private static final long MAX_FPS_MILLIS = 300L;
-    private static final double SECS_PER_MILLIS = 1e-3;
+import static org.mmarini.routes.swing.UIConstants.MAX_FPS_MILLIS;
+import static org.mmarini.routes.swing.UIConstants.SECS_PER_MILLIS;
 
+public class FrequencyMeter {
     /**
      * Returns a default frequency meter with 300 ms of sample interval
      */

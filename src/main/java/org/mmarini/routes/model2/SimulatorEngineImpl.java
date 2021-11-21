@@ -45,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.*;
 
 import static java.lang.Math.round;
+import static org.mmarini.routes.swing.UIConstants.NANOSPS;
 
 /**
  * Generic simulator.
@@ -62,9 +63,7 @@ import static java.lang.Math.round;
  */
 public class SimulatorEngineImpl<T, S> implements SimulatorEngine<T, S> {
 
-    public static final double NANOS = 1e-9;
     private static final Logger logger = LoggerFactory.getLogger(SimulatorEngineImpl.class);
-    private static long maxElaps;
 
     /**
      * Returns a simulator.
@@ -152,18 +151,12 @@ public class SimulatorEngineImpl<T, S> implements SimulatorEngine<T, S> {
 
     void processCycle() {
         while (status == Status.ACTIVE) {
-            long simClockTime = round(simulatedTime / NANOS / speed);
+            long simClockTime = round(simulatedTime * NANOSPS / speed);
             deque();
             // Computes the simulation time
-            double simulatingTime = eventInterval * NANOS * speed - simulatedTime;
+            double simulatingTime = speed * eventInterval / NANOSPS - simulatedTime;
             // Computes the next event
-            long a = System.nanoTime();
             Tuple2<S, Double> tuple = nextSeed.apply(seed, simulatingTime);
-            long elaps = System.nanoTime() - a;
-            if (elaps > maxElaps) {
-                maxElaps = elaps;
-                logger.info("max elaps {} ms", maxElaps / 1e6);
-            }
             seed = tuple._1;
             simulatedTime += tuple._2;
             Instant now = Instant.now();
@@ -173,7 +166,7 @@ public class SimulatorEngineImpl<T, S> implements SimulatorEngine<T, S> {
                 // Emits data
                 // reset simulation time track last event instant
                 emitEvent(emit.apply(seed));
-                double actualSpeed = simulatingTime / (processTime * NANOS);
+                double actualSpeed = simulatingTime / processTime * NANOSPS;
                 emitSpeed(actualSpeed);
                 simulatedTime = 0;
                 lastEvent = now;

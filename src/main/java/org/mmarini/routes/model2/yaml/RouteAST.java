@@ -48,6 +48,8 @@ import static java.lang.Integer.parseInt;
 import static java.util.Map.entry;
 import static org.mmarini.Utils.entriesToMap;
 import static org.mmarini.Utils.getValue;
+import static org.mmarini.routes.model2.Constants.DEFAULT_MAX_VEHICLES;
+import static org.mmarini.routes.model2.Constants.KMPHSPM;
 import static org.mmarini.routes.model2.StatusImpl.createStatus;
 import static org.mmarini.yaml.Utils.fromFile;
 import static org.mmarini.yaml.Utils.fromResource;
@@ -55,8 +57,6 @@ import static org.mmarini.yaml.Utils.fromResource;
 public class RouteAST extends ASTNode {
 
     public static final String VERSION_PATTERN = "(\\d+)\\.(\\d+)";
-    private static final double KMPHSPM = 3.6;
-    private static final int DEFAULT_MAX_VEHICLES = 4000;
     private static final int MAJOR_VERSION = 1;
     private static final int MINOR_VERSION = 0;
     public static final String VERSION = MAJOR_VERSION + "." + MINOR_VERSION;

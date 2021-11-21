@@ -37,13 +37,12 @@ import org.mmarini.yaml.IntAST;
 
 import java.util.function.Consumer;
 
+import static org.mmarini.routes.model2.Constants.*;
+
 /**
  * AST node with default values of routes
  */
 public class DefaultsAST extends ASTNode {
-    private static final double DEFAULT_SPEED_LIMIT_KMH = 90;
-    private static final double DEFAULT_FREQUENCE = 1;
-    private static final int DEFAULT_PRIORITY = 0;
 
     /**
      * @param root the json node
@@ -57,7 +56,7 @@ public class DefaultsAST extends ASTNode {
         return DoubleAST.createOptionalNotNegativeDouble(
                 getRoot(),
                 path("defaultFrequence"),
-                DEFAULT_FREQUENCE);
+                DEFAULT_FREQUENCY);
     }
 
     public IntAST defaultPriority() {

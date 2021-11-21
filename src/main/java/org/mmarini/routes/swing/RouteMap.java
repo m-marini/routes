@@ -46,6 +46,8 @@ import java.awt.geom.Rectangle2D;
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static org.mmarini.routes.model2.Constants.VEHICLE_LENGTH;
 import static org.mmarini.routes.swing.StatusView.DEFAULT_NODE_COLOR;
+import static org.mmarini.routes.swing.UIConstants.CURSOR_SELECTION_PRECISION;
+import static org.mmarini.routes.swing.UIConstants.computePrecisionDistance;
 
 /**
  * @author marco.marini@mmarini.org
@@ -58,7 +60,6 @@ public class RouteMap extends JComponent {
     private static final double TRAFFIC_COLOR_SATURATION = 0.9;
     private static final long serialVersionUID = 1L;
     private static final Color EDGE_DRAGGING_COLOR = Color.GRAY;
-    private static final int CURSOR_SELECTION_PRECISION = 10;
     private static final int MAP_BORDER = 60;
     private final Rectangle2D mapBound;
     private final AffineTransform transform;
@@ -126,7 +127,7 @@ public class RouteMap extends JComponent {
             @Override
             public void handleMousePressed(MouseEvent ev) {
                 Point2D point = computeMapLocation(ev.getPoint());
-                status.findElement(point, (CURSOR_SELECTION_PRECISION / scale))
+                status.findElement(point, computePrecisionDistance(scale))
                         .ifPresentOrElse(RouteMap.this::setSelectedElement, RouteMap.this::clearSelection);
             }
 
@@ -146,7 +147,7 @@ public class RouteMap extends JComponent {
             public void handleMousePressed(final MouseEvent ev) {
                 begin = status.snapToNode(
                         computeMapLocation(ev.getPoint()),
-                        (CURSOR_SELECTION_PRECISION / scale));
+                        computePrecisionDistance(scale));
                 end = begin;
                 currentMode = endEdgeMode;
                 repaint();
@@ -193,7 +194,7 @@ public class RouteMap extends JComponent {
                 begin = computeMapLocation(ev.getPoint());
                 RouteMap.this.ctrPressed = (ev.getModifiersEx() & CTRL_DOWN_MASK) == CTRL_DOWN_MASK;
                 if (ctrPressed) {
-                    begin = status.snapToNode(begin, (CURSOR_SELECTION_PRECISION / scale));
+                    begin = status.snapToNode(begin, computePrecisionDistance(scale));
                 }
                 currentMode = moduleRotationMode;
                 repaint();
@@ -205,7 +206,7 @@ public class RouteMap extends JComponent {
                 if (mousePosition != null) {
                     Point2D point = computeMapLocation(mousePosition);
                     if (ctrPressed) {
-                        point = status.snapToNode(point, (CURSOR_SELECTION_PRECISION / scale));
+                        point = status.snapToNode(point, computePrecisionDistance(scale));
                     }
                     paintModule(point, 0., 0.);
                 }
@@ -505,7 +506,7 @@ public class RouteMap extends JComponent {
     private void handleEndEdge(final MouseEvent ev) {
         end = status.snapToNode(
                 computeMapLocation(ev.getPoint()),
-                (CURSOR_SELECTION_PRECISION / scale));
+                computePrecisionDistance(scale));
         if (end.distance(begin) > VEHICLE_LENGTH) {
             newEdgeProcessor.onNext(new EdgeCreation(begin, end));
             begin = end;

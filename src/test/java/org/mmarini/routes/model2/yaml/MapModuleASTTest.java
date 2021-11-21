@@ -47,6 +47,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mmarini.routes.model2.Constants.DEFAULT_SPEED_LIMIT_KMH;
+import static org.mmarini.routes.model2.Constants.DEFAULT_SPEED_LIMIT_MPS;
 import static org.mmarini.routes.model2.yaml.TestUtils.text;
 
 class MapModuleASTTest {
@@ -135,7 +137,7 @@ class MapModuleASTTest {
                 "- start: node0",
                 "  end: node1",
                 "  priority: 1",
-                "  speedLimit: 130",
+                "  speedLimit: 90",
                 "- start: node1",
                 "  end: node2",
                 "- start: node1",
@@ -160,22 +162,22 @@ class MapModuleASTTest {
         assertThat(edges, hasSize(4));
         assertThat(edges.get(0).start().getValue(), equalTo("node0"));
         assertThat(edges.get(0).end().getValue(), equalTo("node1"));
-        assertThat(edges.get(0).speedLimit().getValue(), equalTo(130.0));
+        assertThat(edges.get(0).speedLimit().getValue(), equalTo(90.0));
         assertThat(edges.get(0).priority().getValue(), equalTo(1));
 
         assertThat(edges.get(1).start().getValue(), equalTo("node1"));
         assertThat(edges.get(1).end().getValue(), equalTo("node2"));
-        assertThat(edges.get(1).speedLimit().getValue(), equalTo(90.0));
+        assertThat(edges.get(1).speedLimit().getValue(), equalTo(DEFAULT_SPEED_LIMIT_KMH));
         assertThat(edges.get(1).priority().getValue(), equalTo(0));
 
         assertThat(edges.get(2).start().getValue(), equalTo("node1"));
         assertThat(edges.get(2).end().getValue(), equalTo("node0"));
-        assertThat(edges.get(2).speedLimit().getValue(), equalTo(90.0));
+        assertThat(edges.get(2).speedLimit().getValue(), equalTo(DEFAULT_SPEED_LIMIT_KMH));
         assertThat(edges.get(2).priority().getValue(), equalTo(0));
 
         assertThat(edges.get(3).start().getValue(), equalTo("node2"));
         assertThat(edges.get(3).end().getValue(), equalTo("node1"));
-        assertThat(edges.get(2).speedLimit().getValue(), equalTo(90.0));
+        assertThat(edges.get(2).speedLimit().getValue(), equalTo(DEFAULT_SPEED_LIMIT_KMH));
         assertThat(edges.get(2).priority().getValue(), equalTo(0));
 
         Map<String, NodeAST> nodes = node.nodes().items();
@@ -201,7 +203,7 @@ class MapModuleASTTest {
                                 hasProperty("x", equalTo(5.0)),
                                 hasProperty("y", equalTo(0.0))))),
                         hasProperty("priority", equalTo(1)),
-                        hasProperty("speedLimit", equalTo(130.0 / 3.6))
+                        hasProperty("speedLimit", equalTo(90.0 / 3.6))
                 ), allOf(
                         hasProperty("begin", hasProperty("location", allOf(
                                 hasProperty("x", equalTo(5.0)),
@@ -210,7 +212,7 @@ class MapModuleASTTest {
                                 hasProperty("x", equalTo(10.0)),
                                 hasProperty("y", equalTo(0.0))))),
                         hasProperty("priority", equalTo(0)),
-                        hasProperty("speedLimit", equalTo(90.0 / 3.6))
+                        hasProperty("speedLimit", equalTo(DEFAULT_SPEED_LIMIT_MPS))
                 ), allOf(
                         hasProperty("begin", hasProperty("location", allOf(
                                 hasProperty("x", equalTo(10.0)),
@@ -219,7 +221,7 @@ class MapModuleASTTest {
                                 hasProperty("x", equalTo(5.0)),
                                 hasProperty("y", equalTo(0.0))))),
                         hasProperty("priority", equalTo(0)),
-                        hasProperty("speedLimit", equalTo(90.0 / 3.6))
+                        hasProperty("speedLimit", equalTo(DEFAULT_SPEED_LIMIT_MPS))
                 ), allOf(
                         hasProperty("begin", hasProperty("location", allOf(
                                 hasProperty("x", equalTo(5.0)),
@@ -228,7 +230,7 @@ class MapModuleASTTest {
                                 hasProperty("x", equalTo(0.0)),
                                 hasProperty("y", equalTo(0.0))))),
                         hasProperty("priority", equalTo(0)),
-                        hasProperty("speedLimit", equalTo(90.0 / 3.6))
+                        hasProperty("speedLimit", equalTo(DEFAULT_SPEED_LIMIT_MPS))
                 )
         ));
     }
