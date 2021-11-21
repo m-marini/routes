@@ -37,8 +37,9 @@ import org.mmarini.yaml.TextAST;
 
 import java.util.function.Consumer;
 
+import static org.mmarini.routes.model2.Constants.DEFAULT_WEIGHT;
+
 public class WeightAST extends ASTNode {
-    private static final double DEFAULT_WEIGHT = 1;
 
     /**
      * @param root the json node

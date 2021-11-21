@@ -34,6 +34,15 @@ public interface Constants {
     double REACTION_TIME = 1;
     double VEHICLE_LENGTH = 5;
     double PRECISION = 1e-3;
+    double KMPHSPM = 3.6;
+    double DEFAULT_SPEED_LIMIT_KMH = 130;
+    double DEFAULT_FREQUENCY = 1;
+    double DEFAULT_PATH_INTERVAL = 3;
+    double DEFAULT_WEIGHT = 1;
+    double DEFAULT_SPEED_LIMIT_MPS = DEFAULT_SPEED_LIMIT_KMH / KMPHSPM;
+    int DEFAULT_PRIORITY = 0;
+    int DEFAULT_MAX_VEHICLES = 4000;
+
 
     /**
      * Returns the movement distance when vehicle is braking

@@ -30,15 +30,18 @@ package org.mmarini.routes.swing;
 import javax.swing.*;
 
 import static hu.akarnokd.rxjava3.swing.SwingObservable.change;
+import static org.mmarini.routes.model2.Constants.DEFAULT_SPEED_LIMIT_KMH;
+import static org.mmarini.routes.model2.Constants.KMPHSPM;
 
 /**
  * @author marco.marini@mmarini.org
  */
 public class OptimizePane extends Box {
 
+    public static final double MINIMUM_SPEED_LIMIT_KMH = 10.;
+    public static final double MAXIMUM_SPEED_LIMIT_KMH = 300.;
+    public static final double STEP_SPEED_LIMIT_KMH = 10.;
     private static final long serialVersionUID = 1L;
-    private static final double KPHSPM = 3.6;
-    private static final double DEFAULT_SPEED_LIMIT = 130.;
     private final JCheckBox optimizeSpeed;
     private final JSpinner speedField;
     private final JLabel speedLabel;
@@ -87,14 +90,14 @@ public class OptimizePane extends Box {
      *
      */
     public double getSpeedLimit() {
-        return ((Number) speedField.getValue()).doubleValue() / KPHSPM;
+        return ((Number) speedField.getValue()).doubleValue() / KMPHSPM;
     }
 
     /**
      *
      */
     public OptimizePane setSpeedLimit(double speedLimit) {
-        speedField.setValue(speedLimit * KPHSPM);
+        speedField.setValue(speedLimit * KMPHSPM);
         return this;
     }
 
@@ -111,9 +114,9 @@ public class OptimizePane extends Box {
      *
      */
     private void init() {
-        speedField.setModel(new SpinnerNumberModel(DEFAULT_SPEED_LIMIT, 10., 300., 10.));
+        speedField.setModel(new SpinnerNumberModel(DEFAULT_SPEED_LIMIT_KMH, MINIMUM_SPEED_LIMIT_KMH, MAXIMUM_SPEED_LIMIT_KMH, STEP_SPEED_LIMIT_KMH));
         optimizeSpeed.setSelected(true);
-        speedField.setValue(DEFAULT_SPEED_LIMIT);
+        speedField.setValue(DEFAULT_SPEED_LIMIT_KMH);
     }
 
     /**

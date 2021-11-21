@@ -31,6 +31,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 /**
  * Various functionalities used in the user interface.
  *
@@ -68,8 +71,9 @@ public class SwingUtils {
      * @return the irides color
      */
     public Color computeColor(final double value, final double saturation) {
-        final double b = interpolate(value, BRIGHTNESS_ZERO, BRIGHTNESS_ONE);
-        final double h = interpolate(value, HUE_ZERO, HUE_ONE);
+        double v = max(0d, min(value, 1d));
+        final double b = interpolate(v, BRIGHTNESS_ZERO, BRIGHTNESS_ONE);
+        final double h = interpolate(v, HUE_ZERO, HUE_ONE);
         return Color.getHSBColor((float) h, (float) saturation, (float) b);
     }
 

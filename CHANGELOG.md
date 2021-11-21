@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #127: Entry to a site destination must be prioritized
 - Issue #128: Change to node edge should not change the map scale factor
 - Issue #134: Hang on traffic stuck
+- Issue #135: Module drop does not stick to existing nodes
 - Issue #136: Reset scale and the sim speed when focus changed
 - Issue #138: Wrong max vehecles when load
 

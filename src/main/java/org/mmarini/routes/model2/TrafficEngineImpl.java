@@ -50,8 +50,6 @@ import static org.mmarini.routes.model2.Topology.createTopology;
 
 public class TrafficEngineImpl implements TrafficEngine {
 
-    private static final double DEFAULT_PATH_INTERVAL = 3;
-
     /**
      * Computes the transit time from previous traffic information
      *
@@ -362,6 +360,7 @@ public class TrafficEngineImpl implements TrafficEngine {
     @Override
     public TrafficEngineImpl addModule(MapModule mapModule, Point2D location, Point2D direction, double epsilon) {
         Topology topology = this.topology.addModule(mapModule, location, direction, epsilon);
+        // TODO copy the edge transit time and add new edge modules
         Map<MapEdge, Double> edgeTransitTimes = topology.getEdges().stream()
                 .collect(Collectors.toMap(
                         Function.identity(),
