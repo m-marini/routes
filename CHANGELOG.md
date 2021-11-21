@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #135: Module drop does not stick to existing nodes
 - Issue #136: Reset scale and the sim speed when focus changed
 - Issue #138: Wrong max vehecles when load
+- Issue #145: The traffic color is wrong
 
 ### Added
 

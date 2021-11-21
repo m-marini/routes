@@ -30,9 +30,9 @@ package org.mmarini.routes.model2;
 import java.awt.geom.Point2D;
 import java.util.StringJoiner;
 
+import static java.lang.Math.floor;
 import static java.util.Objects.requireNonNull;
-import static org.mmarini.routes.model2.Constants.computeSafetyDistance;
-import static org.mmarini.routes.model2.Constants.computeSafetySpeed;
+import static org.mmarini.routes.model2.Constants.*;
 
 /**
  * A map edge starting from the beginning node to the end node with speed limit and priority
@@ -199,6 +199,35 @@ public class MapEdge implements MapElement {
      */
     public MapEdge setSpeedLimit(double speedLimit) {
         return new MapEdge(begin, end, speedLimit, priority);
+    }
+
+    /**
+     * Returns the traffic level for a given number of vehicles
+     *
+     * @param vehicleCount the number of vehicles
+     */
+    public double getTrafficLevel(int vehicleCount) {
+        if (vehicleCount == 0) {
+            return 0;
+        } else {
+            double length = getLength();
+            int maxVehicles = (int) floor(length / VEHICLE_LENGTH);
+            int optimalCount = (int) floor(length / (getSafetyDistance() + VEHICLE_LENGTH));
+            if (vehicleCount <= optimalCount) {
+                return vehicleCount / optimalCount * 0.5;
+            } else {
+                /*
+                (vehicleCount - optimalCount) / (maxVehicles - optimalCount) * 0.5 + 0.5;
+                (vehicleCount - optimalCount) / (maxVehicles - optimalCount) / 2 + 1/2;
+                ((vehicleCount - optimalCount) + (maxVehicles - optimalCount))  / (maxVehicles - optimalCount) /2;
+                (vehicleCount - optimalCount + maxVehicles - optimalCount)  / (maxVehicles - optimalCount) /2;
+                (vehicleCount + maxVehicles - 2 * optimalCount)  / (maxVehicles - optimalCount) /2;
+                 */
+                int n = vehicleCount + maxVehicles - 2 * optimalCount;
+                int d = maxVehicles - optimalCount;
+                return 0.5 * n / d;
+            }
+        }
     }
 
     /**

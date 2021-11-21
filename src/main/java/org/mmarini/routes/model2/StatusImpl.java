@@ -183,8 +183,7 @@ public class StatusImpl implements Status {
 
     @Override
     public double edgeTrafficLevel(MapEdge edge) {
-        Double time = edgeTransitTimes.get(edge);
-        return time != null ? time : edge.getTransitTime();
+        return edge.getTrafficLevel(getVehicleCount(edge));
     }
 
     /**
@@ -289,6 +288,16 @@ public class StatusImpl implements Status {
                     return new TrafficInfo(site, noVehicles, delayCount, totalDelayTime);
                 })
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns the numbr of vehicle in a given edge
+     *
+     * @param edge the edge
+     */
+    int getVehicleCount(MapEdge edge) {
+        Optional<MapEdge> edgeOpt = Optional.ofNullable(edge);
+        return (int) vehicles.stream().filter(v -> v.getCurrentEdge().equals(edgeOpt)).count();
     }
 
     @Override
