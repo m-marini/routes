@@ -975,17 +975,19 @@ public class TrafficEngineImpl implements TrafficEngine {
 
     public TrafficEngineImpl optimize() {
         Topology topology = this.topology.optimize(speedLimit);
-        Map<MapEdge, MapEdge> edgeMap = topology.createEdgeMap(topology);
+        Map<MapEdge, MapEdge> newEdgeMap = this.topology.createEdgeMap(topology);
         List<Vehicle> vehicles = this.vehicles.stream()
+                // Change the edge
                 .map(v -> v.getCurrentEdge()
-                        .flatMap(getValue(edgeMap))
+                        .flatMap(getValue(newEdgeMap))
                         .map(v::setCurrentEdge)
                         .orElse(v))
                 .collect(Collectors.toList());
         Map<MapEdge, LinkedList<Vehicle>> vehiclesByEdge = computeVehicleByEdges(vehicles);
         Map<Vehicle, Vehicle> nextVehicles = computeNextVehicleMap(vehiclesByEdge);
+        Map<MapEdge, MapEdge> oldEdgeMap = topology.createEdgeMap(this.topology);
         Map<MapEdge, Double> edgeTransitTimes = computeNewTransitTime(topology.getEdges(),
-                vehiclesByEdge, this.edgeTransitTimes, edgeMap);
+                vehiclesByEdge, this.edgeTransitTimes, oldEdgeMap);
 
         return new TrafficEngineImpl(maxVehicles, time, topology, vehicles, speedLimit, frequency, pathCdf,
                 vehiclesByEdge, nextVehicles, edgeTransitTimes, null);
