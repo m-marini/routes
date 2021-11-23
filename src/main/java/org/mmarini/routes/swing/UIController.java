@@ -383,12 +383,10 @@ public class UIController {
      * @param moduleParameters the module parameters
      */
     private void createModule(RouteMap.ModuleParameters moduleParameters) {
-        double scale = routeMap.getScale();
-        double precision = computePrecisionDistance(scale);
         simulator.request(engine -> engine.addModule(moduleParameters.getModule(),
                 moduleParameters.getLocation(),
                 moduleParameters.getDirection(),
-                precision)).doOnSuccess(engine -> {
+                MAX_PRECISION_DISTANCE)).doOnSuccess(engine -> {
             statusView = createStatusView(engine.buildStatus());
             refreshTopology();
             routeMap.reset();

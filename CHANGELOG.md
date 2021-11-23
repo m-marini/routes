@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- Issue #147: Improve snap to node precision
+
+## [4.3.1] - 2021-11-23
+
 ### Fixed
 
 - Issue #127: Entry to a site destination must be prioritized
@@ -27,7 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #129: Split simulation thread from rendering thread
 - Issue #130: Ring road module
 
-## [4.3.0]
+## [4.3.0] - 2021-11-10
 
 ### Changed
 
