@@ -41,7 +41,7 @@ public interface Constants {
     double DEFAULT_WEIGHT = 1;
     double DEFAULT_SPEED_LIMIT_MPS = DEFAULT_SPEED_LIMIT_KMH / KMPHSPM;
     int DEFAULT_PRIORITY = 0;
-    int DEFAULT_MAX_VEHICLES = 4000;
+    int DEFAULT_MAX_VEHICLES = 8000;
 
 
     /**
