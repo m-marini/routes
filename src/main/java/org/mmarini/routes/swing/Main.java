@@ -40,8 +40,8 @@ public class Main {
      * @param args unused
      */
     public static void main(final String[] args) {
-        log.info("Genesis starting");
+        log.info(Messages.getString("MainFrame.title") + " starting...");
         new UIController().startApp();
-        log.info("Genesis started.");
+        log.info(Messages.getString("MainFrame.title") + " started.");
     }
 }
