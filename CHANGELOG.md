@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [4.3.2] - 2021-11-23
+
+### Changed
+
+- Issue #147: Improve snap to node precision
+- Issue #148: Improve readability of status bar
+- Issue #149: Transparent dropping 
+- Issue #150: Increase to 8000 the max num of vehicles
+  
+## [4.3.1] - 2021-11-23
+
 ### Fixed
 
 - Issue #127: Entry to a site destination must be prioritized
@@ -27,7 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #129: Split simulation thread from rendering thread
 - Issue #130: Ring road module
 
-## [4.3.0]
+## [4.3.0] - 2021-11-10
 
 ### Changed
 

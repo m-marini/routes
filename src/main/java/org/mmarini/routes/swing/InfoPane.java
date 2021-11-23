@@ -34,7 +34,6 @@ import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static java.lang.Math.max;
 import static org.mmarini.routes.swing.SwingUtils.loadPatterns;
 
 /**
@@ -42,7 +41,6 @@ import static org.mmarini.routes.swing.SwingUtils.loadPatterns;
  */
 public class InfoPane extends JComponent {
     public static final int MAX_NUM_COLUMNS = 10;
-    private final Rectangle rect;
     private final String[] edgeLegendPattern;
     private final String[] pointLegendPattern;
     private Point2D mapPoint;
@@ -59,41 +57,20 @@ public class InfoPane extends JComponent {
      */
     public InfoPane() {
         mapPoint = new Point2D.Double();
-        rect = new Rectangle();
         pointLegendPattern = loadPatterns("InfoPane.pointLegendPattern");
         edgeLegendPattern = loadPatterns("InfoPane.edgeLegendPattern");
         setBorder(BorderFactory.createEtchedBorder());
     }
 
-    /**
-     * @param text the text
-     */
-    private void computeRect(final String... text) {
-        final FontMetrics fm = getFontMetrics(getFont());
-        final int n = text.length;
-        int w = 0;
-        for (final String tx : text) {
-            w = max(w, fm.stringWidth(tx));
-        }
-        Insets insets = Optional.ofNullable(getBorder())
-                .map(b -> b.getBorderInsets(this))
-                .orElseGet(this::getInsets);
-        rect.x = insets.left;
-        rect.y = insets.top;
-        rect.width = w;
-        rect.height = fm.getHeight() * n;
-    }
-
     @Override
     public Dimension getPreferredSize() {
         final FontMetrics fm = getFontMetrics(getFont());
-        final int noRows = max(pointLegendPattern.length, edgeLegendPattern.length);
         int w = fm.getMaxAdvance() * MAX_NUM_COLUMNS;
         Insets insets = Optional.ofNullable(getBorder())
                 .map(b -> b.getBorderInsets(this))
                 .orElseGet(this::getInsets);
         return new Dimension(w + insets.left + insets.right,
-                fm.getHeight() * noRows + insets.bottom + insets.top);
+                fm.getHeight() + insets.bottom + insets.top);
     }
 
     @Override
@@ -116,14 +93,6 @@ public class InfoPane extends JComponent {
         } else {
             pattern = pointLegendPattern;
         }
-        /*
-        String[] msg = new String[]{
-                String.format("TPS: %.2f", tps),
-                String.format("FPS: %.2f", fps),
-                String.format("Speed: %-2.2f", speed),
-                String.format("Vehicles: %d", this.numVehicles)
-        };
-*/
         final String[] text = Arrays.stream(pattern)
                 .map(ptn ->
                         MessageFormat.format(ptn,
@@ -136,25 +105,24 @@ public class InfoPane extends JComponent {
                                 speed,
                                 numVehicles)
                 ).toArray(String[]::new);
+        Dimension size = getSize();
+        Insets insets = Optional.ofNullable(getBorder())
+                .map(b -> b.getBorderInsets(this))
+                .orElseGet(this::getInsets);
 
-        paintMessageBox(g, text);
-    }
-
-    /**
-     * @param g        graphics
-     * @param messages messages
-     */
-    private void paintMessageBox(final Graphics g, final String... messages) {
-        computeRect(messages);
         final FontMetrics fm = getFontMetrics(getFont());
-        g.setColor(getForeground());
-        Insets insets = getInsets();
-        final int x = rect.x + insets.left;
-        final int fh = fm.getHeight();
-        int y = rect.y + insets.top + fh - fm.getDescent();
-        for (final String text : messages) {
-            g.drawString(text, x, y);
-            y += fh;
+        int fh = fm.getHeight();
+        int w = size.width - insets.left - insets.right;
+        int h = size.height - insets.top - insets.bottom;
+        int y = insets.top - fm.getDescent() + (fh + h) / 2;
+        Graphics gr = g.create();
+        gr.setColor(getForeground());
+        Rectangle cb = gr.getClipBounds();
+        for (int i = 0; i < text.length; i++) {
+            int x = insets.left + i * w / text.length;
+            gr.setClip(cb);
+            gr.clipRect(x, insets.top, w / text.length, h);
+            gr.drawString(text[i], x, y);
         }
     }
 

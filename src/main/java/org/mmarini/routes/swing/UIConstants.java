@@ -45,7 +45,7 @@ public interface UIConstants {
      * @param scale the scale
      */
     static double computePrecisionDistance(double scale) {
-        return min(CURSOR_SELECTION_PRECISION / scale, MAX_PRECISION_DISTANCE);
+        return CURSOR_SELECTION_PRECISION / scale;
     }
 
 }

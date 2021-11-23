@@ -74,6 +74,7 @@ import static org.mmarini.yaml.Utils.fromResource;
  * @author marco.marini@mmarini.org
  */
 public class UIController {
+    public static final double GAMMA = 0.9;
     private static final Logger logger = LoggerFactory.getLogger(UIController.class);
     private final JFileChooser fileChooser;
     private final OptimizePane optimizePane;
@@ -92,7 +93,6 @@ public class UIController {
     private final ScrollMap scrollMap;
     private final FrequencyMeter fpsMeter;
     private final FrequencyMeter tpsMeter;
-    //private final InfoPane infoPane;
     private final InfoPane infoPane;
     private final Random random;
     private final SimulatorEngine<Status, TrafficEngine> simulator;
@@ -366,7 +366,7 @@ public class UIController {
         fpsMeter.getFlowable().doOnNext(infoPane::setFps).subscribe();
         tpsMeter.getFlowable().doOnNext(infoPane::setTps).subscribe();
         simulator.setOnSpeed(s -> {
-            avgSpeed = avgSpeed * 0.99 + s * 0.01;
+            avgSpeed = avgSpeed * GAMMA + s * (1 - GAMMA);
             infoPane.setSpeed(avgSpeed);
         });
 
@@ -383,12 +383,10 @@ public class UIController {
      * @param moduleParameters the module parameters
      */
     private void createModule(RouteMap.ModuleParameters moduleParameters) {
-        double scale = routeMap.getScale();
-        double precision = computePrecisionDistance(scale);
         simulator.request(engine -> engine.addModule(moduleParameters.getModule(),
                 moduleParameters.getLocation(),
                 moduleParameters.getDirection(),
-                precision)).doOnSuccess(engine -> {
+                MAX_PRECISION_DISTANCE)).doOnSuccess(engine -> {
             statusView = createStatusView(engine.buildStatus());
             refreshTopology();
             routeMap.reset();
@@ -871,10 +869,14 @@ public class UIController {
      */
     private void start() {
         scrollMap.scaleToFit();
+        infoPane.setGridSize(routeMap.getGridSize());
         setSpeedSimulation(1f);
         startSimulation();
     }
 
+    /**
+     *
+     */
     public void startApp() {
         mainFrame.setVisible(true);
     }

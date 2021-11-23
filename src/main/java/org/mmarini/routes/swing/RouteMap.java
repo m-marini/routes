@@ -59,7 +59,11 @@ public class RouteMap extends JComponent {
     private static final String DELETE_ACTION = "DELETE";
     private static final double TRAFFIC_COLOR_SATURATION = 0.9;
     private static final long serialVersionUID = 1L;
-    private static final Color EDGE_DRAGGING_COLOR = Color.GRAY;
+    private static final Color EDGE_DRAGGING_COLOR = new Color(
+            Color.GRAY.getRed(),
+            Color.GRAY.getGreen(),
+            Color.GRAY.getBlue(),
+            128);
     private static final int MAP_BORDER = 60;
     private final Rectangle2D mapBound;
     private final AffineTransform transform;
@@ -155,7 +159,6 @@ public class RouteMap extends JComponent {
 
             @Override
             public void paintMode() {
-
             }
 
         };
@@ -177,6 +180,7 @@ public class RouteMap extends JComponent {
             @Override
             public void paintMode() {
                 if (mouseInside) {
+
                     painter.paintEdge(begin, end, EDGE_DRAGGING_COLOR);
                 }
             }
@@ -191,7 +195,9 @@ public class RouteMap extends JComponent {
 
             @Override
             public void handleMousePressed(final MouseEvent ev) {
-                begin = computeMapLocation(ev.getPoint());
+                begin = status.snapToNode(
+                        computeMapLocation(ev.getPoint()),
+                        computePrecisionDistance(scale));
                 RouteMap.this.ctrPressed = (ev.getModifiersEx() & CTRL_DOWN_MASK) == CTRL_DOWN_MASK;
                 if (ctrPressed) {
                     begin = status.snapToNode(begin, computePrecisionDistance(scale));
@@ -204,11 +210,13 @@ public class RouteMap extends JComponent {
             public void paintMode() {
                 final Point mousePosition = getMousePosition();
                 if (mousePosition != null) {
-                    Point2D point = computeMapLocation(mousePosition);
+                    Point2D point = status.snapToNode(
+                            computeMapLocation(mousePosition),
+                            computePrecisionDistance(scale));
                     if (ctrPressed) {
                         point = status.snapToNode(point, computePrecisionDistance(scale));
                     }
-                    paintModule(point, 0., 0.);
+                    paintModule(point, 0d, 0d);
                 }
             }
 
@@ -221,7 +229,9 @@ public class RouteMap extends JComponent {
 
             @Override
             public void handleMousePressed(final MouseEvent ev) {
-                Point2D point = computeMapLocation(ev.getPoint());
+                Point2D point = status.snapToNode(
+                        computeMapLocation(ev.getPoint()),
+                        computePrecisionDistance(scale));
                 newModuleProcessor.onNext(new ModuleParameters(
                         mapModule,
                         begin,
@@ -237,10 +247,12 @@ public class RouteMap extends JComponent {
             public void paintMode() {
                 final Point mousePosition = getMousePosition();
                 if (mousePosition != null) {
-                    Point2D point = computeMapLocation(mousePosition);
+                    Point2D point = status.snapToNode(
+                            computeMapLocation(mousePosition),
+                            computePrecisionDistance(scale));
                     paintModule(begin, point.getX() - begin.getX(), point.getY() - begin.getY());
                 } else {
-                    paintModule(begin, 0., 0.);
+                    paintModule(begin, 0, 0);
                 }
             }
 
@@ -252,7 +264,9 @@ public class RouteMap extends JComponent {
 
             @Override
             public void handleMousePressed(final MouseEvent ev) {
-                Point2D point = computeMapLocation(ev.getPoint());
+                Point2D point = status.snapToNode(
+                        computeMapLocation(ev.getPoint()),
+                        computePrecisionDistance(scale));
                 startSelectMode();
                 centerMapProcessor.onNext(point);
             }
@@ -620,7 +634,7 @@ public class RouteMap extends JComponent {
      */
     private void paintModule(final Point2D location, final double x, final double y) {
         if (mapModule != null) {
-            painter.paintModule(mapModule, location, x, y);
+            painter.paintModule(mapModule, location, x, y, EDGE_DRAGGING_COLOR);
         }
     }
 
@@ -646,14 +660,13 @@ public class RouteMap extends JComponent {
      */
     private void paintVehicles() {
         for (final Vehicle vehicle : status.getVehicles()) {
-            vehicle.getLocation().ifPresent(point -> {
-                vehicle.getDirection().ifPresent(direction -> {
-                    final Color color = status.getNodeView(vehicle.getCurrentDestination())
-                            .map(NodeView::getColor)
-                            .orElse(DEFAULT_NODE_COLOR);
-                    painter.paintVehicle(point, direction, color);
-                });
-            });
+            vehicle.getLocation().ifPresent(point ->
+                    vehicle.getDirection().ifPresent(direction -> {
+                        final Color color = status.getNodeView(vehicle.getCurrentDestination())
+                                .map(NodeView::getColor)
+                                .orElse(DEFAULT_NODE_COLOR);
+                        painter.paintVehicle(point, direction, color);
+                    }));
         }
     }
 
