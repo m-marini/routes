@@ -28,41 +28,24 @@
 package org.mmarini.routes.swing;
 
 import org.mmarini.routes.model2.MapEdge;
-import org.mmarini.routes.model2.MapElement;
-import org.mmarini.routes.model2.MapModule;
 import org.mmarini.routes.model2.MapNode;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Point2D;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+
+import static org.mmarini.routes.swing.UIConstants.SCALE_FACTOR;
 
 /**
  * @author marco.marini@mmarini.org
  */
 public class ScrollMap extends JScrollPane {
-    private static final double SCALE_FACTOR = Math.sqrt(2);
     private static final long serialVersionUID = 1L;
-    private static final Point LEGEND_LOCATION = new Point(5, 5);
-    private static final Insets LEGEND_INSETS = new Insets(3, 3, 3, 3);
 
     private final RouteMap routeMap;
-    private final Rectangle rect;
-    private final String[] pointLegendPattern;
-    private final String[] gridLegendPattern;
-    private final String[] edgeLegendPattern;
     private Point point;
     private Point2D mapPoint;
-    private double fps;
-    private long numVehicles;
-    private double tps;
-    private double speed;
 
     /**
      * @param routeMap the route map
@@ -71,12 +54,7 @@ public class ScrollMap extends JScrollPane {
         this.routeMap = routeMap;
         point = new Point();
         mapPoint = new Point2D.Double();
-        rect = new Rectangle();
-        gridLegendPattern = loadPatterns("ScrollMap.gridLegendPattern");
-        pointLegendPattern = loadPatterns("ScrollMap.pointLegendPattern");
-        edgeLegendPattern = loadPatterns("ScrollMap.edgeLegendPattern");
         init();
-        createFlows();
         setDoubleBuffered(true);
     }
 
@@ -91,64 +69,6 @@ public class ScrollMap extends JScrollPane {
         point.y -= rec.height / 2;
         validateView(point);
         viewport.setViewPosition(point);
-    }
-
-    public void clearSelection() {
-        routeMap.clearSelection();
-    }
-
-    /**
-     * @param text the text
-     */
-    private void computeRect(final String... text) {
-        final FontMetrics fm = getFontMetrics(getFont());
-        rect.x = LEGEND_LOCATION.x;
-        rect.y = LEGEND_LOCATION.y;
-        final int n = text.length;
-        int w = 0;
-        for (final String tx : text) {
-            w = Math.max(w, fm.stringWidth(tx));
-        }
-        rect.width = w + LEGEND_INSETS.left + LEGEND_INSETS.right;
-        rect.height = fm.getHeight() * n + LEGEND_INSETS.bottom + LEGEND_INSETS.top;
-    }
-
-    /**
-     *
-     */
-    private void createFlows() {
-        routeMap.getMouseWheelFlowable().doOnNext(this::handleMouseWheelMoved).subscribe();
-        routeMap.getMouseFlowable()
-                .filter(ev -> ev.getID() == MouseEvent.MOUSE_MOVED)
-                .doOnNext(ev -> repaint())
-                .subscribe();
-    }
-
-    /**
-     * Return the current view scale
-     *
-     * @return the current view scale (real px/virtual px)
-     */
-    public double getScale() {
-        return routeMap.getScale();
-    }
-
-    /**
-     * Sets the view scale
-     *
-     * @param scale the scale (real px/virtual px)
-     */
-    public void setScale(final double scale) {
-        routeMap.setScale(scale);
-    }
-
-    /**
-     * @param e the event
-     */
-    protected void handleMouseWheelMoved(final MouseWheelEvent e) {
-        final double scale = Math.pow(SCALE_FACTOR, e.getWheelRotation());
-        scale(e.getPoint(), getScale() * scale);
-        repaint();
     }
 
     /**
@@ -265,124 +185,10 @@ public class ScrollMap extends JScrollPane {
     }
 
     /**
-     * @param key the key
-     */
-    private String[] loadPatterns(final String key) {
-        final List<String> list = new ArrayList<>(0);
-        int i = 0;
-        for (; ; ) {
-            final String text = Messages.getString(key + "." + i);
-            if (text.startsWith("!")) {
-                break;
-            }
-            list.add(text);
-            ++i;
-        }
-        return list.toArray(new String[0]);
-    }
-
-    /**
-     * @see javax.swing.JComponent#paintChildren(java.awt.Graphics)
-     */
-    @Override
-    protected void paintChildren(final Graphics g) {
-        super.paintChildren(g);
-        paintInfo(g);
-    }
-
-    private void paintFps(Graphics g) {
-        final FontMetrics fm = getFontMetrics(getFont());
-        String[] msg = new String[]{
-                String.format("TPS: %.2f", tps),
-                String.format("FPS: %.2f", fps),
-                String.format("Speed: %-2.2f", speed),
-                String.format("Vehicles: %d", this.numVehicles)
-        };
-        computeRect(msg);
-        rect.x = LEGEND_LOCATION.x;
-        rect.y = getHeight() - getInsets().bottom - rect.height - fm.getHeight() - LEGEND_INSETS.bottom - LEGEND_INSETS.bottom;
-        g.setColor(Color.WHITE);
-        g.fillRect(rect.x, rect.y, rect.width, rect.height);
-        g.setColor(Color.BLACK);
-        g.drawRect(rect.x, rect.y, rect.width, rect.height);
-        final int x = rect.x + LEGEND_INSETS.left;
-        final int fh = fm.getHeight();
-        int y = rect.y + LEGEND_INSETS.top + fh - fm.getDescent();
-        for (final String text : msg) {
-            g.drawString(text, x, y);
-            y += fh;
-        }
-    }
-
-    /**
-     * @param g graphics
-     */
-    private void paintInfo(final Graphics g) {
-        /*
-         * Compute the parameters
-         */
-        final Point pt = routeMap.getMousePosition();
-        if (pt != null) {
-            mapPoint = routeMap.computeMapLocation(pt);
-//            mapPoint.setLocation(routeMap.computeMapLocation(pt));
-        }
-        /*
-         * Compute the pattern
-         */
-        final String[] pattern;
-        if (pt == null) {
-            pattern = gridLegendPattern;
-        } else if (routeMap.isSelectingEnd()) {
-            pattern = edgeLegendPattern;
-        } else {
-            pattern = pointLegendPattern;
-        }
-
-        final String[] text = Arrays.stream(pattern).map(ptn ->
-                MessageFormat.format(ptn,
-                        routeMap.getGridSize(),
-                        mapPoint.getX(),
-                        mapPoint.getY(),
-                        routeMap.getEdgeLength())
-        ).toArray(String[]::new);
-
-        paintMessageBox(g, text);
-        paintFps(g);
-    }
-
-    /**
-     * @param g        graphics
-     * @param messages messages
-     */
-    private void paintMessageBox(final Graphics g, final String... messages) {
-        computeRect(messages);
-        final FontMetrics fm = getFontMetrics(getFont());
-        g.setColor(Color.WHITE);
-        g.fillRect(rect.x, rect.y, rect.width, rect.height);
-        g.setColor(Color.BLACK);
-        g.drawRect(rect.x, rect.y, rect.width, rect.height);
-        final int x = rect.x + LEGEND_INSETS.left;
-        final int fh = fm.getHeight();
-        int y = rect.y + LEGEND_INSETS.top + fh - fm.getDescent();
-        for (final String text : messages) {
-            g.drawString(text, x, y);
-            y += fh;
-        }
-    }
-
-    /**
-     * Reset the status of the view.<br>
-     * This method reset the map view. It must be call when a map is changed.
-     */
-    public void reset() {
-        routeMap.reset();
-    }
-
-    /**
      * @param ref   reference
      * @param scale scale
      */
-    private void scale(final Point ref, final double scale) {
+    public void scale(final Point ref, final double scale) {
         final JViewport viewport = getViewport();
         final Point pt = viewport.getViewPosition();
         final int dx = ref.x - pt.x;
@@ -393,6 +199,7 @@ public class ScrollMap extends JScrollPane {
         point.x -= dx;
         point.y -= dy;
         viewport.setViewPosition(point);
+        repaint();
     }
 
     /**
@@ -431,84 +238,6 @@ public class ScrollMap extends JScrollPane {
     }
 
     /**
-     * Sets the frames per second
-     *
-     * @param fps the frames per second
-     */
-    public void setFps(double fps) {
-        this.fps = fps;
-        repaint();
-
-    }
-
-    public void setNumVehicles(long numVehicles) {
-        this.numVehicles = numVehicles;
-        repaint();
-    }
-
-    /**
-     * Sets the selected element
-     *
-     * @param element the element
-     */
-    public void setSelectedElement(final MapElement element) {
-        routeMap.setSelectedElement(element);
-    }
-
-    /**
-     * @param speed the speed
-     */
-    public void setSpeed(double speed) {
-        this.speed = speed;
-        repaint();
-    }
-
-    /**
-     * Sets the transitions per second
-     *
-     * @param tps the transitions per second
-     */
-    public void setTps(double tps) {
-        this.tps = tps;
-        repaint();
-    }
-
-    /**
-     * @param trafficView true if traffic view
-     */
-    public void setTrafficView(final boolean trafficView) {
-        routeMap.setTrafficView(trafficView);
-    }
-
-    /**
-     *
-     */
-    public void startCenterMode() {
-        routeMap.startCenterMode();
-    }
-
-    /**
-     *
-     */
-    public void startEdgeMode() {
-        routeMap.startEdgeMode();
-    }
-
-    /**
-     * @param mapModule the mapModule
-     */
-    public void startModuleMode(final MapModule mapModule) {
-        routeMap.startModuleMode(mapModule);
-    }
-
-    /**
-     *
-     */
-    public void startSelectMode() {
-        routeMap.startSelectMode();
-    }
-
-    /**
      * @param point the point
      */
     private void validateView(final Point point) {
@@ -536,7 +265,7 @@ public class ScrollMap extends JScrollPane {
         final Rectangle rect = getViewport().getViewRect();
         point.x = (int) Math.round(rect.getCenterX());
         point.y = (int) Math.round(rect.getCenterY());
-        scale(point, getScale() * SCALE_FACTOR);
+        scale(point, routeMap.getScale() * SCALE_FACTOR);
     }
 
     /**
@@ -546,6 +275,6 @@ public class ScrollMap extends JScrollPane {
         final Rectangle rect = getViewport().getViewRect();
         point.x = (int) Math.round(rect.getCenterX());
         point.y = (int) Math.round(rect.getCenterY());
-        scale(point, getScale() / SCALE_FACTOR);
+        scale(point, routeMap.getScale() / SCALE_FACTOR);
     }
 }

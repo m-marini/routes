@@ -28,13 +28,13 @@
 package org.mmarini.routes.swing;
 
 import hu.akarnokd.rxjava3.swing.SwingObservable;
-import org.mmarini.routes.model2.MapEdge;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.core.Flowable;
 import org.mmarini.routes.model2.MapModule;
-import org.mmarini.routes.model2.MapNode;
-import org.mmarini.routes.model2.SiteNode;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.util.List;
 
 /**
@@ -67,14 +67,27 @@ public class MapViewPane extends JPanel {
     private final JButton zoomOutButton;
     private final JButton fitInWindowButton;
     private final JButton zoomDefaultButton;
+    private final JComponent infoPane;
+    private final Flowable<ActionEvent> normalViewFlowable;
+    private final Flowable<ActionEvent> zoomDefaultFlowable;
+    private final Flowable<ActionEvent> zoomOutFlowable;
+    private final Flowable<ActionEvent> zoomInFlowable;
+    private final Flowable<ActionEvent> fitInWindowFlowable;
+    private final Flowable<ActionEvent> trafficViewFlowable;
+    private final Flowable<ActionEvent> selectFlowable;
+    private final Flowable<ActionEvent> edgeFlowable;
+    private final Flowable<MapModule> moduleFlowable;
+    private final Flowable<ActionEvent> centerFlowable;
 
     /**
      * Create the component
      *
-     * @param scrollMap the scroll Map
+     * @param scrollMap the scroll map
+     * @param infoPane  the info panel
      */
-    public MapViewPane(final ScrollMap scrollMap) {
+    public MapViewPane(final ScrollMap scrollMap, JComponent infoPane) {
         this.scrollMap = scrollMap;
+        this.infoPane = infoPane;
         selectButton = new JToggleButton();
         edgeButton = new JToggleButton();
         moduleButton = new JToggleButton();
@@ -89,14 +102,21 @@ public class MapViewPane extends JPanel {
         zoomOutButton = new JButton();
         fitInWindowButton = new JButton();
         zoomDefaultButton = new JButton();
+        this.normalViewFlowable = SwingObservable.actions(normalViewButton).toFlowable(BackpressureStrategy.MISSING);
+        this.trafficViewFlowable = SwingObservable.actions(trafficViewButton).toFlowable(BackpressureStrategy.MISSING);
+        this.zoomDefaultFlowable = SwingObservable.actions(zoomDefaultButton).toFlowable(BackpressureStrategy.MISSING);
+        this.zoomOutFlowable = SwingObservable.actions(zoomOutButton).toFlowable(BackpressureStrategy.MISSING);
+        this.zoomInFlowable = SwingObservable.actions(zoomInButton).toFlowable(BackpressureStrategy.MISSING);
+        this.fitInWindowFlowable = SwingObservable.actions(fitInWindowButton).toFlowable(BackpressureStrategy.MISSING);
+        this.selectFlowable = SwingObservable.actions(selectButton).toFlowable(BackpressureStrategy.MISSING);
+        this.edgeFlowable = SwingObservable.actions(edgeButton).toFlowable(BackpressureStrategy.MISSING);
+        this.moduleFlowable = SwingObservable.actions(moduleButton)
+                .map(e -> moduleSelector.getSelectedEntry().getModule())
+                .toFlowable(BackpressureStrategy.MISSING);
+        this.centerFlowable = SwingObservable.actions(centerButton).toFlowable(BackpressureStrategy.MISSING);
 
-        createFlows();
         init();
         setOpaque(false);
-    }
-
-    public void clearSelection() {
-        scrollMap.clearSelection();
     }
 
     /**
@@ -106,37 +126,7 @@ public class MapViewPane extends JPanel {
         setLayout(new BorderLayout());
         add(createToolbar(), BorderLayout.NORTH);
         add(scrollMap, BorderLayout.CENTER);
-    }
-
-    /**
-     *
-     */
-    private void createFlows() {
-        SwingObservable.actions(normalViewButton).doOnNext(ev ->
-                MapViewPane.this.scrollMap.setTrafficView(false)).subscribe();
-        SwingObservable.actions(trafficViewButton).doOnNext(ev ->
-                MapViewPane.this.scrollMap.setTrafficView(true)).subscribe();
-        SwingObservable.actions(selectButton).doOnNext(ev ->
-                MapViewPane.this.scrollMap.startSelectMode()).subscribe();
-        SwingObservable.actions(edgeButton).doOnNext(ev ->
-                MapViewPane.this.scrollMap.startEdgeMode()).subscribe();
-        SwingObservable.actions(moduleButton).doOnNext(ev ->
-                MapViewPane.this.scrollMap.startModuleMode(moduleSelector.getSelectedEntry().getModule())).subscribe();
-        SwingObservable.actions(centerButton).doOnNext(ev ->
-                MapViewPane.this.scrollMap.startCenterMode()).subscribe();
-        SwingObservable.actions(zoomInButton).doOnNext(ev -> {
-            MapViewPane.this.scrollMap.zoomIn();
-            repaint();
-        }).subscribe();
-        SwingObservable.actions(zoomOutButton).doOnNext(ev -> {
-            MapViewPane.this.scrollMap.zoomOut();
-            repaint();
-        }).subscribe();
-        SwingObservable.actions(fitInWindowButton).doOnNext(ev -> scaleToFit()).subscribe();
-        SwingObservable.actions(zoomDefaultButton).doOnNext(ev -> {
-            MapViewPane.this.scrollMap.setScale(1);
-            repaint();
-        }).subscribe();
+        add(infoPane, BorderLayout.SOUTH);
     }
 
     /**
@@ -160,6 +150,46 @@ public class MapViewPane extends JPanel {
         bar.add(normalViewButton);
         bar.add(trafficViewButton);
         return bar;
+    }
+
+    public Flowable<ActionEvent> getCenterFlowable() {
+        return centerFlowable;
+    }
+
+    public Flowable<ActionEvent> getEdgeFlowable() {
+        return edgeFlowable;
+    }
+
+    public Flowable<ActionEvent> getFitInWindowFlowable() {
+        return fitInWindowFlowable;
+    }
+
+    public Flowable<MapModule> getModuleFlowable() {
+        return moduleFlowable;
+    }
+
+    public Flowable<ActionEvent> getNormalViewFlowable() {
+        return normalViewFlowable;
+    }
+
+    public Flowable<ActionEvent> getSelectFlowable() {
+        return selectFlowable;
+    }
+
+    public Flowable<ActionEvent> getTrafficViewFlowable() {
+        return trafficViewFlowable;
+    }
+
+    public Flowable<ActionEvent> getZoomDefaultFlowable() {
+        return zoomDefaultFlowable;
+    }
+
+    public Flowable<ActionEvent> getZoomInFlowable() {
+        return zoomInFlowable;
+    }
+
+    public Flowable<ActionEvent> getZoomOutFlowable() {
+        return zoomOutFlowable;
     }
 
     /**
@@ -201,40 +231,6 @@ public class MapViewPane extends JPanel {
     }
 
     /**
-     * Reset the status of the view.<br>
-     * This method reset the map view. It must be call when a map is changed.
-     */
-    public void reset() {
-        scrollMap.reset();
-    }
-
-    /**
-     * Scale the view to fit the current component size
-     */
-    public void scaleToFit() {
-        scrollMap.scaleToFit();
-        repaint();
-    }
-
-    /**
-     * Scroll the map view and center to an edge
-     *
-     * @param edge the edge element to center the view to
-     */
-    public void scrollTo(final MapEdge edge) {
-        scrollMap.scrollTo(edge);
-    }
-
-    /**
-     * Scroll the map view and center to a node
-     *
-     * @param node the node element to center the view to
-     */
-    public void scrollTo(final MapNode node) {
-        scrollMap.scrollTo(node);
-    }
-
-    /**
      * Set the selector mode.<br>
      * It restores the modality to selection.
      */
@@ -253,32 +249,5 @@ public class MapViewPane extends JPanel {
             moduleSelector.add(mapModule);
         }
         selectButton.doClick();
-    }
-
-    /**
-     * Set an edge as selected map element
-     *
-     * @param edge the edge
-     */
-    public void setSelectedEdge(final MapEdge edge) {
-        scrollMap.setSelectedElement(edge);
-    }
-
-    /**
-     * Set a node as selected map element
-     *
-     * @param node the node
-     */
-    public void setSelectedNode(final MapNode node) {
-        scrollMap.setSelectedElement(node);
-    }
-
-    /**
-     * Set a site as selected map element
-     *
-     * @param site the site
-     */
-    public void setSelectedSite(final SiteNode site) {
-        scrollMap.setSelectedElement(site);
     }
 }

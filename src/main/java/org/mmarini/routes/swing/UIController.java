@@ -41,6 +41,8 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
 import java.io.File;
@@ -90,6 +92,8 @@ public class UIController {
     private final ScrollMap scrollMap;
     private final FrequencyMeter fpsMeter;
     private final FrequencyMeter tpsMeter;
+    //private final InfoPane infoPane;
+    private final InfoPane infoPane;
     private final Random random;
     private final SimulatorEngine<Status, TrafficEngine> simulator;
     private boolean running;
@@ -104,7 +108,8 @@ public class UIController {
         random = new Random();
         routeMap = new RouteMap();
         this.scrollMap = new ScrollMap(this.routeMap);
-        mapViewPane = new MapViewPane(scrollMap);
+        infoPane = new InfoPane();
+        mapViewPane = new MapViewPane(scrollMap, infoPane);
         explorerPane = new ExplorerPane();
         TrafficEngine initialSeed = createEngine(DEFAULT_MAX_VEHICLES,
                 createTopology(List.of(), List.of()),
@@ -149,7 +154,7 @@ public class UIController {
         simulator.request(engine -> engine.setOffset(point))
                 .doOnSuccess(engine -> {
                     statusView = createStatusView(engine.buildStatus());
-                    mapViewPane.reset();
+                    routeMap.reset();
                     mapViewPane.selectSelector();
                     mainFrame.repaint();
                 }).subscribe();
@@ -167,9 +172,9 @@ public class UIController {
                         statusView = createStatusView(engine.buildStatus());
                         refreshTopology();
                         mapViewPane.selectSelector();
-                        mapViewPane.reset();
+                        routeMap.reset();
                         statusView.getEdgeViews(newEdge).ifPresent(mapElementPane::setSelectedEdge);
-                        mapViewPane.setSelectedEdge(newEdge);
+                        routeMap.setSelectedElement(newEdge);
                         mainFrame.repaint();
                     }).subscribe();
         });
@@ -200,9 +205,9 @@ public class UIController {
                         statusView = createStatusView(engine.buildStatus());
                         refreshTopology();
                         mapViewPane.selectSelector();
-                        mapViewPane.reset();
+                        routeMap.reset();
                         statusView.getEdgeViews(newEdge).ifPresent(mapElementPane::setSelectedEdge);
-                        mapViewPane.setSelectedEdge(newEdge);
+                        routeMap.setSelectedElement(newEdge);
                         mainFrame.repaint();
                     }).subscribe();
         });
@@ -236,8 +241,8 @@ public class UIController {
                 .doOnSuccess(engine -> {
                     statusView = createStatusView(engine.buildStatus());
                     refreshTopology();
-                    mapViewPane.reset();
-                    mapViewPane.setSelectedEdge(edge1);
+                    routeMap.reset();
+                    routeMap.setSelectedElement(edge1);
                     statusView.getEdgeViews(edge1).ifPresent(mapElementPane::setSelectedEdge);
                     mainFrame.repaint();
                 }).subscribe();
@@ -287,19 +292,54 @@ public class UIController {
 
         explorerPane.getSiteFlowable().doOnNext(site -> {
             handleSiteSelection(site);
-            mapViewPane.setSelectedSite(site);
-            mapViewPane.scrollTo(site);
+            routeMap.setSelectedElement(site);
+            scrollMap.scrollTo(site);
         }).subscribe();
         explorerPane.getNodeFlowable().doOnNext(node -> {
             statusView.getNodeView(node).ifPresent(mapElementPane::setSelectedNode);
-            mapViewPane.setSelectedNode(node);
-            mapViewPane.scrollTo(node);
+            routeMap.setSelectedElement(node);
+            scrollMap.scrollTo(node);
         }).subscribe();
         explorerPane.getEdgeFlowable().doOnNext(edge -> {
             handleEdgeSelection(edge.getEdge());
-            mapViewPane.setSelectedEdge(edge.getEdge());
-            mapViewPane.scrollTo(edge.getEdge());
+            routeMap.setSelectedElement(edge.getEdge());
+            scrollMap.scrollTo(edge.getEdge());
         }).subscribe();
+
+        mapViewPane.getZoomInFlowable().doOnNext(ev -> {
+            scrollMap.zoomIn();
+            infoPane.setGridSize(routeMap.getGridSize());
+        }).subscribe();
+        mapViewPane.getZoomOutFlowable().doOnNext(ev -> {
+            scrollMap.zoomOut();
+            infoPane.setGridSize(routeMap.getGridSize());
+        }).subscribe();
+        mapViewPane.getFitInWindowFlowable().doOnNext(ev -> {
+            scrollMap.scaleToFit();
+            infoPane.setGridSize(routeMap.getGridSize());
+        }).subscribe();
+        mapViewPane.getZoomDefaultFlowable().doOnNext(ev -> {
+            routeMap.setScale(1);
+            infoPane.setGridSize(routeMap.getGridSize());
+        }).subscribe();
+        mapViewPane.getNormalViewFlowable().doOnNext(ev ->
+                        routeMap.setTrafficView(false))
+                .subscribe();
+        mapViewPane.getTrafficViewFlowable().doOnNext(ev ->
+                        routeMap.setTrafficView(true))
+                .subscribe();
+        mapViewPane.getSelectFlowable().doOnNext(ev ->
+                        routeMap.startSelectMode())
+                .subscribe();
+        mapViewPane.getEdgeFlowable().doOnNext(ev ->
+                        routeMap.startEdgeMode())
+                .subscribe();
+        mapViewPane.getModuleFlowable()
+                .doOnNext(routeMap::startModuleMode)
+                .subscribe();
+        mapViewPane.getCenterFlowable().doOnNext(ev ->
+                        routeMap.startCenterMode())
+                .subscribe();
 
         routeMap.getSelectElementFlowable().doOnNext(this::handleElementSelection).subscribe();
         routeMap.getUnselectFlowable().doOnNext(this::handleMapUnselecting).subscribe();
@@ -309,11 +349,25 @@ public class UIController {
         routeMap.getNewEdgeFlowable().doOnNext(this::createEdge).subscribe();
         routeMap.getNewModuleFlowable().doOnNext(this::createModule).subscribe();
 
-        fpsMeter.getFlowable().doOnNext(scrollMap::setFps).subscribe();
-        tpsMeter.getFlowable().doOnNext(scrollMap::setTps).subscribe();
+        routeMap.getMouseWheelFlowable().doOnNext(this::handleMouseWheelMoved).subscribe();
+        routeMap.getMouseFlowable()
+                .filter(ev -> ev.getID() == MouseEvent.MOUSE_MOVED)
+                .doOnNext(ev -> {
+                    final Point pt = routeMap.getMousePosition();
+                    if (pt != null) {
+                        Point2D mapPoint = routeMap.computeMapLocation(pt);
+                        infoPane.setMapPoint(mapPoint);
+                    }
+                    infoPane.setEdgeLegend(routeMap.isSelectingEnd());
+                    infoPane.setEdgeLength(routeMap.getEdgeLength());
+                })
+                .subscribe();
+
+        fpsMeter.getFlowable().doOnNext(infoPane::setFps).subscribe();
+        tpsMeter.getFlowable().doOnNext(infoPane::setTps).subscribe();
         simulator.setOnSpeed(s -> {
             avgSpeed = avgSpeed * 0.99 + s * 0.01;
-            scrollMap.setSpeed(avgSpeed);
+            infoPane.setSpeed(avgSpeed);
         });
 
         simulator.setOnEvent(status -> {
@@ -321,7 +375,6 @@ public class UIController {
                 statusView = createStatusView(status);
                 fpsMeter.tick();
                 refresh();
-                mapViewPane.repaint();
             }
         });
     }
@@ -338,7 +391,7 @@ public class UIController {
                 precision)).doOnSuccess(engine -> {
             statusView = createStatusView(engine.buildStatus());
             refreshTopology();
-            mapViewPane.reset();
+            routeMap.reset();
             mapViewPane.selectSelector();
             mainFrame.repaint();
 
@@ -401,6 +454,12 @@ public class UIController {
         explorerPane.clearSelection();
     }
 
+    private void handleMouseWheelMoved(MouseWheelEvent mouseWheelEvent) {
+        final double scale = Math.pow(SCALE_FACTOR, mouseWheelEvent.getWheelRotation());
+        scrollMap.scale(mouseWheelEvent.getPoint(), routeMap.getScale() * scale);
+        infoPane.setGridSize(routeMap.getGridSize());
+    }
+
     /**
      * @param node the node
      */
@@ -432,7 +491,7 @@ public class UIController {
         loadDefault();
         List<MapModule> modules = loadModules();
         mapViewPane.setModule(modules);
-        mapViewPane.reset();
+        routeMap.reset();
         createFlows();
         refreshTopology();
     }
@@ -503,8 +562,8 @@ public class UIController {
                     statusView = createStatusView(engine1.buildStatus());
                     refreshTopology();
                     mapViewPane.selectSelector();
-                    mapViewPane.reset();
-                    mapViewPane.clearSelection();
+                    routeMap.reset();
+                    routeMap.clearSelection();
                     mapElementPane.clearPanel();
                     mainFrame.repaint();
                 }).subscribe();
@@ -526,8 +585,8 @@ public class UIController {
                         statusView = createStatusView(engine.buildStatus());
                         refreshTopology();
                         mapViewPane.selectSelector();
-                        mapViewPane.reset();
-                        mapViewPane.clearSelection();
+                        routeMap.reset();
+                        routeMap.clearSelection();
                         mapElementPane.clearPanel();
                         mainFrame.repaint();
                     }).subscribe();
@@ -560,7 +619,7 @@ public class UIController {
                             .doOnSuccess(engine -> {
                                 statusView = createStatusView(engine.buildStatus());
                                 refreshTopology();
-                                mapViewPane.reset();
+                                routeMap.reset();
                             }).subscribe();
                 } catch (final Exception e) {
                     logger.error(e.getMessage(), e);
@@ -587,7 +646,7 @@ public class UIController {
                     .doOnSuccess(engine -> {
                         statusView = createStatusView(engine.buildStatus());
                         refreshTopology();
-                        mapViewPane.reset();
+                        routeMap.reset();
                     }).subscribe();
         }
 
@@ -621,7 +680,7 @@ public class UIController {
                         statusView = createStatusView(engine.buildStatus());
                         refreshTopology();
                         mapViewPane.selectSelector();
-                        mapViewPane.reset();
+                        routeMap.reset();
                         mainFrame.repaint();
                     }).subscribe();
         }
@@ -632,7 +691,8 @@ public class UIController {
      */
     private void refresh() {
         routeMap.setStatus(statusView);
-        scrollMap.setNumVehicles(statusView.getVehicles().size());
+        infoPane.setNumVehicles(statusView.getVehicles().size());
+        scrollMap.repaint();
     }
 
     /**
@@ -646,6 +706,7 @@ public class UIController {
         el.removeAllElements();
         el.addAll(statusView.getNodeViews());
         routeMap.setStatus(statusView);
+        scrollMap.repaint();
     }
 
     /**
@@ -656,7 +717,7 @@ public class UIController {
                 .doOnSuccess(engine -> {
                     statusView = createStatusView(engine.buildStatus());
                     refreshTopology();
-                    mapViewPane.clearSelection();
+                    routeMap.clearSelection();
                     mapElementPane.clearPanel();
                     mainFrame.repaint();
                 }).subscribe();
@@ -670,7 +731,7 @@ public class UIController {
                 .doOnSuccess(engine -> {
                     statusView = createStatusView(engine.buildStatus());
                     refreshTopology();
-                    mapViewPane.clearSelection();
+                    routeMap.clearSelection();
                     mapElementPane.clearPanel();
                     mainFrame.repaint();
                 }).subscribe();
@@ -735,7 +796,7 @@ public class UIController {
                         statusView = createStatusView(engine.buildStatus());
                         refresh();
                         mapViewPane.selectSelector();
-                        mapViewPane.reset();
+                        routeMap.reset();
                         mainFrame.repaint();
                     }).subscribe();
         }
@@ -809,7 +870,7 @@ public class UIController {
      *
      */
     private void start() {
-        mapViewPane.scaleToFit();
+        scrollMap.scaleToFit();
         setSpeedSimulation(1f);
         startSimulation();
     }
@@ -860,8 +921,8 @@ public class UIController {
                     refreshTopology();
                     Optional<CrossNode> node = statusView.findNode(site.getLocation(), PRECISION)
                             .map(n -> (CrossNode) n);
-                    mapViewPane.reset();
-                    node.ifPresent(mapViewPane::setSelectedNode);
+                    routeMap.reset();
+                    node.ifPresent(routeMap::setSelectedElement);
                     node.flatMap(statusView::getNodeView).ifPresent(mapElementPane::setSelectedNode);
                     mainFrame.repaint();
                 }).subscribe();
@@ -877,8 +938,8 @@ public class UIController {
                     refreshTopology();
                     Optional<SiteNode> site = statusView.findNode(node.getLocation(), PRECISION)
                             .map(n -> (SiteNode) n);
-                    mapViewPane.reset();
-                    site.ifPresent(mapViewPane::setSelectedSite);
+                    routeMap.reset();
+                    site.ifPresent(routeMap::setSelectedElement);
                     site.flatMap(statusView::getNodeView).ifPresent(mapElementPane::setSelectedSite);
                     mainFrame.repaint();
                 }).subscribe();
