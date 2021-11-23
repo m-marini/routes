@@ -174,15 +174,16 @@ public class Painter {
      * @param location  the location
      * @param vecx      the x direction vector
      * @param vecy      the y direction vector
+     * @param color
      */
-    public void paintModule(final MapModule mapModule, final Point2D location, final double vecx, final double vecy) {
+    public void paintModule(final MapModule mapModule, final Point2D location, final double vecx, final double vecy, Color color) {
         final AffineTransform old = graphics.getTransform();
         final AffineTransform tr = graphics.getTransform();
         tr.translate(location.getX(), location.getY());
         tr.rotate(vecx, vecy);
         graphics.setTransform(tr);
         for (final MapEdge edge : mapModule.getEdges()) {
-            paintEdge(edge);
+            paintEdge(edge, color);
         }
         graphics.setTransform(old);
     }

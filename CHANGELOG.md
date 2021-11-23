@@ -12,8 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 - Issue #147: Improve snap to node precision
+- Issue #149: Transparent dropping 
 - Issue #150: Increase to 8000 the max num of vehicles
-
+  
 ## [4.3.1] - 2021-11-23
 
 ### Fixed
