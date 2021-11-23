@@ -30,6 +30,8 @@ package org.mmarini.routes.swing;
 import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -53,6 +55,23 @@ public class SwingUtils {
      */
     public static SwingUtils getInstance() {
         return instance;
+    }
+
+    /**
+     * @param key the key
+     */
+    public static String[] loadPatterns(final String key) {
+        final List<String> list = new ArrayList<>(0);
+        int i = 0;
+        for (; ; ) {
+            final String text = Messages.getString(key + "." + i);
+            if (text.startsWith("!")) {
+                break;
+            }
+            list.add(text);
+            ++i;
+        }
+        return list.toArray(new String[0]);
     }
 
     /**
