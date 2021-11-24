@@ -36,7 +36,7 @@ public interface UIConstants {
     long MAX_FPS_MILLIS = 300L;
     double SECS_PER_MILLIS = 1e-3;
     int CURSOR_SELECTION_PRECISION = 10;
-    double MAX_PRECISION_DISTANCE = 5;
+    double MAX_PRECISION_DISTANCE = 3;
     double SCALE_FACTOR = Math.sqrt(2);
 
     /**
