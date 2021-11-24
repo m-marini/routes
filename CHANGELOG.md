@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+- 
+- Issue #127: Entry to a site destination must be prioritized (repoened)
+ 
 ## [4.3.2] - 2021-11-23
 
 ### Changed
