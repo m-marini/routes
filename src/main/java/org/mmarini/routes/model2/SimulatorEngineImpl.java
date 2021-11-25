@@ -39,12 +39,12 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Deque;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.function.*;
 
 import static java.lang.Math.round;
+import static java.util.Objects.requireNonNull;
 import static org.mmarini.routes.swing.UIConstants.NANOSPS;
 
 /**
@@ -109,10 +109,10 @@ public class SimulatorEngineImpl<T, S> implements SimulatorEngine<T, S> {
                                   S initialSeed,
                                   BiFunction<S, Double, Tuple2<S, Double>> nextSeed,
                                   Function<S, T> emit) {
-        Objects.requireNonNull(worker);
-        Objects.requireNonNull(initialSeed);
-        Objects.requireNonNull(nextSeed);
-        Objects.requireNonNull(emit);
+        requireNonNull(worker);
+        requireNonNull(initialSeed);
+        requireNonNull(nextSeed);
+        requireNonNull(emit);
         this.nextSeed = nextSeed;
         this.emit = emit;
         this.worker = worker;
@@ -166,7 +166,7 @@ public class SimulatorEngineImpl<T, S> implements SimulatorEngine<T, S> {
                 // Emits data
                 // reset simulation time track last event instant
                 emitEvent(emit.apply(seed));
-                double actualSpeed = simulatingTime / processTime * NANOSPS;
+                double actualSpeed = simulatedTime / processTime * NANOSPS;
                 emitSpeed(actualSpeed);
                 simulatedTime = 0;
                 lastEvent = now;
@@ -191,32 +191,43 @@ public class SimulatorEngineImpl<T, S> implements SimulatorEngine<T, S> {
 
     @Override
     public Single<S> pushSeed(S seed) {
+        requireNonNull(seed);
         SingleSubject<S> result = SingleSubject.create();
         queue.offer(new ProcessRequest(e -> seed, result));
+        if (status.equals(Status.IDLE)) {
+            deque();
+        }
         return result;
     }
 
     @Override
     public Single<S> request(UnaryOperator<S> transition) {
+        requireNonNull(transition);
         SingleSubject<S> result = SingleSubject.create();
         queue.offer(new ProcessRequest(transition, result));
+        if (status == Status.IDLE) {
+            deque();
+        }
         return result;
     }
 
     @Override
     public SimulatorEngineImpl<T, S> setEventInterval(Duration interval) {
+        requireNonNull(interval);
         eventInterval = interval.toNanos();
         return this;
     }
 
     @Override
     public SimulatorEngineImpl<T, S> setOnEvent(Consumer<T> onEvent) {
+        requireNonNull(onEvent);
         this.onEvent = onEvent;
         return this;
     }
 
     @Override
     public SimulatorEngineImpl<T, S> setOnSpeed(DoubleConsumer onSpeed) {
+        requireNonNull(onSpeed);
         this.onSpeed = onSpeed;
         return this;
     }
@@ -228,6 +239,9 @@ public class SimulatorEngineImpl<T, S> implements SimulatorEngine<T, S> {
             this.speed = speed;
             return e;
         }, result));
+        if (status == Status.IDLE) {
+            deque();
+        }
         return result;
     }
 
@@ -263,6 +277,9 @@ public class SimulatorEngineImpl<T, S> implements SimulatorEngine<T, S> {
             return e;
         }
                 , result));
+        if (status == Status.IDLE) {
+            deque();
+        }
         return result;
     }
 

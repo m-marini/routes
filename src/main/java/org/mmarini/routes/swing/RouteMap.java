@@ -31,6 +31,7 @@ import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.processors.PublishProcessor;
+import org.mmarini.Tuple2;
 import org.mmarini.routes.model2.*;
 
 import javax.swing.*;
@@ -42,12 +43,14 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.stream.Collectors;
 
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static org.mmarini.routes.model2.Constants.VEHICLE_LENGTH;
 import static org.mmarini.routes.swing.StatusView.DEFAULT_NODE_COLOR;
 import static org.mmarini.routes.swing.UIConstants.CURSOR_SELECTION_PRECISION;
 import static org.mmarini.routes.swing.UIConstants.computePrecisionDistance;
+
 
 /**
  * @author marco.marini@mmarini.org
@@ -614,7 +617,7 @@ public class RouteMap extends JComponent {
             for (final MapEdge edge : status.getEdges()) {
                 if (!(edge.equals(selectedElement) && isShowingCursor())) {
                     double trafficLevel = status.getEdgesTrafficLevel(edge);
-                    final Color color = SwingUtils.getInstance().computeColor(trafficLevel, TRAFFIC_COLOR_SATURATION);
+                    Color color = SwingUtils.getInstance().computeColor(trafficLevel, TRAFFIC_COLOR_SATURATION);
                     painter.paintEdge(edge, color);
                 }
             }
