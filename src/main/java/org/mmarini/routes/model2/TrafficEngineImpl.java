@@ -864,14 +864,18 @@ public class TrafficEngineImpl implements TrafficEngine {
      * Handles the waiting vehicle moving them to the next edge if possible
      */
     void handleWaitingVehicles() {
-        for (Vehicle vehicle : getWaitingVehicles()) {
-            vehicle.getCurrentEdge().ifPresentOrElse(edge ->
-                            handleWaitingVehicleOnEdge(vehicle, edge)
-                    , () ->
-                            // vehicle on the site
-                            // Extracts next edge
-                            handleVehicleAtSite(vehicle)
+        Map<Boolean, List<Vehicle>> map = getWaitingVehicles().stream()
+                .collect(Collectors.groupingBy(v -> v.getCurrentEdge().isPresent()));
+        // vehicle on edge
+        for (Vehicle vehicle : getValue(map, true).orElse(List.of())) {
+            vehicle.getCurrentEdge().ifPresent(edge ->
+                    handleWaitingVehicleOnEdge(vehicle, edge)
             );
+        }
+        // vehicle on the site
+        // Extracts next edge
+        for (Vehicle vehicle : getValue(map, false).orElse(List.of())) {
+            handleVehicleAtSite(vehicle);
         }
     }
 

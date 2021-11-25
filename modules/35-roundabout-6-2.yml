@@ -1,0 +1,136 @@
+---
+version: "1.0"
+maxVehicles: 8000
+default:
+  frequence: 1.0
+  speedLimit: 130.0
+sites: {}
+paths: []
+nodes:
+  Node_0:
+    x: -76.0
+    "y": -3.0
+  Node_1:
+    x: -35.0
+    "y": -67.0
+  Node_2:
+    x: -36.0
+    "y": -21.0
+  Node_3:
+    x: 76.0
+    "y": 3.0
+  Node_4:
+    x: 0.0
+    "y": 42.0
+  Node_5:
+    x: 36.0
+    "y": -21.0
+  Node_6:
+    x: 76.0
+    "y": -3.0
+  Node_7:
+    x: 35.0
+    "y": 67.0
+  Node_8:
+    x: 41.0
+    "y": -64.0
+  Node_9:
+    x: 35.0
+    "y": -67.0
+  Node_10:
+    x: -41.0
+    "y": -64.0
+  Node_11:
+    x: 36.0
+    "y": 21.0
+  Node_12:
+    x: -76.0
+    "y": 3.0
+  Node_13:
+    x: 0.0
+    "y": -42.0
+  Node_14:
+    x: -36.0
+    "y": 21.0
+  Node_15:
+    x: 41.0
+    "y": 64.0
+  Node_16:
+    x: -35.0
+    "y": 67.0
+  Node_17:
+    x: -41.0
+    "y": 64.0
+edges:
+- start: "Node_11"
+  end: "Node_5"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_5"
+  end: "Node_13"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_13"
+  end: "Node_2"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_2"
+  end: "Node_14"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_4"
+  end: "Node_11"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_14"
+  end: "Node_4"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_6"
+  end: "Node_5"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_11"
+  end: "Node_3"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_2"
+  end: "Node_0"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_12"
+  end: "Node_14"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_4"
+  end: "Node_7"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_15"
+  end: "Node_11"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_14"
+  end: "Node_17"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_16"
+  end: "Node_4"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_13"
+  end: "Node_1"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_10"
+  end: "Node_2"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_5"
+  end: "Node_8"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_9"
+  end: "Node_13"
+  priority: 0
+  speedLimit: 130.0

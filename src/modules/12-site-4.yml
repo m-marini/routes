@@ -1,0 +1,41 @@
+---
+version: "1.0"
+maxVehicles: 8000
+default:
+  frequence: 1.0
+  speedLimit: 130.0
+sites: {}
+paths: []
+nodes:
+  Node_0:
+    x: 42.0
+    "y": -3.0
+  Node_1:
+    x: 42.0
+    "y": 3.0
+  Node_2:
+    x: 0.0
+    "y": 0.0
+  Node_3:
+    x: 42.0
+    "y": 9.0
+  Node_4:
+    x: 42.0
+    "y": -9.0
+edges:
+- start: "Node_2"
+  end: "Node_1"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_0"
+  end: "Node_2"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_2"
+  end: "Node_3"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_4"
+  end: "Node_2"
+  priority: 0
+  speedLimit: 130.0

@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [4.3.3] - 2021-11-25
+
+### Added
+
+- Issue #152: More modules and standardized the old ones
+
+### Fixed
+
+- Issue #127: Entry to a site destination must be prioritized (repoened)
+- Issue #153: Verify computation of simulation speed
+- Issue #154: Reset selection at creation, loading of a new map
+
 ## [4.3.2] - 2021-11-23
 
 ### Changed

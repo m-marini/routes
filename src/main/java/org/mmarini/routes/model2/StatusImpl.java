@@ -36,6 +36,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.mmarini.Tuple2.stream;
 import static org.mmarini.Tuple2.toMap;
 import static org.mmarini.Utils.getValue;
 import static org.mmarini.Utils.join;
@@ -115,6 +116,7 @@ public class StatusImpl implements Status {
     private final Map<MapEdge, Double> edgeTransitTimes;
     private final double[][] weights;
     private Map<Tuple2<MapNode, MapNode>, MapEdge> edgeByPath;
+    private Map<MapEdge, Integer> vehicleCountByEdge;
 
     /**
      * Create the status
@@ -297,7 +299,20 @@ public class StatusImpl implements Status {
      */
     int getVehicleCount(MapEdge edge) {
         Optional<MapEdge> edgeOpt = Optional.ofNullable(edge);
-        return (int) vehicles.stream().filter(v -> v.getCurrentEdge().equals(edgeOpt)).count();
+        return edgeOpt.flatMap(getValue(getVehicleCountByEdge()))
+                .orElse(0);
+    }
+
+    public Map<MapEdge, Integer> getVehicleCountByEdge() {
+        if (vehicleCountByEdge == null) {
+            Map<MapEdge, List<Tuple2<MapEdge, Vehicle>>> map = vehicles.stream()
+                    .flatMap(v -> v.getCurrentEdge().map(edge -> Tuple2.of(edge, v)).stream())
+                    .collect(Collectors.groupingBy(Tuple2::getV1));
+            vehicleCountByEdge = stream(map)
+                    .map(t -> t.setV2(t.getV2().size()))
+                    .collect(toMap());
+        }
+        return vehicleCountByEdge;
     }
 
     @Override

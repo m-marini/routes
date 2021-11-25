@@ -555,6 +555,8 @@ public class UIController {
         TrafficEngineImpl engine = createEngine(DEFAULT_MAX_VEHICLES, t, 0, List.of(),
                 DEFAULT_SPEED_LIMIT_KMH / KMPHSPM,
                 DEFAULT_FREQUENCY);
+        routeMap.startSelectMode();
+        mapElementPane.clearPanel();
         simulator.pushSeed(engine)
                 .doOnSuccess(engine1 -> {
                     statusView = createStatusView(engine1.buildStatus());
@@ -578,6 +580,8 @@ public class UIController {
             final MapProfile profile = mapProfilePane.getProfile();
             TrafficEngineImpl randomStatus = createRandom(DEFAULT_MAX_VEHICLES, random, profile,
                     DEFAULT_SPEED_LIMIT_MPS);
+            routeMap.startSelectMode();
+            mapElementPane.clearPanel();
             simulator.pushSeed(randomStatus)
                     .doOnSuccess(engine -> {
                         statusView = createStatusView(engine.buildStatus());
@@ -613,6 +617,8 @@ public class UIController {
                             status.getSpeedLimit(),
                             status.getFrequency(),
                             status.getWeightMatrix().getValues());
+                    routeMap.startSelectMode();
+                    mapElementPane.clearPanel();
                     simulator.pushSeed(seed)
                             .doOnSuccess(engine -> {
                                 statusView = createStatusView(engine.buildStatus());
