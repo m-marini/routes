@@ -80,7 +80,7 @@ public class Utils {
      * @param iterator iterator
      * @param <T>      the type of item
      */
-    static <T> Stream<T> iter2Stream(Iterator<T> iterator) {
+    public static <T> Stream<T> iter2Stream(Iterator<T> iterator) {
         return Stream.iterate(iterator,
                         Iterator::hasNext,
                         y -> y)

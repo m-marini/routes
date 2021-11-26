@@ -1,0 +1,6 @@
+---
+- translate:
+      x: 0
+      y: -114
+- rotate:
+      angle: 180
