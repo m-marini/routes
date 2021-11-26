@@ -31,7 +31,6 @@ import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.processors.PublishProcessor;
-import org.mmarini.Tuple2;
 import org.mmarini.routes.model2.*;
 
 import javax.swing.*;
@@ -43,7 +42,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.stream.Collectors;
 
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static org.mmarini.routes.model2.Constants.VEHICLE_LENGTH;
@@ -76,6 +74,8 @@ public class RouteMap extends JComponent {
     private final Mode selectingMode;
     private final Mode startEdgeMode;
     private final Mode endEdgeMode;
+    private final Mode changeEndEdgeMode;
+    private final Mode changeBeginEdgeMode;
     private final Mode moduleLocationMode;
     private final Mode moduleRotationMode;
     private final Mode centerMode;
@@ -85,6 +85,8 @@ public class RouteMap extends JComponent {
     private final PublishProcessor<MapNode> deleteNodeProcessor;
     private final PublishProcessor<Point2D> centerMapProcessor;
     private final PublishProcessor<EdgeCreation> newEdgeProcessor;
+    private final PublishProcessor<TerminalEdgeChange> beginEdgeChangeProcessor;
+    private final PublishProcessor<TerminalEdgeChange> endEdgeChangeProcessor;
     private final PublishProcessor<ModuleParameters> newModuleProcessor;
     private final PublishProcessor<MapElement> unselectProcessor;
     private final PublishProcessor<MapElement> selectElementProcessor;
@@ -99,6 +101,7 @@ public class RouteMap extends JComponent {
     private Mode currentMode;
     private StatusView status;
     private boolean ctrPressed;
+    private MapEdge changingEdge;
 
     /**
      *
@@ -163,7 +166,6 @@ public class RouteMap extends JComponent {
             @Override
             public void paintMode() {
             }
-
         };
         endEdgeMode = new Mode() {
 
@@ -183,11 +185,53 @@ public class RouteMap extends JComponent {
             @Override
             public void paintMode() {
                 if (mouseInside) {
-
                     painter.paintEdge(begin, end, EDGE_DRAGGING_COLOR);
                 }
             }
+        };
+        changeEndEdgeMode = new Mode() {
 
+            @Override
+            public void handleMouseMoved(final MouseEvent ev) {
+                end = status.snapToNode(
+                        computeMapLocation(ev.getPoint()),
+                        (CURSOR_SELECTION_PRECISION / scale));
+                repaint();
+            }
+
+            @Override
+            public void handleMousePressed(final MouseEvent ev) {
+                handleChangeEndEdge(ev);
+            }
+
+            @Override
+            public void paintMode() {
+                if (mouseInside) {
+                    painter.paintEdge(begin, end, EDGE_DRAGGING_COLOR);
+                }
+            }
+        };
+        changeBeginEdgeMode = new Mode() {
+
+            @Override
+            public void handleMouseMoved(final MouseEvent ev) {
+                begin = status.snapToNode(
+                        computeMapLocation(ev.getPoint()),
+                        (CURSOR_SELECTION_PRECISION / scale));
+                repaint();
+            }
+
+            @Override
+            public void handleMousePressed(final MouseEvent ev) {
+                handleChangeBeginEdge(ev);
+            }
+
+            @Override
+            public void paintMode() {
+                if (mouseInside) {
+                    painter.paintEdge(begin, end, EDGE_DRAGGING_COLOR);
+                }
+            }
         };
         moduleLocationMode = new Mode() {
             @Override
@@ -286,6 +330,8 @@ public class RouteMap extends JComponent {
         this.deleteNodeProcessor = PublishProcessor.create();
         this.centerMapProcessor = PublishProcessor.create();
         this.newEdgeProcessor = PublishProcessor.create();
+        this.endEdgeChangeProcessor = PublishProcessor.create();
+        this.beginEdgeChangeProcessor = PublishProcessor.create();
         this.newModuleProcessor = PublishProcessor.create();
         this.unselectProcessor = PublishProcessor.create();
         this.selectElementProcessor = PublishProcessor.create();
@@ -415,14 +461,27 @@ public class RouteMap extends JComponent {
     /**
      *
      */
+    public Flowable<TerminalEdgeChange> getBeginEdgeChangeFlowable() {
+        return beginEdgeChangeProcessor;
+    }
+
+    /**
+     *
+     */
     public Flowable<Point2D> getCenterMapFlowable() {
         return centerMapProcessor;
     }
 
+    /**
+     *
+     */
     public Flowable<MapEdge> getDeleteEdgeFlowable() {
         return deleteEdgeProcessor;
     }
 
+    /**
+     *
+     */
     public Flowable<MapNode> getDeleteNodeFlowable() {
         return deleteNodeProcessor;
     }
@@ -432,6 +491,13 @@ public class RouteMap extends JComponent {
      */
     public double getEdgeLength() {
         return begin.distance(end);
+    }
+
+    /**
+     *
+     */
+    public Flowable<TerminalEdgeChange> getEndEdgeChangeFlowable() {
+        return endEdgeChangeProcessor;
     }
 
     /**
@@ -520,6 +586,34 @@ public class RouteMap extends JComponent {
     /**
      * @param ev the mouse event
      */
+    private void handleChangeBeginEdge(final MouseEvent ev) {
+        begin = status.snapToNode(
+                computeMapLocation(ev.getPoint()),
+                computePrecisionDistance(scale));
+        if (end.distance(begin) > VEHICLE_LENGTH) {
+            beginEdgeChangeProcessor.onNext(new TerminalEdgeChange(changingEdge, begin));
+            startSelectMode();
+        }
+        repaint();
+    }
+
+    /**
+     * @param ev the mouse event
+     */
+    private void handleChangeEndEdge(final MouseEvent ev) {
+        end = status.snapToNode(
+                computeMapLocation(ev.getPoint()),
+                computePrecisionDistance(scale));
+        if (end.distance(begin) > VEHICLE_LENGTH) {
+            endEdgeChangeProcessor.onNext(new TerminalEdgeChange(changingEdge, end));
+            startSelectMode();
+        }
+        repaint();
+    }
+
+    /**
+     * @param ev the mouse event
+     */
     private void handleEndEdge(final MouseEvent ev) {
         end = status.snapToNode(
                 computeMapLocation(ev.getPoint()),
@@ -557,10 +651,12 @@ public class RouteMap extends JComponent {
     }
 
     /**
-     * Returns the selectingEnd
+     * Returns true if mode is selecting edge
      */
-    public boolean isSelectingEnd() {
-        return currentMode.equals(endEdgeMode);
+    public boolean isSelectingEdge() {
+        return currentMode.equals(endEdgeMode)
+                || currentMode.equals(changeBeginEdgeMode)
+                || currentMode.equals(changeEndEdgeMode);
     }
 
     /**
@@ -719,7 +815,33 @@ public class RouteMap extends JComponent {
     }
 
     /**
+     * Starts the selection of begin node of an edge
      *
+     * @param edge the edge
+     */
+    public void startEdgeBeginNodeMode(MapEdge edge) {
+        setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+        this.currentMode = changeBeginEdgeMode;
+        this.end = edge.getEndLocation();
+        this.changingEdge = edge;
+        repaint();
+    }
+
+    /**
+     * Starts the selection of end node of an edge
+     *
+     * @param edge the edge
+     */
+    public void startEdgeEndNodeMode(MapEdge edge) {
+        setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+        this.currentMode = changeEndEdgeMode;
+        this.begin = edge.getBeginLocation();
+        this.changingEdge = edge;
+        repaint();
+    }
+
+    /**
+     * Starts the selection of begin node of a new edge
      */
     public void startEdgeMode() {
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
@@ -733,7 +855,6 @@ public class RouteMap extends JComponent {
         this.mapModule = module;
         this.currentMode = moduleLocationMode;
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-//        setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
     }
 
     /**
@@ -769,6 +890,24 @@ public class RouteMap extends JComponent {
 
         public Point2D getEnd() {
             return end;
+        }
+    }
+
+    public static class TerminalEdgeChange {
+        private final MapEdge edge;
+        private final Point2D terminal;
+
+        public TerminalEdgeChange(MapEdge edge, Point2D terminal) {
+            this.edge = edge;
+            this.terminal = terminal;
+        }
+
+        public MapEdge getEdge() {
+            return edge;
+        }
+
+        public Point2D getTerminal() {
+            return terminal;
         }
     }
 

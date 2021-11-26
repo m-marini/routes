@@ -62,6 +62,7 @@ import static org.mmarini.routes.model2.Constants.*;
 import static org.mmarini.routes.model2.Topology.createTopology;
 import static org.mmarini.routes.model2.TrafficEngineImpl.createEngine;
 import static org.mmarini.routes.model2.TrafficEngineImpl.createRandom;
+import static org.mmarini.routes.swing.RouteMap.TerminalEdgeChange;
 import static org.mmarini.routes.swing.UIConstants.*;
 import static org.mmarini.yaml.Utils.fromFile;
 import static org.mmarini.yaml.Utils.fromResource;
@@ -79,7 +80,6 @@ public class UIController {
     private final JFileChooser fileChooser;
     private final OptimizePane optimizePane;
     private final RoutePane routesPane;
-    private final NodeChooser nodeChooser;
     private final MapProfilePane mapProfilePane;
     private final FrequencyPane frequencyPane;
     private final RouteMap routeMap;
@@ -134,7 +134,6 @@ public class UIController {
         frequencyPane = new FrequencyPane();
         routesPane = new RoutePane();
         fileChooser = new JFileChooser();
-        nodeChooser = new NodeChooser();
 
         mainFrame = new MainFrame(mapViewPane, mapElementPane, explorerPane);
         this.fpsMeter = FrequencyMeter.create();
@@ -161,26 +160,6 @@ public class UIController {
     }
 
     /**
-     * @param edge the edge
-     */
-    public void changeBeginNode(final MapEdge edge) {
-        Optional<MapNode> mapNode = chooseNode();
-        mapNode.ifPresent(node -> {
-            MapEdge newEdge = edge.setBegin(node);
-            simulator.request(engine -> engine.changeEdge(edge, newEdge))
-                    .doOnSuccess(engine -> {
-                        statusView = createStatusView(engine.buildStatus());
-                        refreshTopology();
-                        mapViewPane.selectSelector();
-                        routeMap.reset();
-                        statusView.getEdgeViews(newEdge).ifPresent(mapElementPane::setSelectedEdge);
-                        routeMap.setSelectedElement(newEdge);
-                        mainFrame.repaint();
-                    }).subscribe();
-        });
-    }
-
-    /**
      * Change the edge
      *
      * @param edge the new edge properties
@@ -192,39 +171,6 @@ public class UIController {
         simulator.request(engine -> engine.changeEdge(oldEdge, newEdge))
                 .doOnSuccess(engine -> statusView = createStatusView(engine.buildStatus()))
                 .subscribe();
-    }
-
-    /**
-     * @param edge the edge
-     */
-    public void changeEndNode(final MapEdge edge) {
-        chooseNode().ifPresent(node -> {
-            MapEdge newEdge = edge.setEnd(node);
-            simulator.request(engine -> engine.changeEdge(edge, newEdge))
-                    .doOnSuccess(engine -> {
-                        statusView = createStatusView(engine.buildStatus());
-                        refreshTopology();
-                        mapViewPane.selectSelector();
-                        routeMap.reset();
-                        statusView.getEdgeViews(newEdge).ifPresent(mapElementPane::setSelectedEdge);
-                        routeMap.setSelectedElement(newEdge);
-                        mainFrame.repaint();
-                    }).subscribe();
-        });
-    }
-
-    /**
-     *
-     */
-    private Optional<MapNode> chooseNode() {
-        nodeChooser.setNodeList(statusView.getNodeViews());
-        final int opt = JOptionPane.showConfirmDialog(mainFrame, nodeChooser,
-                Messages.getString("RouteMediator.nodeChooser.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
-        if (opt == JOptionPane.OK_OPTION) {
-            return nodeChooser.getSelectedNode();
-        } else {
-            return Optional.empty();
-        }
     }
 
     /**
@@ -276,18 +222,35 @@ public class UIController {
 
         edgePane.getChangeFlowable().doOnNext(this::changeEdge).subscribe();
 
-        edgePane.getDeleteFlowable().doOnNext(edg -> remove(edg.getEdge())).subscribe();
-        edgePane.getBeginNodeFlowable().doOnNext(edg -> changeBeginNode(edg.getEdge())).subscribe();
-        edgePane.getEndNodeFlowable().doOnNext(edg -> changeEndNode(edg.getEdge())).subscribe();
+        edgePane.getDeleteFlowable()
+                .map(EdgeView::getEdge)
+                .doOnNext(this::remove)
+                .subscribe();
+        edgePane.getBeginNodeFlowable()
+                .map(EdgeView::getEdge)
+                .doOnNext(routeMap::startEdgeBeginNodeMode)
+                .subscribe();
+        edgePane.getEndNodeFlowable()
+                .map(EdgeView::getEdge)
+                .doOnNext(routeMap::startEdgeEndNodeMode)
+                .subscribe();
 
-        nodePane.getChangeFlowable().doOnNext(node -> transformToSite(node.getNode()))
+        nodePane.getChangeFlowable()
+                .map(NodeView::getNode)
+                .doOnNext(this::transformToSite)
                 .subscribe();
-        nodePane.getDeleteFlowable().doOnNext(node -> remove(node.getNode()))
+        nodePane.getDeleteFlowable()
+                .map(NodeView::getNode)
+                .doOnNext(this::remove)
                 .subscribe();
 
-        sitePane.getChangeFlowable().doOnNext(node -> transformToNode((SiteNode) node.getNode()))
+        sitePane.getChangeFlowable()
+                .map(node -> (SiteNode) node.getNode())
+                .doOnNext(this::transformToNode)
                 .subscribe();
-        sitePane.getDeleteFlowable().doOnNext(node -> remove(node.getNode()))
+        sitePane.getDeleteFlowable()
+                .map(NodeView::getNode)
+                .doOnNext(this::remove)
                 .subscribe();
 
         explorerPane.getSiteFlowable().doOnNext(site -> {
@@ -325,7 +288,8 @@ public class UIController {
         mapViewPane.getNormalViewFlowable().doOnNext(ev ->
                         routeMap.setTrafficView(false))
                 .subscribe();
-        mapViewPane.getTrafficViewFlowable().doOnNext(ev ->
+        mapViewPane.getTrafficViewFlowable()
+                .doOnNext(ev ->
                         routeMap.setTrafficView(true))
                 .subscribe();
         mapViewPane.getSelectFlowable().doOnNext(ev ->
@@ -348,6 +312,8 @@ public class UIController {
         routeMap.getCenterMapFlowable().doOnNext(this::centerMap).subscribe();
         routeMap.getNewEdgeFlowable().doOnNext(this::createEdge).subscribe();
         routeMap.getNewModuleFlowable().doOnNext(this::createModule).subscribe();
+        routeMap.getEndEdgeChangeFlowable().doOnNext(this::handleChangeEdgeEnd).subscribe();
+        routeMap.getBeginEdgeChangeFlowable().doOnNext(this::handleChangeEdgeBegin).subscribe();
 
         routeMap.getMouseWheelFlowable().doOnNext(this::handleMouseWheelMoved).subscribe();
         routeMap.getMouseFlowable()
@@ -358,7 +324,7 @@ public class UIController {
                         Point2D mapPoint = routeMap.computeMapLocation(pt);
                         infoPane.setMapPoint(mapPoint);
                     }
-                    infoPane.setEdgeLegend(routeMap.isSelectingEnd());
+                    infoPane.setEdgeLegend(routeMap.isSelectingEdge());
                     infoPane.setEdgeLength(routeMap.getEdgeLength());
                 })
                 .subscribe();
@@ -398,6 +364,53 @@ public class UIController {
 
     StatusView createStatusView(Status status) {
         return statusView != null ? statusView.update(status) : StatusView.createStatusView(status);
+    }
+
+    /**
+     * Handles the changing of edge begin
+     *
+     * @param change the change event
+     */
+    private void handleChangeEdgeBegin(TerminalEdgeChange change) {
+        MapEdge edge = change.getEdge();
+        Point2D terminal = change.getTerminal();
+        MapNode begin = statusView.findNode(terminal, computePrecisionDistance(routeMap.getScale()))
+                .orElseGet(() -> new CrossNode(terminal));
+        MapEdge newEdge = edge.setBegin(begin);
+        simulator.request(engine -> engine.changeEdge(edge, newEdge))
+                .doOnSuccess(engine -> {
+                    statusView = createStatusView(engine.buildStatus());
+                    refreshTopology();
+                    mapViewPane.selectSelector();
+                    routeMap.reset();
+                    statusView.getEdgeViews(newEdge).ifPresent(mapElementPane::setSelectedEdge);
+                    routeMap.setSelectedElement(newEdge);
+                    mainFrame.repaint();
+                }).subscribe();
+    }
+
+
+    /**
+     * Handles the changing of edge end
+     *
+     * @param change the change event
+     */
+    private void handleChangeEdgeEnd(TerminalEdgeChange change) {
+        MapEdge edge = change.getEdge();
+        Point2D terminal = change.getTerminal();
+        MapNode end = statusView.findNode(terminal, computePrecisionDistance(routeMap.getScale()))
+                .orElseGet(() -> new CrossNode(terminal));
+        MapEdge newEdge = edge.setEnd(end);
+        simulator.request(engine -> engine.changeEdge(edge, newEdge))
+                .doOnSuccess(engine -> {
+                    statusView = createStatusView(engine.buildStatus());
+                    refreshTopology();
+                    mapViewPane.selectSelector();
+                    routeMap.reset();
+                    statusView.getEdgeViews(newEdge).ifPresent(mapElementPane::setSelectedEdge);
+                    routeMap.setSelectedElement(newEdge);
+                    mainFrame.repaint();
+                }).subscribe();
     }
 
     /**
