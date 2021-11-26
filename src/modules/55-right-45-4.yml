@@ -4,8 +4,8 @@ maxVehicles: 8000
 default:
   frequence: 1.0
   speedLimit: 130.0
-sites: {}
-paths: []
+sites: { }
+paths: [ ]
 nodes:
   Node_0:
     x: 0.0
@@ -44,35 +44,35 @@ nodes:
     x: 33.0
     "y": -29.0
 edges:
-- start: "Node_0"
-  end: "Node_10"
-  priority: 0
-  speedLimit: 130.0
-- start: "Node_10"
-  end: "Node_9"
-  priority: 0
-  speedLimit: 130.0
-- start: "Node_1"
-  end: "Node_11"
-  priority: 0
-  speedLimit: 130.0
-- start: "Node_11"
-  end: "Node_7"
-  priority: 0
-  speedLimit: 130.0
-- start: "Node_2"
-  end: "Node_8"
-  priority: 0
-  speedLimit: 130.0
-- start: "Node_8"
-  end: "Node_3"
-  priority: 0
-  speedLimit: 130.0
-- start: "Node_5"
-  end: "Node_6"
-  priority: 0
-  speedLimit: 130.0
-- start: "Node_6"
-  end: "Node_4"
-  priority: 0
-  speedLimit: 130.0
+  - start: "Node_0"
+    end: "Node_10"
+    priority: 0
+    speedLimit: 130.0
+  - start: "Node_10"
+    end: "Node_9"
+    priority: 0
+    speedLimit: 130.0
+  - start: "Node_1"
+    end: "Node_11"
+    priority: 0
+    speedLimit: 130.0
+  - start: "Node_11"
+    end: "Node_7"
+    priority: 0
+    speedLimit: 130.0
+  - start: "Node_2"
+    end: "Node_8"
+    priority: 0
+    speedLimit: 130.0
+  - start: "Node_8"
+    end: "Node_3"
+    priority: 0
+    speedLimit: 130.0
+  - start: "Node_5"
+    end: "Node_6"
+    priority: 0
+    speedLimit: 130.0
+  - start: "Node_6"
+    end: "Node_4"
+    priority: 0
+    speedLimit: 130.0
