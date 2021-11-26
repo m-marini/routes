@@ -93,14 +93,16 @@ public class ModelProcessor {
      */
     public static void main(String[] args) throws IOException {
         assert args.length == 3;
-        JsonNode model = fromFile(args[0]);
+        logger.info("Loading process {} ...", args[2]);
         JsonNode process = fromFile(args[2]);
         AffineTransform trans = createTransform(process);
-        logger.info("{}", trans);
+        logger.info("Loading model {} ...", args[0]);
+        JsonNode model = fromFile(args[0]);
         model = transform(model, trans);
-        logger.info("{}", model);
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        logger.info("Writting model {} ...", args[1]);
         mapper.writeValue(new FileWriter(args[1]), model);
+        logger.info("Completed.");
     }
 
     static JsonNode transform(JsonNode model, AffineTransform trans) {

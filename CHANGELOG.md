@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue #54: Modify edge with mouse
 - Issue #156: Curve modules
 
+### Fixed
+
+- Issue #157: Verify modules' junctions
+
 ## [4.3.3] - 2021-11-25
 
 ### Added
