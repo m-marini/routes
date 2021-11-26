@@ -40,7 +40,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mmarini.routes.model2.Constants.DEFAULT_SPEED_LIMIT_KMH;
-import static org.mmarini.routes.model2.Constants.DEFAULT_SPEED_LIMIT_MPS;
 import static org.mmarini.routes.model2.yaml.TestUtils.text;
 
 class DefaultsASTTest {

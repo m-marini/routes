@@ -28,8 +28,6 @@
 
 package org.mmarini.routes.swing;
 
-import static java.lang.Math.min;
-
 public interface UIConstants {
     long FPS = 60;
     long NANOSPS = 1000000000L;

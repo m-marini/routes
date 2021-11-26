@@ -8,31 +8,34 @@ sites: { }
 paths: [ ]
 nodes:
   Node_0:
-    x: 42.0
-    "y": -3.0
-  Node_1:
-    x: 42.0
-    "y": 3.0
-  Node_2:
     x: 0.0
     "y": 0.0
+  Node_1:
+    x: 81.0
+    "y": -40.0
+  Node_2:
+    x: -4.0
+    "y": -4.0
   Node_3:
-    x: 42.0
-    "y": 9.0
+    x: 81.0
+    "y": -34.0
   Node_4:
-    x: 42.0
-    "y": -9.0
+    x: 35.0
+    "y": -30.0
+  Node_5:
+    x: 37.0
+    "y": -25.0
 edges:
-  - start: "Node_2"
-    end: "Node_1"
-    priority: 0
-    speedLimit: 130.0
   - start: "Node_0"
-    end: "Node_2"
+    end: "Node_5"
     priority: 0
     speedLimit: 130.0
-  - start: "Node_2"
+  - start: "Node_5"
     end: "Node_3"
+    priority: 0
+    speedLimit: 130.0
+  - start: "Node_1"
+    end: "Node_4"
     priority: 0
     speedLimit: 130.0
   - start: "Node_4"

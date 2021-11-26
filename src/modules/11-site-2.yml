@@ -4,8 +4,8 @@ maxVehicles: 8000
 default:
   frequence: 1.0
   speedLimit: 130.0
-sites: {}
-paths: []
+sites: { }
+paths: [ ]
 nodes:
   Node_0:
     x: 42.0
@@ -17,11 +17,11 @@ nodes:
     x: 0.0
     "y": 0.0
 edges:
-- start: "Node_2"
-  end: "Node_1"
-  priority: 0
-  speedLimit: 130.0
-- start: "Node_0"
-  end: "Node_2"
-  priority: 0
-  speedLimit: 130.0
+  - start: "Node_2"
+    end: "Node_1"
+    priority: 0
+    speedLimit: 130.0
+  - start: "Node_0"
+    end: "Node_2"
+    priority: 0
+    speedLimit: 130.0
