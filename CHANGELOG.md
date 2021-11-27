@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- Issue #159: set frequency to max 0.5 vehicles/sec
+- Issue #160: change the curve modules
+
+## [4.3.4] - 2021-11-26
+
 ### Added
 
 - Issue #54: Modify edge with mouse

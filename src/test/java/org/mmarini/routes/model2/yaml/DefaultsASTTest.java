@@ -39,7 +39,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mmarini.routes.model2.Constants.DEFAULT_SPEED_LIMIT_KMH;
+import static org.mmarini.routes.model2.Constants.*;
 import static org.mmarini.routes.model2.yaml.TestUtils.text;
 
 class DefaultsASTTest {
@@ -48,9 +48,9 @@ class DefaultsASTTest {
     void validDefault() throws IOException {
         JsonNode file = Utils.fromText(text(
                 "---",
-                "defaultFrequence: 0.33",
+                "frequence: 0.33",
                 "speedLimit: 90",
-                "defaultPriority: 1"
+                "priority: 1"
         ));
         DefaultsAST node = new DefaultsAST(file, JsonPointer.empty());
         node.validate();
@@ -63,8 +63,8 @@ class DefaultsASTTest {
     void validDefaultNoSpeed() throws IOException {
         JsonNode file = Utils.fromText(text(
                 "---",
-                "defaultFrequence: 0.33",
-                "defaultPriority: 1"
+                "frequence: 0.33",
+                "priority: 1"
         ));
         DefaultsAST node = new DefaultsAST(file, JsonPointer.empty());
         node.validate();
@@ -78,9 +78,9 @@ class DefaultsASTTest {
         JsonNode file = Utils.fromText("---");
         DefaultsAST node = new DefaultsAST(file, JsonPointer.valueOf("/defaults"));
         node.validate();
-        assertThat(node.defaultFrequence().getValue(), equalTo(1.0));
+        assertThat(node.defaultFrequence().getValue(), equalTo(DEFAULT_FREQUENCY));
         assertThat(node.speedLimit().getValue(), equalTo(DEFAULT_SPEED_LIMIT_KMH));
-        assertThat(node.defaultPriority().getValue(), equalTo(0));
+        assertThat(node.defaultPriority().getValue(), equalTo(DEFAULT_PRIORITY));
     }
 
     @Test
@@ -88,13 +88,13 @@ class DefaultsASTTest {
         final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
             JsonNode root = Utils.fromText(text(
                     "---",
-                    "defaultFrequence: 0.33",
+                    "frequence: 0.33",
                     "speedLimit: -1",
-                    "defaultPriority: a"
+                    "priority: a"
             ));
             new DefaultsAST(root, JsonPointer.empty()).validate();
         });
-        assertThat(ex.getMessage(), matchesPattern("/defaultPriority \"a\" must be an integer"));
+        assertThat(ex.getMessage(), matchesPattern("/priority \"a\" must be an integer"));
     }
 
     @Test
@@ -102,13 +102,13 @@ class DefaultsASTTest {
         final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
             JsonNode root = Utils.fromText(text(
                     "---",
-                    "defaultFrequence: 0.33",
+                    "frequence: 0.33",
                     "speedLimit: -1",
-                    "defaultPriority: 1.3"
+                    "priority: 1.3"
             ));
             new DefaultsAST(root, JsonPointer.empty()).validate();
         });
-        assertThat(ex.getMessage(), matchesPattern("/defaultPriority 1.3 must be an integer"));
+        assertThat(ex.getMessage(), matchesPattern("/priority 1.3 must be an integer"));
     }
 
     @Test
@@ -116,9 +116,9 @@ class DefaultsASTTest {
         final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
             JsonNode root = Utils.fromText(text(
                     "---",
-                    "defaultFrequence: 0.33",
+                    "frequence: 0.33",
                     "speedLimit: aaaa",
-                    "defaultPriority: 1"
+                    "priority: 1"
             ));
             new DefaultsAST(root, JsonPointer.empty()).validate();
         });

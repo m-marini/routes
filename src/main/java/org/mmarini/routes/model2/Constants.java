@@ -36,7 +36,7 @@ public interface Constants {
     double PRECISION = 1e-3;
     double KMPHSPM = 3.6;
     double DEFAULT_SPEED_LIMIT_KMH = 130;
-    double DEFAULT_FREQUENCY = 1;
+    double DEFAULT_FREQUENCY = 0.25;
     double DEFAULT_PATH_INTERVAL = 3;
     double DEFAULT_WEIGHT = 1;
     double DEFAULT_SPEED_LIMIT_MPS = DEFAULT_SPEED_LIMIT_KMH / KMPHSPM;
