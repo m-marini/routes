@@ -1,6 +1,6 @@
 ---
 default:
-  frequence: 1.0
+  frequence: 0.25
   speedLimit: 130
 sites:
   Node_4:

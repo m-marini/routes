@@ -55,14 +55,14 @@ public class DefaultsAST extends ASTNode {
     public DoubleAST defaultFrequence() {
         return DoubleAST.createOptionalNotNegativeDouble(
                 getRoot(),
-                path("defaultFrequence"),
+                path("frequence"),
                 DEFAULT_FREQUENCY);
     }
 
     public IntAST defaultPriority() {
         return IntAST.createOptionalInteger(
                 getRoot(),
-                path("defaultPriority"),
+                path("priority"),
                 DEFAULT_PRIORITY);
     }
 

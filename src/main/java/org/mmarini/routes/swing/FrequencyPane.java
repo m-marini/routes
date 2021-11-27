@@ -34,11 +34,9 @@ import java.util.Hashtable;
 
 /**
  * Manages the panel of frequency parameters for vehicle creation
- *
- * @author Marco
  */
 public class FrequencyPane extends Box {
-    private static final double[] FREQUENCES = {0.4, 0.7, 1.5, 2.2, 10. / 3.};
+    private static final double[] FREQUENCES = {0.125, 0.177, 0.25, 0.356, 0.5};
     private static final long serialVersionUID = 1L;
     private final BoundedRangeModel frequenceModel;
 
