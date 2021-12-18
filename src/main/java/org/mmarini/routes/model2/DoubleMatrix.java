@@ -44,7 +44,7 @@ public class DoubleMatrix<K> {
     /**
      * Returns the double matrix from a stream
      */
-    public static <K> DoubleMatrix<K> from(Stream<Tuple2<Tuple2<K, K>, Double>> stream, List<K> keys) {
+    public static <K> DoubleMatrix<? extends K> from(Stream<Tuple2<Tuple2<? extends K, ? extends K>, Double>> stream, List<? extends K> keys) {
         int n = keys.size();
         double[][] values = new double[n][n];
         stream.forEach(entry -> {

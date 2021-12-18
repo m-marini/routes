@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- Issue #164: Change frequency in map profile
+
+## [4.3.5] - 2021-11-27
+
 ### Changed
 
 - Issue #159: set frequency to max 0.5 vehicles/sec

@@ -28,12 +28,10 @@
 
 package org.mmarini.routes.swing;
 
-import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.mmarini.Tuple2;
 import org.mmarini.routes.model2.*;
-import org.mmarini.routes.model2.yaml.ModuleAST;
-import org.mmarini.routes.model2.yaml.RouteAST;
+import org.mmarini.routes.model2.yaml.Parsers;
 import org.mmarini.routes.model2.yaml.RouteDocBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -515,7 +513,7 @@ public class UIController {
         if (url != null) {
             try {
                 JsonNode doc = fromResource("/test.yml");
-                StatusImpl status = new RouteAST(doc, JsonPointer.empty()).build();
+                StatusImpl status = Parsers.parseStatus(doc);
                 statusView = createStatusView(status);
                 TrafficEngineImpl seed = createEngine(DEFAULT_MAX_VEHICLES,
                         status.getTopology(),
@@ -544,7 +542,7 @@ public class UIController {
                     .flatMap(file -> {
                         try {
                             JsonNode doc = fromFile(file);
-                            MapModule module = new ModuleAST(doc, JsonPointer.empty()).build();
+                            MapModule module = Parsers.parseModule(doc);
                             return Stream.of(Tuple2.of(file.getName(), module));
                         } catch (IOException ex) {
                             return Stream.empty();
@@ -620,7 +618,7 @@ public class UIController {
             } else {
                 try {
                     JsonNode doc = fromFile(file);
-                    StatusImpl status = new RouteAST(doc, JsonPointer.empty()).build();
+                    StatusImpl status = Parsers.parseStatus(doc);
                     mainFrame.setSaveActionEnabled(true);
                     mainFrame.setTitle(file.getName());
                     TrafficEngineImpl seed = createEngine(status.getMaxVehicle(),

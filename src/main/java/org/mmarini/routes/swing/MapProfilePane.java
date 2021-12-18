@@ -44,12 +44,19 @@ public class MapProfilePane extends Box {
     private static final double NORMAL_MIN_WEIGHT = 1. / 3.;
     private static final double EASY_MIN_WEIGHT = 1.;
     private static final double[] MIN_WEIGHTS = {EASY_MIN_WEIGHT, NORMAL_MIN_WEIGHT, DIFFICULT_MIN_WEIGHT};
-    private static final double DIFFICULT_FREQUENCY = 2.;
-    private static final double NORMAL_FREQUENCY = 1.;
-    private static final double EASY_FREQUENCY = 0.4;
+    private static final double DIFFICULT_FREQUENCY = 0.5;
+    private static final double NORMAL_FREQUENCY = 0.25;
+    private static final double EASY_FREQUENCY = 0.125;
+    /*
     private static final double[] FREQUENCIES = {EASY_FREQUENCY / ((1d + EASY_MIN_WEIGHT) / 2d),
             NORMAL_FREQUENCY / ((1d + NORMAL_MIN_WEIGHT) / 2d),
             DIFFICULT_FREQUENCY / ((1d + DIFFICULT_MIN_WEIGHT) / 2d)};
+     */
+    private static final double[] FREQUENCIES = {
+            EASY_FREQUENCY,
+            NORMAL_FREQUENCY,
+            DIFFICULT_FREQUENCY
+    };
     private static final long serialVersionUID = 1L;
 
     private final SpinnerNumberModel siteCount;

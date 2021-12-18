@@ -28,11 +28,8 @@
 
 package org.mmarini;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Random;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
@@ -86,6 +83,18 @@ public interface Utils {
 
     static <K, V> Function<K, Optional<V>> getValue(Map<K, V> map) {
         return key -> getValue(map, key);
+    }
+
+    /**
+     * @param iterator iterator
+     * @param <T>      the type of item
+     */
+    static <T> List<T> iter2List(Iterator<T> iterator) {
+        return stream(iterator).collect(Collectors.toList());
+    }
+
+    static <T> Iterable<T> iterable(Iterator<T> iter) {
+        return () -> iter;
     }
 
     static <K, V> Stream<Tuple2<K, V>> join(List<K> list1, List<V> list2) {
@@ -153,15 +162,34 @@ public interface Utils {
     }
 
     /**
+     * @param iterator
+     * @param <T>
+     * @return
+     */
+    static <T> Stream<T> stream(Iterator<T> iterator) {
+        return Stream.iterate(iterator,
+                        Iterator::hasNext,
+                        y -> y)
+                .map(Iterator::next);
+    }
+
+    /**
+     * @param iterator
+     * @param <T>
+     * @return
+     */
+    static <T> List<T> toList(Iterator<T> iterator) {
+        return stream(iterator).collect(Collectors.toList());
+    }
+
+    /**
      * Returns the list of an iterable
      *
      * @param iterable the iterable
      * @param <T>      the item type
      */
     static <T> List<T> toList(Iterable<T> iterable) {
-        Stream.Builder<T> b = Stream.builder();
-        iterable.forEach(b::add);
-        return b.build().collect(Collectors.toList());
+        return stream(iterable.iterator()).collect(Collectors.toList());
     }
 
     /**
