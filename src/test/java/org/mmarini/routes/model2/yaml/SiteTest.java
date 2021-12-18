@@ -28,33 +28,50 @@
 
 package org.mmarini.routes.model2.yaml;
 
-import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mmarini.routes.model2.SiteNode;
 import org.mmarini.yaml.Utils;
 
 import java.io.IOException;
+import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mmarini.routes.model2.yaml.TestUtils.text;
+import static org.mmarini.yaml.schema.Locator.root;
 
-class SiteASTTest {
+class SiteTest {
+
+    static Stream<Arguments> argsForErrors() {
+        return Stream.of(Arguments.of(text(
+                        "#1",
+                        "y: 2"
+                ), "/x is missing"
+        ), Arguments.of(text(
+                        "#1",
+                        "x: 1"
+                ), "/y is missing"
+        ));
+    }
 
     @Test
     void getSite() throws IOException {
-        JsonNode file = Utils.fromText(text(
+        JsonNode root = Utils.fromText(text(
                 "---",
                 "x: 1",
                 "y: 2"
         ));
-        SiteAST node = new SiteAST(file, JsonPointer.empty());
-        node.validate();
+        SchemaValidators.node()
+                .apply(root())
+                .accept(root);
 
-        SiteNode result = node.getSite();
+        SiteNode result = Parsers.site(root);
         assertNotNull(result);
         assertThat(result.getLocation(), allOf(
                 hasProperty("x", equalTo(1.0)),
@@ -62,28 +79,15 @@ class SiteASTTest {
         ));
     }
 
-    @Test
-    void missingX() throws IOException {
+    @ParameterizedTest
+    @MethodSource("argsForErrors")
+    void validateOnErrors(String text, String expectedError) {
         final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            JsonNode root = Utils.fromText(text(
-                    "---",
-                    "y: 2"
-            ));
-            new SiteAST(root, JsonPointer.empty()).validate();
+            JsonNode root = Utils.fromText(text(text));
+            SchemaValidators.node()
+                    .apply(root())
+                    .accept(root);
         });
-        assertThat(ex.getMessage(), matchesPattern("/x is missing"));
+        assertThat(ex.getMessage(), matchesPattern(expectedError));
     }
-
-    @Test
-    void missingY() throws IOException {
-        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            JsonNode root = Utils.fromText(text(
-                    "---",
-                    "x: 1"
-            ));
-            new SiteAST(root, JsonPointer.empty()).validate();
-        });
-        assertThat(ex.getMessage(), matchesPattern("/y is missing"));
-    }
-
 }

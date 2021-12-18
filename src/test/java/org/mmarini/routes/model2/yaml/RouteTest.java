@@ -28,7 +28,6 @@
 
 package org.mmarini.routes.model2.yaml;
 
-import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -37,90 +36,82 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mmarini.routes.model2.StatusImpl;
 import org.mmarini.yaml.Utils;
 
-import java.awt.geom.Point2D;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mmarini.routes.model2.Constants.*;
+import static org.mmarini.routes.model2.Constants.DEFAULT_SPEED_LIMIT_MPS;
+import static org.mmarini.routes.model2.Constants.KMPHSPM;
 import static org.mmarini.routes.model2.yaml.TestUtils.text;
+import static org.mmarini.yaml.schema.Locator.root;
 
-class RouteASTTest {
+class RouteTest {
 
     static Stream<Arguments> argsForError() {
         return Stream.of(Arguments.of(text(
-                        "---",
+                        "#¹",
                         "nodes: {}",
                         "paths: []",
                         "edges: []"
                 ), "/sites is missing"
         ), Arguments.of(text(
-                        "---",
+                        "#2",
                         "sites: {}",
                         "paths: []",
                         "edges: []"
                 ), "/nodes is missing"
         ), Arguments.of(text(
-                        "---",
+                        "#3",
                         "maxVehicles: aaa",
                         "sites: {}",
                         "nodes: {}",
                         "paths: []",
                         "edges: []"
-                ), "/maxVehicles \"aaa\" must be an integer"
+                ), "/maxVehicles must be an integer \\(STRING\\)"
         ), Arguments.of(text(
-                        "---",
+                        "#4",
                         "maxVehicles: -1",
                         "sites: {}",
                         "nodes: {}",
                         "paths: []",
                         "edges: []"
-                ), "/maxVehicles -1 must be a not negative integer"
+                ), "/maxVehicles must be >= 0 \\(-1\\)"
         ), Arguments.of(text(
-                        "---",
+                        "#5",
                         "version: \"aaa\"",
                         "sites: {}",
                         "nodes: {}",
                         "paths: []",
                         "edges: []"
-                ), "/version \\\"aaa\\\" must match \\(\\\\d\\+\\)\\\\.\\(\\\\d\\+\\)"
+                ), "/version must match pattern \"\\(\\\\d\\+\\)\\\\.\\(\\\\d\\+\\)\" \\(aaa\\)"
         ), Arguments.of(text(
-                        "---",
+                        "#6",
                         "version: \"2.0\"",
                         "sites: {}",
                         "nodes: {}",
                         "paths: []",
                         "edges: []"
-                ), "/version 2.0 not compatible with 1.0"
+                ), "/version must be compatible with 1.0 \\(2.0\\)"
         ), Arguments.of(text(
-                        "---",
+                        "#7",
                         "version: \"1.1\"",
                         "sites: {}",
                         "nodes: {}",
                         "paths: []",
                         "edges: []"
-                ), "/version 1.1 not compatible with 1.0"
+                ), "/version must be compatible with 1.0 \\(1.1\\)"
         ), Arguments.of(text(
-                        "---",
-                        "maxVehicles: -1",
-                        "sites: {}",
-                        "nodes: {}",
-                        "paths: []",
-                        "edges: []"
-                ), "/maxVehicles -1 must be a not negative integer"
-        ), Arguments.of(text(
-                        "---",
+                        "#8",
                         "sites: {}",
                         "nodes: {}",
                         "paths: []"
                 ), "/edges is missing"
         ), Arguments.of(text(
-                        "---",
+                        "#9",
                         "sites:",
                         "    a:",
                         "        x: 0",
@@ -134,9 +125,9 @@ class RouteASTTest {
                         "nodes: {}",
                         "paths: []",
                         "edges: []"
-                ), "/sites/a has the same location of /sites/c"
+                ), "/sites/c must not have the same location of /sites/a"
         ), Arguments.of(text(
-                        "---",
+                        "#10",
                         "nodes:",
                         "    a:",
                         "        x: 0",
@@ -150,9 +141,9 @@ class RouteASTTest {
                         "sites: {}",
                         "paths: []",
                         "edges: []"
-                ), "/nodes/a has the same location of /nodes/c"
+                ), "/nodes/c must not have the same location of /nodes/a"
         ), Arguments.of(text(
-                        "---",
+                        "#11",
                         "nodes:",
                         "    a:",
                         "        x: 0",
@@ -166,9 +157,9 @@ class RouteASTTest {
                         "        y: 0",
                         "paths: []",
                         "edges: []"
-                ), "/nodes/a has the same location of /sites/c"
+                ), "/nodes/a must not have the same location of /sites/c"
         ), Arguments.of(text(
-                        "---",
+                        "#12",
                         "nodes:",
                         "    a:",
                         "        x: 0",
@@ -182,9 +173,9 @@ class RouteASTTest {
                         "        y: 0",
                         "paths: []",
                         "edges: []"
-                ), "/sites/a has the same key of /nodes/a"
+                ), "/nodes/a must not have the same key of /sites/a"
         ), Arguments.of(text(
-                        "---",
+                        "#13",
                         "sites:",
                         "    a:",
                         "        x: 0",
@@ -200,9 +191,9 @@ class RouteASTTest {
                         "edges:",
                         "  - start: a1",
                         "    end: a"
-                ), "/edges/0/start node a1 undefined"
+                ), "/edges/0/start must match a value in \\[a, b, c\\] \\(a1\\)"
         ), Arguments.of(text(
-                        "---",
+                        "#14",
                         "sites:",
                         "    a:",
                         "        x: 0",
@@ -218,9 +209,9 @@ class RouteASTTest {
                         "edges:",
                         "  - start: a",
                         "    end: a1"
-                ), "/edges/0/end node a1 undefined"
+                ), "/edges/0/end must match a value in \\[a, b, c\\] \\(a1\\)"
         ), Arguments.of(text(
-                        "---",
+                        "#15",
                         "sites:",
                         "    a:",
                         "        x: 0",
@@ -236,9 +227,9 @@ class RouteASTTest {
                         "edges:",
                         "  - start: a",
                         "    end: a"
-                ), "/edges/0/end must be different from /edges/0/start"
+                ), "/edges/0/end must not be equal to /edges/0/start \\(a\\)"
         ), Arguments.of(text(
-                        "---",
+                        "#16",
                         "sites:",
                         "    a:",
                         "        x: 0",
@@ -251,9 +242,9 @@ class RouteASTTest {
                         "  - departure: a1",
                         "    destination: a",
                         "edges: []"
-                ), "/paths/0/departure site a1 undefined"
+                ), "/paths/0/departure must match a value in \\[a, b\\] \\(a1\\)"
         ), Arguments.of(text(
-                        "---",
+                        "#17",
                         "sites:",
                         "    a:",
                         "        x: 0",
@@ -266,9 +257,9 @@ class RouteASTTest {
                         "  - departure: a",
                         "    destination: a1",
                         "edges: []"
-                ), "/paths/0/destination site a1 undefined"
+                ), "/paths/0/destination must match a value in \\[a, b\\] \\(a1\\)"
         ), Arguments.of(text(
-                        "---",
+                        "#18",
                         "sites:",
                         "    a:",
                         "        x: 0",
@@ -281,8 +272,14 @@ class RouteASTTest {
                         "  - departure: a",
                         "    destination: a",
                         "edges: []"
-                ), "/paths/0/destination must be different from /paths/0/departure"
+                ), "/paths/0/destination must not be equal to /paths/0/departure \\(a\\)"
         ));
+    }
+
+    static Consumer<JsonNode> create() {
+        return SchemaValidators.route()
+                .apply(root())
+                .andThen(CrossValidators.route().apply(root()));
     }
 
     @Test
@@ -320,61 +317,15 @@ class RouteASTTest {
                 "- departure: node2",
                 "  destination: node0"
         ));
-        RouteAST node = new RouteAST(root, JsonPointer.empty());
 
-        assertThat(node.maxVehicles().getValue(), equalTo(1000));
+        create().accept(root);
 
-        node.validate();
+        StatusImpl status = Parsers.status(root);
 
-        List<EdgeAST> edges = node.edges().items();
-        assertThat(edges, hasSize(4));
-        assertThat(edges.get(0).start().getValue(), equalTo("node0"));
-        assertThat(edges.get(0).end().getValue(), equalTo("node1"));
-        assertThat(edges.get(0).speedLimit().getValue(), equalTo(90.0));
-        assertThat(edges.get(0).priority().getValue(), equalTo(1));
-
-        assertThat(edges.get(1).start().getValue(), equalTo("node1"));
-        assertThat(edges.get(1).end().getValue(), equalTo("node2"));
-        assertThat(edges.get(1).speedLimit().getValue(), equalTo(DEFAULT_SPEED_LIMIT_KMH));
-        assertThat(edges.get(1).priority().getValue(), equalTo(0));
-
-        assertThat(edges.get(2).start().getValue(), equalTo("node1"));
-        assertThat(edges.get(2).end().getValue(), equalTo("node0"));
-        assertThat(edges.get(2).speedLimit().getValue(), equalTo(DEFAULT_SPEED_LIMIT_KMH));
-        assertThat(edges.get(2).priority().getValue(), equalTo(0));
-
-        assertThat(edges.get(3).start().getValue(), equalTo("node2"));
-        assertThat(edges.get(3).end().getValue(), equalTo("node1"));
-        assertThat(edges.get(2).speedLimit().getValue(), equalTo(DEFAULT_SPEED_LIMIT_KMH));
-        assertThat(edges.get(2).priority().getValue(), equalTo(0));
-
-        Map<String, SiteAST> sites = node.sites().items();
-        assertThat(sites.size(), equalTo(2));
-        assertThat(sites.get("node0"), hasProperty("site",
-                hasProperty("location",
-                        equalTo(new Point2D.Double(0, 0)))));
-        assertThat(sites.get("node2"), hasProperty("site",
-                hasProperty("location",
-                        equalTo(new Point2D.Double(10, 0)))));
-
-        Map<String, NodeAST> nodes = node.nodes().items();
-        assertThat(nodes.size(), equalTo(1));
-        assertThat(nodes.get("node1"), hasProperty("mapNode",
-                hasProperty("location",
-                        equalTo(new Point2D.Double(5, 0)))));
-
-        List<WeightAST> paths = node.paths().items();
-        assertThat(paths, hasSize(2));
-        assertThat(paths.get(0).departure().getValue(), equalTo("node0"));
-        assertThat(paths.get(0).destination().getValue(), equalTo("node2"));
-        assertThat(paths.get(0).weight().getValue(), equalTo(2.0));
-
-        assertThat(paths.get(1).departure().getValue(), equalTo("node2"));
-        assertThat(paths.get(1).destination().getValue(), equalTo("node0"));
-        assertThat(paths.get(1).weight().getValue(), equalTo(1.0));
-
-        StatusImpl status = node.build();
         assertNotNull(status);
+
+        assertThat(status.getMaxVehicle(), equalTo(1000));
+
         assertThat(status.getVehicles(), hasSize(0));
         assertThat(status.getSites(), containsInAnyOrder(
                 hasProperty("location", allOf(
@@ -400,6 +351,7 @@ class RouteASTTest {
                         hasProperty("y", equalTo(0.0))
                 ))
         ));
+
         assertThat(status.getEdges(), containsInAnyOrder(
                 allOf(
                         hasProperty("begin", hasProperty("location", allOf(
@@ -439,6 +391,7 @@ class RouteASTTest {
                         hasProperty("speedLimit", equalTo(DEFAULT_SPEED_LIMIT_MPS))
                 )
         ));
+
         assertThat(status.getWeightMatrix().getValues(), equalTo(new double[][]{
                 {0, 1},
                 {2, 0}
@@ -450,7 +403,7 @@ class RouteASTTest {
     void validateErrors(String text, String expectedPattern) {
         final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
             JsonNode root = Utils.fromText(text);
-            new RouteAST(root, JsonPointer.empty()).validate();
+            create().accept(root);
         });
         assertThat(ex.getMessage(), matchesPattern(expectedPattern));
     }

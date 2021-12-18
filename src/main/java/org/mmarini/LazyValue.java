@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2019 Marco Marini, marco.marini@mmarini.org
+ *
+ * Copyright (c) 2021 Marco Marini, marco.marini@mmarini.org
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,49 +27,41 @@
  *
  */
 
-package org.mmarini.routes.model2.yaml;
+package org.mmarini;
 
-import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.JsonNode;
-import org.mmarini.routes.model2.CrossNode;
-import org.mmarini.yaml.ASTNode;
-import org.mmarini.yaml.ASTValidator;
-import org.mmarini.yaml.DoubleAST;
+import java.util.function.Supplier;
 
-import java.awt.geom.Point2D;
-import java.util.function.Consumer;
+/**
+ * A Lazy initialization value
+ *
+ * @param <T> the type of value
+ */
+public class LazyValue<T> implements Supplier<T> {
+    private final Supplier<T> initializer;
+    private T value;
 
-public class NodeAST extends ASTNode {
     /**
-     * @param root the json node
-     * @param at   location of json node
+     * Create a lazy initialized value
+     *
+     * @param initializer the initializer
      */
-    public NodeAST(JsonNode root, JsonPointer at) {
-        super(root, at);
+    public LazyValue(Supplier<T> initializer) {
+        this.initializer = initializer;
     }
 
     /**
-     *
+     * Returns the cleared value
      */
-    public CrossNode getMapNode() {
-        return new CrossNode(new Point2D.Double(x().getValue(), y().getValue()));
+    public LazyValue<T> clear() {
+        value = null;
+        return this;
     }
 
     @Override
-    public Consumer<ASTNode> getValidator() {
-        return ASTValidator.and(
-                ASTValidator.required(),
-                ASTValidator.object(),
-                ASTValidator.validate(x()),
-                ASTValidator.validate(y())
-        );
-    }
-
-    public DoubleAST x() {
-        return DoubleAST.createRequiredDouble(getRoot(), path("x"));
-    }
-
-    public DoubleAST y() {
-        return DoubleAST.createRequiredDouble(getRoot(), path("y"));
+    public T get() {
+        if (value == null) {
+            value = initializer.get();
+        }
+        return value;
     }
 }

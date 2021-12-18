@@ -28,7 +28,6 @@
 
 package org.mmarini.routes.model2.yaml;
 
-import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -37,33 +36,29 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mmarini.routes.model2.MapModule;
 import org.mmarini.yaml.Utils;
 
-import java.awt.geom.Point2D;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mmarini.routes.model2.Constants.DEFAULT_SPEED_LIMIT_KMH;
 import static org.mmarini.routes.model2.Constants.DEFAULT_SPEED_LIMIT_MPS;
 import static org.mmarini.routes.model2.yaml.TestUtils.text;
 
-class MapModuleASTTest {
+class MapModuleTest {
 
     static Stream<Arguments> argsForError() {
         return Stream.of(Arguments.of(text(
-                        "---",
+                        "#1",
                         "edges: []"
                 ), "/nodes is missing"
         ), Arguments.of(text(
-                        "---",
+                        "#2",
                         "nodes: {}"
                 ), "/edges is missing"
         ), Arguments.of(text(
-                        "---",
+                        "#3",
                         "nodes:",
                         "    a:",
                         "        x: 0",
@@ -77,9 +72,9 @@ class MapModuleASTTest {
                         "sites: {}",
                         "paths: []",
                         "edges: []"
-                ), "/nodes/a has the same location of /nodes/c"
+                ), "/nodes/c must not have the same location of /nodes/a"
         ), Arguments.of(text(
-                        "---",
+                        "#4",
                         "nodes:",
                         "    a:",
                         "        x: 0",
@@ -93,9 +88,9 @@ class MapModuleASTTest {
                         "edges:",
                         "  - start: a1",
                         "    end: a"
-                ), "/edges/0/start node a1 undefined"
+                ), "/edges/0/start must match a value in \\[a, b, c\\] \\(a1\\)"
         ), Arguments.of(text(
-                        "---",
+                        "#5",
                         "nodes:",
                         "    a:",
                         "        x: 0",
@@ -109,9 +104,9 @@ class MapModuleASTTest {
                         "edges:",
                         "  - start: a",
                         "    end: a1"
-                ), "/edges/0/end node a1 undefined"
+                ), "/edges/0/end must match a value in \\[a, b, c\\] \\(a1\\)"
         ), Arguments.of(text(
-                        "---",
+                        "#6",
                         "nodes:",
                         "    a:",
                         "        x: 0",
@@ -125,7 +120,7 @@ class MapModuleASTTest {
                         "edges:",
                         "  - start: a",
                         "    end: a"
-                ), "/edges/0/end must be different from /edges/0/start"
+                ), "/edges/0/end must not be equal to /edges/0/start \\(a\\)"
         ));
     }
 
@@ -155,44 +150,7 @@ class MapModuleASTTest {
                 "    x: 5",
                 "    y: 0"
         ));
-        ModuleAST node = new ModuleAST(root, JsonPointer.empty());
-        node.validate();
-
-        List<EdgeAST> edges = node.edges().items();
-        assertThat(edges, hasSize(4));
-        assertThat(edges.get(0).start().getValue(), equalTo("node0"));
-        assertThat(edges.get(0).end().getValue(), equalTo("node1"));
-        assertThat(edges.get(0).speedLimit().getValue(), equalTo(90.0));
-        assertThat(edges.get(0).priority().getValue(), equalTo(1));
-
-        assertThat(edges.get(1).start().getValue(), equalTo("node1"));
-        assertThat(edges.get(1).end().getValue(), equalTo("node2"));
-        assertThat(edges.get(1).speedLimit().getValue(), equalTo(DEFAULT_SPEED_LIMIT_KMH));
-        assertThat(edges.get(1).priority().getValue(), equalTo(0));
-
-        assertThat(edges.get(2).start().getValue(), equalTo("node1"));
-        assertThat(edges.get(2).end().getValue(), equalTo("node0"));
-        assertThat(edges.get(2).speedLimit().getValue(), equalTo(DEFAULT_SPEED_LIMIT_KMH));
-        assertThat(edges.get(2).priority().getValue(), equalTo(0));
-
-        assertThat(edges.get(3).start().getValue(), equalTo("node2"));
-        assertThat(edges.get(3).end().getValue(), equalTo("node1"));
-        assertThat(edges.get(2).speedLimit().getValue(), equalTo(DEFAULT_SPEED_LIMIT_KMH));
-        assertThat(edges.get(2).priority().getValue(), equalTo(0));
-
-        Map<String, NodeAST> nodes = node.nodes().items();
-        assertThat(nodes.size(), equalTo(3));
-        assertThat(nodes.get("node0"), hasProperty("mapNode",
-                hasProperty("location",
-                        equalTo(new Point2D.Double(0, 0)))));
-        assertThat(nodes.get("node2"), hasProperty("mapNode",
-                hasProperty("location",
-                        equalTo(new Point2D.Double(10, 0)))));
-        assertThat(nodes.get("node1"), hasProperty("mapNode",
-                hasProperty("location",
-                        equalTo(new Point2D.Double(5, 0)))));
-
-        MapModule mapModule = node.build();
+        MapModule mapModule = Parsers.parseModule(root);
         assertNotNull(mapModule);
         assertThat(mapModule.getEdges(), containsInAnyOrder(
                 allOf(
@@ -240,7 +198,7 @@ class MapModuleASTTest {
     void validateErrors(String text, String expectedPattern) {
         final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
             JsonNode root = Utils.fromText(text);
-            new ModuleAST(root, JsonPointer.empty()).validate();
+            Parsers.parseModule(root);
         });
         assertThat(ex.getMessage(), matchesPattern(expectedPattern));
     }
