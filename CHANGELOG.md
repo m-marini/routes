@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 - Issue #164: Change frequency in map profile
+- Issue #167: Verify first vehicle priority on cross
 
 ## [4.3.5] - 2021-11-27
 
