@@ -28,6 +28,7 @@
 
 package org.mmarini.routes.swing;
 
+import org.mmarini.LazyValue;
 import org.mmarini.Tuple2;
 import org.mmarini.routes.model2.*;
 
@@ -58,62 +59,77 @@ public class StatusView {
      * @param status the status
      */
     public static StatusView createStatusView(Status status) {
-        List<MapNode> nodes = status.getNodes();
-        List<SiteNode> sites = status.getSites();
-        List<MapEdge> edges = status.getEdges();
 
         // Computes site color map
-        int noSites = sites.size();
-        SwingUtils util = SwingUtils.getInstance();
-        Map<MapNode, Color> colorBySite = zipWithIndex(sites)
-                .collect(Collectors.toMap(
-                        Tuple2::getV2,
-                        entry -> {
-                            int i = entry._1;
-                            final double value = (double) i / (noSites - 1);
-                            return util.computeColor(value, NODE_SATURATION);
-                        }));
+        LazyValue<Map<MapNode, Color>> colorBySite = new LazyValue<>(() -> {
+            List<SiteNode> sites = status.getSites();
+            int noSites = sites.size();
+            SwingUtils util = SwingUtils.getInstance();
+            return zipWithIndex(sites)
+                    .collect(Collectors.toMap(
+                            Tuple2::getV2,
+                            entry -> {
+                                int i = entry._1;
+                                final double value = (double) i / (noSites - 1);
+                                return util.computeColor(value, NODE_SATURATION);
+                            }));
+        });
 
         // Converts to node view
-        List<NodeView> nodeViews = zipWithIndex(nodes)
-                .map(entry -> {
-                    int i = entry._1;
-                    MapNode node = entry._2;
-                    return new NodeView(
-                            MessageFormat.format(nodeNamePattern, i + 1),
-                            node,
-                            getValue(colorBySite, node).orElse(DEFAULT_NODE_COLOR));
-                })
-                .collect(Collectors.toList());
-        Map<MapNode, NodeView> viewByNode = nodeViews.stream().collect(Collectors.toMap(NodeView::getNode, Function.identity()));
+        LazyValue<List<NodeView>> nodeViews = new LazyValue<>(() -> {
+            List<MapNode> nodes = status.getNodes();
+            Map<MapNode, Color> map = colorBySite.get();
+            return zipWithIndex(nodes)
+                    .map(entry -> {
+                        int i = entry._1;
+                        MapNode node = entry._2;
+                        return new NodeView(
+                                MessageFormat.format(nodeNamePattern, i + 1),
+                                node,
+                                getValue(map, node).orElse(DEFAULT_NODE_COLOR));
+                    })
+                    .collect(Collectors.toList());
+        });
+        LazyValue<Map<MapNode, NodeView>> viewByNode = new LazyValue<>(() ->
+                nodeViews.get().stream().collect(Collectors.toMap(
+                        NodeView::getNode,
+                        Function.identity())));
 
         // Converts to edgeView
-        List<EdgeView> edgesViews = zipWithIndex(edges)
-                .map(entry -> {
-                    int i = entry._1;
-                    MapEdge edge = entry._2;
-                    final String begin = Optional.ofNullable(viewByNode.get(edge.getBegin()))
-                            .map(NodeView::getName).orElse("?");
-                    final String end = Optional.ofNullable(viewByNode.get(edge.getEnd()))
-                            .map(NodeView::getName).orElse("?");
-                    final String name = MessageFormat.format(edgeNamePattern, i, begin, end);
-                    return new EdgeView(edge, name, begin, end, edge.getPriority(), edge.getSpeedLimit());
-                })
-                .collect(Collectors.toList());
-        Map<MapEdge, EdgeView> viewByEdge = edgesViews.stream()
-                .collect(Collectors.toMap(EdgeView::getEdge, Function.identity()));
-        List<NodeView> siteViews = nodeViews.stream()
-                .filter(node -> node.getNode() instanceof SiteNode)
-                .collect(Collectors.toList());
+        LazyValue<List<EdgeView>> edgesViews = new LazyValue<>(() -> {
+            List<MapEdge> edges = status.getEdges();
+            Map<MapNode, NodeView> mapNodeNodeViewMap = viewByNode.get();
+            return zipWithIndex(edges)
+                    .map(entry -> {
+                        int i = entry._1;
+                        MapEdge edge = entry._2;
+                        final String begin = Optional.ofNullable(mapNodeNodeViewMap.get(edge.getBegin()))
+                                .map(NodeView::getName).orElse("?");
+                        final String end = Optional.ofNullable(mapNodeNodeViewMap.get(edge.getEnd()))
+                                .map(NodeView::getName).orElse("?");
+                        final String name = MessageFormat.format(edgeNamePattern, i, begin, end);
+                        return new EdgeView(edge, name, begin, end, edge.getPriority(), edge.getSpeedLimit());
+                    })
+                    .collect(Collectors.toList());
+        });
+
+        LazyValue<Map<MapEdge, EdgeView>> viewByEdge = new LazyValue<>(() ->
+                edgesViews.get().stream()
+                        .collect(Collectors.toMap(EdgeView::getEdge, Function.identity())));
+        LazyValue<List<NodeView>> siteViews = new LazyValue<>(() ->
+                nodeViews.get().stream()
+                        .filter(node -> node.getNode() instanceof SiteNode)
+                        .collect(Collectors.toList())
+        );
         return new StatusView(status, nodeViews, siteViews, edgesViews, viewByNode, viewByEdge);
     }
 
     private final Status status;
-    private final List<NodeView> nodeViews;
-    private final List<NodeView> siteViews;
-    private final List<EdgeView> edgesViews;
-    private final Map<MapNode, NodeView> viewByNode;
-    private final Map<MapEdge, EdgeView> viewByEdge;
+    private final LazyValue<List<NodeView>> nodeViews;
+    private final LazyValue<List<NodeView>> siteViews;
+    private final LazyValue<List<EdgeView>> edgesViews;
+    private final LazyValue<Map<MapNode, NodeView>> viewByNode;
+    private final LazyValue<Map<MapEdge, EdgeView>> viewByEdge;
 
     /**
      * @param status     the status
@@ -124,11 +140,11 @@ public class StatusView {
      * @param viewByEdge the view by edge
      */
     protected StatusView(Status status,
-                         List<NodeView> nodeViews,
-                         List<NodeView> siteViews,
-                         List<EdgeView> edgesViews,
-                         Map<MapNode, NodeView> viewByNode,
-                         Map<MapEdge, EdgeView> viewByEdge) {
+                         LazyValue<List<NodeView>> nodeViews,
+                         LazyValue<List<NodeView>> siteViews,
+                         LazyValue<List<EdgeView>> edgesViews,
+                         LazyValue<Map<MapNode, NodeView>> viewByNode,
+                         LazyValue<Map<MapEdge, EdgeView>> viewByEdge) {
         this.status = requireNonNull(status);
         this.nodeViews = requireNonNull(nodeViews);
         this.siteViews = requireNonNull(siteViews);
@@ -202,7 +218,7 @@ public class StatusView {
     }
 
     public Optional<EdgeView> getEdgeViews(MapEdge edge) {
-        return Optional.ofNullable(viewByEdge.get(edge));
+        return Optional.ofNullable(getViewByEdge().get(edge));
     }
 
     public List<MapEdge> getEdges() {
@@ -214,26 +230,30 @@ public class StatusView {
     }
 
     public List<EdgeView> getEdgesViews() {
-        return edgesViews;
+        return edgesViews.get();
     }
 
     public DoubleMatrix<NodeView> getFrequencies() {
-        return status.getPathFrequencies().map(siteViews, view ->
+        return status.getPathFrequencies().map(getSiteViews(), view ->
                 view.getNode() instanceof SiteNode ?
                         Optional.of((SiteNode) view.getNode())
                         : Optional.empty());
     }
 
     public Optional<NodeView> getNodeView(MapNode node) {
-        return getValue(viewByNode, node);
+        return getValue(getViewByNode(), node);
     }
 
     public List<NodeView> getNodeViews() {
-        return nodeViews;
+        return nodeViews.get();
     }
 
     public List<MapNode> getNodes() {
         return status.getNodes();
+    }
+
+    public List<NodeView> getSiteViews() {
+        return siteViews.get();
     }
 
     public List<SiteNode> getSites() {
@@ -255,8 +275,16 @@ public class StatusView {
         return status.getVehicles();
     }
 
+    public Map<MapEdge, EdgeView> getViewByEdge() {
+        return viewByEdge.get();
+    }
+
+    public Map<MapNode, NodeView> getViewByNode() {
+        return viewByNode.get();
+    }
+
     public DoubleMatrix<NodeView> getWeightMatrix() {
-        return status.getWeightMatrix().map(siteViews,
+        return status.getWeightMatrix().map(getSiteViews(),
                 view -> Optional.of((SiteNode) view.getNode()));
     }
 
