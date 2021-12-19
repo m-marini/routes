@@ -754,28 +754,6 @@ public class TrafficEngineImpl implements TrafficEngine {
         return topology.getSites();
     }
 
-    List<TrafficInfo> getTrafficInfo() {
-        Map<Tuple2<SiteNode, SiteNode>, Double> transitTime = createTransitTimeMatrix();
-        return getSites().stream()
-                .map(site -> {
-                    int noVehicles = (int) vehicles.stream()
-                            .map(Vehicle::getDestination)
-                            .filter(site::equals)
-                            .count();
-                    List<Double> delayTimes = vehicles.stream()
-                            .filter(v -> site.equals(v.getDestination()))
-                            .flatMap(v -> getValue(transitTime, Tuple2.of(v.getDeparture(), v.getDestination()))
-                                    .map(tt -> time - v.getCreationTime() - tt)
-                                    .stream())
-                            .filter(t -> t > 0)
-                            .collect(Collectors.toList());
-                    int delayCount = delayTimes.size();
-                    double totalDelayTime = delayTimes.stream().mapToDouble(v -> v).sum();
-                    return new TrafficInfo(site, noVehicles, delayCount, totalDelayTime);
-                })
-                .collect(Collectors.toList());
-    }
-
     /**
      * Returns the list of vehicles for an edge
      *

@@ -36,6 +36,9 @@ import javax.swing.table.TableModel;
 import java.awt.*;
 import java.text.NumberFormat;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 /**
  * @author marco.marini@mmarini.org
  */
@@ -43,6 +46,10 @@ public class InfosTable extends JTable {
 
     private static final double CELL_COLOR_SATURATION = 0.3;
     private static final long serialVersionUID = 1L;
+    private static final int PREFERRED_HEIGHT = 200;
+    private static final int PREFERRED_COLUMN_WIDTH = 70;
+    private static final int SCREEN_HORIZONTAL_INSETS = 300;
+    private static final int SCROLL_BAR_WIDTH = 40;
 
     /**
      * @param frequencies the route information
@@ -121,5 +128,12 @@ public class InfosTable extends JTable {
         });
         header.setReorderingAllowed(false);
         header.setResizingAllowed(true);
+        for (int i = 0; i < model.getColumnCount(); i++) {
+            getColumnModel().getColumn(i).setMinWidth(PREFERRED_COLUMN_WIDTH);
+        }
+        int width = model.getColumnCount() * PREFERRED_COLUMN_WIDTH + SCROLL_BAR_WIDTH;
+        int maxWidth = max(Toolkit.getDefaultToolkit().getScreenSize().width - SCREEN_HORIZONTAL_INSETS, 400);
+        setPreferredScrollableViewportSize(new Dimension((min(width, maxWidth)), PREFERRED_HEIGHT));
+        setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     }
 }

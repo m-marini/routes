@@ -108,13 +108,6 @@ class TrafficEngineTest {
                 .generate();
     }
 
-    static Stream<Arguments> argsGetTrafficInfo() {
-        return ArgumentGenerator.create(SEED)
-                .exponential(MIN_DELAY_TIME, MAX_DELAY_TIME)
-                .exponential(MIN_DELAY_TIME, MAX_DELAY_TIME)
-                .generate();
-    }
-
     static Stream<Arguments> time() {
         return ArgumentGenerator.create(SEED)
                 .uniform(MIN_TIME, MAX_TIME)
@@ -810,64 +803,6 @@ class TrafficEngineTest {
         assertThat(result.getValue(node2, node1), optionalDoubleOf(closeTo(f12, 1e-6)));
         assertThat(result.getValue(node2, node2), optionalDoubleOf(0.0));
 
-    }
-
-    @ParameterizedTest
-    @MethodSource("argsGetTrafficInfo")
-    void getTrafficInfo(double delay1, double delay2) {
-        /*
-        Given a topology of
-        0 --1--> 1 ----> 2
-          <----   <--0--
-        And a vehicle to node 2 not delayed
-        And two vehicle to node 0 delayed
-         */
-        SiteNode node0 = createSite(0, 0);
-        SiteNode node2 = createSite(100, 0);
-        CrossNode node1 = createNode(50, 0);
-        MapEdge edge01 = new MapEdge(node0, node1, SPEED_LIMIT, PRIORITY);
-        MapEdge edge10 = new MapEdge(node1, node0, SPEED_LIMIT, PRIORITY);
-        MapEdge edge12 = new MapEdge(node1, node2, SPEED_LIMIT, PRIORITY);
-        MapEdge edge21 = new MapEdge(node2, node1, SPEED_LIMIT, PRIORITY);
-        double now = 100;
-        double tt21 = edge21.getTransitTime()
-                + edge10.getTransitTime()
-                + edge01.getTransitTime()
-                + edge12.getTransitTime();
-        Vehicle v1 = createVehicle(node2, node2, now).setCurrentEdge(edge01).setDistance(20);
-        Vehicle v20 = createVehicle(node2, node0, now - tt21 - delay1).setCurrentEdge(edge01).setDistance(49.5);
-        Vehicle v21 = createVehicle(node2, node0, now - tt21 - delay2).setCurrentEdge(edge10).setDistance(20);
-
-        TrafficEngineImpl status = createEngine(
-                MAX_VEHICLES, createTopology(
-                        List.of(node0, node2, node1),
-                        List.of(edge01, edge10, edge12, edge21)
-                ), now,
-                List.of(v1, v20, v21), SPEED_LIMIT, 0);
-
-        /*
-        When checking edges availability
-         */
-        List<TrafficInfo> result = status.getTrafficInfo();
-
-        /*
-        Then it should result the next vehicle function
-         */
-        assertNotNull(result);
-        assertThat(result, containsInAnyOrder(
-                allOf(
-                        hasProperty("destination", equalTo(node2)),
-                        hasProperty("vehicleCount", equalTo(1)),
-                        hasProperty("delayCount", equalTo(0)),
-                        hasProperty("totalDelayTime", equalTo(0.0))
-                ),
-                allOf(
-                        hasProperty("destination", equalTo(node0)),
-                        hasProperty("vehicleCount", equalTo(2)),
-                        hasProperty("delayCount", equalTo(2)),
-                        hasProperty("totalDelayTime", closeTo(delay1 + delay2, 0.01))
-                )
-        ));
     }
 
     @Test

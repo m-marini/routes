@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [4.3.6] - 2021-12-19
+
+### Added
+
+- Issue #162: Compute # vehicles hold on node
+
 ### Changed
 
 - Issue #166: Set the frequency ratio to 2 in frequency panel

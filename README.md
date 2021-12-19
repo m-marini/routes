@@ -6,7 +6,7 @@
 
 ## Latest release
 
-Latest release [`4.3.5`](https://github.com/m-marini/routes/tree/v4.3.5)
+Latest release [`4.3.6`](https://github.com/m-marini/routes/tree/v4.3.6)
 
 ## Requirements
 
