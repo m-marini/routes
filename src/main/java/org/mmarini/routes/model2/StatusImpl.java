@@ -287,7 +287,13 @@ public class StatusImpl implements Status {
                             .collect(Collectors.toList());
                     int delayCount = delayTimes.size();
                     double totalDelayTime = delayTimes.stream().mapToDouble(v -> v).sum();
-                    return new TrafficInfo(site, noVehicles, delayCount, totalDelayTime);
+                    int waiting = (int) vehicles.stream()
+                            .filter(v -> v.getCurrentEdge().isEmpty())
+                            .filter(v -> site.equals(v.isReturning()
+                                    ? v.getDestination()
+                                    : v.getDeparture()))
+                            .count();
+                    return new TrafficInfo(site, noVehicles, delayCount, waiting, totalDelayTime);
                 })
                 .collect(Collectors.toList());
     }

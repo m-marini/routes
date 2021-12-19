@@ -855,7 +855,7 @@ public class UIController {
     private void showInfo() {
         DoubleMatrix<NodeView> frequencies = statusView.getFrequencies();
         final InfosTable table = InfosTable.create(frequencies);
-        final JScrollPane sp = new JScrollPane(table);
+        final JScrollPane sp = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         JOptionPane.showMessageDialog(mainFrame, sp, Messages.getString("RouteMediator.infoPane.title"), //$NON-NLS-1$
                 JOptionPane.INFORMATION_MESSAGE);
     }
@@ -867,11 +867,10 @@ public class UIController {
         StatusView sv = statusView;
         final List<TrafficInfo> map = sv.getTrafficInfo();
         final List<TrafficInfoView> data = map.stream().flatMap(info ->
-                        sv.getNodeView(info.getDestination())
+                        sv.getNodeView(info.getSite())
                                 .map(dest ->
                                         new TrafficInfoView(dest, info))
                                 .stream())
-                .sorted(Comparator.comparing(a -> a.getDestination().getName()))
                 .collect(Collectors.toList());
         final TrafficInfoModel model = new TrafficInfoModel();
         model.setInfo(data);

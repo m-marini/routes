@@ -37,8 +37,8 @@ import java.util.List;
 public class TrafficInfoModel extends AbstractTableModel {
     private static final long serialVersionUID = 1L;
     private static final String[] COLUMN_LABEL_NAME = {"destination", "vehicleCount", "delayedCount", "delayedCountPerc",
-            "delayedTime"};
-    private static final Class<?>[] COLUMN_CLASS = {TrafficInfoView.class, Integer.class, Integer.class, Double.class, Double.class};
+            "delayedTime", "waitingAtSite"};
+    private static final Class<?>[] COLUMN_CLASS = {TrafficInfoView.class, Integer.class, Integer.class, Double.class, Double.class, Integer.class};
     private List<TrafficInfoView> info;
 
     /**
@@ -90,6 +90,8 @@ public class TrafficInfoModel extends AbstractTableModel {
                 return vehicleCount > 0 ? (double) delayCount / vehicleCount : 0;
             case 4:
                 return record.getInfo().getAverageDelayTime();
+            case 5:
+                return record.getInfo().getWaitingAtSite();
             default:
                 return "?";
         }

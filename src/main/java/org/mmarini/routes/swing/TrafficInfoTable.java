@@ -34,6 +34,10 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.text.NumberFormat;
+import java.util.Arrays;
+
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 /**
  * @author marco.marini@mmarini.org
@@ -41,6 +45,17 @@ import java.text.NumberFormat;
 public class TrafficInfoTable extends JTable {
 
     private static final long serialVersionUID = 1L;
+    private static final int PREFERRED_HEIGHT = 200;
+    private static final int[] PREFERRED_COLUMN_WIDTHS = new int[]{
+            100, // destination
+            60, // vehicleCount
+            80, // delayedCount
+            100, // delayedCountPerc
+            130, // delayedTime
+            70 //waitingAtSite
+    };
+    private static final int SCREEN_HORIZONTAL_INSETS = 300;
+    private static final int SCROLL_BAR_WIDTH = 40;
 
     /**
      * @param model the model
@@ -107,5 +122,12 @@ public class TrafficInfoTable extends JTable {
 
         });
         setAutoCreateRowSorter(true);
+        for (int i = 0; i < PREFERRED_COLUMN_WIDTHS.length; i++) {
+            getColumnModel().getColumn(i).setMinWidth(PREFERRED_COLUMN_WIDTHS[i]);
+        }
+
+        int width = Arrays.stream(PREFERRED_COLUMN_WIDTHS).sum() + SCROLL_BAR_WIDTH;
+        int maxWidth = max(Toolkit.getDefaultToolkit().getScreenSize().width - SCREEN_HORIZONTAL_INSETS, 400);
+        setPreferredScrollableViewportSize(new Dimension((min(width, maxWidth)), PREFERRED_HEIGHT));
     }
 }
