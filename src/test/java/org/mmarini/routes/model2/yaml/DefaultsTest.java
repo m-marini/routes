@@ -94,25 +94,22 @@ class DefaultsTest {
         assertThat(Parsers.defaultFrequency(file), equalTo(DEFAULT_FREQUENCY));
         assertThat(Parsers.defaultSpeedLimit(file), equalTo(DEFAULT_SPEED_LIMIT_KMH));
         assertThat(Parsers.defaultPriority(file), equalTo(DEFAULT_PRIORITY));
-        assertThat(Parsers.defaultMaxVehicles(file), equalTo(DEFAULT_MAX_VEHICLES));
     }
 
     @Test
     void validate() throws IOException {
         JsonNode file = Utils.fromText(text(
                 "---",
-                "frequence: 0.33",
+                "frequence: 0.5",
                 "speedLimit: 90",
-                "priority: 1",
-                "maxVehicles: 1000"
+                "priority: 1"
         ));
         SchemaValidators.defaults()
                 .apply(root())
                 .accept(file);
-        assertThat(Parsers.defaultFrequency(file), equalTo(0.33));
+        assertThat(Parsers.defaultFrequency(file), equalTo(0.5));
         assertThat(Parsers.defaultSpeedLimit(file), equalTo(90.0));
         assertThat(Parsers.defaultPriority(file), equalTo(1));
-        assertThat(Parsers.defaultMaxVehicles(file), equalTo(1000));
     }
 
     @ParameterizedTest

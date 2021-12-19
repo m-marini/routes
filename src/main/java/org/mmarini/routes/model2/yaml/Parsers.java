@@ -48,17 +48,19 @@ import static org.mmarini.yaml.schema.Locator.root;
 
 public class Parsers {
 
+    /**
+     * Returns the default frequency
+     *
+     * @param node the defaults json node
+     */
     static double defaultFrequency(JsonNode node) {
         requireNonNull(node);
         return node.path("frequence").asDouble(DEFAULT_FREQUENCY);
     }
 
-    public static int defaultMaxVehicles(JsonNode node) {
-        requireNonNull(node);
-        return node.path("maxVehicles").asInt(DEFAULT_MAX_VEHICLES);
-    }
-
     /**
+     * Returns the default priority
+     *
      * @param node the defaults json node
      */
     static int defaultPriority(JsonNode node) {
@@ -243,7 +245,7 @@ public class Parsers {
         Stream<Tuple2<Tuple2<? extends SiteNode, ? extends SiteNode>, Double>> w = paths(node.path("paths"), siteByName);
 
         double[][] weights = DoubleMatrix.from(w, siteList).getValues();
-        return createStatus(maxVehicles, defaultSpeedLimit, frequency, 0,
+        return createStatus(maxVehicles, defaultSpeedLimit / KMPHSPM, frequency, 0,
                 topology, List.of(), weights);
     }
 

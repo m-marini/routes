@@ -32,11 +32,21 @@ import java.text.NumberFormat;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+import static java.lang.Math.abs;
+import static java.lang.Math.log;
+import static org.mmarini.routes.swing.UIConstants.*;
+
 /**
  * Manages the panel of frequency parameters for vehicle creation
  */
 public class FrequencyPane extends Box {
-    private static final double[] FREQUENCES = {0.125, 0.177, 0.25, 0.356, 0.5};
+    private static final double[] FREQUENCES = {
+            FREQUENCY1,
+            FREQUENCY2,
+            FREQUENCY3,
+            FREQUENCY4,
+            FREQUENCY5
+    };
     private static final long serialVersionUID = 1L;
     private final BoundedRangeModel frequenceModel;
 
@@ -53,9 +63,6 @@ public class FrequencyPane extends Box {
      *
      */
     private void createContent() {
-        final Box box = createHorizontalBox();
-        box.add(new JLabel(Messages.getString("FrequencePane.frequenceLabel.text"))); //$NON-NLS-1$
-        box.add(createHorizontalGlue());
         final JSlider freqSlider = new JSlider(SwingConstants.HORIZONTAL);
         freqSlider.setModel(frequenceModel);
         freqSlider.setMajorTickSpacing(1);
@@ -69,7 +76,10 @@ public class FrequencyPane extends Box {
             labels.put(i, new JLabel(format.format(FREQUENCES[i])));
         }
         freqSlider.setLabelTable(labels);
+
+        final Box box = createVerticalBox();
         box.add(freqSlider);
+        box.add(new JLabel(Messages.getString("FrequencePane.frequenceLabel.text"))); //$NON-NLS-1$
         add(box);
     }
 
@@ -77,22 +87,32 @@ public class FrequencyPane extends Box {
      *
      */
     public double getFrequence() {
-        return FREQUENCES[frequenceModel.getValue()];
+        return FREQUENCES[frequenceModel.getValue()] / 60;
+    }
+
+    /**
+     * Returns the best match for the given value
+     *
+     * @param value the value
+     */
+    private int match(double value) {
+        assert value > 0;
+        double logError = Double.POSITIVE_INFINITY;
+        int idx = 0;
+        for (int i = 0; i < FREQUENCES.length; ++i) {
+            final double e = abs(log(value / FREQUENCES[i]));
+            if (e < logError) {
+                idx = i;
+                logError = e;
+            }
+        }
+        return idx;
     }
 
     /**
      * @param frequency the frequency
      */
     public void setFrequency(final double frequency) {
-        int idx = 0;
-        double error = Double.POSITIVE_INFINITY;
-        for (int i = 0; i < FREQUENCES.length; ++i) {
-            final double e = Math.abs(frequency - FREQUENCES[i]);
-            if (e < error) {
-                idx = i;
-                error = e;
-            }
-        }
-        frequenceModel.setValue(idx);
+        frequenceModel.setValue(match(frequency * 60));
     }
 }
