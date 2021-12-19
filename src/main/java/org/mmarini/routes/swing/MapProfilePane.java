@@ -32,6 +32,8 @@ import org.mmarini.routes.model2.MapProfile;
 
 import javax.swing.*;
 
+import static org.mmarini.routes.swing.UIConstants.*;
+
 /**
  * Manages the panel of parameters for random map generation profile
  */
@@ -44,9 +46,6 @@ public class MapProfilePane extends Box {
     private static final double NORMAL_MIN_WEIGHT = 1. / 3.;
     private static final double EASY_MIN_WEIGHT = 1.;
     private static final double[] MIN_WEIGHTS = {EASY_MIN_WEIGHT, NORMAL_MIN_WEIGHT, DIFFICULT_MIN_WEIGHT};
-    private static final double DIFFICULT_FREQUENCY = 0.5;
-    private static final double NORMAL_FREQUENCY = 0.25;
-    private static final double EASY_FREQUENCY = 0.125;
     /*
     private static final double[] FREQUENCIES = {EASY_FREQUENCY / ((1d + EASY_MIN_WEIGHT) / 2d),
             NORMAL_FREQUENCY / ((1d + NORMAL_MIN_WEIGHT) / 2d),

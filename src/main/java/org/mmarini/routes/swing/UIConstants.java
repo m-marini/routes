@@ -37,6 +37,16 @@ public interface UIConstants {
     double MAX_PRECISION_DISTANCE = 3;
     double SCALE_FACTOR = Math.sqrt(2);
 
+    double FREQUENCY1 = 2;
+    double FREQUENCY2 = 4;
+    double FREQUENCY3 = 8;
+    double FREQUENCY4 = 15;
+    double FREQUENCY5 = 30;
+
+    double DIFFICULT_FREQUENCY = FREQUENCY5 / 60;
+    double NORMAL_FREQUENCY = FREQUENCY3 / 60;
+    double EASY_FREQUENCY = FREQUENCY1 / 60;
+
     /**
      * Returns the precision distance for a scale
      *

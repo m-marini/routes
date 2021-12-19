@@ -44,8 +44,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mmarini.routes.model2.Constants.DEFAULT_SPEED_LIMIT_MPS;
-import static org.mmarini.routes.model2.Constants.KMPHSPM;
+import static org.mmarini.routes.model2.Constants.*;
 import static org.mmarini.routes.model2.yaml.TestUtils.text;
 import static org.mmarini.yaml.schema.Locator.root;
 
@@ -282,8 +281,18 @@ class RouteTest {
                 .andThen(CrossValidators.route().apply(root()));
     }
 
+    @ParameterizedTest
+    @MethodSource("argsForError")
+    void validateErrors(String text, String expectedPattern) {
+        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            JsonNode root = Utils.fromText(text);
+            create().accept(root);
+        });
+        assertThat(ex.getMessage(), matchesPattern(expectedPattern));
+    }
+
     @Test
-    void validate() throws IOException {
+    void validateNoDefaults() throws IOException {
         JsonNode root = Utils.fromText(text(
                 "---",
                 "version: \"1.0\"",
@@ -325,6 +334,8 @@ class RouteTest {
         assertNotNull(status);
 
         assertThat(status.getMaxVehicle(), equalTo(1000));
+        assertThat(status.getFrequency(), equalTo(DEFAULT_FREQUENCY));
+        assertThat(status.getSpeedLimit(), equalTo(DEFAULT_SPEED_LIMIT_MPS));
 
         assertThat(status.getVehicles(), hasSize(0));
         assertThat(status.getSites(), containsInAnyOrder(
@@ -398,13 +409,125 @@ class RouteTest {
         }));
     }
 
-    @ParameterizedTest
-    @MethodSource("argsForError")
-    void validateErrors(String text, String expectedPattern) {
-        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            JsonNode root = Utils.fromText(text);
-            create().accept(root);
-        });
-        assertThat(ex.getMessage(), matchesPattern(expectedPattern));
+    @Test
+    void validateWithDefaults() throws IOException {
+        JsonNode root = Utils.fromText(text(
+                "---",
+                "version: \"1.0\"",
+                "maxVehicles: 1000",
+                "defaults:",
+                "  frequence: 0.5",
+                "  speedLimit: 60",
+                "  priority: 2",
+                "edges:",
+                "- start: node0",
+                "  end: node1",
+                "  priority: 1",
+                "  speedLimit: 90",
+                "- start: node1",
+                "  end: node2",
+                "- start: node1",
+                "  end: node0",
+                "- start: node2",
+                "  end: node1",
+                "sites:",
+                "  node0:",
+                "    x: 0",
+                "    y: 0",
+                "  node2:",
+                "    x: 10",
+                "    y: 0",
+                "nodes:",
+                "  node1:",
+                "    x: 5",
+                "    y: 0",
+                "paths:",
+                "- departure: node0",
+                "  destination: node2",
+                "  weight: 2",
+                "- departure: node2",
+                "  destination: node0"
+        ));
+
+        create().accept(root);
+
+        StatusImpl status = Parsers.status(root);
+
+        assertNotNull(status);
+
+        assertThat(status.getMaxVehicle(), equalTo(1000));
+        assertThat(status.getFrequency(), equalTo(0.5));
+        assertThat(status.getSpeedLimit(), equalTo(60d / KMPHSPM));
+
+        assertThat(status.getVehicles(), hasSize(0));
+        assertThat(status.getSites(), containsInAnyOrder(
+                hasProperty("location", allOf(
+                        hasProperty("x", equalTo(0.0)),
+                        hasProperty("y", equalTo(0.0))
+                )),
+                hasProperty("location", allOf(
+                        hasProperty("x", equalTo(10.0)),
+                        hasProperty("y", equalTo(0.0))
+                ))
+        ));
+        assertThat(status.getNodes(), containsInAnyOrder(
+                hasProperty("location", allOf(
+                        hasProperty("x", equalTo(0.0)),
+                        hasProperty("y", equalTo(0.0))
+                )),
+                hasProperty("location", allOf(
+                        hasProperty("x", equalTo(10.0)),
+                        hasProperty("y", equalTo(0.0))
+                )),
+                hasProperty("location", allOf(
+                        hasProperty("x", equalTo(5.0)),
+                        hasProperty("y", equalTo(0.0))
+                ))
+        ));
+
+        assertThat(status.getEdges(), containsInAnyOrder(
+                allOf(
+                        hasProperty("begin", hasProperty("location", allOf(
+                                hasProperty("x", equalTo(0.0)),
+                                hasProperty("y", equalTo(0.0))))),
+                        hasProperty("end", hasProperty("location", allOf(
+                                hasProperty("x", equalTo(5.0)),
+                                hasProperty("y", equalTo(0.0))))),
+                        hasProperty("priority", equalTo(1)),
+                        hasProperty("speedLimit", equalTo(90 / KMPHSPM))
+                ), allOf(
+                        hasProperty("begin", hasProperty("location", allOf(
+                                hasProperty("x", equalTo(5.0)),
+                                hasProperty("y", equalTo(0.0))))),
+                        hasProperty("end", hasProperty("location", allOf(
+                                hasProperty("x", equalTo(10.0)),
+                                hasProperty("y", equalTo(0.0))))),
+                        hasProperty("priority", equalTo(2)),
+                        hasProperty("speedLimit", equalTo(60d/KMPHSPM))
+                ), allOf(
+                        hasProperty("begin", hasProperty("location", allOf(
+                                hasProperty("x", equalTo(10.0)),
+                                hasProperty("y", equalTo(0.0))))),
+                        hasProperty("end", hasProperty("location", allOf(
+                                hasProperty("x", equalTo(5.0)),
+                                hasProperty("y", equalTo(0.0))))),
+                        hasProperty("priority", equalTo(2)),
+                        hasProperty("speedLimit", equalTo(60d/KMPHSPM))
+                ), allOf(
+                        hasProperty("begin", hasProperty("location", allOf(
+                                hasProperty("x", equalTo(5.0)),
+                                hasProperty("y", equalTo(0.0))))),
+                        hasProperty("end", hasProperty("location", allOf(
+                                hasProperty("x", equalTo(0.0)),
+                                hasProperty("y", equalTo(0.0))))),
+                        hasProperty("priority", equalTo(2)),
+                        hasProperty("speedLimit", equalTo(60d/KMPHSPM))
+                )
+        ));
+
+        assertThat(status.getWeightMatrix().getValues(), equalTo(new double[][]{
+                {0, 1},
+                {2, 0}
+        }));
     }
 }

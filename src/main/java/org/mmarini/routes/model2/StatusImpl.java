@@ -86,9 +86,9 @@ public class StatusImpl implements Status {
      * Returns the status with default edge transit times
      *
      * @param maxVehicles maximum number of vehicles
-     * @param speedLimit  the speed limit
-     * @param frequency   the frequency of new vehicles for every node
-     * @param time        the current time
+     * @param speedLimit  the speed limit in m/s
+     * @param frequency   the frequency of new vehicles for every node in vehicles/s
+     * @param time        the current time in sec.
      * @param topology    the topology
      * @param vehicles    the vehicle
      * @param weights     the path weights

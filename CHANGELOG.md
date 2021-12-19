@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- Issue #166: Set the frequency ratio to 2 in frequency panel
+
 ### Fixed
 
 - Issue #164: Change frequency in map profile
