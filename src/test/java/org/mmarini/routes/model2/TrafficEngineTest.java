@@ -161,7 +161,7 @@ class TrafficEngineTest {
         status.applyTimeInterval(random, MIN_DT);
 
         // Then vehicle 0 returning and arriving to departure (edge10, 49.5) should be removed
-        assertThat(status.getVehicles(), not(hasItem(v0)));
+        assertThat(status.findVehicles(), not(hasItem(v0)));
     }
 
     @ParameterizedTest
@@ -417,17 +417,17 @@ class TrafficEngineTest {
         /*
         Then it should result the next vehicle function
          */
-        assertThat(status.getNextVehicle(v010), equalTo(Optional.of(v011)));
-        assertThat(status.getNextVehicle(v011), equalTo(Optional.of(v012)));
-        assertThat(status.getNextVehicle(v012), equalTo(Optional.empty()));
+        assertThat(status.findNextVehicle(v010), equalTo(Optional.of(v011)));
+        assertThat(status.findNextVehicle(v011), equalTo(Optional.of(v012)));
+        assertThat(status.findNextVehicle(v012), equalTo(Optional.empty()));
 
-        assertThat(status.getNextVehicle(v210), equalTo(Optional.of(v211)));
-        assertThat(status.getNextVehicle(v211), equalTo(Optional.empty()));
+        assertThat(status.findNextVehicle(v210), equalTo(Optional.of(v211)));
+        assertThat(status.findNextVehicle(v211), equalTo(Optional.empty()));
 
-        assertThat(status.getEdgeTransitTime(edge01), equalTo(edge01.getTransitTime()));
-        assertThat(status.getEdgeTransitTime(edge10), equalTo(edge10.getTransitTime()));
-        assertThat(status.getEdgeTransitTime(edge12), equalTo(edge12.getTransitTime()));
-        assertThat(status.getEdgeTransitTime(edge21), equalTo(edge21.getTransitTime()));
+        assertThat(status.findEdgeTransitTime(edge01), equalTo(edge01.getTransitTime()));
+        assertThat(status.findEdgeTransitTime(edge10), equalTo(edge10.getTransitTime()));
+        assertThat(status.findEdgeTransitTime(edge12), equalTo(edge12.getTransitTime()));
+        assertThat(status.findEdgeTransitTime(edge21), equalTo(edge21.getTransitTime()));
     }
 
     @ParameterizedTest
@@ -521,11 +521,11 @@ class TrafficEngineTest {
         /*
         Then it should result the next vehicle function
          */
-        assertThat(status.getNextVehicle(v012), equalTo(Optional.of(v010)));
-        assertThat(status.getNextVehicle(v010), equalTo(Optional.of(v011)));
-        assertThat(status.getNextVehicle(v011), equalTo(Optional.empty()));
+        assertThat(status.findNextVehicle(v012), equalTo(Optional.of(v010)));
+        assertThat(status.findNextVehicle(v010), equalTo(Optional.of(v011)));
+        assertThat(status.findNextVehicle(v011), equalTo(Optional.empty()));
 
-        assertThat(status.getVehicles(edge01), contains(v012, v010, v011));
+        assertThat(status.findVehicles(edge01), contains(v012, v010, v011));
         assertThat(v012.getEdgeEntryTime(), equalTo(time));
     }
 
@@ -563,9 +563,9 @@ class TrafficEngineTest {
         /*
         Then it should result the next vehicle function
          */
-        assertThat(status.getNextVehicle(v012), equalTo(Optional.empty()));
+        assertThat(status.findNextVehicle(v012), equalTo(Optional.empty()));
 
-        assertThat(status.getVehicles(edge01), contains(v012));
+        assertThat(status.findVehicles(edge01), contains(v012));
         assertThat(v012.getEdgeEntryTime(), equalTo(time));
     }
 
@@ -605,15 +605,15 @@ class TrafficEngineTest {
         /*
         Then it should result the next vehicle function
          */
-        assertThat(status.getNextVehicle(v010), equalTo(Optional.of(v011)));
-        assertThat(status.getNextVehicle(v011), equalTo(Optional.empty()));
-        assertThat(status.getNextVehicle(v012), equalTo(Optional.empty()));
+        assertThat(status.findNextVehicle(v010), equalTo(Optional.of(v011)));
+        assertThat(status.findNextVehicle(v011), equalTo(Optional.empty()));
+        assertThat(status.findNextVehicle(v012), equalTo(Optional.empty()));
 
-        assertThat(status.getNextVehicle(v210), equalTo(Optional.of(v211)));
-        assertThat(status.getNextVehicle(v211), equalTo(Optional.empty()));
+        assertThat(status.findNextVehicle(v210), equalTo(Optional.of(v211)));
+        assertThat(status.findNextVehicle(v211), equalTo(Optional.empty()));
 
-        assertThat(status.getVehicles(edge01), not(contains(v012)));
-        assertThat(status.getEdgeTransitTime(edge01), closeTo(dt, 1e-3));
+        assertThat(status.findVehicles(edge01), not(contains(v012)));
+        assertThat(status.findEdgeTransitTime(edge01), closeTo(dt, 1e-3));
     }
 
     @ParameterizedTest
@@ -651,14 +651,14 @@ class TrafficEngineTest {
         /*
         Then it should result the next vehicle function
          */
-        assertThat(status.getNextVehicle(v010), equalTo(Optional.of(v011)));
-        assertThat(status.getNextVehicle(v011), equalTo(Optional.of(v012)));
-        assertThat(status.getNextVehicle(v012), equalTo(Optional.empty()));
+        assertThat(status.findNextVehicle(v010), equalTo(Optional.of(v011)));
+        assertThat(status.findNextVehicle(v011), equalTo(Optional.of(v012)));
+        assertThat(status.findNextVehicle(v012), equalTo(Optional.empty()));
 
-        assertThat(status.getNextVehicle(v210), equalTo(Optional.empty()));
+        assertThat(status.findNextVehicle(v210), equalTo(Optional.empty()));
 
-        assertThat(status.getVehicles(edge21), empty());
-        assertThat(status.getEdgeTransitTime(edge01), closeTo(50 / SPEED_LIMIT, 1e-3));
+        assertThat(status.findVehicles(edge21), empty());
+        assertThat(status.findEdgeTransitTime(edge01), closeTo(50 / SPEED_LIMIT, 1e-3));
     }
 
     /*
@@ -698,7 +698,7 @@ class TrafficEngineTest {
         /*
         When checking edges availability
          */
-        Optional<TrafficEngineImpl.VehicleMovement> result = status.getFirstExitingVehicle(MIN_DT);
+        Optional<TrafficEngineImpl.VehicleMovement> result = status.findFirstExitingVehicle(MIN_DT);
 
         /*
         Then it should result the next vehicle function
@@ -732,8 +732,8 @@ class TrafficEngineTest {
         /*
         When finding the next vehicles of the two vehicles
          */
-        Optional<Vehicle> next1 = status.getNextVehicle(vehicle1);
-        Optional<Vehicle> next2 = status.getNextVehicle(vehicle2);
+        Optional<Vehicle> next1 = status.findNextVehicle(vehicle1);
+        Optional<Vehicle> next2 = status.findNextVehicle(vehicle2);
 
         /*
         Then the next1 should be vehicle2

@@ -32,7 +32,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>Routes</groupId>
     <artifactId>routes</artifactId>
-    <version>4.3.6</version>
+    <version>4.3.7</version>
     <name>routes</name>
     <description>Routes - Traffic simulator</description>
     <properties>
