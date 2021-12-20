@@ -49,7 +49,7 @@ public class Vehicle {
      */
     public static Vehicle createVehicle(SiteNode departure, SiteNode destination, double time) {
         return new Vehicle(UUID.randomUUID(), departure, destination,
-                time, null, 0, false, 0);
+                time, null, 0, false, 0, time);
     }
 
     private final UUID id;
@@ -60,27 +60,29 @@ public class Vehicle {
     private double distance;
     private boolean returning;
     private double edgeEntryTime;
+    private double startWaitingTime;
 
     /**
      * Creates a vehicle
      *
-     * @param id            the identifier
-     * @param departure     the departure node
-     * @param destination   the destination node
-     * @param creationTime  the creation time
-     * @param currentEdge   the current edge
-     * @param distance      the distance from the beginning of edge
-     * @param returning     true if it is moving from destination to departure
-     * @param edgeEntryTime the entry time of vehicle into the edge
+     * @param id               the identifier
+     * @param departure        the departure node
+     * @param destination      the destination node
+     * @param creationTime     the creation time
+     * @param currentEdge      the current edge
+     * @param distance         the distance from the beginning of edge
+     * @param returning        true if it is moving from destination to departure
+     * @param edgeEntryTime    the entry time of vehicle into the edge
+     * @param startWaitingTime the start waiting time
      */
-    public Vehicle(UUID id,
-                   SiteNode departure,
-                   SiteNode destination,
-                   double creationTime,
-                   MapEdge currentEdge,
-                   double distance,
-                   boolean returning,
-                   double edgeEntryTime) {
+    protected Vehicle(UUID id,
+                      SiteNode departure,
+                      SiteNode destination,
+                      double creationTime,
+                      MapEdge currentEdge,
+                      double distance,
+                      boolean returning,
+                      double edgeEntryTime, double startWaitingTime) {
         this.id = requireNonNull(id);
         this.departure = requireNonNull(departure);
         this.destination = requireNonNull(destination);
@@ -89,13 +91,14 @@ public class Vehicle {
         this.distance = distance;
         this.returning = returning;
         this.edgeEntryTime = edgeEntryTime;
+        this.startWaitingTime = startWaitingTime;
     }
 
     /**
      * Returns a copy of this vehicle
      */
     public Vehicle copy() {
-        return new Vehicle(id, departure, destination, creationTime, currentEdge, distance, returning, edgeEntryTime);
+        return new Vehicle(id, departure, destination, creationTime, currentEdge, distance, returning, edgeEntryTime, startWaitingTime);
     }
 
     public double getCreationTime() {
@@ -140,7 +143,7 @@ public class Vehicle {
      * @param departure the departure
      */
     public Vehicle setDeparture(SiteNode departure) {
-        return new Vehicle(id, departure, destination, creationTime, currentEdge, distance, returning, edgeEntryTime);
+        return new Vehicle(id, departure, destination, creationTime, currentEdge, distance, returning, edgeEntryTime, startWaitingTime);
     }
 
     /**
@@ -156,7 +159,7 @@ public class Vehicle {
      * @param destination the destination
      */
     public Vehicle setDestination(SiteNode destination) {
-        return new Vehicle(id, departure, destination, creationTime, currentEdge, distance, returning, edgeEntryTime);
+        return new Vehicle(id, departure, destination, creationTime, currentEdge, distance, returning, edgeEntryTime, startWaitingTime);
     }
 
     /**
@@ -212,6 +215,22 @@ public class Vehicle {
      */
     public Optional<Point2D> getLocation() {
         return getCurrentEdge().map(edge -> edge.locationAt(distance));
+    }
+
+    /**
+     * Returns the time at stop end edge
+     */
+    public double getStartWaitingTime() {
+        return startWaitingTime;
+    }
+
+    /**
+     * Sets the time at stop end edge
+     *
+     * @param startWaintingTime the start waiting time
+     */
+    public void setStartWaitingTime(double startWaintingTime) {
+        this.startWaitingTime = startWaintingTime;
     }
 
     /**
