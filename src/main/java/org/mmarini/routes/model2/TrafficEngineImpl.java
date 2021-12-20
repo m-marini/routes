@@ -66,9 +66,7 @@ public class TrafficEngineImpl implements TrafficEngine {
                     .filter(Predicate.not(LinkedList::isEmpty))
                     .flatMap(list -> getValue(oldEdgeByNewEdge, edge))
                     // map to old transit time
-                    .stream()
-                    .mapToDouble(oldTransitTime::getValue)
-                    .findAny()
+                    .map(e -> oldTransitTime.getValue(e))
                     .orElseGet(edge::getTransitTime);
         });
     }
@@ -964,6 +962,7 @@ public class TrafficEngineImpl implements TrafficEngine {
 
     /**
      * Returns this traffic engine with changed transit time
+     *
      * @param edge       the edge
      * @param travelTime the travel time
      */
