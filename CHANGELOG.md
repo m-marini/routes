@@ -9,10 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [4.3.7] - 2021-12-20
+
 ### Changed
 
 - Issue #172: Predict transit time in congested traffic conditions
 - Issue #173: First vehicle priority on cross
+- Issue #174: Change the frequencies
 
 ## [4.3.6] - 2021-12-19
 
