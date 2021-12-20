@@ -172,15 +172,15 @@ class TrafficEngineChangeTopTest {
         /*
         And the same vehicles in the same edges
          */
-        assertThat(result.getVehicles(), containsInAnyOrder(v0, v1, v2));
-        assertThat(result.getVehicles(edge01), contains(v0, v1));
-        assertThat(result.getVehicles(edge12), contains(v2));
+        assertThat(result.findVehicles(), containsInAnyOrder(v0, v1, v2));
+        assertThat(result.findVehicles(edge01), contains(v0, v1));
+        assertThat(result.findVehicles(edge12), contains(v2));
         /*
         And the old transit time plus the new one
          */
-        assertThat(result.getEdgeTransitTime(edge01), equalTo(edge01.getTransitTime() + DELAY));
-        assertThat(result.getEdgeTransitTime(edge12), equalTo(edge12.getTransitTime() + DELAY));
-        assertThat(result.getEdgeTransitTime(edge34), equalTo(edge34.getTransitTime()));
+        assertThat(result.findEdgeTransitTime(edge01), equalTo(edge01.getTransitTime() + DELAY));
+        assertThat(result.findEdgeTransitTime(edge12), equalTo(edge12.getTransitTime() + DELAY));
+        assertThat(result.findEdgeTransitTime(edge34), equalTo(edge34.getTransitTime()));
     }
 
     @Test
@@ -241,15 +241,15 @@ class TrafficEngineChangeTopTest {
         /*
         And the same vehicles in the same edges
          */
-        assertThat(result.getVehicles(), containsInAnyOrder(v0, v1, v2));
-        assertThat(result.getVehicles(edge01), contains(v0, v1));
-        assertThat(result.getVehicles(edge12), contains(v2));
+        assertThat(result.findVehicles(), containsInAnyOrder(v0, v1, v2));
+        assertThat(result.findVehicles(edge01), contains(v0, v1));
+        assertThat(result.findVehicles(edge12), contains(v2));
         /*
         And the old transit time plus the new one
          */
-        assertThat(result.getEdgeTransitTime(edge01), equalTo(edge01.getTransitTime() + DELAY));
-        assertThat(result.getEdgeTransitTime(edge12), equalTo(edge12.getTransitTime() + DELAY));
-        assertThat(result.getEdgeTransitTime(edge20), equalTo(edge20.getTransitTime()));
+        assertThat(result.findEdgeTransitTime(edge01), equalTo(edge01.getTransitTime() + DELAY));
+        assertThat(result.findEdgeTransitTime(edge12), equalTo(edge12.getTransitTime() + DELAY));
+        assertThat(result.findEdgeTransitTime(edge20), equalTo(edge20.getTransitTime()));
     }
 
     @Test
@@ -389,7 +389,7 @@ class TrafficEngineChangeTopTest {
         And vehicles v1, v2, v3 should have current edge upgraded
          */
         assertNotNull(result);
-        assertThat(result.getVehicles(), containsInAnyOrder(
+        assertThat(result.findVehicles(), containsInAnyOrder(
                 vehicleId(v0),
                 vehicleId(v1),
                 vehicleId(v2)));
@@ -402,31 +402,31 @@ class TrafficEngineChangeTopTest {
         Optional<MapEdge> newEdge12 = findEdge(result.getEdges(), edge12);
         assertThat(newEdge12, not(optionalEmpty()));
 
-        assertThat(newEdge01.map(result::getEdgeTransitTime), optionalOf(equalTo(edge01.getTransitTime() + DELAY)));
-        assertThat(newEdge12.map(result::getEdgeTransitTime), optionalOf(equalTo(edge12.getTransitTime())));
+        assertThat(newEdge01.map(result::findEdgeTransitTime), optionalOf(equalTo(edge01.getTransitTime() + DELAY)));
+        assertThat(newEdge12.map(result::findEdgeTransitTime), optionalOf(equalTo(edge12.getTransitTime())));
 
         /*
         And vehicle in edge be the corresponding of previous TrafficEngineImpl
          */
-        newEdge01.map(result::getVehicles).ifPresent(list ->
+        newEdge01.map(result::findVehicles).ifPresent(list ->
                 assertThat(list, contains(
                         vehicleId(v0),
                         vehicleId(v1))));
-        newEdge12.map(result::getVehicles).ifPresent(list ->
+        newEdge12.map(result::findVehicles).ifPresent(list ->
                 assertThat(list, contains(
                         vehicleId(v2))));
         /*
         And next vehicle be the expected
          */
-        Optional<Vehicle> newV0 = vehicleById(result.getVehicles(), v0);
-        Optional<Vehicle> newV1 = vehicleById(result.getVehicles(), v1);
-        Optional<Vehicle> newV2 = vehicleById(result.getVehicles(), v2);
+        Optional<Vehicle> newV0 = vehicleById(result.findVehicles(), v0);
+        Optional<Vehicle> newV1 = vehicleById(result.findVehicles(), v1);
+        Optional<Vehicle> newV2 = vehicleById(result.findVehicles(), v2);
 
-        assertThat(newV0.map(result::getNextVehicle),
+        assertThat(newV0.map(result::findNextVehicle),
                 optionalOf(optionalOf(vehicleId(v1))));
-        assertThat(newV1.map(result::getNextVehicle),
+        assertThat(newV1.map(result::findNextVehicle),
                 optionalOf(optionalEmpty()));
-        assertThat(newV2.map(result::getNextVehicle),
+        assertThat(newV2.map(result::findNextVehicle),
                 optionalOf(optionalEmpty()));
 
         /*
@@ -485,19 +485,19 @@ class TrafficEngineChangeTopTest {
         Then vehicle v2 should be removed
          */
         assertNotNull(result);
-        assertThat(result.getVehicles(), containsInAnyOrder(
+        assertThat(result.findVehicles(), containsInAnyOrder(
                 vehicleId(v0),
                 vehicleId(v1)));
-        assertThat(result.getVehicles(edge03), contains(
+        assertThat(result.findVehicles(edge03), contains(
                 vehicleId(v0),
                 vehicleId(v1)));
 
-        assertThat(vehicleById(result.getVehicles(), v0)
-                .map(result::getNextVehicle), optionalOf(optionalOf(vehicleId(v1))));
-        assertThat(vehicleById(result.getVehicles(), v1)
-                .map(result::getNextVehicle), optionalOf(optionalEmpty()));
+        assertThat(vehicleById(result.findVehicles(), v0)
+                .map(result::findNextVehicle), optionalOf(optionalOf(vehicleId(v1))));
+        assertThat(vehicleById(result.findVehicles(), v1)
+                .map(result::findNextVehicle), optionalOf(optionalEmpty()));
 
-        assertThat(result.getEdgeTransitTime(edge03), equalTo(edge03.getTransitTime()));
+        assertThat(result.findEdgeTransitTime(edge03), equalTo(edge03.getTransitTime()));
     }
 
     @Test
@@ -565,7 +565,7 @@ class TrafficEngineChangeTopTest {
         And vehicles v1, v2 should have current edge upgraded
          */
         assertNotNull(result);
-        assertThat(result.getVehicles(), containsInAnyOrder(
+        assertThat(result.findVehicles(), containsInAnyOrder(
                 allOf(
                         vehicleId(v0),
                         vehicleAt(edgeAt(edge01), equalTo(v0.getDistance()))
@@ -582,13 +582,13 @@ class TrafficEngineChangeTopTest {
         Optional<MapEdge> newEdge12 = findEdge(result.getEdges(), edge12);
         assertThat(newEdge12, not(optionalEmpty()));
 
-        assertThat(newEdge01.map(result::getEdgeTransitTime), optionalOf(equalTo(edge01.getTransitTime() + DELAY)));
-        assertThat(newEdge12.map(result::getEdgeTransitTime), optionalOf(equalTo(edge12.getTransitTime())));
+        assertThat(newEdge01.map(result::findEdgeTransitTime), optionalOf(equalTo(edge01.getTransitTime() + DELAY)));
+        assertThat(newEdge12.map(result::findEdgeTransitTime), optionalOf(equalTo(edge12.getTransitTime())));
 
         /*
         And vehicle in edge be the corresponding of previous TrafficEngineImpl
          */
-        Optional<LinkedList<Vehicle>> vehicles01 = newEdge01.map(result::getVehicles);
+        Optional<LinkedList<Vehicle>> vehicles01 = newEdge01.map(result::findVehicles);
         assertThat(vehicles01, not(optionalEmpty()));
         vehicles01.ifPresent(vehicles ->
                 assertThat(vehicles, contains(
@@ -597,7 +597,7 @@ class TrafficEngineChangeTopTest {
                 ))
         );
 
-        Optional<LinkedList<Vehicle>> vehicles12 = newEdge12.map(result::getVehicles);
+        Optional<LinkedList<Vehicle>> vehicles12 = newEdge12.map(result::findVehicles);
         assertThat(vehicles12, not(optionalEmpty()));
         vehicles12.ifPresent(vehicles ->
                 assertThat(vehicles, empty())
@@ -606,12 +606,12 @@ class TrafficEngineChangeTopTest {
         /*
         And next vehicle be the expected
          */
-        assertThat(vehicleById(result.getVehicles(), v0)
-                        .flatMap(result::getNextVehicle),
+        assertThat(vehicleById(result.findVehicles(), v0)
+                        .flatMap(result::findNextVehicle),
                 optionalOf(vehicleId(v1))
         );
-        assertThat(vehicleById(result.getVehicles(), v1)
-                        .flatMap(result::getNextVehicle),
+        assertThat(vehicleById(result.findVehicles(), v1)
+                        .flatMap(result::findNextVehicle),
                 optionalEmpty()
         );
         /*
@@ -680,7 +680,7 @@ class TrafficEngineChangeTopTest {
         /*
         And vehicles should be empty
          */
-        assertThat(result.getVehicles(), empty());
+        assertThat(result.findVehicles(), empty());
 
         /*
         And weight be ...
@@ -773,7 +773,7 @@ class TrafficEngineChangeTopTest {
         /*
         And the vehicles should be v3
          */
-        assertThat(result.getVehicles(), contains(v0, v1));
+        assertThat(result.findVehicles(), contains(v0, v1));
     }
 
     @Test
@@ -823,7 +823,7 @@ class TrafficEngineChangeTopTest {
         /*
         And the vehicles should be v3
          */
-        assertThat(result.getVehicles(), contains(v1));
+        assertThat(result.findVehicles(), contains(v1));
     }
 
     // vehicle in a removed edge
@@ -864,7 +864,7 @@ class TrafficEngineChangeTopTest {
          */
         assertNotNull(result);
         assertThat(result.getEdges(), not(hasItem(edge10)));
-        assertThat(result.getVehicles(), empty());
+        assertThat(result.findVehicles(), empty());
     }
 
     @Test
@@ -918,7 +918,7 @@ class TrafficEngineChangeTopTest {
         /*
         And the vehicles should be v3
          */
-        assertThat(result.getVehicles(), contains(v3));
+        assertThat(result.findVehicles(), contains(v3));
     }
 
     @ParameterizedTest
@@ -996,7 +996,7 @@ class TrafficEngineChangeTopTest {
         Vehicle expV1 = v1.setDeparture(expNode3).setDestination(expNode2).setCurrentEdge(expEdge01);
         Vehicle expV2 = v2.setDeparture(expNode0).setDestination(expNode3).setCurrentEdge(expEdge12);
         Vehicle expV3 = v3.setDeparture(expNode0).setDestination(expNode2).setCurrentEdge(expEdge12);
-        assertThat(result.getVehicles(), contains(
+        assertThat(result.findVehicles(), contains(
                 vehicleId(expV0),
                 vehicleId(expV1),
                 vehicleId(expV2),
@@ -1006,7 +1006,7 @@ class TrafficEngineChangeTopTest {
         And vehicles by edge
          */
         Optional<LinkedList<Vehicle>> vehicles01 = findEdge(result.getEdges(), expEdge01)
-                .map(result::getVehicles);
+                .map(result::findVehicles);
         assertTrue(vehicles01.isPresent());
         vehicles01.ifPresent(list ->
                 assertThat(list, contains(
@@ -1015,7 +1015,7 @@ class TrafficEngineChangeTopTest {
         );
 
         Optional<LinkedList<Vehicle>> vehicles12 = findEdge(result.getEdges(), expEdge12)
-                .map(result::getVehicles);
+                .map(result::findVehicles);
         assertTrue(vehicles12.isPresent());
         vehicles12.ifPresent(list ->
                 assertThat(list, contains(
@@ -1025,7 +1025,7 @@ class TrafficEngineChangeTopTest {
         );
 
         Optional<LinkedList<Vehicle>> vehicles13 = findEdge(result.getEdges(), expEdge13)
-                .map(result::getVehicles);
+                .map(result::findVehicles);
         assertTrue(vehicles13.isPresent());
         vehicles13.ifPresent(list ->
                 assertThat(list, contains(

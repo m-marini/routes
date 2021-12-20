@@ -33,7 +33,6 @@ import org.mmarini.Tuple2;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.mmarini.Tuple2.stream;
@@ -56,7 +55,7 @@ public class StatusImpl implements Status {
      * @param edgeTransitTimes the effective edge transit time
      * @param weights          the cumulative probability of path from site to site
      */
-    public static StatusImpl createStatus(int maxVehicles, double speedLimit, double frequency, double time, Topology topology, List<Vehicle> vehicles, Map<MapEdge, Double> edgeTransitTimes, double[][] weights) {
+    public static StatusImpl createStatus(int maxVehicles, double speedLimit, double frequency, double time, Topology topology, List<Vehicle> vehicles, TransitTimes edgeTransitTimes, double[][] weights) {
         return new StatusImpl(maxVehicles, speedLimit, frequency, time, topology, vehicles, edgeTransitTimes, weights);
     }
 
@@ -97,12 +96,7 @@ public class StatusImpl implements Status {
                                           List<Vehicle> vehicles,
                                           double[][] weights
     ) {
-        Map<MapEdge, Double> edgeTransitTimes = topology.getEdges()
-                .stream()
-                .collect(Collectors.toMap(
-                        Function.identity(),
-                        MapEdge::getTransitTime
-                ));
+        TransitTimes edgeTransitTimes = TransitTimes.create(topology.getEdges());
         return new StatusImpl(maxVehicles, speedLimit, frequency, time, topology,
                 vehicles, edgeTransitTimes, weights);
     }
@@ -113,7 +107,7 @@ public class StatusImpl implements Status {
     private final double time;
     private final Topology topology;
     private final List<Vehicle> vehicles;
-    private final Map<MapEdge, Double> edgeTransitTimes;
+    private final TransitTimes edgeTransitTimes;
     private final double[][] weights;
     private Map<Tuple2<MapNode, MapNode>, MapEdge> edgeByPath;
     private Map<MapEdge, Integer> vehicleCountByEdge;
@@ -130,7 +124,7 @@ public class StatusImpl implements Status {
      * @param edgeTransitTimes the effective edge transit time
      * @param weights          the weights
      */
-    protected StatusImpl(int maxVehicles, double speedLimit, double frequency, double time, Topology topology, List<Vehicle> vehicles, Map<MapEdge, Double> edgeTransitTimes, double[][] weights) {
+    protected StatusImpl(int maxVehicles, double speedLimit, double frequency, double time, Topology topology, List<Vehicle> vehicles, TransitTimes edgeTransitTimes, double[][] weights) {
         this.maxVehicles = maxVehicles;
         this.time = time;
         this.topology = topology;
@@ -299,7 +293,7 @@ public class StatusImpl implements Status {
     }
 
     /**
-     * Returns the numbr of vehicle in a given edge
+     * Returns the number of vehicle in a given edge
      *
      * @param edge the edge
      */

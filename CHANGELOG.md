@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- Issue #172: Predict transit time in congested traffic conditions
+
 ## [4.3.6] - 2021-12-19
 
 ### Added

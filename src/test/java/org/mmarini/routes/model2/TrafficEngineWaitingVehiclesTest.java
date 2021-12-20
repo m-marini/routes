@@ -101,7 +101,7 @@ class TrafficEngineWaitingVehiclesTest {
         status.handleWaitingVehicles();
 
         // Then the vehicle1 should be removed
-        assertThat(status.getVehicles(), not(contains(v1)));
+        assertThat(status.findVehicles(), not(contains(v1)));
     }
 
     @ParameterizedTest
@@ -157,7 +157,7 @@ class TrafficEngineWaitingVehiclesTest {
         // Then the vehicle3 should go
         assertThat(v3.getCurrentEdge(), optionalOf(edge21));
         assertThat(v3.getDistance(), equalTo(0.0));
-        assertThat(status.getNextVehicle(v3), optionalOf(v6));
+        assertThat(status.findNextVehicle(v3), optionalOf(v6));
     }
 
     @ParameterizedTest
@@ -182,7 +182,7 @@ class TrafficEngineWaitingVehiclesTest {
         status.handleWaitingVehicles();
 
         // Then the vehicle4 should be removed
-        assertThat(status.getVehicles(), not(contains(v4)));
+        assertThat(status.findVehicles(), not(contains(v4)));
     }
 
     @ParameterizedTest
@@ -250,8 +250,8 @@ class TrafficEngineWaitingVehiclesTest {
         assertThat(v6.getCurrentEdge(), optionalOf(edge10));
         assertThat(v6.getDistance(), equalTo(0.0));
         assertThat(v6.getEdgeEntryTime(), equalTo(time));
-        assertThat(status.getNextVehicle(v6), optionalOf(v7));
-        assertThat(status.getEdgeTransitTime(edge21), closeTo(elapsed, 0.01));
+        assertThat(status.findNextVehicle(v6), optionalOf(v7));
+        assertThat(status.findEdgeTransitTime(edge21), closeTo(elapsed, 0.01));
     }
 
     @ParameterizedTest
@@ -304,7 +304,7 @@ class TrafficEngineWaitingVehiclesTest {
         status.handleWaitingVehicles();
 
         // Then the vehicle7 should be removed
-        assertThat(status.getVehicles(), not(contains(v8)));
+        assertThat(status.findVehicles(), not(contains(v8)));
     }
 
     @BeforeEach

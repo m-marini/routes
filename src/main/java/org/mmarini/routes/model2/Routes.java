@@ -79,6 +79,41 @@ public interface Routes {
         return createRoutes(nodes, edgeMatrix, nextMatrix);
     }
 
+    static Map<Tuple2<MapNode, MapNode>, MapEdge> computeRoutes(List<MapEdge> edges, TransitTimes edgeTravelTimes) {
+        List<MapNode> nodes = edges.stream()
+                .flatMap(edge -> Stream.of(edge.getBegin(), edge.getEnd()))
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<MapNode, Integer> indexByNode = zipWithIndex(nodes)
+                .map(swap())
+                .collect(Tuple2.toMap());
+        int n = nodes.size();
+        // Create initial adjacent matrices
+        int[][] previousMatrix = new int[n][n];
+        for (int[] matrix : previousMatrix) {
+            Arrays.fill(matrix, -1);
+        }
+        double[][] travelMatrix = new double[n][n];
+        for (double[] matrix : travelMatrix) {
+            Arrays.fill(matrix, Double.POSITIVE_INFINITY);
+        }
+        MapEdge[][] edgeMatrix = new MapEdge[n][n];
+        edges.forEach(edge -> {
+            int i = indexByNode.get(edge.getBegin());
+            int j = indexByNode.get(edge.getEnd());
+            travelMatrix[i][j] = edgeTravelTimes.getValue(edge);
+            previousMatrix[i][j] = i;
+            edgeMatrix[i][j] = edge;
+        });
+
+        // Computes the optimal paths
+        int[][] nextMatrix = nextMatrix(floydWarshall(previousMatrix, travelMatrix));
+
+        // Convert to path map
+        return createRoutes(nodes, edgeMatrix, nextMatrix);
+    }
+
     static Map<Tuple2<MapNode, MapNode>, MapEdge> createRoutes(List<MapNode> nodes, MapEdge[][] edgeMatrix, int[][] nextMatrix) {
         int n = nodes.size();
         Stream.Builder<Tuple2<Tuple2<MapNode, MapNode>, MapEdge>> builder = Stream.builder();
