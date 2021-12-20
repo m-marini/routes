@@ -778,7 +778,7 @@ public class TrafficEngineImpl implements TrafficEngine {
         // Sort vehicles vehicle on edge by age and handle
         for (Vehicle vehicle : getValue(map, true)
                 .map(vehicles -> {
-                    vehicles.sort(Comparator.comparingDouble(Vehicle::getEdgeEntryTime));
+                    vehicles.sort(Comparator.comparingDouble(Vehicle::getStartWaitingTime));
                     return vehicles;
                 })
                 .orElse(List.of())) {
@@ -873,7 +873,16 @@ public class TrafficEngineImpl implements TrafficEngine {
         computeVehicleMovements(stream, dt)
                 .forEach(vm -> {
                     Vehicle vehicle = vm.getVehicle();
-                    vehicle.setDistance(vehicle.getDistance() + vm.getDs());
+                    double distance = vehicle.getDistance();
+                    double distance1 = distance + vm.getDs();
+                    vehicle.setDistance(distance1);
+                    // Update the stop edge time
+                    vehicle.getCurrentEdge()
+                            .map(MapEdge::getLength)
+                            .filter(length -> distance < length && distance1 >= length)
+                            .ifPresent(l -> {
+                                vehicle.setStartWaitingTime(time + dt);
+                            });
                 });
     }
 
