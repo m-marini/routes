@@ -961,6 +961,7 @@ public class TrafficEngineImpl implements TrafficEngine {
     }
 
     /**
+     * Returns this traffic engine with changed transit time
      * @param edge       the edge
      * @param travelTime the travel time
      */
