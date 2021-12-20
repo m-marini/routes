@@ -40,8 +40,8 @@ public interface UIConstants {
     double FREQUENCY1 = 2;
     double FREQUENCY2 = 4;
     double FREQUENCY3 = 8;
-    double FREQUENCY4 = 15;
-    double FREQUENCY5 = 30;
+    double FREQUENCY4 = 14;
+    double FREQUENCY5 = 28;
 
     double DIFFICULT_FREQUENCY = FREQUENCY5 / 60;
     double NORMAL_FREQUENCY = FREQUENCY3 / 60;
