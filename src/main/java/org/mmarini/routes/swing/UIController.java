@@ -54,6 +54,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.Math.min;
+import static java.lang.Math.round;
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.Utils.getValue;
 import static org.mmarini.routes.model2.Constants.*;
@@ -707,6 +708,7 @@ public class UIController {
     private void refresh() {
         routeMap.setStatus(statusView);
         infoPane.setNumVehicles(statusView.getVehicles().size());
+        infoPane.setTime(round(statusView.getStatus().getTime()));
         scrollMap.repaint();
     }
 

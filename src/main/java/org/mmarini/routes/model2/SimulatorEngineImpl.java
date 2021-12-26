@@ -40,10 +40,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.TimeUnit;
 import java.util.function.*;
 
-import static java.lang.Math.round;
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.routes.swing.UIConstants.NANOSPS;
 
@@ -93,9 +91,7 @@ public class SimulatorEngineImpl<T, S> implements SimulatorEngine<T, S> {
     private Consumer<T> onEvent;
     private double speed;
     private Status status;
-    private Instant lastEvent; // Last event instance
     private long eventInterval;
-    private double simulatedTime; // cumulative simulation time
 
     /**
      * Creates the simulator.
@@ -149,44 +145,38 @@ public class SimulatorEngineImpl<T, S> implements SimulatorEngine<T, S> {
         }
     }
 
+    /**
+     * Simulation cycle
+     */
     void processCycle() {
+        // time instant of last cycle
+        Instant last = Instant.now();
+        // time instant od last event
+        Instant lastEvent = last;
+        // simulation interval
+        // simulation time of last event
+        double eventSimTime = 0;
+        double simInterval = eventInterval * speed / NANOSPS;
         while (status == Status.ACTIVE) {
-            long simClockTime = round(simulatedTime * NANOSPS / speed);
             deque();
-            // Computes the simulation time
-            double simulatingTime = speed * eventInterval / NANOSPS - simulatedTime;
-            // Computes the next event
-            Tuple2<S, Double> tuple = nextSeed.apply(seed, simulatingTime);
+            Tuple2<S, Double> tuple = nextSeed.apply(seed, simInterval);
             seed = tuple._1;
-            simulatedTime += tuple._2;
+            eventSimTime += tuple._2;
             Instant now = Instant.now();
-            long processTime = Duration.between(lastEvent, now).toNanos();
-            if (processTime >= eventInterval) {
-                // Overload
-                // Emits data
-                // reset simulation time track last event instant
+            long dt = Duration.between(last, now).toNanos();
+            simInterval = dt * speed / NANOSPS;
+            last = now;
+
+            double currentEventInterval = Duration.between(lastEvent, now).toNanos();
+            if (currentEventInterval >= this.eventInterval) {
+                double currentSpeed = eventSimTime / currentEventInterval * NANOSPS;
+                // Event time out
                 emitEvent(emit.apply(seed));
-                double actualSpeed = simulatedTime / processTime * NANOSPS;
-                emitSpeed(actualSpeed);
-                simulatedTime = 0;
+                emitSpeed(currentSpeed);
                 lastEvent = now;
-                // reschedule no wait
-            } else if (simClockTime >= eventInterval) {
-                // Underloaded
-                emitEvent(emit.apply(seed));
-                emitSpeed(speed);
-                long pause = eventInterval - processTime;
-                // reschedule pause
-                worker.schedule(this::processCycle1, pause, TimeUnit.NANOSECONDS);
-                break;
+                eventSimTime = 0;
             }
         }
-    }
-
-    void processCycle1() {
-        simulatedTime = 0;
-        lastEvent = Instant.now();
-        processCycle();
     }
 
     @Override
@@ -262,9 +252,9 @@ public class SimulatorEngineImpl<T, S> implements SimulatorEngine<T, S> {
 
     void startProcess() {
         logger.debug("Simulation started.");
-        simulatedTime = 0;
+        // cumulative simulation time
         deque();
-        lastEvent = Instant.now();
+        // Last event instance
         processCycle();
     }
 
