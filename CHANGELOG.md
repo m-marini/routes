@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [4.3.8] - 2021-12-26
+
+### Fixed
+ 
+- Issue #153: Verify computation of simulation speed
+
 ## [4.3.7] - 2021-12-20
 
 ### Changed

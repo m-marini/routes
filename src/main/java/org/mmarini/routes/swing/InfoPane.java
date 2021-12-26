@@ -34,6 +34,7 @@ import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static java.lang.String.format;
 import static org.mmarini.routes.swing.SwingUtils.loadPatterns;
 
 /**
@@ -41,6 +42,23 @@ import static org.mmarini.routes.swing.SwingUtils.loadPatterns;
  */
 public class InfoPane extends JComponent {
     public static final int MAX_NUM_COLUMNS = 10;
+    public static final int SEC_PER_MIN = 60;
+    public static final int SEC_PER_HOURS = 60 * 60;
+
+    private static String timeFormat(long time) {
+        if (time < SEC_PER_MIN) {
+            return format("%d", time);
+        }
+        if (time < SEC_PER_HOURS) {
+            return format("%d:%02d", time / SEC_PER_MIN, time % SEC_PER_MIN);
+        } else {
+            return format("%d:%02d:%02d",
+                    time / SEC_PER_HOURS,
+                    (time % SEC_PER_HOURS) / SEC_PER_MIN,
+                    time % SEC_PER_MIN);
+        }
+    }
+
     private final String[] edgeLegendPattern;
     private final String[] pointLegendPattern;
     private Point2D mapPoint;
@@ -51,6 +69,7 @@ public class InfoPane extends JComponent {
     private double gridSize;
     private double edgeLength;
     private boolean edgeLegend;
+    private long time;
 
     /**
      *
@@ -93,6 +112,7 @@ public class InfoPane extends JComponent {
         } else {
             pattern = pointLegendPattern;
         }
+        String timeFmt = timeFormat(time);
         final String[] text = Arrays.stream(pattern)
                 .map(ptn ->
                         MessageFormat.format(ptn,
@@ -103,7 +123,8 @@ public class InfoPane extends JComponent {
                                 tps,
                                 fps,
                                 speed,
-                                numVehicles)
+                                numVehicles,
+                                timeFmt)
                 ).toArray(String[]::new);
         Dimension size = getSize();
         Insets insets = Optional.ofNullable(getBorder())
@@ -145,8 +166,17 @@ public class InfoPane extends JComponent {
         repaint();
     }
 
+    /**
+     * Sets the gris size
+     *
+     * @param gridSize the gris size
+     */
     public void setGridSize(double gridSize) {
+        boolean changed = gridSize != this.gridSize;
         this.gridSize = gridSize;
+        if (changed) {
+            repaint();
+        }
     }
 
     public void setMapPoint(Point2D mapPoint) {
@@ -155,8 +185,11 @@ public class InfoPane extends JComponent {
     }
 
     public void setNumVehicles(long numVehicles) {
+        boolean changed = this.numVehicles != numVehicles;
         this.numVehicles = numVehicles;
-        repaint();
+        if (changed) {
+            repaint();
+        }
     }
 
     /**
@@ -165,6 +198,19 @@ public class InfoPane extends JComponent {
     public void setSpeed(double speed) {
         this.speed = speed;
         repaint();
+    }
+
+    /**
+     * Sets the transitions per second
+     *
+     * @param time the transitions per second
+     */
+    public void setTime(long time) {
+        boolean changed = time != this.time;
+        this.time = time;
+        if (changed) {
+            repaint();
+        }
     }
 
     /**

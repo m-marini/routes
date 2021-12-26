@@ -19,7 +19,7 @@
         </encoder>
     </appender>
 
-    <logger name="org.mmarini.routes.swing.SimulatorImpl" level="info"/>
+    <logger name="org.mmarini.routes.swing.SimulatorEngineImpl" level="info"/>
 
     <root level="debug">
         <appender-ref ref="console"/>

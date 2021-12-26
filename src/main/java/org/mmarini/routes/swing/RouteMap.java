@@ -811,6 +811,7 @@ public class RouteMap extends JComponent {
     public void startCenterMode() {
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
         this.currentMode = centerMode;
+        clearSelection();
         repaint();
     }
 
@@ -846,6 +847,7 @@ public class RouteMap extends JComponent {
     public void startEdgeMode() {
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
         this.currentMode = startEdgeMode;
+        clearSelection();
     }
 
     /**
@@ -855,6 +857,7 @@ public class RouteMap extends JComponent {
         this.mapModule = module;
         this.currentMode = moduleLocationMode;
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+        clearSelection();
     }
 
     /**
@@ -863,6 +866,7 @@ public class RouteMap extends JComponent {
     public void startSelectMode() {
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         this.currentMode = selectingMode;
+        clearSelection();
         repaint();
     }
 
