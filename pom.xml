@@ -32,13 +32,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>Routes</groupId>
     <artifactId>routes</artifactId>
-    <version>4.3.8</version>
+    <version>4.3.9</version>
     <name>routes</name>
     <description>Routes - Traffic simulator</description>
     <properties>
         <java.version>11</java.version>
         <rxjava.version>3.0.0-RC2</rxjava.version>
-        <jackson.version>2.12.5</jackson.version>
+        <jackson.version>2.13.4</jackson.version>
         <slf4j.version>1.7.32</slf4j.version>
         <logback.version>1.2.6</logback.version>
         <junit.version>5.5.2</junit.version>
