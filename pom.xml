@@ -38,7 +38,7 @@
     <properties>
         <java.version>11</java.version>
         <rxjava.version>3.0.0-RC2</rxjava.version>
-        <jackson.version>2.13.4</jackson.version>
+        <jackson.version>2.13.4.1</jackson.version>
         <slf4j.version>1.7.32</slf4j.version>
         <logback.version>1.2.6</logback.version>
         <junit.version>5.5.2</junit.version>
