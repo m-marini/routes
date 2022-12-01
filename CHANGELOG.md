@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- Issue #189: Fix load and save frequence
+
 ## [4.3.9] - 2022-10-21
 
 ### Changed

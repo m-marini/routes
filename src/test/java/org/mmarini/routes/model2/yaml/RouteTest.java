@@ -415,7 +415,7 @@ class RouteTest {
                 "---",
                 "version: \"1.0\"",
                 "maxVehicles: 1000",
-                "defaults:",
+                "default:",
                 "  frequence: 0.5",
                 "  speedLimit: 60",
                 "  priority: 2",
@@ -503,7 +503,7 @@ class RouteTest {
                                 hasProperty("x", equalTo(10.0)),
                                 hasProperty("y", equalTo(0.0))))),
                         hasProperty("priority", equalTo(2)),
-                        hasProperty("speedLimit", equalTo(60d/KMPHSPM))
+                        hasProperty("speedLimit", equalTo(60d / KMPHSPM))
                 ), allOf(
                         hasProperty("begin", hasProperty("location", allOf(
                                 hasProperty("x", equalTo(10.0)),
@@ -512,7 +512,7 @@ class RouteTest {
                                 hasProperty("x", equalTo(5.0)),
                                 hasProperty("y", equalTo(0.0))))),
                         hasProperty("priority", equalTo(2)),
-                        hasProperty("speedLimit", equalTo(60d/KMPHSPM))
+                        hasProperty("speedLimit", equalTo(60d / KMPHSPM))
                 ), allOf(
                         hasProperty("begin", hasProperty("location", allOf(
                                 hasProperty("x", equalTo(5.0)),
@@ -521,7 +521,7 @@ class RouteTest {
                                 hasProperty("x", equalTo(0.0)),
                                 hasProperty("y", equalTo(0.0))))),
                         hasProperty("priority", equalTo(2)),
-                        hasProperty("speedLimit", equalTo(60d/KMPHSPM))
+                        hasProperty("speedLimit", equalTo(60d / KMPHSPM))
                 )
         ));
 

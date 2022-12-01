@@ -228,7 +228,7 @@ public class Parsers {
         requireNonNull(node);
         int maxVehicles = node.path("maxVehicles").asInt(DEFAULT_MAX_VEHICLES);
 
-        JsonNode defaultsNode = node.path("defaults");
+        JsonNode defaultsNode = node.path("default");
         int defaultPriority = defaultPriority(defaultsNode);
         double defaultSpeedLimit = defaultSpeedLimit(defaultsNode);
         double frequency = defaultFrequency(defaultsNode);
