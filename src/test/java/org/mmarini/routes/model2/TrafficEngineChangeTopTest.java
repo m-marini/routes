@@ -657,14 +657,14 @@ class TrafficEngineChangeTopTest {
          */
         assertNotNull(result);
         SiteNode site0 = createSite(
-                ((RX0 - X0) / DX - 0.5) * 2 * width,
-                ((RY0 - Y0) / DY - 0.5) * 2 * height);
+                round(((RX0 - X0) / DX - 0.5) * 2 * width),
+                round(((RY0 - Y0) / DY - 0.5) * 2 * height));
         SiteNode site1 = createSite(
-                ((RX1 - X0) / DX - 0.5) * 2 * width,
-                ((RY1 - Y0) / DY - 0.5) * 2 * height);
+                round(((RX1 - X0) / DX - 0.5) * 2 * width),
+                round(((RY1 - Y0) / DY - 0.5) * 2 * height));
         SiteNode site2 = createSite(
-                ((RX2 - X0) / DX - 0.5) * 2 * width,
-                ((RY2 - Y0) / DY - 0.5) * 2 * height);
+                round(((RX2 - X0) / DX - 0.5) * 2 * width),
+                round(((RY2 - Y0) / DY - 0.5) * 2 * height));
 
         assertNotNull(result);
         assertThat(result.getSites(), contains(
