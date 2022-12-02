@@ -56,14 +56,14 @@ public class OptimizePane extends Box {
         speedField = new JSpinner();
 
         init();
-        createContext();
+        createContent();
         createFlows();
     }
 
     /**
      *
      */
-    private void createContext() {
+    private void createContent() {
         Box box = Box.createHorizontalBox();
         box.add(optimizeSpeed);
         box.add(Box.createGlue());

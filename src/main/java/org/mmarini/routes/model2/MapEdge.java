@@ -238,6 +238,17 @@ public class MapEdge implements MapElement {
     }
 
     /**
+     * Returns true if edge has both the given ending nodes (no matter begin or end)
+     *
+     * @param a a node
+     * @param b the other node
+     */
+    public boolean hasEnding(MapNode a, MapNode b) {
+        return (getBegin().equals(a) && getEnd().equals(b))
+                || (getBegin().equals(b) && getEnd().equals(a));
+    }
+
+    /**
      * Returns true if the edge is crossing a node
      *
      * @param node the node

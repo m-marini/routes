@@ -95,6 +95,7 @@ public class UIController {
     private final InfoPane infoPane;
     private final Random random;
     private final SimulatorEngine<Status, TrafficEngine> simulator;
+    private final ConnectionsPane connectionPane;
     private boolean running;
     private StatusView statusView;
     private int edgePriority;
@@ -110,6 +111,7 @@ public class UIController {
         infoPane = new InfoPane();
         mapViewPane = new MapViewPane(scrollMap, infoPane);
         explorerPane = new ExplorerPane();
+        connectionPane = new ConnectionsPane();
         TrafficEngine initialSeed = createEngine(DEFAULT_MAX_VEHICLES,
                 createTopology(List.of(), List.of()),
                 0,
@@ -208,6 +210,7 @@ public class UIController {
         mainFrame.getOptimizeFlowable().doOnNext(e -> optimize()).subscribe();
         mainFrame.getRandomizeFlowable().doOnNext(e -> randomize()).subscribe();
         mainFrame.getFrequencyFlowable().doOnNext(e -> setFrequency()).subscribe();
+        mainFrame.getLatticeFlowable().doOnNext(e -> generateConnections()).subscribe();
         mainFrame.getRoutesFlowable().doOnNext(e -> setRouteSetting()).subscribe();
         mainFrame.getNewRandomFlowable().doOnNext(e -> newRandomMap()).subscribe();
         mainFrame.getSaveAsFlowable().doOnNext(e -> saveAs()).subscribe();
@@ -357,12 +360,24 @@ public class UIController {
             routeMap.reset();
             mapViewPane.selectSelector();
             mainFrame.repaint();
-
         }).subscribe();
     }
 
     StatusView createStatusView(Status status) {
         return statusView != null ? statusView.update(status) : StatusView.createStatusView(status);
+    }
+
+    private void generateConnections() {
+        final int opt = JOptionPane.showConfirmDialog(mainFrame, connectionPane,
+                Messages.getString("UIController.latticePane.title"), JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
+        if (opt == JOptionPane.OK_OPTION) {
+            simulator.request(engine -> engine.generateConnections(connectionPane.getSelectedBuilder()))
+                    .doOnSuccess(engine -> {
+                        statusView = createStatusView(engine.buildStatus());
+                        refreshTopology();
+                        routeMap.reset();
+                    }).subscribe();
+        }
     }
 
     /**

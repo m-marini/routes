@@ -75,6 +75,27 @@ public interface TrafficEngine {
     TrafficEngine changeNode(MapNode node);
 
     /**
+     * Returns the engine with connections created by builder
+     *
+     * @param builder the connection builder
+     */
+    TrafficEngine generateConnections(ConnectionBuilder builder);
+
+    double getSpeedLimit();
+
+    /**
+     * Returns the status by changing speed limit
+     *
+     * @param speedLimit the speed limit
+     */
+    TrafficEngine setSpeedLimit(double speedLimit);
+
+    /**
+     * Returns the topology
+     */
+    Topology getTopology();
+
+    /**
      * Returns the next status after a time interval
      *
      * @param random the random generator
@@ -127,13 +148,6 @@ public interface TrafficEngine {
      * @param offset the offset
      */
     TrafficEngine setOffset(Point2D offset);
-
-    /**
-     * Returns the status by changing speed limit
-     *
-     * @param speedLimit the speed limit
-     */
-    TrafficEngine setSpeedLimit(double speedLimit);
 
     /**
      * Returns the status with changed weights

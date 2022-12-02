@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.lang.Math.round;
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.Tuple2.toMap;
 import static org.mmarini.Utils.*;
@@ -191,8 +192,8 @@ public class TrafficEngineImpl implements TrafficEngine {
         List<SiteNode> sites = Arrays.stream(pts)
                 .map(loc ->
                         createSite(
-                                (2 * (loc[0] - x0) / dx - 1) * w,
-                                (2 * (loc[1] - y0) / dy - 1) * h))
+                                round((2 * (loc[0] - x0) / dx - 1) * w),
+                                round((2 * (loc[1] - y0) / dy - 1) * h)))
                 .collect(Collectors.toList());
         List<MapNode> nodes = sites.stream().map(x -> (MapNode) x).collect(Collectors.toList());
         double[][] pathsCdf = toCdf(createRandomWeights(n, profile.getMinWeight(), random));
@@ -640,6 +641,20 @@ public class TrafficEngineImpl implements TrafficEngine {
         return vehicles;
     }
 
+    @Override
+    public TrafficEngine generateConnections(ConnectionBuilder builder) {
+        Topology newTop = builder.build(this);
+        Map<MapEdge, LinkedList<Vehicle>> newVehiclesByEdge = new HashMap<>();
+        TransitTimes newTransitTimeByEdge = computeNewTransitTime(this.transitTimeByEdge, newTop, topology, newVehiclesByEdge);
+        return new TrafficEngineImpl(maxVehicles, time,
+                newTop, new ArrayList<>(),
+                speedLimit, frequency,
+                pathCdf,
+                newVehiclesByEdge,
+                new HashMap<>(),
+                newTransitTimeByEdge, null);
+    }
+
     private Map<Tuple2<MapNode, MapNode>, MapEdge> getEdgeByPath() {
         if (edgeByPath == null) {
             updateTransitTime().
@@ -695,6 +710,22 @@ public class TrafficEngineImpl implements TrafficEngine {
 
     List<SiteNode> getSites() {
         return topology.getSites();
+    }
+
+    @Override
+    public double getSpeedLimit() {
+        return speedLimit;
+    }
+
+    @Override
+    public TrafficEngineImpl setSpeedLimit(double speedLimit) {
+        return new TrafficEngineImpl(maxVehicles, time, topology, vehicles, speedLimit, frequency,
+                pathCdf, vehiclesByEdge, nextVehicles, transitTimeByEdge, edgeByPath);
+    }
+
+    @Override
+    public Topology getTopology() {
+        return topology;
     }
 
     /**
@@ -1033,12 +1064,6 @@ public class TrafficEngineImpl implements TrafficEngine {
 
         return new TrafficEngineImpl(maxVehicles, time, topology, vehicles, speedLimit, frequency,
                 pathCdf, vehiclesByEdge, nextVehicles, newEdgeTransitTimes, edgeByPath);
-    }
-
-    @Override
-    public TrafficEngineImpl setSpeedLimit(double speedLimit) {
-        return new TrafficEngineImpl(maxVehicles, time, topology, vehicles, speedLimit, frequency,
-                pathCdf, vehiclesByEdge, nextVehicles, transitTimeByEdge, edgeByPath);
     }
 
     @Override
