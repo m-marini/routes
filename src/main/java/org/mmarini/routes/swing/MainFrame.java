@@ -66,6 +66,7 @@ public class MainFrame extends JFrame {
     private final JMenuItem frequencyMenuItem;
     private final JMenuItem randomizeMenuItem;
     private final JMenuItem routesMenuItem;
+    private final JMenuItem latticeMenuItem;
 
     private final JCheckBoxMenuItem stopMenuItem;
     private final JRadioButtonMenuItem speedx1MenuItem;
@@ -96,6 +97,7 @@ public class MainFrame extends JFrame {
     private final Flowable<ActionEvent> newRandomFlowable;
     private final Flowable<ActionEvent> saveAsFlowable;
     private final Flowable<WindowEvent> windowFlowable;
+    private final Flowable<ActionEvent> latticeFlowable;
 
     /**
      * @param mapViewPane    the map view panel
@@ -126,6 +128,7 @@ public class MainFrame extends JFrame {
         optimizeMenuItem = new JMenuItem();
         frequencyMenuItem = new JMenuItem();
         randomizeMenuItem = new JMenuItem();
+        latticeMenuItem = new JMenuItem();
         routesMenuItem = new JMenuItem();
 
         newButton = new JButton();
@@ -155,6 +158,8 @@ public class MainFrame extends JFrame {
         optimizeFlowable = SwingObservable.actions(optimizeMenuItem)
                 .toFlowable(BackpressureStrategy.MISSING);
         randomizeFlowable = SwingObservable.actions(randomizeMenuItem)
+                .toFlowable(BackpressureStrategy.MISSING);
+        latticeFlowable = SwingObservable.actions(latticeMenuItem)
                 .toFlowable(BackpressureStrategy.MISSING);
         frequencyFlowable = SwingObservable.actions(frequencyMenuItem)
                 .toFlowable(BackpressureStrategy.MISSING);
@@ -223,6 +228,7 @@ public class MainFrame extends JFrame {
         menu.add(randomizeMenuItem);
         menu.add(frequencyMenuItem);
         menu.add(routesMenuItem);
+        menu.add(latticeMenuItem);
 
         menu.add(new JSeparator());
         menu.add(stopMenuItem);
@@ -266,6 +272,10 @@ public class MainFrame extends JFrame {
 
     public Flowable<ActionEvent> getInfosFlowable() {
         return infosFlowable;
+    }
+
+    public Flowable<ActionEvent> getLatticeFlowable() {
+        return latticeFlowable;
     }
 
     public Flowable<ActionEvent> getNewMapFlowable() {
@@ -335,6 +345,7 @@ public class MainFrame extends JFrame {
         utils.initMenuItem(saveAsMenuItem, "MainFrame.saveAsAction"); //$NON-NLS-1$
         utils.initMenuItem(optimizeMenuItem, "MainFrame.optimizeAction"); //$NON-NLS-1$
         utils.initMenuItem(randomizeMenuItem, "MainFrame.randomizeAction"); //$NON-NLS-1$
+        utils.initMenuItem(latticeMenuItem, "MainFrame.latticeAction"); //$NON-NLS-1$
         utils.initMenuItem(frequencyMenuItem, "MainFrame.frequenceAction"); //$NON-NLS-1$
         utils.initMenuItem(routesMenuItem, "MainFrame.routesAction"); //$NON-NLS-1$
         utils.initMenuItem(stopMenuItem, "MainFrame.stopAction"); //$NON-NLS-1$

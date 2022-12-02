@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- Issue #187: Generate connections
+
 ### Fixed
 
 - Issue #189: Fix load and save frequence

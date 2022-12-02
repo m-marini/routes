@@ -53,10 +53,23 @@ public class Topology {
     /**
      * Returns a topology
      *
+     * @param edges the edge list
+     */
+    public static Topology createTopology(List<MapEdge> edges) {
+        List<MapNode> nodes = edges.stream()
+                .flatMap(edge -> Stream.of(edge.getBegin(), edge.getEnd()))
+                .distinct()
+                .collect(Collectors.toList());
+        return createTopology(nodes, edges);
+    }
+
+    /**
+     * Returns a topology
+     *
      * @param nodes the node list
      * @param edges the edge list
      */
-    public static Topology createTopology(List<MapNode> nodes,
+    public static Topology createTopology(List<? extends MapNode> nodes,
                                           List<MapEdge> edges) {
         // Sort nodes
         ArrayList<MapNode> sortedNode = new ArrayList<>(nodes);
