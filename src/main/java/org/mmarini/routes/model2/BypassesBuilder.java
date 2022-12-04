@@ -109,8 +109,16 @@ public class BypassesBuilder extends EdgeConnectionBuilder {
         return result;
     }
 
+    private double[] weights;
+
     public BypassesBuilder() {
         super();
+    }
+
+    @Override
+    public Topology build(TrafficEngine engine) {
+        weights = StarBuilder.createWeights(engine);
+        return super.build(engine);
     }
 
     /**
@@ -119,7 +127,7 @@ public class BypassesBuilder extends EdgeConnectionBuilder {
     @Override
     protected List<MapEdge> createEdges() {
         List<MapEdge> edges = createBypasses(sites, maxSpeed);
-        edges.addAll(StarBuilder.createEdges(sites, maxSpeed));
+        edges.addAll(StarBuilder.createEdges(sites, weights, maxSpeed));
         return edges;
     }
 }

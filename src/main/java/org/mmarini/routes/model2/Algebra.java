@@ -54,6 +54,10 @@ public interface Algebra {
         return new Point2D.Double(a.getX() * k, a.getY() * k);
     }
 
+    static double snapTo(double value, double step) {
+        return Math.round(value / step) * step;
+    }
+
     static double sqrLength(Point2D a) {
         return dot(a, a);
     }
