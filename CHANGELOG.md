@@ -9,9 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-### Changed
+### Added
 
 - Issue #187: Generate connections
+
+### Changed
+
+- Issue #136: Weighted center in star builder
 
 ### Fixed
 
