@@ -600,10 +600,12 @@ public class TrafficEngineImpl implements TrafficEngine {
      */
     Optional<VehicleMovement> findFirstExitingVehicle(double dt) {
         Stream<Vehicle> lastVehicles = getLastVehicles()
+                // Filter the vehicles that is in the current edge (position less then the length of edge
                 .filter(v -> v.getCurrentEdge()
                         .map(MapEdge::getLength)
                         .filter(length -> v.getDistance() < length)
                         .isPresent());
+        // Moves all the last vehicles
         return computeVehicleMovements(lastVehicles, dt)
                 .reduce((a, b) ->
                         a.getDt() <= b.getDt() ? a : b);
@@ -689,7 +691,7 @@ public class TrafficEngineImpl implements TrafficEngine {
         return topology.getNodes();
     }
 
-    DoubleMatrix<SiteNode> getPathFrequencies() {
+ public   DoubleMatrix<SiteNode> getPathFrequencies() {
         int n = getSites().size();
         double[][] freq = new double[n][n];
         double[][] w = getWeightMatrix().getValues();
@@ -740,8 +742,16 @@ public class TrafficEngineImpl implements TrafficEngine {
                 .collect(Collectors.toList());
     }
 
-    DoubleMatrix<SiteNode> getWeightMatrix() {
+    public DoubleMatrix<SiteNode> getWeightMatrix() {
         return new DoubleMatrix<>(getSites(), toWeight(pathCdf));
+    }
+
+    @Override
+    public TrafficEngineImpl setWeights(double[][] weights) {
+        assert weights.length == getSites().size();
+        return new TrafficEngineImpl(maxVehicles, time, topology, vehicles, speedLimit, frequency,
+                toCdf(weights), vehiclesByEdge, nextVehicles, transitTimeByEdge,
+                edgeByPath);
     }
 
     void handleVehicleAtSite(Vehicle vehicle) {
@@ -1064,14 +1074,6 @@ public class TrafficEngineImpl implements TrafficEngine {
 
         return new TrafficEngineImpl(maxVehicles, time, topology, vehicles, speedLimit, frequency,
                 pathCdf, vehiclesByEdge, nextVehicles, newEdgeTransitTimes, edgeByPath);
-    }
-
-    @Override
-    public TrafficEngineImpl setWeights(double[][] weights) {
-        assert weights.length == getSites().size();
-        return new TrafficEngineImpl(maxVehicles, time, topology, vehicles, speedLimit, frequency,
-                toCdf(weights), vehiclesByEdge, nextVehicles, transitTimeByEdge,
-                edgeByPath);
     }
 
     /**

@@ -42,6 +42,8 @@ public interface Constants {
     double DEFAULT_SPEED_LIMIT_MPS = DEFAULT_SPEED_LIMIT_KMH / KMPHSPM;
     int DEFAULT_PRIORITY = 0;
     int DEFAULT_MAX_VEHICLES = 8000;
+    double VEHICLE_STEP = 0.5;
+    double TIME_STEP = 0.1;
 
 
     /**

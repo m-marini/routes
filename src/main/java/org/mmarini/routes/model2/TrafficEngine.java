@@ -81,6 +81,11 @@ public interface TrafficEngine {
      */
     TrafficEngine generateConnections(ConnectionBuilder builder);
 
+    public DoubleMatrix<SiteNode> getPathFrequencies();
+
+    /**
+     * Returns the maximum speed of vehicle (m/s)
+     */
     double getSpeedLimit();
 
     /**
