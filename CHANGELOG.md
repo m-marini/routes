@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 - Issue #136: Weighted center in star builder
+- Issue #186: Optimize simulation for speed
 
 ### Fixed
 

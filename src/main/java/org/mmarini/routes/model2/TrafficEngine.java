@@ -31,6 +31,7 @@ package org.mmarini.routes.model2;
 import org.mmarini.Tuple2;
 
 import java.awt.geom.Point2D;
+import java.util.Map;
 import java.util.Random;
 
 public interface TrafficEngine {
@@ -81,7 +82,7 @@ public interface TrafficEngine {
      */
     TrafficEngine generateConnections(ConnectionBuilder builder);
 
-    public DoubleMatrix<SiteNode> getPathFrequencies();
+    DoubleMatrix<SiteNode> getPathFrequencies();
 
     /**
      * Returns the maximum speed of vehicle (m/s)
@@ -99,6 +100,8 @@ public interface TrafficEngine {
      * Returns the topology
      */
     Topology getTopology();
+
+    TransitTimes getTransitTimeByEdge();
 
     /**
      * Returns the next status after a time interval
@@ -160,4 +163,6 @@ public interface TrafficEngine {
      * @param weights the weights
      */
     TrafficEngine setWeights(double[][] weights);
+
+    TrafficEngine updateRoutes(Map<Tuple2<MapNode, MapNode>, MapEdge> routes);
 }

@@ -29,6 +29,9 @@
 package org.mmarini.routes.swing;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.mmarini.Tuple2;
 import org.mmarini.routes.model2.*;
 import org.mmarini.routes.model2.yaml.Parsers;
@@ -50,6 +53,7 @@ import java.text.MessageFormat;
 import java.time.Duration;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,6 +62,7 @@ import static java.lang.Math.round;
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.Utils.getValue;
 import static org.mmarini.routes.model2.Constants.*;
+import static org.mmarini.routes.model2.Routes.computeRoutes;
 import static org.mmarini.routes.model2.Topology.createTopology;
 import static org.mmarini.routes.model2.TrafficEngineImpl.createEngine;
 import static org.mmarini.routes.model2.TrafficEngineImpl.createRandom;
@@ -75,6 +80,7 @@ import static org.mmarini.yaml.Utils.fromResource;
  */
 public class UIController {
     public static final double GAMMA = 0.9;
+    public static final long CREATE_ROUTE_INTERVAL = 100L; // ms
     private static final Logger logger = LoggerFactory.getLogger(UIController.class);
     private final JFileChooser fileChooser;
     private final OptimizePane optimizePane;
@@ -403,7 +409,6 @@ public class UIController {
                 }).subscribe();
     }
 
-
     /**
      * Handles the changing of edge end
      *
@@ -519,6 +524,7 @@ public class UIController {
         routeMap.reset();
         createFlows();
         refreshTopology();
+        updateRoutes();
     }
 
     /**
@@ -978,5 +984,24 @@ public class UIController {
                     site.flatMap(statusView::getNodeView).ifPresent(mapElementPane::setSelectedSite);
                     mainFrame.repaint();
                 }).subscribe();
+    }
+
+    void updateRoutes() {
+        simulator.request(trafficEngine -> {
+            List<MapEdge> edges = trafficEngine.getTopology().getEdges();
+            TransitTimes transitTimeByEdge = trafficEngine.getTransitTimeByEdge();
+            Single<Map<Tuple2<MapNode, MapNode>, MapEdge>> result = Single.fromSupplier(() -> computeRoutes(edges, transitTimeByEdge)).subscribeOn(Schedulers.computation());
+            result.doOnSuccess(routes ->
+                    simulator.request(trafficEngine1 -> {
+                        // Process routes result
+                        TrafficEngine trafficEngine2 = trafficEngine1.updateRoutes(routes);
+                        // Reschedules process
+                        Completable.complete()
+                                .delay(CREATE_ROUTE_INTERVAL, TimeUnit.MILLISECONDS)
+                                .subscribe(this::updateRoutes);
+                        return trafficEngine2;
+                    })).subscribe();
+            return trafficEngine;
+        });
     }
 }

@@ -29,6 +29,8 @@
 package org.mmarini.routes.model2;
 
 import org.mmarini.Tuple2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.geom.Point2D;
 import java.util.*;
@@ -50,6 +52,8 @@ import static org.mmarini.routes.model2.StatusImpl.createStatus;
 import static org.mmarini.routes.model2.Topology.createTopology;
 
 public class TrafficEngineImpl implements TrafficEngine {
+    private static final Logger logger = LoggerFactory.getLogger(TrafficEngineImpl.class);
+
     /**
      * Returns a new transit time by topology change
      *
@@ -294,11 +298,8 @@ public class TrafficEngineImpl implements TrafficEngine {
     private final Map<Vehicle, Vehicle> nextVehicles;
     private final TransitTimes transitTimeByEdge;
     private final Map<MapEdge, LinkedList<Vehicle>> vehiclesByEdge;
-    private final double pathInterval;
     private double time;
     private Map<Tuple2<MapNode, MapNode>, MapEdge> edgeByPath;
-    private boolean clearPath;
-    private double lastPathTime;
 
     /**
      * @param maxVehicles       maximum number of vehicles
@@ -334,7 +335,6 @@ public class TrafficEngineImpl implements TrafficEngine {
         this.speedLimit = speedLimit;
         this.time = time;
         this.edgeByPath = edgeByPath;
-        pathInterval = DEFAULT_PATH_INTERVAL;
     }
 
     @Override
@@ -367,7 +367,7 @@ public class TrafficEngineImpl implements TrafficEngine {
                     .map(VehicleMovement::getDt)
                     .orElse(dt);
             // snap the time interval
-            realDt = ceil(dt / TIME_STEP) * TIME_STEP;
+            realDt = ceil(realDt / TIME_STEP) * TIME_STEP;
             // moves all the vehicles for the time interval
             moveVehicles(realDt);
             // Generates new vehicles
@@ -508,10 +508,9 @@ public class TrafficEngineImpl implements TrafficEngine {
     /**
      * Returns the status with the current best path from node to node
      */
-    private TrafficEngineImpl createPath() {
+    private void createPath() {
+        updateTransitTime();
         this.edgeByPath = computeRoutes(topology.getEdges(), transitTimeByEdge);
-        lastPathTime = time;
-        return this;
     }
 
     /**
@@ -592,7 +591,6 @@ public class TrafficEngineImpl implements TrafficEngine {
                 if (!edgeVehicles.isEmpty()) {
                     nextVehicles.remove(edgeVehicles.getLast());
                 }
-                clearPath = true;
             }
         });
     }
@@ -675,8 +673,7 @@ public class TrafficEngineImpl implements TrafficEngine {
 
     private Map<Tuple2<MapNode, MapNode>, MapEdge> getEdgeByPath() {
         if (edgeByPath == null) {
-            updateTransitTime().
-                    createPath();
+            createPath();
         }
         return edgeByPath;
     }
@@ -744,6 +741,11 @@ public class TrafficEngineImpl implements TrafficEngine {
     @Override
     public Topology getTopology() {
         return topology;
+    }
+
+    @Override
+    public TransitTimes getTransitTimeByEdge() {
+        return transitTimeByEdge;
     }
 
     /**
@@ -950,12 +952,6 @@ public class TrafficEngineImpl implements TrafficEngine {
      */
     @Override
     public Tuple2<TrafficEngine, Double> next(Random random, double dt) {
-        if (clearPath && time > lastPathTime + pathInterval) {
-            // After elapsed path interval and clear path flag active (activated on exit of any vehicles from any edge)
-            // updates the transit time and creates best paths
-            updateTransitTime().createPath();
-            clearPath = false;
-        }
         // Computes the new status after elapsed time interval
         double resultDt = applyTimeInterval(random, dt);
         return Tuple2.of(this, resultDt);
@@ -1097,6 +1093,24 @@ public class TrafficEngineImpl implements TrafficEngine {
         return new TrafficEngineImpl(maxVehicles, time, topology, vehicles, speedLimit, frequency,
                 toCdf(weights), vehiclesByEdge, nextVehicles, transitTimeByEdge,
                 edgeByPath);
+    }
+
+    @Override
+    public TrafficEngineImpl updateRoutes(Map<Tuple2<MapNode, MapNode>, MapEdge> routes) {
+        // Validate
+        List<MapNode> nodes = topology.getNodes();
+        List<MapEdge> edges = topology.getEdges();
+        for (Map.Entry<Tuple2<MapNode, MapNode>, MapEdge> entry : routes.entrySet()) {
+            MapNode from = entry.getKey()._1;
+            MapNode to = entry.getKey()._2;
+            MapEdge edge = entry.getValue();
+            if (!(nodes.contains(from) && nodes.contains(to) && edges.contains(edge))) {
+                logger.error("Wrong routes");
+                return this;
+            }
+        }
+        this.edgeByPath = routes;
+        return this;
     }
 
     /**
