@@ -29,6 +29,8 @@
 package org.mmarini.routes.model2;
 
 import org.mmarini.Tuple2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.geom.Point2D;
 import java.util.*;
@@ -38,6 +40,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.lang.Math.ceil;
 import static java.lang.Math.round;
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.Tuple2.toMap;
@@ -49,6 +52,8 @@ import static org.mmarini.routes.model2.StatusImpl.createStatus;
 import static org.mmarini.routes.model2.Topology.createTopology;
 
 public class TrafficEngineImpl implements TrafficEngine {
+    private static final Logger logger = LoggerFactory.getLogger(TrafficEngineImpl.class);
+
     /**
      * Returns a new transit time by topology change
      *
@@ -67,7 +72,8 @@ public class TrafficEngineImpl implements TrafficEngine {
                     .filter(Predicate.not(LinkedList::isEmpty))
                     .flatMap(list -> getValue(oldEdgeByNewEdge, edge))
                     // map to old transit time
-                    .map(e -> oldTransitTime.getValue(e))
+                    //.map(e -> oldTransitTime.getValue(e))
+                    .map(oldTransitTime::getValue)
                     .orElseGet(edge::getTransitTime);
         });
     }
@@ -292,11 +298,8 @@ public class TrafficEngineImpl implements TrafficEngine {
     private final Map<Vehicle, Vehicle> nextVehicles;
     private final TransitTimes transitTimeByEdge;
     private final Map<MapEdge, LinkedList<Vehicle>> vehiclesByEdge;
-    private final double pathInterval;
     private double time;
     private Map<Tuple2<MapNode, MapNode>, MapEdge> edgeByPath;
-    private boolean clearPath;
-    private double lastPathTime;
 
     /**
      * @param maxVehicles       maximum number of vehicles
@@ -332,7 +335,6 @@ public class TrafficEngineImpl implements TrafficEngine {
         this.speedLimit = speedLimit;
         this.time = time;
         this.edgeByPath = edgeByPath;
-        pathInterval = DEFAULT_PATH_INTERVAL;
     }
 
     @Override
@@ -360,12 +362,19 @@ public class TrafficEngineImpl implements TrafficEngine {
      */
     double applyTimeInterval(Random random, double dt) {
         if (dt > 0) {
+            // Finds the first exiting vehicle and gets the time interval for that vehicles
             double realDt = findFirstExitingVehicle(dt)
                     .map(VehicleMovement::getDt)
                     .orElse(dt);
+            // snap the time interval
+            realDt = ceil(realDt / TIME_STEP) * TIME_STEP;
+            // moves all the vehicles for the time interval
             moveVehicles(realDt);
+            // Generates new vehicles
             vehicles.addAll(createVehicles(random, realDt));
+            // Dispatches the waiting vehicles for the travel edge
             handleWaitingVehicles();
+            // Updates the simulation time
             time += realDt;
             return realDt;
         }
@@ -437,6 +446,7 @@ public class TrafficEngineImpl implements TrafficEngine {
      * The movement is bound to the speed limit of edge,
      * the safety distance to the next vehicle if any
      * and the edge length.
+     * The time is the effective time of movement <= dt
      *
      * @param vehicle the vehicle
      * @param dt      the time interval
@@ -446,16 +456,19 @@ public class TrafficEngineImpl implements TrafficEngine {
             // Compute the maximum movement of the vehicle
             final double dist = vehicle.getDistance();
             final double maxMovement = dt * edge.getSpeedLimit();
-                /*
-                Checks for next vehicle distance.
-                Computes the distance to the next vehicle
-                 */
+            /*
+              Checks for next vehicle distance.
+              Computes the distance to the next vehicle
+              */
             double ds = findNextVehicle(vehicle).map(next -> {
+                // Gets the distance to next vehicle
                 final double distToNext = next.getDistance() - dist;
+                // Compute the safety distance
                 final double edgeSafetyDistance = edge.getSafetyDistance();
                 if (maxMovement + edgeSafetyDistance > distToNext) {
                     /*
                       Vehicle is moving too close the next vehicle
+                      Computes the brake movement for the vehicle
                      */
                     return brakingMovement(distToNext, dt);
                 } else {
@@ -495,10 +508,9 @@ public class TrafficEngineImpl implements TrafficEngine {
     /**
      * Returns the status with the current best path from node to node
      */
-    private TrafficEngineImpl createPath() {
+    private void createPath() {
+        updateTransitTime();
         this.edgeByPath = computeRoutes(topology.getEdges(), transitTimeByEdge);
-        lastPathTime = time;
-        return this;
     }
 
     /**
@@ -579,7 +591,6 @@ public class TrafficEngineImpl implements TrafficEngine {
                 if (!edgeVehicles.isEmpty()) {
                     nextVehicles.remove(edgeVehicles.getLast());
                 }
-                clearPath = true;
             }
         });
     }
@@ -600,7 +611,7 @@ public class TrafficEngineImpl implements TrafficEngine {
      */
     Optional<VehicleMovement> findFirstExitingVehicle(double dt) {
         Stream<Vehicle> lastVehicles = getLastVehicles()
-                // Filter the vehicles that is in the current edge (position less then the length of edge
+                // Filter the vehicles that is in the current edge (position less than the length of edge
                 .filter(v -> v.getCurrentEdge()
                         .map(MapEdge::getLength)
                         .filter(length -> v.getDistance() < length)
@@ -639,6 +650,9 @@ public class TrafficEngineImpl implements TrafficEngine {
         return vehiclesByEdge.getOrDefault(edge, new LinkedList<>());
     }
 
+    /**
+     * Returns all the vehicles
+     */
     List<Vehicle> findVehicles() {
         return vehicles;
     }
@@ -659,8 +673,7 @@ public class TrafficEngineImpl implements TrafficEngine {
 
     private Map<Tuple2<MapNode, MapNode>, MapEdge> getEdgeByPath() {
         if (edgeByPath == null) {
-            updateTransitTime().
-                    createPath();
+            createPath();
         }
         return edgeByPath;
     }
@@ -691,7 +704,7 @@ public class TrafficEngineImpl implements TrafficEngine {
         return topology.getNodes();
     }
 
- public   DoubleMatrix<SiteNode> getPathFrequencies() {
+    public DoubleMatrix<SiteNode> getPathFrequencies() {
         int n = getSites().size();
         double[][] freq = new double[n][n];
         double[][] w = getWeightMatrix().getValues();
@@ -730,6 +743,11 @@ public class TrafficEngineImpl implements TrafficEngine {
         return topology;
     }
 
+    @Override
+    public TransitTimes getTransitTimeByEdge() {
+        return transitTimeByEdge;
+    }
+
     /**
      * Returns the vehicles without edge or at the end of edge
      */
@@ -744,14 +762,6 @@ public class TrafficEngineImpl implements TrafficEngine {
 
     public DoubleMatrix<SiteNode> getWeightMatrix() {
         return new DoubleMatrix<>(getSites(), toWeight(pathCdf));
-    }
-
-    @Override
-    public TrafficEngineImpl setWeights(double[][] weights) {
-        assert weights.length == getSites().size();
-        return new TrafficEngineImpl(maxVehicles, time, topology, vehicles, speedLimit, frequency,
-                toCdf(weights), vehiclesByEdge, nextVehicles, transitTimeByEdge,
-                edgeByPath);
     }
 
     void handleVehicleAtSite(Vehicle vehicle) {
@@ -904,6 +914,7 @@ public class TrafficEngineImpl implements TrafficEngine {
      * @param dt the time interval
      */
     void moveVehicles(double dt) {
+        // Creates the stream of vehicles not at end of traveling edge
         Stream<Vehicle> stream = findVehicles().stream()
                 .filter(v ->
                         v.getCurrentEdge()
@@ -911,18 +922,22 @@ public class TrafficEngineImpl implements TrafficEngine {
                                 .filter(length -> v.getDistance() < length)
                                 .isPresent()
                 );
+        // Computes the movement of vehicle in edges
+        // and for each update the vehicle and edge status
         computeVehicleMovements(stream, dt)
                 .forEach(vm -> {
                     Vehicle vehicle = vm.getVehicle();
                     double distance = vehicle.getDistance();
                     double distance1 = distance + vm.getDs();
                     vehicle.setDistance(distance1);
-                    // Update the stop edge time
+                    // Update the instant of
                     vehicle.getCurrentEdge()
                             .map(MapEdge::getLength)
                             .filter(length -> distance < length && distance1 >= length)
                             .ifPresent(l -> {
-                                vehicle.setStartWaitingTime(time + dt);
+                                // Updates the instants of start of waiting status
+                                // They are used to sort the dispatching of waiting vehicles
+                                vehicle.setStartWaitingTime(time + vm.getDt());
                             });
                 });
     }
@@ -937,11 +952,7 @@ public class TrafficEngineImpl implements TrafficEngine {
      */
     @Override
     public Tuple2<TrafficEngine, Double> next(Random random, double dt) {
-        // Computes the path
-        if (clearPath && time > lastPathTime + pathInterval) {
-            updateTransitTime().createPath();
-            clearPath = false;
-        }
+        // Computes the new status after elapsed time interval
         double resultDt = applyTimeInterval(random, dt);
         return Tuple2.of(this, resultDt);
     }
@@ -1074,6 +1085,32 @@ public class TrafficEngineImpl implements TrafficEngine {
 
         return new TrafficEngineImpl(maxVehicles, time, topology, vehicles, speedLimit, frequency,
                 pathCdf, vehiclesByEdge, nextVehicles, newEdgeTransitTimes, edgeByPath);
+    }
+
+    @Override
+    public TrafficEngineImpl setWeights(double[][] weights) {
+        assert weights.length == getSites().size();
+        return new TrafficEngineImpl(maxVehicles, time, topology, vehicles, speedLimit, frequency,
+                toCdf(weights), vehiclesByEdge, nextVehicles, transitTimeByEdge,
+                edgeByPath);
+    }
+
+    @Override
+    public TrafficEngineImpl updateRoutes(Map<Tuple2<MapNode, MapNode>, MapEdge> routes) {
+        // Validate
+        List<MapNode> nodes = topology.getNodes();
+        List<MapEdge> edges = topology.getEdges();
+        for (Map.Entry<Tuple2<MapNode, MapNode>, MapEdge> entry : routes.entrySet()) {
+            MapNode from = entry.getKey()._1;
+            MapNode to = entry.getKey()._2;
+            MapEdge edge = entry.getValue();
+            if (!(nodes.contains(from) && nodes.contains(to) && edges.contains(edge))) {
+                logger.error("Wrong routes");
+                return this;
+            }
+        }
+        this.edgeByPath = routes;
+        return this;
     }
 
     /**

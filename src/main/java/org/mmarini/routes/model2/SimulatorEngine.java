@@ -36,19 +36,31 @@ import java.util.function.DoubleConsumer;
 import java.util.function.UnaryOperator;
 
 /**
- * Generic simulator.
+ * The simulator generates the evolution of the state of a system over time.
  * <p>
- * A simulator generates events representing the evolution in the time of a
- * model. It starts with an initial event at an initial time and generates the
- * new events by a builder function of the previous event and the simulation
- * time simulation.<br>
- * The simulation clock ticks can be set to a specifics intervals.<br>
- * The simulation time flows at at simulation speed respecting to the clock
- * time.<br>
+ * Starting from the initial state, it generates the new state with a function of the current state and the simulation
+ * time spent. <br>
+ * It is possible to set the relative simulation speed (time simulation / real time).<br>
+ * The simulator also handles time-independent state change requests that are queued and processed synchronously
+ * from the engine.<br>
+ * The simulator emits state change events at regular intervals independent of the state processing speed,
+ * this functionality is managed by an emission function that generates an event (read only event) from a state.
+ * </p>
+ * <p>
+ * Two functions are used for the simulation:
+ * <ul>
+ *     <li>
+ *         the state generation function with two parameters: current status and expected simulation time.<br>
+ *         the function returns the new status and the actual simulation time which can be different from the expected one.
+ *     </li>
+ *     <li>
+ *          the event-generating function that is called on each state change
+ *     </li>
+ * </ul>
  * </p>
  *
  * @param <T> the event type
- * @param <S> the seed type
+ * @param <S> the seed (status) type
  */
 public interface SimulatorEngine<T, S> {
     /**
