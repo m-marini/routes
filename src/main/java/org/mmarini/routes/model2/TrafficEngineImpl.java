@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.lang.Math.ceil;
 import static java.lang.Math.round;
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.Tuple2.toMap;
@@ -67,7 +68,8 @@ public class TrafficEngineImpl implements TrafficEngine {
                     .filter(Predicate.not(LinkedList::isEmpty))
                     .flatMap(list -> getValue(oldEdgeByNewEdge, edge))
                     // map to old transit time
-                    .map(e -> oldTransitTime.getValue(e))
+                    //.map(e -> oldTransitTime.getValue(e))
+                    .map(oldTransitTime::getValue)
                     .orElseGet(edge::getTransitTime);
         });
     }
@@ -360,12 +362,19 @@ public class TrafficEngineImpl implements TrafficEngine {
      */
     double applyTimeInterval(Random random, double dt) {
         if (dt > 0) {
+            // Finds the first exiting vehicle and gets the time interval for that vehicles
             double realDt = findFirstExitingVehicle(dt)
                     .map(VehicleMovement::getDt)
                     .orElse(dt);
+            // snap the time interval
+            realDt = ceil(dt / TIME_STEP) * TIME_STEP;
+            // moves all the vehicles for the time interval
             moveVehicles(realDt);
+            // Generates new vehicles
             vehicles.addAll(createVehicles(random, realDt));
+            // Dispatches the waiting vehicles for the travel edge
             handleWaitingVehicles();
+            // Updates the simulation time
             time += realDt;
             return realDt;
         }
@@ -437,6 +446,7 @@ public class TrafficEngineImpl implements TrafficEngine {
      * The movement is bound to the speed limit of edge,
      * the safety distance to the next vehicle if any
      * and the edge length.
+     * The time is the effective time of movement <= dt
      *
      * @param vehicle the vehicle
      * @param dt      the time interval
@@ -446,16 +456,19 @@ public class TrafficEngineImpl implements TrafficEngine {
             // Compute the maximum movement of the vehicle
             final double dist = vehicle.getDistance();
             final double maxMovement = dt * edge.getSpeedLimit();
-                /*
-                Checks for next vehicle distance.
-                Computes the distance to the next vehicle
-                 */
+            /*
+              Checks for next vehicle distance.
+              Computes the distance to the next vehicle
+              */
             double ds = findNextVehicle(vehicle).map(next -> {
+                // Gets the distance to next vehicle
                 final double distToNext = next.getDistance() - dist;
+                // Compute the safety distance
                 final double edgeSafetyDistance = edge.getSafetyDistance();
                 if (maxMovement + edgeSafetyDistance > distToNext) {
                     /*
                       Vehicle is moving too close the next vehicle
+                      Computes the brake movement for the vehicle
                      */
                     return brakingMovement(distToNext, dt);
                 } else {
@@ -600,7 +613,7 @@ public class TrafficEngineImpl implements TrafficEngine {
      */
     Optional<VehicleMovement> findFirstExitingVehicle(double dt) {
         Stream<Vehicle> lastVehicles = getLastVehicles()
-                // Filter the vehicles that is in the current edge (position less then the length of edge
+                // Filter the vehicles that is in the current edge (position less than the length of edge
                 .filter(v -> v.getCurrentEdge()
                         .map(MapEdge::getLength)
                         .filter(length -> v.getDistance() < length)
@@ -639,6 +652,9 @@ public class TrafficEngineImpl implements TrafficEngine {
         return vehiclesByEdge.getOrDefault(edge, new LinkedList<>());
     }
 
+    /**
+     * Returns all the vehicles
+     */
     List<Vehicle> findVehicles() {
         return vehicles;
     }
@@ -691,7 +707,7 @@ public class TrafficEngineImpl implements TrafficEngine {
         return topology.getNodes();
     }
 
- public   DoubleMatrix<SiteNode> getPathFrequencies() {
+    public DoubleMatrix<SiteNode> getPathFrequencies() {
         int n = getSites().size();
         double[][] freq = new double[n][n];
         double[][] w = getWeightMatrix().getValues();
@@ -744,14 +760,6 @@ public class TrafficEngineImpl implements TrafficEngine {
 
     public DoubleMatrix<SiteNode> getWeightMatrix() {
         return new DoubleMatrix<>(getSites(), toWeight(pathCdf));
-    }
-
-    @Override
-    public TrafficEngineImpl setWeights(double[][] weights) {
-        assert weights.length == getSites().size();
-        return new TrafficEngineImpl(maxVehicles, time, topology, vehicles, speedLimit, frequency,
-                toCdf(weights), vehiclesByEdge, nextVehicles, transitTimeByEdge,
-                edgeByPath);
     }
 
     void handleVehicleAtSite(Vehicle vehicle) {
@@ -904,6 +912,7 @@ public class TrafficEngineImpl implements TrafficEngine {
      * @param dt the time interval
      */
     void moveVehicles(double dt) {
+        // Creates the stream of vehicles not at end of traveling edge
         Stream<Vehicle> stream = findVehicles().stream()
                 .filter(v ->
                         v.getCurrentEdge()
@@ -911,18 +920,22 @@ public class TrafficEngineImpl implements TrafficEngine {
                                 .filter(length -> v.getDistance() < length)
                                 .isPresent()
                 );
+        // Computes the movement of vehicle in edges
+        // and for each update the vehicle and edge status
         computeVehicleMovements(stream, dt)
                 .forEach(vm -> {
                     Vehicle vehicle = vm.getVehicle();
                     double distance = vehicle.getDistance();
                     double distance1 = distance + vm.getDs();
                     vehicle.setDistance(distance1);
-                    // Update the stop edge time
+                    // Update the instant of
                     vehicle.getCurrentEdge()
                             .map(MapEdge::getLength)
                             .filter(length -> distance < length && distance1 >= length)
                             .ifPresent(l -> {
-                                vehicle.setStartWaitingTime(time + dt);
+                                // Updates the instants of start of waiting status
+                                // They are used to sort the dispatching of waiting vehicles
+                                vehicle.setStartWaitingTime(time + vm.getDt());
                             });
                 });
     }
@@ -937,11 +950,13 @@ public class TrafficEngineImpl implements TrafficEngine {
      */
     @Override
     public Tuple2<TrafficEngine, Double> next(Random random, double dt) {
-        // Computes the path
         if (clearPath && time > lastPathTime + pathInterval) {
+            // After elapsed path interval and clear path flag active (activated on exit of any vehicles from any edge)
+            // updates the transit time and creates best paths
             updateTransitTime().createPath();
             clearPath = false;
         }
+        // Computes the new status after elapsed time interval
         double resultDt = applyTimeInterval(random, dt);
         return Tuple2.of(this, resultDt);
     }
@@ -1074,6 +1089,14 @@ public class TrafficEngineImpl implements TrafficEngine {
 
         return new TrafficEngineImpl(maxVehicles, time, topology, vehicles, speedLimit, frequency,
                 pathCdf, vehiclesByEdge, nextVehicles, newEdgeTransitTimes, edgeByPath);
+    }
+
+    @Override
+    public TrafficEngineImpl setWeights(double[][] weights) {
+        assert weights.length == getSites().size();
+        return new TrafficEngineImpl(maxVehicles, time, topology, vehicles, speedLimit, frequency,
+                toCdf(weights), vehiclesByEdge, nextVehicles, transitTimeByEdge,
+                edgeByPath);
     }
 
     /**

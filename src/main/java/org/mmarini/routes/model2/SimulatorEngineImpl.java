@@ -42,25 +42,13 @@ import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.*;
 
+import static java.lang.Math.floor;
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.routes.swing.UIConstants.NANOSPS;
 
-/**
- * Generic simulator.
- * <p>
- * A simulator generates events representing the evolution in the time of a
- * model. It starts with an initial event at an initial time and generates the
- * new events by a builder function of the previous event and the simulation
- * time simulation.<br>
- * The simulation clock ticks can be set to a specifics intervals.<br>
- * The simulation time flows at at simulation speed respecting to the clock
- * time.<br>
- * </p>
- *
- * @param <T> the event type
- */
 public class SimulatorEngineImpl<T, S> implements SimulatorEngine<T, S> {
 
+    public static final long MIN_SLEEP_TIME = 10L;
     private static final Logger logger = LoggerFactory.getLogger(SimulatorEngineImpl.class);
 
     /**
@@ -83,15 +71,15 @@ public class SimulatorEngineImpl<T, S> implements SimulatorEngine<T, S> {
     }
 
     private final Worker worker;
-    private final Deque<ProcessRequest> queue;
-    private final BiFunction<S, Double, Tuple2<S, Double>> nextSeed;
-    private final Function<S, T> emit;
-    private S seed;
+    private final Deque<ProcessRequest> queue; // The process request queue
+    private final BiFunction<S, Double, Tuple2<S, Double>> nextSeed; // the status generator function
+    private final Function<S, T> emit; // the ebent generato function
+    private S seed; // Current status
     private DoubleConsumer onSpeed;
     private Consumer<T> onEvent;
-    private double speed;
-    private Status status;
-    private long eventInterval;
+    private double speed; // relative speed
+    private Status status; // the current simulation status
+    private long eventInterval; // the interval between static change event
 
     /**
      * Creates the simulator.
@@ -149,32 +137,46 @@ public class SimulatorEngineImpl<T, S> implements SimulatorEngine<T, S> {
      * Simulation cycle
      */
     void processCycle() {
-        // time instant of last cycle
-        Instant last = Instant.now();
         // time instant od last event
-        Instant lastEvent = last;
-        // simulation interval
-        // simulation time of last event
-        double eventSimTime = 0;
-        double simInterval = eventInterval * speed / NANOSPS;
+        Instant lastEvent = Instant.now();
+        // Simulated interval from last event
+        double simulatedInterval = 0;
         while (status == Status.ACTIVE) {
+            // Processes request queue
             deque();
-            Tuple2<S, Double> tuple = nextSeed.apply(seed, simInterval);
-            seed = tuple._1;
-            eventSimTime += tuple._2;
+            // Simulation interval
+            double simInterval = eventInterval * speed / NANOSPS - simulatedInterval;
+            if (simInterval > 0) {
+                // Simulation interval positive => proess step to the next event instant
+                // Computes the next status
+                Tuple2<S, Double> tuple = nextSeed.apply(seed, simInterval);
+                seed = tuple._1;
+                // Update simulation intervals
+                simulatedInterval += tuple._2;
+                // Computes the elapsed time of the process step
+            } else {
+                // Simulation is faster than elapsed time
+                long sleepInterval = (long) floor(-simInterval / speed * 1000L / MIN_SLEEP_TIME) * MIN_SLEEP_TIME;
+                if (sleepInterval > 0) {
+                    try {
+                        Thread.sleep(sleepInterval);
+                    } catch (InterruptedException e) {
+                    }
+                } else {
+                    Thread.yield();
+                }
+            }
             Instant now = Instant.now();
-            long dt = Duration.between(last, now).toNanos();
-            simInterval = dt * speed / NANOSPS;
-            last = now;
-
-            double currentEventInterval = Duration.between(lastEvent, now).toNanos();
+            // Check for event emission timeout
+            long currentEventInterval = Duration.between(lastEvent, now).toNanos();
             if (currentEventInterval >= this.eventInterval) {
-                double currentSpeed = eventSimTime / currentEventInterval * NANOSPS;
+                // Event generation timeout
+                double currentSpeed = simulatedInterval / currentEventInterval * NANOSPS;
                 // Event time out
                 emitEvent(emit.apply(seed));
                 emitSpeed(currentSpeed);
                 lastEvent = now;
-                eventSimTime = 0;
+                simulatedInterval = 0;
             }
         }
     }
