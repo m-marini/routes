@@ -66,7 +66,7 @@ import static org.mmarini.routes.model2.Routes.computeRoutes;
 import static org.mmarini.routes.model2.Topology.createTopology;
 import static org.mmarini.routes.model2.TrafficEngineImpl.createEngine;
 import static org.mmarini.routes.model2.TrafficEngineImpl.createRandom;
-import static org.mmarini.routes.swing.RouteMap.TerminalEdgeChange;
+import static org.mmarini.routes.swing.RouteMapViewport.TerminalEdgeChange;
 import static org.mmarini.routes.swing.UIConstants.*;
 import static org.mmarini.yaml.Utils.fromFile;
 import static org.mmarini.yaml.Utils.fromResource;
@@ -87,7 +87,7 @@ public class UIController {
     private final RoutePane routesPane;
     private final MapProfilePane mapProfilePane;
     private final FrequencyPane frequencyPane;
-    private final RouteMap routeMap;
+    private final RouteMapViewport routeMap;
     private final MainFrame mainFrame;
     private final MapViewPane mapViewPane;
     private final ExplorerPane explorerPane;
@@ -95,7 +95,6 @@ public class UIController {
     private final EdgePane edgePane;
     private final NodePane nodePane;
     private final SitePane sitePane;
-    private final ScrollMap scrollMap;
     private final FrequencyMeter fpsMeter;
     private final FrequencyMeter tpsMeter;
     private final InfoPane infoPane;
@@ -112,10 +111,9 @@ public class UIController {
      */
     public UIController() {
         random = new Random();
-        routeMap = new RouteMap();
-        this.scrollMap = new ScrollMap(this.routeMap);
+        routeMap = new RouteMapViewport();
         infoPane = new InfoPane();
-        mapViewPane = new MapViewPane(scrollMap, infoPane);
+        mapViewPane = new MapViewPane(routeMap, infoPane);
         explorerPane = new ExplorerPane();
         connectionPane = new ConnectionsPane();
         TrafficEngine initialSeed = createEngine(DEFAULT_MAX_VEHICLES,
@@ -183,7 +181,7 @@ public class UIController {
     /**
      * @param edge the edge
      */
-    private void createEdge(RouteMap.EdgeCreation edge) {
+    private void createEdge(RouteMapViewport.EdgeCreation edge) {
         MapNode begin = statusView.findNode(edge.getBegin(), PRECISION)
                 .orElseGet(() -> new CrossNode(edge.getBegin()));
         MapNode end = statusView.findNode(edge.getEnd(), PRECISION)
@@ -264,29 +262,29 @@ public class UIController {
         explorerPane.getSiteFlowable().doOnNext(site -> {
             handleSiteSelection(site);
             routeMap.setSelectedElement(site);
-            scrollMap.scrollTo(site);
+            routeMap.scrollTo(site);
         }).subscribe();
         explorerPane.getNodeFlowable().doOnNext(node -> {
             statusView.getNodeView(node).ifPresent(mapElementPane::setSelectedNode);
             routeMap.setSelectedElement(node);
-            scrollMap.scrollTo(node);
+            routeMap.scrollTo(node);
         }).subscribe();
         explorerPane.getEdgeFlowable().doOnNext(edge -> {
             handleEdgeSelection(edge.getEdge());
             routeMap.setSelectedElement(edge.getEdge());
-            scrollMap.scrollTo(edge.getEdge());
+            routeMap.scrollTo(edge.getEdge());
         }).subscribe();
 
         mapViewPane.getZoomInFlowable().doOnNext(ev -> {
-            scrollMap.zoomIn();
+            routeMap.zoomIn();
             infoPane.setGridSize(routeMap.getGridSize());
         }).subscribe();
         mapViewPane.getZoomOutFlowable().doOnNext(ev -> {
-            scrollMap.zoomOut();
+            routeMap.zoomOut();
             infoPane.setGridSize(routeMap.getGridSize());
         }).subscribe();
         mapViewPane.getFitInWindowFlowable().doOnNext(ev -> {
-            scrollMap.scaleToFit();
+            routeMap.scaleToFit();
             infoPane.setGridSize(routeMap.getGridSize());
         }).subscribe();
         mapViewPane.getZoomDefaultFlowable().doOnNext(ev -> {
@@ -351,12 +349,13 @@ public class UIController {
                 refresh();
             }
         });
+        // Scroll engine
     }
 
     /**
      * @param moduleParameters the module parameters
      */
-    private void createModule(RouteMap.ModuleParameters moduleParameters) {
+    private void createModule(RouteMapViewport.ModuleParameters moduleParameters) {
         simulator.request(engine -> engine.addModule(moduleParameters.getModule(),
                 moduleParameters.getLocation(),
                 moduleParameters.getDirection(),
@@ -485,8 +484,8 @@ public class UIController {
     }
 
     private void handleMouseWheelMoved(MouseWheelEvent mouseWheelEvent) {
-        final double scale = Math.pow(SCALE_FACTOR, mouseWheelEvent.getWheelRotation());
-        scrollMap.scale(mouseWheelEvent.getPoint(), routeMap.getScale() * scale);
+        final double scale = Math.pow(SCALE_FACTOR, -mouseWheelEvent.getWheelRotation());
+        routeMap.scale(mouseWheelEvent.getPoint(), routeMap.getScale() * scale);
         infoPane.setGridSize(routeMap.getGridSize());
     }
 
@@ -730,7 +729,7 @@ public class UIController {
         routeMap.setStatus(statusView);
         infoPane.setNumVehicles(statusView.getVehicles().size());
         infoPane.setTime(round(statusView.getStatus().getTime()));
-        scrollMap.repaint();
+        routeMap.repaint();
     }
 
     /**
@@ -744,7 +743,7 @@ public class UIController {
         el.removeAllElements();
         el.addAll(statusView.getNodeViews());
         routeMap.setStatus(statusView);
-        scrollMap.repaint();
+        routeMap.repaint();
     }
 
     /**
@@ -907,7 +906,7 @@ public class UIController {
      *
      */
     private void start() {
-        scrollMap.scaleToFit();
+        routeMap.scaleToFit();
         infoPane.setGridSize(routeMap.getGridSize());
         setSpeedSimulation(1f);
         startSimulation();

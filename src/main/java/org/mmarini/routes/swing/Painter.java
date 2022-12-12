@@ -40,6 +40,7 @@ import static org.mmarini.routes.model2.Constants.VEHICLE_LENGTH;
  */
 public class Painter {
 
+    public static final BasicStroke THIN_STROKE = new BasicStroke(0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
     private static final Color END_NODE_COLOR = Color.RED;
     private static final Color BEGIN_NODE_COLOR = Color.GREEN;
     private static final Color SELECTED_SITE_COLOR = Color.WHITE;
@@ -51,15 +52,13 @@ public class Painter {
     private static final Color SELECTED_NODE_COLOR = Color.RED;
     private static final Color SELECTED_EDGE_COLOR = Color.YELLOW;
     private static final double VEHICLE_WIDTH = 3;
+    public static final Rectangle2D.Double VEHICLE_SHAPE = new Rectangle2D.Double(-VEHICLE_LENGTH * 0.5, -VEHICLE_WIDTH * 0.5, VEHICLE_LENGTH, VEHICLE_WIDTH);
     private static final double EDGE_WIDTH = 5;
+    public static final BasicStroke ROAD_STROKE = new BasicStroke((float) EDGE_WIDTH, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+    public static final Ellipse2D.Double EDGE_END_POINT = new Ellipse2D.Double(-EDGE_WIDTH * 0.5, -EDGE_WIDTH * 0.5, EDGE_WIDTH, EDGE_WIDTH);
     private static final double NODE_SIZE = 10;
-
-    private final BasicStroke thinStroke;
+    public static final Ellipse2D.Double SITE_SHAPE = new Ellipse2D.Double(-NODE_SIZE * 0.5, -NODE_SIZE * 0.5, NODE_SIZE, NODE_SIZE);
     private final Line2D line;
-    private final BasicStroke stroke;
-    private final Shape vehicleShape;
-    private final Shape siteShape;
-    private final Shape edgeEndPoint;
     private Graphics2D graphics;
     private boolean borderPainted;
     private boolean reversed;
@@ -80,12 +79,7 @@ public class Painter {
         this.graphics = graphics;
         this.borderPainted = borderPainted;
         this.reversed = reversed;
-        stroke = new BasicStroke((float) EDGE_WIDTH, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
-        thinStroke = new BasicStroke(0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
         line = new Line2D.Double();
-        vehicleShape = new Rectangle2D.Double(-VEHICLE_LENGTH * 0.5, -VEHICLE_WIDTH * 0.5, VEHICLE_LENGTH, VEHICLE_WIDTH);
-        siteShape = new Ellipse2D.Double(-NODE_SIZE * 0.5, -NODE_SIZE * 0.5, NODE_SIZE, NODE_SIZE);
-        edgeEndPoint = new Ellipse2D.Double(-EDGE_WIDTH * 0.5, -EDGE_WIDTH * 0.5, EDGE_WIDTH, EDGE_WIDTH);
     }
 
     /**
@@ -103,8 +97,8 @@ public class Painter {
     public void paintCursorEdgeEnds(final MapEdge edge) {
         final Point2D beginLocation = edge.getBeginLocation();
         final Point2D endLocation = edge.getEndLocation();
-        paintShape(edgeEndPoint, beginLocation, BEGIN_NODE_COLOR);
-        paintShape(edgeEndPoint, endLocation, END_NODE_COLOR);
+        paintShape(EDGE_END_POINT, beginLocation, BEGIN_NODE_COLOR);
+        paintShape(EDGE_END_POINT, endLocation, END_NODE_COLOR);
     }
 
     /**
@@ -123,14 +117,14 @@ public class Painter {
     }
 
     /**
-     * @param from  the begining point
+     * @param from  the beginning point
      * @param to    the end point
      * @param color the color
      */
     public void paintEdge(final Point2D from, final Point2D to, final Color color) {
         line.setLine(from, to);
         graphics.setColor(color);
-        graphics.setStroke(stroke);
+        graphics.setStroke(ROAD_STROKE);
         graphics.draw(line);
     }
 
@@ -146,7 +140,7 @@ public class Painter {
         final Color minorColor = reversed ? MINOR_GRID_REVERSED_COLOR : MINOR_GRID_COLOR;
         final Color majorColor = reversed ? MAJOR_GRID_REVERSED_COLOR : MAJOR_GRID_COLOR;
         graphics.setColor(minorColor);
-        graphics.setStroke(thinStroke);
+        graphics.setStroke(THIN_STROKE);
         for (double x = Math.floor(x0 / size) * size; x <= x1; x += size) {
             final double xg = Math.floor(x / size / 10.) * 10. * size;
             if (x == xg) {
@@ -174,7 +168,7 @@ public class Painter {
      * @param location  the location
      * @param vecx      the x direction vector
      * @param vecy      the y direction vector
-     * @param color
+     * @param color     the color of module
      */
     public void paintModule(final MapModule mapModule, final Point2D location, final double vecx, final double vecy, Color color) {
         final AffineTransform old = graphics.getTransform();
@@ -192,7 +186,7 @@ public class Painter {
      * @param center the center
      */
     public void paintNodeCursor(final Point2D center) {
-        paintShape(edgeEndPoint, center, SELECTED_NODE_COLOR);
+        paintShape(EDGE_END_POINT, center, SELECTED_NODE_COLOR);
     }
 
     /**
@@ -206,7 +200,7 @@ public class Painter {
         graphics.translate(location.getX(), location.getY());
         graphics.fill(shape);
         if (borderPainted) {
-            graphics.setStroke(thinStroke);
+            graphics.setStroke(THIN_STROKE);
             graphics.setColor(reversed ? Color.WHITE : Color.BLACK);
             graphics.draw(shape);
         }
@@ -218,7 +212,7 @@ public class Painter {
      * @param color    the color
      */
     public void paintSite(final Point2D location, final Color color) {
-        paintShape(siteShape, location, color);
+        paintShape(SITE_SHAPE, location, color);
     }
 
     /**
@@ -240,11 +234,11 @@ public class Painter {
         tr.setToTranslation(location.getX(), location.getY());
         tr.rotate(vec.getX(), vec.getY());
         graphics.transform(tr);
-        graphics.fill(vehicleShape);
+        graphics.fill(VEHICLE_SHAPE);
         if (borderPainted) {
-            graphics.setStroke(thinStroke);
+            graphics.setStroke(THIN_STROKE);
             graphics.setColor(Color.BLACK);
-            graphics.draw(vehicleShape);
+            graphics.draw(VEHICLE_SHAPE);
         }
         graphics.setTransform(old);
     }
