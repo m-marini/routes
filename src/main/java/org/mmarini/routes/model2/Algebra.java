@@ -83,6 +83,11 @@ public interface Algebra {
         return new Point2D.Double(-a.getX(), -a.getY());
     }
 
+    static Point2D norma(Point2D a) {
+        double l = length(a);
+        return l > Float.MIN_VALUE ? prod(a, 1 / l) : a;
+    }
+
     /**
      * Returns the product of vector by scalar (k * a)
      *

@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [4.3.10] - 2022-12-12
+
 ### Added
 
 - Issue #187: Generate connections
@@ -17,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Issue #136: Weighted center in star builder
 - Issue #186: Optimize simulation for speed
+- Issue #188: Improve scroll and zoom
 
 ### Fixed
 

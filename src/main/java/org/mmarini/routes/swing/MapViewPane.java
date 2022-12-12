@@ -53,7 +53,7 @@ import java.util.List;
 public class MapViewPane extends JPanel {
 
     private static final long serialVersionUID = 1L;
-    private final ScrollMap scrollMap;
+    private final RouteMapViewport scrollMap;
     private final JToggleButton selectButton;
     private final JToggleButton edgeButton;
     private final JToggleButton moduleButton;
@@ -85,7 +85,7 @@ public class MapViewPane extends JPanel {
      * @param scrollMap the scroll map
      * @param infoPane  the info panel
      */
-    public MapViewPane(final ScrollMap scrollMap, JComponent infoPane) {
+    public MapViewPane(final RouteMapViewport scrollMap, JComponent infoPane) {
         this.scrollMap = scrollMap;
         this.infoPane = infoPane;
         selectButton = new JToggleButton();
