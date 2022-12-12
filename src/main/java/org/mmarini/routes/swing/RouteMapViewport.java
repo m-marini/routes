@@ -1009,12 +1009,12 @@ public class RouteMapViewport extends JComponent {
         double y = viewportLocation.getY();
         double x1 = newLocation.getX();
         double y1 = newLocation.getY();
-        if (x1 >= 0 && x1 <= xMax) {
-            x = x1;
-        }
-        if (y1 >= 0 && y1 <= yMax) {
-            y = y1;
-        }
+        x = scrollAmount.getX() < 0
+                ? max(x1, mapBound.getMinX())
+                : min(x1, xMax);
+        y = scrollAmount.getY() < 0
+                ? max(y1, mapBound.getMinY())
+                : min(y1, yMax);
         setViewLocation(x, y);
     }
 
