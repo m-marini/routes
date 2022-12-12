@@ -59,7 +59,7 @@ import static org.mmarini.routes.swing.UIConstants.*;
  * @author marco.marini@mmarini.org
  */
 public class RouteMapViewport extends JComponent {
-    public static final double MIN_SCALE = 53e-3;
+    public static final double MIN_SCALE = 20e-3;
     public static final double MAX_SCALE = 12;
     public static final long SCROLL_INTERVAL = 1000L / 60; // ms
     public static final double SCROLL_RATIO = SCROLL_INTERVAL / 800D;
@@ -460,8 +460,7 @@ public class RouteMapViewport extends JComponent {
      *
      */
     private void createFlows() {
-        Flowable<Boolean> scrolling = SwingObservable.mouse(this, MouseEvent.MOUSE_PRESSED | MouseEvent.MOUSE_RELEASED)
-                .toFlowable(BackpressureStrategy.LATEST)
+        Flowable<Boolean> scrolling = mouseFlowable
                 .filter(e -> e.getButton() == MouseEvent.BUTTON3
                         && (e.getID() == MouseEvent.MOUSE_PRESSED || e.getID() == MouseEvent.MOUSE_RELEASED))
                 .map(e -> e.getID() == MouseEvent.MOUSE_PRESSED);
@@ -504,7 +503,9 @@ public class RouteMapViewport extends JComponent {
                             handleMouseExited();
                             break;
                         case MouseEvent.MOUSE_PRESSED:
-                            currentMode.handleMousePressed(ev);
+                            if (ev.getButton() == MouseEvent.BUTTON1) {
+                                currentMode.handleMousePressed(ev);
+                            }
                             break;
                         case MouseEvent.MOUSE_MOVED:
                             currentMode.handleMouseMoved(ev);
@@ -664,6 +665,11 @@ public class RouteMapViewport extends JComponent {
         return unselectProcessor;
     }
 
+    private Rectangle getViewRect() {
+        Dimension size = getInnerSize();
+        return new Rectangle(MAP_BORDER, MAP_BORDER, size.width, size.height);
+    }
+
     /**
      * @param ev the mouse event
      */
@@ -741,11 +747,106 @@ public class RouteMapViewport extends JComponent {
     }
 
     /**
-     *
+     * Returns true id the cursor is shown
      */
     private boolean isShowingCursor() {
         final long t = System.currentTimeMillis() % BLINKING_TIME;
         return t <= BLINKING_ON;
+    }
+
+    /**
+     * Returns true if the edge is shown
+     *
+     * @param edge the edge
+     */
+    private boolean isShown(final MapEdge edge) {
+        final Rectangle rect = getViewRect();
+        /*
+         * Top right visible point
+         */
+        Point2D mapPoint = computeMapLocation(rect.getLocation());
+        final double x0 = mapPoint.getX();
+        final double y0 = mapPoint.getY();
+
+        /*
+         * Bottom left visible point
+         */
+        Point point = new Point((int) rect.getMaxX(), (int) rect.getMaxY());
+        mapPoint = computeMapLocation(point);
+//        mapPoint.setLocation(routeMap.computeMapLocation(point));
+        final double x1 = mapPoint.getX();
+        final double y1 = mapPoint.getY();
+
+        /*
+         * begin point
+         */
+        Point2D pt = edge.getBeginLocation();
+        double x2 = pt.getX();
+        double y2 = pt.getY();
+
+        /*
+         * end point
+         */
+        pt = edge.getEndLocation();
+        double x3 = pt.getX();
+        double y3 = pt.getY();
+
+        final double dx = x3 - x2;
+        final double dy = y3 - y2;
+        if (Math.abs(dx) >= Math.abs(dy)) {
+            final double k = dy / dx;
+            if (x3 < x2) {
+                double t = x3;
+                x3 = x2;
+                x2 = t;
+                t = y3;
+                y3 = y2;
+                y2 = t;
+            }
+            if (x3 < x0 || x2 > x1) {
+                return false;
+            }
+            if (x2 < x0) {
+                y2 = (x0 - x2) * k + y2;
+                x2 = x0;
+            }
+            if (x3 > x1) {
+                y3 = (x1 - x2) * k + y2;
+            }
+            return Math.max(y2, y3) >= y0 && Math.min(y2, y3) <= y1;
+        } else {
+            final double k = dx / dy;
+            if (y3 < y2) {
+                double t = x3;
+                x3 = x2;
+                x2 = t;
+                t = y3;
+                y3 = y2;
+                y2 = t;
+            }
+            if (y3 < y0 || y2 > y1) {
+                return false;
+            }
+            if (y2 < y0) {
+                x2 = (y0 - y2) * k + x2;
+                y2 = y0;
+            }
+            if (y3 > y1) {
+                x3 = (y1 - y2) * k + x2;
+            }
+            return Math.max(x2, x3) >= x0 && Math.min(x2, x3) <= x1;
+        }
+    }
+
+    /**
+     * Returns true if the node is shown
+     *
+     * @param node the node
+     */
+    private boolean isShown(final MapNode node) {
+        final Rectangle rect = getViewRect();
+        Point point = computeViewLocation(node.getLocation());
+        return rect.contains(point);
     }
 
     @Override
@@ -920,10 +1021,12 @@ public class RouteMapViewport extends JComponent {
     /**
      * Center the map to node
      *
-     * @param site the site
+     * @param node the node
      */
-    public void scrollTo(MapNode site) {
-        centerTo(site.getLocation());
+    public void scrollTo(MapNode node) {
+        if (!isShown(node)) {
+            centerTo(node.getLocation());
+        }
     }
 
     /**
@@ -932,10 +1035,12 @@ public class RouteMapViewport extends JComponent {
      * @param edge the edge
      */
     public void scrollTo(MapEdge edge) {
-        centerTo(
-                Algebra.prod(
-                        Algebra.sum(edge.getBeginLocation(), edge.getEndLocation()),
-                        0.5));
+        if (!isShown(edge)) {
+            centerTo(
+                    Algebra.prod(
+                            Algebra.sum(edge.getBeginLocation(), edge.getEndLocation()),
+                            0.5));
+        }
     }
 
     /**
