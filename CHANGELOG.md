@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [4.3.11] - 2023-03-15
+
+### Added
+
+- Issue #197: Add site roundabouts
+
 ## [4.3.10] - 2022-12-12
 
 ### Added
