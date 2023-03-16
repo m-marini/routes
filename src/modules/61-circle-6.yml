@@ -1,0 +1,1858 @@
+---
+version: "1.0"
+maxVehicles: 8000
+default:
+  frequence: 0.13333333333333333
+  speedLimit: 130.0
+sites: {}
+paths: []
+nodes:
+  Node_0:
+    x: -76.986
+    "y": 242.11100000000002
+  Node_1:
+    x: -287.511
+    "y": 367.964
+  Node_2:
+    x: -279.559
+    "y": 324.401
+  Node_3:
+    x: -156.705
+    "y": 141.308
+  Node_4:
+    x: -129.227
+    "y": 309.926
+  Node_5:
+    x: -121.378
+    "y": 362.695
+  Node_6:
+    x: -114.581
+    "y": 198.344
+  Node_7:
+    x: -301.962
+    "y": 414.312
+  Node_8:
+    x: -250.06900000000002
+    "y": 291.609
+  Node_9:
+    x: -197.656
+    "y": 220.58100000000002
+  Node_10:
+    x: -245.872
+    "y": 295.658
+  Node_11:
+    x: -141.365
+    "y": 404.234
+  Node_12:
+    x: -273.431
+    "y": 327.92900000000003
+  Node_13:
+    x: -284.58
+    "y": 409.634
+  Node_14:
+    x: -289.36400000000003
+    "y": 318.754
+  Node_15:
+    x: -290.374
+    "y": 411.193
+  Node_16:
+    x: -168.622
+    "y": 139.305
+  Node_17:
+    x: -130.315
+    "y": 317.464
+  Node_18:
+    x: -256.789
+    "y": 282.026
+  Node_19:
+    x: -253.559
+    "y": 286.335
+  Node_20:
+    x: -164.25
+    "y": 446.546
+  Node_21:
+    x: -211.149
+    "y": 456.96000000000004
+  Node_22:
+    x: -133.29500000000002
+    "y": 360.692
+  Node_23:
+    x: -211.464
+    "y": 265.685
+  Node_24:
+    x: -124.519
+    "y": 315.91200000000003
+  Node_25:
+    x: -167.469
+    "y": 442.228
+  Node_26:
+    x: -208.062
+    "y": 468.557
+  Node_27:
+    x: -131.576
+    "y": 409.907
+  Node_28:
+    x: -203.92600000000002
+    "y": 266.773
+  Node_29:
+    x: -293.119
+    "y": 366.367
+  Node_30:
+    x: -209.606
+    "y": 462.759
+  Node_31:
+    x: -160.773
+    "y": 192.074
+  Node_32:
+    x: -136.47
+    "y": 407.07
+  Node_33:
+    x: -284.461
+    "y": 321.577
+  Node_34:
+    x: -171.27700000000002
+    "y": 187.64000000000001
+  Node_35:
+    x: -116.032
+    "y": 363.34000000000003
+  Node_36:
+    x: -198.13
+    "y": 265.222
+  Node_37:
+    x: -212.693
+    "y": 451.163
+  Node_38:
+    x: -165.481
+    "y": 186.088
+  Node_39:
+    x: -36.441
+    "y": 215.665
+  Node_40:
+    x: -91.87
+    "y": 236.778
+  Node_41:
+    x: -208.36
+    "y": 277.277
+  Node_42:
+    x: -192.758
+    "y": 223.411
+  Node_43:
+    x: -97.242
+    "y": 278.589
+  Node_44:
+    x: -33.211
+    "y": 219.97400000000002
+  Node_45:
+    x: -170.946
+    "y": 436.945
+  Node_46:
+    x: -304.78000000000003
+    "y": 365.363
+  Node_47:
+    x: -117.411
+    "y": 203.242
+  Node_48:
+    x: -172.589
+    "y": 298.758
+  Node_49:
+    x: -86.074
+    "y": 235.227
+  Node_50:
+    x: -162.309
+    "y": 139.69400000000002
+  Node_51:
+    x: -209.912
+    "y": 271.481
+  Node_52:
+    x: -81.64
+    "y": 224.723
+  Node_53:
+    x: -213.014
+    "y": 259.889
+  Node_54:
+    x: -153.889
+    "y": 182.986
+  Node_55:
+    x: -159.222
+    "y": 197.87
+  Node_56:
+    x: -39.931
+    "y": 210.391
+  Node_57:
+    x: -127.691
+    "y": 362.306
+  Node_58:
+    x: -173.96800000000002
+    "y": 138.66
+  Node_59:
+    x: -159.685
+    "y": 184.536
+  Node_60:
+    x: -136.111
+    "y": 319.014
+  Node_61:
+    x: -175.419
+    "y": 303.656
+  Node_62:
+    x: -80.08800000000001
+    "y": 230.519
+  Node_63:
+    x: -299.432
+    "y": 365.995
+  Node_64:
+    x: -78.536
+    "y": 236.315
+  Node_65:
+    x: -118.723
+    "y": 314.36
+  Node_66:
+    x: -92.34400000000001
+    "y": 281.419
+  Node_67:
+    x: -130.778
+    "y": 304.13
+  Node_68:
+    x: -44.128
+    "y": 206.342
+  Node_69:
+    x: -175.131
+    "y": 432.885
+  Node_70:
+    x: -296.168
+    "y": 412.753
+  Node_71:
+    x: -147.483
+    "y": 400.688
+  Node_72:
+    x: 248.281
+    "y": -54.447
+  Node_73:
+    x: 462.56600000000003
+    "y": 64.892
+  Node_74:
+    x: 420.867
+    "y": 79.798
+  Node_75:
+    x: 200.873
+    "y": 65.006
+  Node_76:
+    x: 333.134
+    "y": -43.134
+  Node_77:
+    x: 374.90000000000003
+    "y": -76.32600000000001
+  Node_78:
+    x: 229.189
+    "y": 0.0
+  Node_79:
+    x: 509.927
+    "y": 54.221000000000004
+  Node_80:
+    x: 377.721
+    "y": 70.665
+  Node_81:
+    x: 290.0
+    "y": 60.811
+  Node_82:
+    x: 379.127
+    "y": 65.006
+  Node_83:
+    x: 420.867
+    "y": -79.798
+  Node_84:
+    x: 420.857
+    "y": 72.727
+  Node_85:
+    x: 497.182
+    "y": 41.51
+  Node_86:
+    x: 420.882
+    "y": 91.11200000000001
+  Node_87:
+    x: 501.43
+    "y": 45.747
+  Node_88:
+    x: 205.1
+    "y": 76.32600000000001
+  Node_89:
+    x: 340.205
+    "y": -45.962
+  Node_90:
+    x: 372.785
+    "y": 81.278
+  Node_91:
+    x: 374.90000000000003
+    "y": 76.32600000000001
+  Node_92:
+    x: 468.952
+    "y": -81.147
+  Node_93:
+    x: 501.43
+    "y": -45.747
+  Node_94:
+    x: 379.127
+    "y": -65.006
+  Node_95:
+    x: 335.962
+    "y": 50.205
+  Node_96:
+    x: 335.962
+    "y": -50.205
+  Node_97:
+    x: 466.824
+    "y": -76.2
+  Node_98:
+    x: 509.927
+    "y": -54.221000000000004
+  Node_99:
+    x: 420.882
+    "y": -91.11200000000001
+  Node_100:
+    x: 333.134
+    "y": 43.134
+  Node_101:
+    x: 463.988
+    "y": 70.547
+  Node_102:
+    x: 505.67900000000003
+    "y": -49.984
+  Node_103:
+    x: 246.866
+    "y": 43.134
+  Node_104:
+    x: 420.874
+    "y": -85.455
+  Node_105:
+    x: 420.874
+    "y": 85.455
+  Node_106:
+    x: 248.281
+    "y": 54.447
+  Node_107:
+    x: 372.785
+    "y": -81.278
+  Node_108:
+    x: 328.891
+    "y": 38.891
+  Node_109:
+    x: 497.182
+    "y": -41.51
+  Node_110:
+    x: 244.038
+    "y": 50.205
+  Node_111:
+    x: 205.1
+    "y": -76.32600000000001
+  Node_112:
+    x: 251.109
+    "y": -38.891
+  Node_113:
+    x: 344.447
+    "y": 41.719
+  Node_114:
+    x: 290.0
+    "y": 55.154
+  Node_115:
+    x: 290.0
+    "y": -55.154
+  Node_116:
+    x: 207.215
+    "y": -81.278
+  Node_117:
+    x: 463.988
+    "y": -70.547
+  Node_118:
+    x: 468.952
+    "y": 81.147
+  Node_119:
+    x: 234.846
+    "y": 0.0
+  Node_120:
+    x: 345.154
+    "y": 0.0
+  Node_121:
+    x: 246.866
+    "y": -43.134
+  Node_122:
+    x: 202.279
+    "y": 70.665
+  Node_123:
+    x: 340.205
+    "y": 45.962
+  Node_124:
+    x: 235.553
+    "y": -41.719
+  Node_125:
+    x: 331.719
+    "y": 54.447
+  Node_126:
+    x: 235.553
+    "y": 41.719
+  Node_127:
+    x: 251.109
+    "y": 38.891
+  Node_128:
+    x: 202.279
+    "y": -70.665
+  Node_129:
+    x: 377.721
+    "y": -70.665
+  Node_130:
+    x: 207.215
+    "y": 81.278
+  Node_131:
+    x: 239.79500000000002
+    "y": 45.962
+  Node_132:
+    x: 344.447
+    "y": -41.719
+  Node_133:
+    x: 350.81100000000004
+    "y": 0.0
+  Node_134:
+    x: 239.79500000000002
+    "y": -45.962
+  Node_135:
+    x: 466.824
+    "y": 76.2
+  Node_136:
+    x: 244.038
+    "y": -50.205
+  Node_137:
+    x: 331.719
+    "y": -54.447
+  Node_138:
+    x: 290.0
+    "y": -60.811
+  Node_139:
+    x: 328.891
+    "y": -38.891
+  Node_140:
+    x: 200.873
+    "y": -65.006
+  Node_141:
+    x: 462.56600000000003
+    "y": -64.892
+  Node_142:
+    x: 505.67900000000003
+    "y": 49.984
+  Node_143:
+    x: 420.857
+    "y": -72.727
+  Node_144:
+    x: -171.27700000000002
+    "y": -187.64000000000001
+  Node_145:
+    x: -175.131
+    "y": -432.885
+  Node_146:
+    x: -141.365
+    "y": -404.234
+  Node_147:
+    x: -44.128
+    "y": -206.342
+  Node_148:
+    x: -203.92600000000002
+    "y": -266.773
+  Node_149:
+    x: -253.559
+    "y": -286.335
+  Node_150:
+    x: -114.581
+    "y": -198.344
+  Node_151:
+    x: -208.062
+    "y": -468.557
+  Node_152:
+    x: -127.691
+    "y": -362.306
+  Node_153:
+    x: -92.34400000000001
+    "y": -281.419
+  Node_154:
+    x: -133.29500000000002
+    "y": -360.692
+  Node_155:
+    x: -279.559
+    "y": -324.401
+  Node_156:
+    x: -147.483
+    "y": -400.688
+  Node_157:
+    x: -212.693
+    "y": -451.163
+  Node_158:
+    x: -131.576
+    "y": -409.907
+  Node_159:
+    x: -211.149
+    "y": -456.96000000000004
+  Node_160:
+    x: -36.441
+    "y": -215.665
+  Node_161:
+    x: -209.912
+    "y": -271.481
+  Node_162:
+    x: -116.032
+    "y": -363.34000000000003
+  Node_163:
+    x: -121.378
+    "y": -362.695
+  Node_164:
+    x: -304.78000000000003
+    "y": -365.363
+  Node_165:
+    x: -290.374
+    "y": -411.193
+  Node_166:
+    x: -245.872
+    "y": -295.658
+  Node_167:
+    x: -124.519
+    "y": -315.91200000000003
+  Node_168:
+    x: -211.464
+    "y": -265.685
+  Node_169:
+    x: -299.432
+    "y": -365.995
+  Node_170:
+    x: -301.962
+    "y": -414.312
+  Node_171:
+    x: -289.36400000000003
+    "y": -318.754
+  Node_172:
+    x: -129.227
+    "y": -309.926
+  Node_173:
+    x: -170.946
+    "y": -436.945
+  Node_174:
+    x: -296.168
+    "y": -412.753
+  Node_175:
+    x: -86.074
+    "y": -235.227
+  Node_176:
+    x: -284.461
+    "y": -321.577
+  Node_177:
+    x: -136.47
+    "y": -407.07
+  Node_178:
+    x: -76.986
+    "y": -242.11100000000002
+  Node_179:
+    x: -256.789
+    "y": -282.026
+  Node_180:
+    x: -130.778
+    "y": -304.13
+  Node_181:
+    x: -284.58
+    "y": -409.634
+  Node_182:
+    x: -78.536
+    "y": -236.315
+  Node_183:
+    x: -168.622
+    "y": -139.305
+  Node_184:
+    x: -159.222
+    "y": -197.87
+  Node_185:
+    x: -136.111
+    "y": -319.014
+  Node_186:
+    x: -97.242
+    "y": -278.589
+  Node_187:
+    x: -192.758
+    "y": -223.411
+  Node_188:
+    x: -173.96800000000002
+    "y": -138.66
+  Node_189:
+    x: -293.119
+    "y": -366.367
+  Node_190:
+    x: -164.25
+    "y": -446.546
+  Node_191:
+    x: -117.411
+    "y": -203.242
+  Node_192:
+    x: -172.589
+    "y": -298.758
+  Node_193:
+    x: -160.773
+    "y": -192.074
+  Node_194:
+    x: -39.931
+    "y": -210.391
+  Node_195:
+    x: -130.315
+    "y": -317.464
+  Node_196:
+    x: -153.889
+    "y": -182.986
+  Node_197:
+    x: -118.723
+    "y": -314.36
+  Node_198:
+    x: -81.64
+    "y": -224.723
+  Node_199:
+    x: -91.87
+    "y": -236.778
+  Node_200:
+    x: -162.309
+    "y": -139.69400000000002
+  Node_201:
+    x: -250.06900000000002
+    "y": -291.609
+  Node_202:
+    x: -33.211
+    "y": -219.97400000000002
+  Node_203:
+    x: -80.08800000000001
+    "y": -230.519
+  Node_204:
+    x: -208.36
+    "y": -277.277
+  Node_205:
+    x: -175.419
+    "y": -303.656
+  Node_206:
+    x: -159.685
+    "y": -184.536
+  Node_207:
+    x: -167.469
+    "y": -442.228
+  Node_208:
+    x: -165.481
+    "y": -186.088
+  Node_209:
+    x: -213.014
+    "y": -259.889
+  Node_210:
+    x: -197.656
+    "y": -220.58100000000002
+  Node_211:
+    x: -198.13
+    "y": -265.222
+  Node_212:
+    x: -156.705
+    "y": -141.308
+  Node_213:
+    x: -287.511
+    "y": -367.964
+  Node_214:
+    x: -209.606
+    "y": -462.759
+  Node_215:
+    x: -273.431
+    "y": -327.92900000000003
+edges:
+- start: "Node_40"
+  end: "Node_47"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_47"
+  end: "Node_55"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_55"
+  end: "Node_42"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_42"
+  end: "Node_36"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_36"
+  end: "Node_48"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_48"
+  end: "Node_67"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_67"
+  end: "Node_43"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_43"
+  end: "Node_40"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_4"
+  end: "Node_66"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_66"
+  end: "Node_49"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_49"
+  end: "Node_6"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_6"
+  end: "Node_31"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_31"
+  end: "Node_9"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_9"
+  end: "Node_28"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_28"
+  end: "Node_61"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_61"
+  end: "Node_4"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_51"
+  end: "Node_64"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_41"
+  end: "Node_0"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_62"
+  end: "Node_23"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_52"
+  end: "Node_53"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_24"
+  end: "Node_59"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_65"
+  end: "Node_54"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_38"
+  end: "Node_17"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_34"
+  end: "Node_60"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_65"
+  end: "Node_66"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_65"
+  end: "Node_43"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_24"
+  end: "Node_66"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_24"
+  end: "Node_43"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_43"
+  end: "Node_64"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_43"
+  end: "Node_0"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_66"
+  end: "Node_64"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_66"
+  end: "Node_0"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_62"
+  end: "Node_47"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_52"
+  end: "Node_47"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_62"
+  end: "Node_6"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_52"
+  end: "Node_6"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_47"
+  end: "Node_59"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_47"
+  end: "Node_54"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_6"
+  end: "Node_59"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_6"
+  end: "Node_54"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_38"
+  end: "Node_42"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_34"
+  end: "Node_42"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_38"
+  end: "Node_9"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_34"
+  end: "Node_9"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_42"
+  end: "Node_23"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_42"
+  end: "Node_53"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_9"
+  end: "Node_23"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_9"
+  end: "Node_53"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_51"
+  end: "Node_48"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_48"
+  end: "Node_17"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_41"
+  end: "Node_48"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_48"
+  end: "Node_60"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_51"
+  end: "Node_61"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_61"
+  end: "Node_17"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_41"
+  end: "Node_61"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_61"
+  end: "Node_60"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_68"
+  end: "Node_52"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_56"
+  end: "Node_62"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_64"
+  end: "Node_39"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_0"
+  end: "Node_44"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_13"
+  end: "Node_1"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_1"
+  end: "Node_12"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_12"
+  end: "Node_10"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_10"
+  end: "Node_41"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_15"
+  end: "Node_29"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_29"
+  end: "Node_2"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_2"
+  end: "Node_8"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_8"
+  end: "Node_51"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_23"
+  end: "Node_19"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_19"
+  end: "Node_33"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_33"
+  end: "Node_63"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_63"
+  end: "Node_70"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_53"
+  end: "Node_18"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_18"
+  end: "Node_14"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_14"
+  end: "Node_46"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_46"
+  end: "Node_7"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_54"
+  end: "Node_3"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_59"
+  end: "Node_50"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_16"
+  end: "Node_38"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_58"
+  end: "Node_34"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_60"
+  end: "Node_22"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_22"
+  end: "Node_71"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_71"
+  end: "Node_69"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_69"
+  end: "Node_37"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_17"
+  end: "Node_57"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_57"
+  end: "Node_11"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_11"
+  end: "Node_45"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_45"
+  end: "Node_21"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_30"
+  end: "Node_25"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_25"
+  end: "Node_32"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_32"
+  end: "Node_5"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_5"
+  end: "Node_24"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_26"
+  end: "Node_20"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_20"
+  end: "Node_27"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_27"
+  end: "Node_35"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_35"
+  end: "Node_65"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_112"
+  end: "Node_119"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_119"
+  end: "Node_127"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_127"
+  end: "Node_114"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_114"
+  end: "Node_108"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_108"
+  end: "Node_120"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_120"
+  end: "Node_139"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_139"
+  end: "Node_115"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_115"
+  end: "Node_112"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_76"
+  end: "Node_138"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_138"
+  end: "Node_121"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_121"
+  end: "Node_78"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_78"
+  end: "Node_103"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_103"
+  end: "Node_81"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_81"
+  end: "Node_100"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_100"
+  end: "Node_133"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_133"
+  end: "Node_76"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_123"
+  end: "Node_136"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_113"
+  end: "Node_72"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_134"
+  end: "Node_95"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_124"
+  end: "Node_125"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_96"
+  end: "Node_131"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_137"
+  end: "Node_126"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_110"
+  end: "Node_89"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_106"
+  end: "Node_132"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_137"
+  end: "Node_138"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_137"
+  end: "Node_115"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_96"
+  end: "Node_138"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_96"
+  end: "Node_115"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_115"
+  end: "Node_136"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_115"
+  end: "Node_72"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_138"
+  end: "Node_136"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_138"
+  end: "Node_72"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_134"
+  end: "Node_119"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_124"
+  end: "Node_119"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_134"
+  end: "Node_78"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_124"
+  end: "Node_78"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_119"
+  end: "Node_131"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_119"
+  end: "Node_126"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_78"
+  end: "Node_131"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_78"
+  end: "Node_126"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_110"
+  end: "Node_114"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_106"
+  end: "Node_114"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_110"
+  end: "Node_81"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_106"
+  end: "Node_81"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_114"
+  end: "Node_95"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_114"
+  end: "Node_125"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_81"
+  end: "Node_95"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_81"
+  end: "Node_125"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_123"
+  end: "Node_120"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_120"
+  end: "Node_89"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_113"
+  end: "Node_120"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_120"
+  end: "Node_132"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_123"
+  end: "Node_133"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_133"
+  end: "Node_89"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_113"
+  end: "Node_133"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_133"
+  end: "Node_132"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_140"
+  end: "Node_124"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_128"
+  end: "Node_134"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_136"
+  end: "Node_111"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_72"
+  end: "Node_116"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_85"
+  end: "Node_73"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_73"
+  end: "Node_84"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_84"
+  end: "Node_82"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_82"
+  end: "Node_113"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_87"
+  end: "Node_101"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_101"
+  end: "Node_74"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_74"
+  end: "Node_80"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_80"
+  end: "Node_123"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_95"
+  end: "Node_91"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_91"
+  end: "Node_105"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_105"
+  end: "Node_135"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_135"
+  end: "Node_142"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_125"
+  end: "Node_90"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_90"
+  end: "Node_86"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_86"
+  end: "Node_118"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_118"
+  end: "Node_79"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_126"
+  end: "Node_75"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_131"
+  end: "Node_122"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_88"
+  end: "Node_110"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_130"
+  end: "Node_106"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_132"
+  end: "Node_94"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_94"
+  end: "Node_143"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_143"
+  end: "Node_141"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_141"
+  end: "Node_109"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_89"
+  end: "Node_129"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_129"
+  end: "Node_83"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_83"
+  end: "Node_117"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_117"
+  end: "Node_93"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_102"
+  end: "Node_97"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_97"
+  end: "Node_104"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_104"
+  end: "Node_77"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_77"
+  end: "Node_96"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_98"
+  end: "Node_92"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_92"
+  end: "Node_99"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_99"
+  end: "Node_107"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_107"
+  end: "Node_137"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_184"
+  end: "Node_191"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_191"
+  end: "Node_199"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_199"
+  end: "Node_186"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_186"
+  end: "Node_180"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_180"
+  end: "Node_192"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_192"
+  end: "Node_211"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_211"
+  end: "Node_187"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_187"
+  end: "Node_184"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_148"
+  end: "Node_210"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_210"
+  end: "Node_193"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_193"
+  end: "Node_150"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_150"
+  end: "Node_175"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_175"
+  end: "Node_153"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_153"
+  end: "Node_172"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_172"
+  end: "Node_205"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_205"
+  end: "Node_148"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_195"
+  end: "Node_208"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_185"
+  end: "Node_144"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_206"
+  end: "Node_167"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_196"
+  end: "Node_197"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_168"
+  end: "Node_203"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_209"
+  end: "Node_198"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_182"
+  end: "Node_161"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_178"
+  end: "Node_204"
+  priority: 1
+  speedLimit: 130.0
+- start: "Node_209"
+  end: "Node_210"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_209"
+  end: "Node_187"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_168"
+  end: "Node_210"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_168"
+  end: "Node_187"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_187"
+  end: "Node_208"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_187"
+  end: "Node_144"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_210"
+  end: "Node_208"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_210"
+  end: "Node_144"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_206"
+  end: "Node_191"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_196"
+  end: "Node_191"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_206"
+  end: "Node_150"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_196"
+  end: "Node_150"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_191"
+  end: "Node_203"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_191"
+  end: "Node_198"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_150"
+  end: "Node_203"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_150"
+  end: "Node_198"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_182"
+  end: "Node_186"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_178"
+  end: "Node_186"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_182"
+  end: "Node_153"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_178"
+  end: "Node_153"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_186"
+  end: "Node_167"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_186"
+  end: "Node_197"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_153"
+  end: "Node_167"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_153"
+  end: "Node_197"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_195"
+  end: "Node_192"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_192"
+  end: "Node_161"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_185"
+  end: "Node_192"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_192"
+  end: "Node_204"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_195"
+  end: "Node_205"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_205"
+  end: "Node_161"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_185"
+  end: "Node_205"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_205"
+  end: "Node_204"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_212"
+  end: "Node_196"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_200"
+  end: "Node_206"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_208"
+  end: "Node_183"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_144"
+  end: "Node_188"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_157"
+  end: "Node_145"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_145"
+  end: "Node_156"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_156"
+  end: "Node_154"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_154"
+  end: "Node_185"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_159"
+  end: "Node_173"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_173"
+  end: "Node_146"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_146"
+  end: "Node_152"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_152"
+  end: "Node_195"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_167"
+  end: "Node_163"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_163"
+  end: "Node_177"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_177"
+  end: "Node_207"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_207"
+  end: "Node_214"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_197"
+  end: "Node_162"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_162"
+  end: "Node_158"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_158"
+  end: "Node_190"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_190"
+  end: "Node_151"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_198"
+  end: "Node_147"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_203"
+  end: "Node_194"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_160"
+  end: "Node_182"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_202"
+  end: "Node_178"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_204"
+  end: "Node_166"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_166"
+  end: "Node_215"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_215"
+  end: "Node_213"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_213"
+  end: "Node_181"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_161"
+  end: "Node_201"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_201"
+  end: "Node_155"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_155"
+  end: "Node_189"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_189"
+  end: "Node_165"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_174"
+  end: "Node_169"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_169"
+  end: "Node_176"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_176"
+  end: "Node_149"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_149"
+  end: "Node_168"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_170"
+  end: "Node_164"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_164"
+  end: "Node_171"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_171"
+  end: "Node_179"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_179"
+  end: "Node_209"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_188"
+  end: "Node_58"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_183"
+  end: "Node_16"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_50"
+  end: "Node_200"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_3"
+  end: "Node_212"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_44"
+  end: "Node_130"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_39"
+  end: "Node_88"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_122"
+  end: "Node_56"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_75"
+  end: "Node_68"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_147"
+  end: "Node_140"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_194"
+  end: "Node_128"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_111"
+  end: "Node_160"
+  priority: 0
+  speedLimit: 130.0
+- start: "Node_116"
+  end: "Node_202"
+  priority: 0
+  speedLimit: 130.0
