@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [4.3.12] - 2023-03-16
+
+### Added
+
+- Issue #199: Add more modules
+
+
 ## [4.3.11] - 2023-03-15
 
 ### Added
