@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [4.3.13] - 2023-03-21
+
+### Changed
+
+- Issue #201: Changed circles
+
 ## [4.3.12] - 2023-03-16
 
 ### Added
