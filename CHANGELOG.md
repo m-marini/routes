@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [4.3.14] - 2023-03-23
+
+### Added
+
+- Issue #163: Add parametric modules
+- Issue #203: Show num of points and tracks
+
 ## [4.3.13] - 2023-03-21
 
 ### Changed

@@ -39,8 +39,7 @@ import java.util.OptionalDouble;
 import java.util.UUID;
 
 import static java.util.Objects.requireNonNull;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.isA;
+import static org.hamcrest.Matchers.*;
 
 public class TestUtils {
 
@@ -126,6 +125,13 @@ public class TestUtils {
     static Matcher<MapNode> nodeAt(MapNode expectedNode) {
         requireNonNull(expectedNode);
         return nodeAt(expectedNode.getLocation());
+    }
+
+    static Matcher<MapNode> nodeCloseTo(double x, double y, double epsilon) {
+        return allOf(
+                isA(MapNode.class),
+                hasProperty("location",
+                        pointCloseTo(x, y, epsilon)));
     }
 
     static Matcher<OptionalDouble> optionalDoubleOf(double item) {
@@ -225,6 +231,10 @@ public class TestUtils {
                 }
             }
         };
+    }
+
+    static Matcher<Point2D> pointCloseTo(double x, double y, double epsilon) {
+        return pointCloseTo(new Point2D.Double(x, y), epsilon);
     }
 
     static Matcher<Point2D> pointCloseTo(Point2D expectedPoint, double epsilon) {
