@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.lang.Math.min;
@@ -570,9 +571,12 @@ public class UIController {
                         }
                     })
                     .collect(Tuple2.toMap());
-            return moduleByName.keySet().stream()
-                    .sorted().
-                    flatMap(name -> getValue(moduleByName, name).stream())
+            return Stream.concat(
+                            moduleByName.keySet().stream()
+                                    .sorted().
+                                    flatMap(name -> getValue(moduleByName, name).stream()),
+                            IntStream.range(2, 7).mapToObj(n ->
+                                    new RoundAboutBuilder(n * 2, 42).build()))
                     .collect(Collectors.toList());
         } else {
             return List.of();
@@ -728,6 +732,8 @@ public class UIController {
     private void refresh() {
         routeMap.setStatus(statusView);
         infoPane.setNumVehicles(statusView.getVehicles().size());
+        infoPane.setNumNodes(statusView.getNodes().size());
+        infoPane.setNumEdges(statusView.getEdges().size());
         infoPane.setTime(round(statusView.getStatus().getTime()));
         routeMap.repaint();
     }

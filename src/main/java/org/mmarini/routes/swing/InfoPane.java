@@ -70,6 +70,8 @@ public class InfoPane extends JComponent {
     private double edgeLength;
     private boolean edgeLegend;
     private long time;
+    private long numNodes;
+    private long numEdges;
 
     /**
      *
@@ -124,7 +126,9 @@ public class InfoPane extends JComponent {
                                 fps,
                                 speed,
                                 numVehicles,
-                                timeFmt)
+                                timeFmt,
+                                numNodes,
+                                numEdges)
                 ).toArray(String[]::new);
         Dimension size = getSize();
         Insets insets = Optional.ofNullable(getBorder())
@@ -187,6 +191,22 @@ public class InfoPane extends JComponent {
     public void setNumVehicles(long numVehicles) {
         boolean changed = this.numVehicles != numVehicles;
         this.numVehicles = numVehicles;
+        if (changed) {
+            repaint();
+        }
+    }
+
+    public void setNumNodes(long numNodes) {
+        boolean changed = this.numNodes != numNodes;
+        this.numNodes = numNodes;
+        if (changed) {
+            repaint();
+        }
+    }
+
+    public void setNumEdges(long numEdges) {
+        boolean changed = this.numEdges != numEdges;
+        this.numEdges = numEdges;
         if (changed) {
             repaint();
         }

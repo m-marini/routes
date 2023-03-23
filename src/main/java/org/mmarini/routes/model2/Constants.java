@@ -37,13 +37,12 @@ public interface Constants {
     double KMPHSPM = 3.6;
     double DEFAULT_SPEED_LIMIT_KMH = 130;
     double DEFAULT_FREQUENCY = 8d / 60;
-    double DEFAULT_PATH_INTERVAL = 3;
     double DEFAULT_WEIGHT = 1;
     double DEFAULT_SPEED_LIMIT_MPS = DEFAULT_SPEED_LIMIT_KMH / KMPHSPM;
-    int DEFAULT_PRIORITY = 0;
-    int DEFAULT_MAX_VEHICLES = 8000;
     double DISTANCE_STEP = 0.5;
     double TIME_STEP = DISTANCE_STEP / DEFAULT_SPEED_LIMIT_MPS;
+    int DEFAULT_PRIORITY = 0;
+    int DEFAULT_MAX_VEHICLES = 8000;
 
     /**
      * Returns the movement distance when vehicle is braking
@@ -78,5 +77,9 @@ public interface Constants {
         double x1 = Math.round(x / PRECISION) * PRECISION;
         double y1 = Math.round(y / PRECISION) * PRECISION;
         return new Point2D.Double(x1, y1);
+    }
+
+    static Point2D gridPoint(Point2D pt) {
+        return gridPoint(pt.getX(), pt.getY());
     }
 }
