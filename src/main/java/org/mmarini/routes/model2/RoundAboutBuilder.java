@@ -82,7 +82,7 @@ public class RoundAboutBuilder implements ModuleBuilder {
             double angle = i * getEdgeAngle();
             double x = radius * cos(angle);
             double y = -radius * sin(angle);
-            return new CrossNode(new Point2D.Double(x, y));
+            return new CrossNode(gridPoint(x, y));
         });
     }
 
